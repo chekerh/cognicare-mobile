@@ -1,0 +1,166 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
+import '../../utils/constants.dart';
+import '../../utils/theme.dart';
+import '../../widgets/onboarding_slide.dart';
+
+class OnboardingScreen extends StatefulWidget {
+  const OnboardingScreen({super.key});
+
+  @override
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  final List<OnboardingSlideData> _slides = [
+    OnboardingSlideData(
+      icon: Icons.waving_hand,
+      titleKey: 'onboardingWelcomeTitle',
+      descriptionKey: 'onboardingWelcomeDescription',
+    ),
+    OnboardingSlideData(
+      icon: Icons.personal_video,
+      titleKey: 'onboardingFeaturesTitle',
+      descriptionKey: 'onboardingFeaturesDescription',
+    ),
+    OnboardingSlideData(
+      icon: Icons.accessibility,
+      titleKey: 'onboardingAccessibilityTitle',
+      descriptionKey: 'onboardingAccessibilityDescription',
+    ),
+  ];
+
+  void _onPageChanged(int page) {
+    setState(() {
+      _currentPage = page;
+    });
+  }
+
+  void _nextPage() {
+    if (_currentPage < _slides.length - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      _completeOnboarding();
+    }
+  }
+
+  void _skipToLogin() {
+    context.go(AppConstants.loginRoute);
+  }
+
+  void _completeOnboarding() {
+    context.go(AppConstants.loginRoute);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Skip button
+            Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextButton(
+                  onPressed: _skipToLogin,
+                  child: Text(
+                    localizations.skipButton,
+                    style: TextStyle(
+                      color: AppTheme.text.withOpacity(0.7),
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Page content
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                itemCount: _slides.length,
+                itemBuilder: (context, index) {
+                  return OnboardingSlide(
+                    data: _slides[index],
+                  );
+                },
+              ),
+            ),
+
+            // Bottom navigation
+            Container(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  // Page indicators
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      _slides.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: _currentPage == index ? 24 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: _currentPage == index
+                              ? AppTheme.primary
+                              : AppTheme.primary.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Next/Start button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _nextPage,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        _currentPage == _slides.length - 1
+                            ? localizations.onboardingStartButton
+                            : localizations.nextButton,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+}
