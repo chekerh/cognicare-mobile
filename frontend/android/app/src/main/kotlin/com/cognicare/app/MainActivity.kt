@@ -1,4 +1,4 @@
-package com.example.cognicare_app
+package com.cognicare.app
 
 import io.flutter.embedding.android.FlutterActivity
 
