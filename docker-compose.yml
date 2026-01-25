@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: cognicare-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: cognicare
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./backend/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - cognicare-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cognicare-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      MONGODB_URI: mongodb://mongodb:27017/cognicare
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRATION: 3600
+      CORS_ORIGIN: http://localhost:3000
+      THROTTLE_TTL: 60000
+      THROTTLE_LIMIT: 10
+      BCRYPT_ROUNDS: 12
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+    networks:
+      - cognicare-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cognicare-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - cognicare-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  cognicare-network:
+    driver: bridge
