@@ -26,6 +26,7 @@ class CogniCareApp extends StatelessWidget {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         locale: const Locale('en'), // Default to English, can be changed based on user preference
+        debugShowCheckedModeBanner: false, // Remove debug banner
       ),
     );
   }

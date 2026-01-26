@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/auth_provider.dart';
+import '../utils/constants.dart';
 import '../utils/theme.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -18,7 +20,12 @@ class HomeScreen extends StatelessWidget {
         title: Text(localizations.appTitle),
         actions: [
           IconButton(
-            onPressed: () => authProvider.logout(),
+            onPressed: () async {
+              await authProvider.logout();
+              if (context.mounted) {
+                context.go(AppConstants.loginRoute);
+              }
+            },
             icon: const Icon(Icons.logout),
           ),
         ],

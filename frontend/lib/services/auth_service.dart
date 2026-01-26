@@ -59,7 +59,7 @@ class AuthService {
         }),
       );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final authResponse = AuthResponse.fromJson(jsonDecode(response.body));
         await _storeAuthData(authResponse);
         return authResponse;

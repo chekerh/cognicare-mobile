@@ -25,7 +25,7 @@ export class SignupDto {
     example: '+1234567890'
   })
   @IsOptional()
-  @IsPhoneNumber()
+  @IsString()
   phone?: string;
 
   @ApiProperty({

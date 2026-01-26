@@ -3,9 +3,9 @@ class AppConstants {
   static const String baseUrl = 'http://localhost:3000'; // Change to your backend URL
 
   // API Endpoints
-  static const String signupEndpoint = '/auth/signup';
-  static const String loginEndpoint = '/auth/login';
-  static const String profileEndpoint = '/auth/profile';
+  static const String signupEndpoint = '/api/v1/auth/signup';
+  static const String loginEndpoint = '/api/v1/auth/login';
+  static const String profileEndpoint = '/api/v1/auth/profile';
 
   // Storage Keys
   static const String jwtTokenKey = 'jwt_token';
