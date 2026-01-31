@@ -56,18 +56,22 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.10.4'
+          channel: 'stable'
 
       - name: Cache Flutter dependencies
         uses: actions/cache@v3
         with:
           path: |
-            frontend/.pub-cache
+            ~/.pub-cache
           key: ${{ runner.os }}-flutter-${{ hashFiles('frontend/pubspec.yaml') }}
           restore-keys: |
             ${{ runner.os }}-flutter-
 
-      - name: Install dependencies
-        run: flutter pub get
+      - name: Clean and install dependencies
+        run: |
+          flutter --version
+          rm -f pubspec.lock
+          flutter pub get
 
       - name: Run Flutter analyze
         run: flutter analyze
