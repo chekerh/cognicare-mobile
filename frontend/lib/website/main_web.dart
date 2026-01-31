@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'landing_page.dart';
+import 'admin_login_screen.dart';
+import 'admin_dashboard_screen.dart';
+import 'user_management_screen.dart';
+import '../utils/theme.dart';
 
 void main() {
   runApp(const CogniCareWebsite());
@@ -12,12 +16,15 @@ class CogniCareWebsite extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'CogniCare - Cognitive Health Management',
+      theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Roboto',
-      ),
-      home: const LandingPage(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const LandingPage(),
+        '/admin-login': (context) => const AdminLoginScreen(),
+        '/admin-dashboard': (context) => const AdminDashboardScreen(),
+        '/admin-users': (context) => const UserManagementScreen(),
+      },
     );
   }
 }

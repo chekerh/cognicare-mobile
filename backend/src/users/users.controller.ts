@@ -23,6 +23,7 @@ import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdatePasswordDto, UpdateEmailDto, RequestEmailChangeDto, VerifyEmailChangeDto } from './dto/update-credentials.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard } from '../auth/admin.guard';
 
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
@@ -32,15 +33,17 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all users' })
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Get all users (Admin only)' })
   @ApiQuery({
     name: 'role',
     required: false,
-    enum: ['family', 'doctor', 'volunteer'],
+    enum: ['family', 'doctor', 'volunteer', 'admin'],
     description: 'Filter users by role',
   })
   @ApiResponse({ status: 200, description: 'List of all users' })
-  async findAll(@Query('role') role?: 'family' | 'doctor' | 'volunteer') {
+  @ApiResponse({ status: 403, description: 'Admin access required' })
+  async findAll(@Query('role') role?: 'family' | 'doctor' | 'volunteer' | 'admin') {
     if (role) {
       return this.usersService.findByRole(role);
     }
@@ -48,28 +51,34 @@ export class UsersController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get user by ID' })
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Get user by ID (Admin only)' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({ status: 200, description: 'User found' })
   @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 403, description: 'Admin access required' })
   async findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update user' })
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Update user (Admin only)' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 403, description: 'Admin access required' })
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete user' })
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Delete user (Admin only)' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({ status: 200, description: 'User deleted successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 403, description: 'Admin access required' })
   async remove(@Param('id') id: string) {
     await this.usersService.remove(id);
     return { message: 'User deleted successfully' };

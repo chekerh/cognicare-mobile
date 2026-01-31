@@ -36,6 +36,12 @@ export class AuthService {
   async signup(signupDto: SignupDto): Promise<{ accessToken: string; refreshToken: string; user: any }> {
     const { email, password, verificationCode, ...userData } = signupDto;
 
+    // Prevent admin role creation through signup
+    // This check is redundant due to DTO validation, but kept as defense in depth
+    if ((userData.role as string) === 'admin') {
+      throw new BadRequestException('Admin accounts can only be created by system administrators');
+    }
+
     // Check if user already exists
     const existingUser = await this.userModel.findOne({ email });
     if (existingUser) {
@@ -44,9 +50,11 @@ export class AuthService {
 
     // Verify the email verification code
     const verification = await this.emailVerificationModel.findOne({ email }).exec();
-    
+
     if (!verification) {
-      throw new BadRequestException('Email verification required. Please request a verification code first.');
+      throw new BadRequestException(
+        'Email verification required. Please request a verification code first.',
+      );
     }
 
     if (new Date() > verification.expiresAt) {

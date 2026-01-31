@@ -29,11 +29,11 @@ export class UpdateUserDto {
   @ApiPropertyOptional({
     description: 'User\'s role in the platform',
     example: 'family',
-    enum: ['family', 'doctor', 'volunteer'],
+    enum: ['family', 'doctor', 'volunteer', 'admin'],
   })
   @IsOptional()
-  @IsEnum(['family', 'doctor', 'volunteer'])
-  role?: 'family' | 'doctor' | 'volunteer';
+  @IsEnum(['family', 'doctor', 'volunteer', 'admin'])
+  role?: 'family' | 'doctor' | 'volunteer' | 'admin';
 
   @ApiPropertyOptional({
     description: 'User\'s profile picture URL',

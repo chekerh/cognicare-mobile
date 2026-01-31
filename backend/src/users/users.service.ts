@@ -55,7 +55,7 @@ export class UsersService {
     }
   }
 
-  async findByRole(role: 'family' | 'doctor' | 'volunteer'): Promise<User[]> {
+  async findByRole(role: 'family' | 'doctor' | 'volunteer' | 'admin'): Promise<User[]> {
     return this.userModel.find({ role }).select('-passwordHash').exec();
   }
 

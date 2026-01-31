@@ -17,8 +17,8 @@ export class User {
   @Prop({ required: true })
   passwordHash: string;
 
-  @Prop({ required: true, enum: ['family', 'doctor', 'volunteer'] })
-  role: 'family' | 'doctor' | 'volunteer';
+  @Prop({ required: true, enum: ['family', 'doctor', 'volunteer', 'admin'] })
+  role: 'family' | 'doctor' | 'volunteer' | 'admin';
 
   @Prop()
   profilePic?: string;

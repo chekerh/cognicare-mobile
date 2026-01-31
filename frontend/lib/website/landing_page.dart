@@ -47,12 +47,31 @@ class LandingPage extends StatelessWidget {
                     size: 40,
                   ),
                   const SizedBox(width: 16),
-                  Text(
-                    'CogniCare',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: isMobile ? 24 : 32,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Text(
+                      'CogniCare',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isMobile ? 24 : 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  // Admin Login Button
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/admin-login');
+                    },
+                    icon: const Icon(Icons.admin_panel_settings, size: 18),
+                    label: Text(isMobile ? 'Admin' : 'Admin Login'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppTheme.primary,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 12 : 20,
+                        vertical: 12,
+                      ),
+                      elevation: 0,
                     ),
                   ),
                 ],
