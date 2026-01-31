@@ -17,5 +17,9 @@ void main() {
 
     // Verify that the app builds without errors
     expect(find.byType(MaterialApp), findsOneWidget);
+    
+    // Wait for splash screen timer to complete (3 seconds + extra time for navigation)
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
   });
 }
