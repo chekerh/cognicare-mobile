@@ -418,7 +418,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     border: Border.all(color: AppTheme.primary.withOpacity(0.3)),
                   ),
                   child: DropdownButtonFormField<String>(
-                    initialValue: _selectedRole,
+                    value: _selectedRole,
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                     ),

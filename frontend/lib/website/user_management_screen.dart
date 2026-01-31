@@ -111,7 +111,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       DropdownButtonFormField<String>(
-                        initialValue: selectedRole,
+                        value: selectedRole,
                         decoration: const InputDecoration(
                           labelText: 'Role',
                           border: OutlineInputBorder(),
