@@ -57,8 +57,8 @@ dependencies:
   # URL launcher for opening links
   url_launcher: ^6.2.2
 
-  # Internationalization
-  intl: ^0.20.2
+  # Internationalization (managed by flutter_localizations)
+  intl: any
 
 dev_dependencies:
   flutter_test:

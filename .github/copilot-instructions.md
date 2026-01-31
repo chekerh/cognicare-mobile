@@ -13,6 +13,7 @@ Monorepo with Flutter mobile app (`frontend/`) and NestJS REST API (`backend/`) 
 ### Frontend (Flutter)
 - **Entry**: [frontend/lib/main.dart](../frontend/lib/main.dart) - Material 3, Provider state, GoRouter navigation
 - **Package name**: `cognicare_frontend` (critical for imports)
+- **Flutter version**: 3.24.0+ (Dart SDK 3.3.0+ required for intl 0.20.2)
 - **State**: Provider pattern in [frontend/lib/providers/](../frontend/lib/providers/)
 - **Routing**: Declarative GoRouter in [frontend/lib/utils/router.dart](../frontend/lib/utils/router.dart)
 - **API config**: Backend URLs in [frontend/lib/utils/constants.dart](../frontend/lib/utils/constants.dart) - **update `baseUrl` for deployment**
@@ -147,12 +148,14 @@ GitHub Actions at [.github/workflows/ci-cd.yml](workflows/ci-cd.yml):
 
 ## Common Gotchas
 1. **Flutter package name**: `cognicare_frontend` not `frontend` - critical for test imports
-2. **CORS origins**: Backend allows `http://localhost:3000`, `:8080`, `:54200-54202`, and `CORS_ORIGIN` env var. Update for production.
-3. **Mobile device testing**: Change `AppConstants.baseUrl` from `localhost:3000` to host machine IP (e.g., `192.168.1.100:3000`)
-4. **SendGrid sender verification**: Email sending fails unless sender verified at https://app.sendgrid.com/settings/sender_auth/senders
-5. **MongoDB init**: [init-mongo.js](../backend/init-mongo.js) creates indexes on first Docker start. Admin user must be created manually.
-6. **Deprecated APIs**: Never use `.withOpacity()` in Flutter - use `.withValues(alpha:)` instead
-7. **BuildContext warnings**: `use_build_context_synchronously` requires capturing context objects before async gaps, even with `mounted` checks
-8. **ESLint auto-fix**: Running `npm run lint` applies `--fix` automatically - may reformat code
-9. **Port conflicts**: Frontend (8080), Backend (3000), MongoDB (27017) - ensure all available before `docker-compose up`
-10. **Swagger auth**: Click "Authorize" in Swagger UI (`/api`), enter JWT token with `Bearer ` prefix to test protected endpoints
+2. **Flutter version**: CI/CD uses 3.24.0+ for Dart SDK 3.3.0+ compatibility (intl 0.20.2 requirement)
+3. **intl dependency**: Set to `any` in pubspec.yaml - managed by flutter_localizations, pinned to 0.20.2
+4. **CORS origins**: Backend allows `http://localhost:3000`, `:8080`, `:54200-54202`, and `CORS_ORIGIN` env var. Update for production.
+5. **Mobile device testing**: Change `AppConstants.baseUrl` from `localhost:3000` to host machine IP (e.g., `192.168.1.100:3000`)
+6. **SendGrid sender verification**: Email sending fails unless sender verified at https://app.sendgrid.com/settings/sender_auth/senders
+7. **MongoDB init**: [init-mongo.js](../backend/init-mongo.js) creates indexes on first Docker start. Admin user must be created manually.
+8. **Deprecated APIs**: Never use `.withOpacity()` in Flutter - use `.withValues(alpha:)` instead
+9. **BuildContext warnings**: `use_build_context_synchronously` requires capturing context objects before async gaps, even with `mounted` checks
+10. **ESLint auto-fix**: Running `npm run lint` applies `--fix` automatically - may reformat code
+11. **Port conflicts**: Frontend (8080), Backend (3000), MongoDB (27017) - ensure all available before `docker-compose up`
+12. **Swagger auth**: Click "Authorize" in Swagger UI (`/api`), enter JWT token with `Bearer ` prefix to test protected endpoints
