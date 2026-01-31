@@ -10,7 +10,7 @@ export class AppController {
   @Get()
   @ApiOperation({
     summary: 'Welcome endpoint',
-    description: 'Returns a welcome message for the CogniCare API'
+    description: 'Returns a welcome message for the CogniCare API',
   })
   @ApiResponse({
     status: 200,
@@ -20,15 +20,15 @@ export class AppController {
       properties: {
         message: { type: 'string', example: 'Welcome to CogniCare API v1.0' },
         timestamp: { type: 'string', format: 'date-time' },
-        documentation: { type: 'string', example: '/api' }
-      }
-    }
+        documentation: { type: 'string', example: '/api' },
+      },
+    },
   })
   getWelcome() {
     return {
       message: 'Welcome to CogniCare API v1.0',
       timestamp: new Date().toISOString(),
-      documentation: '/api'
+      documentation: '/api',
     };
   }
 
@@ -36,7 +36,7 @@ export class AppController {
   @Redirect('/api', 302)
   @ApiOperation({
     summary: 'API Documentation redirect',
-    description: 'Redirects to Swagger API documentation'
+    description: 'Redirects to Swagger API documentation',
   })
   getApiDocs() {
     // This will redirect to /api where Swagger is set up

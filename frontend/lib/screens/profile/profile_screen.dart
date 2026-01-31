@@ -153,10 +153,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primary.withOpacity(0.1) : Colors.transparent,
+          color: isSelected ? AppTheme.primary.withValues(alpha: 0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? AppTheme.primary : Colors.grey.withOpacity(0.3),
+            color: isSelected ? AppTheme.primary : Colors.grey.withValues(alpha: 0.3),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -219,14 +219,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Icon(
                         Icons.error_outline,
                         size: 64,
-                        color: Colors.red.withOpacity(0.5),
+                        color: Colors.red.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         localizations.errorLoadingProfile,
                         style: TextStyle(
                           fontSize: 18,
-                          color: AppTheme.text.withOpacity(0.7),
+                          color: AppTheme.text.withValues(alpha: 0.7),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -234,7 +234,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _error!,
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppTheme.text.withOpacity(0.5),
+                          color: AppTheme.text.withValues(alpha: 0.5),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -300,7 +300,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Text(
                               user?.email ?? '',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
+                                color: Colors.white.withValues(alpha: 0.9),
                                 fontSize: 14,
                               ),
                             ),
@@ -388,12 +388,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               icon: Icons.lock_outline,
                               label: localizations.changePassword,
                               onTap: () async {
+                                final messenger = ScaffoldMessenger.of(context);
                                 final result = await showDialog<bool>(
                                   context: context,
                                   builder: (context) => const ChangePasswordDialog(),
                                 );
-                                if (result == true && mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                if (result == true) {
+                                  if (!mounted) return;
+                                  messenger.showSnackBar(
                                     const SnackBar(
                                       content: Text('Password updated successfully! Please login again.'),
                                       backgroundColor: Colors.green,
@@ -409,12 +411,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               icon: Icons.email_outlined,
                               label: localizations.changeEmail,
                               onTap: () async {
+                                final messenger = ScaffoldMessenger.of(context);
                                 final result = await showDialog<bool>(
                                   context: context,
                                   builder: (context) => const ChangeEmailDialog(),
                                 );
-                                if (result == true && mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                if (result == true) {
+                                  if (!mounted) return;
+                                  messenger.showSnackBar(
                                     const SnackBar(
                                       content: Text('Email updated successfully! Please login again.'),
                                       backgroundColor: Colors.green,
@@ -492,7 +496,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -503,7 +507,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.1),
+                color: AppTheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: AppTheme.primary, size: 24),
@@ -522,7 +526,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Icon(
               Icons.arrow_forward_ios,
               size: 16,
-              color: AppTheme.text.withOpacity(0.3),
+              color: AppTheme.text.withValues(alpha: 0.3),
             ),
           ],
         ),
@@ -542,7 +546,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -553,7 +557,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.1),
+              color: AppTheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: AppTheme.primary, size: 24),
@@ -567,7 +571,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   label,
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppTheme.text.withOpacity(0.6),
+                    color: AppTheme.text.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 4),

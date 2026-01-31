@@ -6,7 +6,7 @@ import { Injectable } from '@nestjs/common';
  */
 @Injectable()
 export class MailMockService {
-  async sendVerificationCode(email: string, code: string): Promise<void> {
+  sendVerificationCode(email: string, code: string): Promise<void> {
     console.log('='.repeat(60));
     console.log('📧 MOCK EMAIL SERVICE - Development Mode');
     console.log('='.repeat(60));
@@ -15,5 +15,6 @@ export class MailMockService {
     console.log(`\nYour verification code is: ${code}`);
     console.log(`\nThis code will expire in 10 minutes.`);
     console.log('='.repeat(60));
+    return Promise.resolve();
   }
 }

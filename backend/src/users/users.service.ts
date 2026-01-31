@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
@@ -55,11 +60,17 @@ export class UsersService {
     }
   }
 
-  async findByRole(role: 'family' | 'doctor' | 'volunteer' | 'admin'): Promise<User[]> {
+  async findByRole(
+    role: 'family' | 'doctor' | 'volunteer' | 'admin',
+  ): Promise<User[]> {
     return this.userModel.find({ role }).select('-passwordHash').exec();
   }
 
-  async updatePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+  async updatePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
     const user = await this.userModel.findById(userId).exec();
 
     if (!user) {
@@ -67,7 +78,10 @@ export class UsersService {
     }
 
     // Verify current password
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.passwordHash,
+    );
     if (!isPasswordValid) {
       throw new Error('Current password is incorrect');
     }
@@ -82,7 +96,11 @@ export class UsersService {
     await user.save();
   }
 
-  async updateEmail(userId: string, newEmail: string, password: string): Promise<User> {
+  async updateEmail(
+    userId: string,
+    newEmail: string,
+    password: string,
+  ): Promise<User> {
     const user = await this.userModel.findById(userId).exec();
 
     if (!user) {
@@ -96,7 +114,9 @@ export class UsersService {
     }
 
     // Check if new email already exists
-    const existingUser = await this.userModel.findOne({ email: newEmail }).exec();
+    const existingUser = await this.userModel
+      .findOne({ email: newEmail })
+      .exec();
     if (existingUser && existingUser._id.toString() !== userId) {
       throw new Error('Email already in use');
     }
@@ -109,7 +129,11 @@ export class UsersService {
     return this.findOne(userId);
   }
 
-  async requestEmailChange(userId: string, newEmail: string, password: string): Promise<void> {
+  async requestEmailChange(
+    userId: string,
+    newEmail: string,
+    password: string,
+  ): Promise<void> {
     const user = await this.userModel.findById(userId).exec();
 
     if (!user) {
@@ -123,17 +147,19 @@ export class UsersService {
     }
 
     // Check if new email already exists
-    const existingUser = await this.userModel.findOne({ email: newEmail }).exec();
+    const existingUser = await this.userModel
+      .findOne({ email: newEmail })
+      .exec();
     if (existingUser && existingUser._id.toString() !== userId) {
       throw new BadRequestException('Email already in use');
     }
 
     // Generate 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Hash the code before storing
     const hashedCode = await bcrypt.hash(code, 10);
-    
+
     // Set expiration to 10 minutes from now
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10);
@@ -149,8 +175,13 @@ export class UsersService {
 
   async verifyEmailChange(userId: string, code: string): Promise<User> {
     const user = await this.userModel.findById(userId).exec();
-    
-    if (!user || !user.emailChangeCode || !user.emailChangeExpires || !user.pendingEmail) {
+
+    if (
+      !user ||
+      !user.emailChangeCode ||
+      !user.emailChangeExpires ||
+      !user.pendingEmail
+    ) {
       throw new BadRequestException('No pending email change request');
     }
 
@@ -165,7 +196,7 @@ export class UsersService {
 
     // Verify the code
     const isValidCode = await bcrypt.compare(code, user.emailChangeCode);
-    
+
     if (!isValidCode) {
       throw new BadRequestException('Invalid verification code');
     }

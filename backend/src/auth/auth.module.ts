@@ -7,7 +7,10 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { User, UserSchema } from '../users/schemas/user.schema';
-import { EmailVerification, EmailVerificationSchema } from './schemas/email-verification.schema';
+import {
+  EmailVerification,
+  EmailVerificationSchema,
+} from './schemas/email-verification.schema';
 import { MailModule } from '../mail/mail.module';
 
 @Module({
@@ -17,10 +20,11 @@ import { MailModule } from '../mail/mail.module';
     MailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'fallback-secret-key',
+      useFactory: (configService: ConfigService) => ({
+        secret:
+          configService.get<string>('JWT_SECRET') || 'fallback-secret-key',
         signOptions: {
-          expiresIn: 3600 // 1 hour in seconds
+          expiresIn: 3600, // 1 hour in seconds
         },
       }),
       inject: [ConfigService],

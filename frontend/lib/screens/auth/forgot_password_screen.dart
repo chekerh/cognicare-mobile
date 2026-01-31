@@ -295,7 +295,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Text(
           'We\'ll send you a 6-digit verification code',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.text.withOpacity(0.7),
+                color: AppTheme.text.withValues(alpha: 0.7),
               ),
         ),
         const SizedBox(height: 24),
@@ -333,7 +333,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Text(
           'Check your email for the 6-digit code',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.text.withOpacity(0.7),
+                color: AppTheme.text.withValues(alpha: 0.7),
               ),
         ),
         const SizedBox(height: 24),
@@ -389,7 +389,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Text(
           'Enter a strong password for your account',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.text.withOpacity(0.7),
+                color: AppTheme.text.withValues(alpha: 0.7),
               ),
         ),
         const SizedBox(height: 24),

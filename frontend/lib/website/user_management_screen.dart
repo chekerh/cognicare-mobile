@@ -111,7 +111,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       DropdownButtonFormField<String>(
-                        value: selectedRole,
+                        initialValue: selectedRole,
                         decoration: const InputDecoration(
                           labelText: 'Role',
                           border: OutlineInputBorder(),
@@ -211,6 +211,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 if (confirmed != true) return;
               }
               
+              if (!context.mounted) return;
               Navigator.pop(context);
               await _updateUser(
                 user.id,
@@ -465,7 +466,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         });
       },
       backgroundColor: Colors.white,
-      selectedColor: AppTheme.primary.withOpacity(0.2),
+      selectedColor: AppTheme.primary.withValues(alpha: 0.2),
       checkmarkColor: AppTheme.primary,
     );
   }
@@ -505,7 +506,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            color: _getRoleColor(user.role).withOpacity(0.2),
+            color: _getRoleColor(user.role).withValues(alpha: 0.2),
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -553,7 +554,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
-                  color: _getRoleColor(user.role).withOpacity(0.1),
+                  color: _getRoleColor(user.role).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: _getRoleColor(user.role)),
                 ),

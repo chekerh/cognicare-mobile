@@ -59,17 +59,13 @@ class _ChangeEmailDialogState extends State<ChangeEmailDialog> {
         }),
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        print('Setting _codeSent to true');
         if (mounted) {
           setState(() {
             _codeSent = true;
             _isLoading = false;
           });
-          print('_codeSent is now: $_codeSent');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Verification code sent to new email'),
@@ -83,7 +79,6 @@ class _ChangeEmailDialogState extends State<ChangeEmailDialog> {
         throw Exception(error['message'] ?? 'Failed to send verification code');
       }
     } catch (e) {
-      print('Error in _requestEmailChange: $e');
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -149,7 +144,6 @@ class _ChangeEmailDialogState extends State<ChangeEmailDialog> {
 
   @override
   Widget build(BuildContext context) {
-    print('Building ChangeEmailDialog, _codeSent: $_codeSent, _isLoading: $_isLoading');
     return AlertDialog(
       title: Text(_codeSent ? 'Verify Email Change' : 'Change Email'),
       content: Form(

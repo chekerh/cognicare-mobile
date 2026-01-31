@@ -21,7 +21,11 @@ import {
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UpdatePasswordDto, UpdateEmailDto, RequestEmailChangeDto, VerifyEmailChangeDto } from './dto/update-credentials.dto';
+import {
+  UpdatePasswordDto,
+  RequestEmailChangeDto,
+  VerifyEmailChangeDto,
+} from './dto/update-credentials.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminGuard } from '../auth/admin.guard';
 
@@ -43,7 +47,9 @@ export class UsersController {
   })
   @ApiResponse({ status: 200, description: 'List of all users' })
   @ApiResponse({ status: 403, description: 'Admin access required' })
-  async findAll(@Query('role') role?: 'family' | 'doctor' | 'volunteer' | 'admin') {
+  async findAll(
+    @Query('role') role?: 'family' | 'doctor' | 'volunteer' | 'admin',
+  ) {
     if (role) {
       return this.usersService.findByRole(role);
     }
@@ -85,25 +91,35 @@ export class UsersController {
   }
 
   @Post('update-password')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Update user password',
-    description: 'Change the authenticated user\'s password. This will invalidate all refresh tokens and require re-login.'
+    description:
+      "Change the authenticated user's password. This will invalidate all refresh tokens and require re-login.",
   })
   @ApiBody({ type: UpdatePasswordDto })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Password updated successfully. Refresh token invalidated.',
     schema: {
       type: 'object',
       properties: {
-        message: { type: 'string', example: 'Password updated successfully. Please login again.' }
-      }
-    }
+        message: {
+          type: 'string',
+          example: 'Password updated successfully. Please login again.',
+        },
+      },
+    },
   })
   @ApiResponse({ status: 400, description: 'Invalid current password' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
-  async updatePassword(@Request() req, @Body() updatePasswordDto: UpdatePasswordDto) {
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing JWT token',
+  })
+  async updatePassword(
+    @Request() req: { user: { id: string } },
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ): Promise<{ message: string }> {
     await this.usersService.updatePassword(
       req.user.id,
       updatePasswordDto.currentPassword,
@@ -113,48 +129,65 @@ export class UsersController {
   }
 
   @Post('update-email')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Request email change',
-    description: 'Request to change email address. A verification code will be sent to the new email address.'
+    description:
+      'Request to change email address. A verification code will be sent to the new email address.',
   })
   @ApiBody({ type: RequestEmailChangeDto })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Verification code sent to new email address',
     schema: {
       type: 'object',
       properties: {
-        message: { type: 'string', example: 'Verification code sent to new email address' }
-      }
-    }
+        message: {
+          type: 'string',
+          example: 'Verification code sent to new email address',
+        },
+      },
+    },
   })
-  @ApiResponse({ status: 400, description: 'Invalid password or email already in use' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid password or email already in use',
+  })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
-  async requestEmailChange(@Request() req, @Body() requestEmailChangeDto: RequestEmailChangeDto) {
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing JWT token',
+  })
+  async requestEmailChange(
+    @Request() req: { user: { id: string } },
+    @Body() requestEmailChangeDto: RequestEmailChangeDto,
+  ): Promise<{ message: string }> {
     await this.usersService.requestEmailChange(
       req.user.id,
       requestEmailChangeDto.newEmail,
       requestEmailChangeDto.password,
     );
-    return { 
-      message: 'Verification code sent to new email address' 
+    return {
+      message: 'Verification code sent to new email address',
     };
   }
 
   @Post('verify-email-change')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Verify email change with code',
-    description: 'Verify the email change using the code sent to the new email address. This will update the email and invalidate all refresh tokens.'
+    description:
+      'Verify the email change using the code sent to the new email address. This will update the email and invalidate all refresh tokens.',
   })
   @ApiBody({ type: VerifyEmailChangeDto })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Email updated successfully',
     schema: {
       type: 'object',
       properties: {
-        message: { type: 'string', example: 'Email updated successfully. Please login again.' },
+        message: {
+          type: 'string',
+          example: 'Email updated successfully. Please login again.',
+        },
         user: {
           type: 'object',
           properties: {
@@ -163,22 +196,31 @@ export class UsersController {
             email: { type: 'string' },
             phone: { type: 'string' },
             role: { type: 'string' },
-          }
-        }
-      }
-    }
+          },
+        },
+      },
+    },
   })
-  @ApiResponse({ status: 400, description: 'Invalid or expired verification code' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid or expired verification code',
+  })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing JWT token' })
-  async verifyEmailChange(@Request() req, @Body() verifyEmailChangeDto: VerifyEmailChangeDto) {
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing JWT token',
+  })
+  async verifyEmailChange(
+    @Request() req: { user: { id: string } },
+    @Body() verifyEmailChangeDto: VerifyEmailChangeDto,
+  ) {
     const user = await this.usersService.verifyEmailChange(
       req.user.id,
       verifyEmailChangeDto.code,
     );
-    return { 
+    return {
       message: 'Email updated successfully. Please login again.',
-      user 
+      user,
     };
   }
 }

@@ -6,22 +6,29 @@ import {
   UseGuards,
   Request,
   HttpStatus,
-  HttpCode
+  HttpCode,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBody,
-  ApiBearerAuth
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { ForgotPasswordDto, VerifyResetCodeDto, ResetPasswordDto } from './dto/forgot-password.dto';
-import { SendVerificationCodeDto, VerifyEmailCodeDto } from './dto/verify-email.dto';
+import {
+  ForgotPasswordDto,
+  VerifyResetCodeDto,
+  ResetPasswordDto,
+} from './dto/forgot-password.dto';
+import {
+  SendVerificationCodeDto,
+  VerifyEmailCodeDto,
+} from './dto/verify-email.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ErrorResponseDto } from '../common/dto/error-response.dto';
 
@@ -36,7 +43,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Send email verification code',
-    description: 'Send a 6-digit verification code to the email address for signup verification'
+    description:
+      'Send a 6-digit verification code to the email address for signup verification',
   })
   @ApiBody({ type: SendVerificationCodeDto })
   @ApiResponse({
@@ -45,21 +53,26 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        message: { type: 'string', example: 'Verification code sent to your email' }
-      }
-    }
+        message: {
+          type: 'string',
+          example: 'Verification code sent to your email',
+        },
+      },
+    },
   })
   @ApiResponse({
     status: HttpStatus.CONFLICT,
     description: 'User with this email already exists',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.TOO_MANY_REQUESTS,
     description: 'Too many requests',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
-  async sendVerificationCode(@Body() sendVerificationCodeDto: SendVerificationCodeDto) {
+  async sendVerificationCode(
+    @Body() sendVerificationCodeDto: SendVerificationCodeDto,
+  ) {
     await this.authService.sendVerificationCode(sendVerificationCodeDto.email);
     return { message: 'Verification code sent to your email' };
   }
@@ -69,7 +82,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Verify email with code',
-    description: 'Verify the email address using the code sent via email'
+    description: 'Verify the email address using the code sent via email',
   })
   @ApiBody({ type: VerifyEmailCodeDto })
   @ApiResponse({
@@ -79,19 +92,19 @@ export class AuthController {
       type: 'object',
       properties: {
         message: { type: 'string', example: 'Email verified successfully' },
-        verified: { type: 'boolean', example: true }
-      }
-    }
+        verified: { type: 'boolean', example: true },
+      },
+    },
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid or expired verification code',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
   async verifyEmailCode(@Body() verifyEmailCodeDto: VerifyEmailCodeDto) {
     const verified = await this.authService.verifyEmailCode(
       verifyEmailCodeDto.email,
-      verifyEmailCodeDto.code
+      verifyEmailCodeDto.code,
     );
     return { message: 'Email verified successfully', verified };
   }
@@ -100,7 +113,7 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per minute for signup
   @ApiOperation({
     summary: 'User registration',
-    description: 'Create a new user account with email, password, and role'
+    description: 'Create a new user account with email, password, and role',
   })
   @ApiBody({ type: SignupDto })
   @ApiResponse({
@@ -109,8 +122,14 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        accessToken: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
-        refreshToken: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
+        accessToken: {
+          type: 'string',
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        },
+        refreshToken: {
+          type: 'string',
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        },
         user: {
           type: 'object',
           properties: {
@@ -119,26 +138,26 @@ export class AuthController {
             email: { type: 'string', example: 'john@example.com' },
             phone: { type: 'string', example: '+1234567890' },
             role: { type: 'string', enum: ['family', 'doctor', 'volunteer'] },
-            createdAt: { type: 'string', format: 'date-time' }
-          }
-        }
-      }
-    }
+            createdAt: { type: 'string', format: 'date-time' },
+          },
+        },
+      },
+    },
   })
   @ApiResponse({
     status: HttpStatus.CONFLICT,
     description: 'User with this email already exists',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid input data',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.TOO_MANY_REQUESTS,
     description: 'Too many requests',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
   async signup(@Body() signupDto: SignupDto) {
     return this.authService.signup(signupDto);
@@ -149,7 +168,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'User login',
-    description: 'Authenticate user with email and password'
+    description: 'Authenticate user with email and password',
   })
   @ApiBody({ type: LoginDto })
   @ApiResponse({
@@ -158,7 +177,10 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        token: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
+        token: {
+          type: 'string',
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        },
         user: {
           type: 'object',
           properties: {
@@ -167,26 +189,26 @@ export class AuthController {
             email: { type: 'string', example: 'john@example.com' },
             phone: { type: 'string', example: '+1234567890' },
             role: { type: 'string', enum: ['family', 'doctor', 'volunteer'] },
-            createdAt: { type: 'string', format: 'date-time' }
-          }
-        }
-      }
-    }
+            createdAt: { type: 'string', format: 'date-time' },
+          },
+        },
+      },
+    },
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
     description: 'Invalid credentials',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid input data',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.TOO_MANY_REQUESTS,
     description: 'Too many requests',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
@@ -197,7 +219,7 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get user profile',
-    description: 'Retrieve the authenticated user\'s profile information'
+    description: "Retrieve the authenticated user's profile information",
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -210,16 +232,16 @@ export class AuthController {
         email: { type: 'string', example: 'john@example.com' },
         phone: { type: 'string', example: '+1234567890' },
         role: { type: 'string', enum: ['family', 'doctor', 'volunteer'] },
-        createdAt: { type: 'string', format: 'date-time' }
-      }
-    }
+        createdAt: { type: 'string', format: 'date-time' },
+      },
+    },
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
     description: 'Invalid or expired token',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
-  async getProfile(@Request() req) {
+  async getProfile(@Request() req: { user: { id: string } }) {
     return this.authService.getProfile(req.user.id);
   }
 
@@ -227,7 +249,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Refresh access token',
-    description: 'Get a new access token and refresh token using a valid refresh token'
+    description:
+      'Get a new access token and refresh token using a valid refresh token',
   })
   @ApiBody({ type: RefreshTokenDto })
   @ApiResponse({
@@ -236,17 +259,25 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        accessToken: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
-        refreshToken: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
-      }
-    }
+        accessToken: {
+          type: 'string',
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        },
+        refreshToken: {
+          type: 'string',
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        },
+      },
+    },
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
     description: 'Invalid or expired refresh token',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
-  async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+  async refresh(
+    @Body() refreshTokenDto: RefreshTokenDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     return this.authService.refreshTokens(refreshTokenDto.refreshToken);
   }
 
@@ -256,7 +287,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Logout user',
-    description: 'Invalidate the user\'s refresh token'
+    description: "Invalidate the user's refresh token",
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -264,16 +295,16 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        message: { type: 'string', example: 'Logged out successfully' }
-      }
-    }
+        message: { type: 'string', example: 'Logged out successfully' },
+      },
+    },
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
     description: 'Invalid or expired token',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
-  async logout(@Request() req) {
+  async logout(@Request() req: { user: { id: string } }) {
     await this.authService.logout(req.user.id);
     return { message: 'Logged out successfully' };
   }
@@ -282,7 +313,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Request password reset',
-    description: 'Send a verification code to the email address if it exists. For security, always returns success regardless of whether email exists.'
+    description:
+      'Send a verification code to the email address if it exists. For security, always returns success regardless of whether email exists.',
   })
   @ApiBody({ type: ForgotPasswordDto })
   @ApiResponse({
@@ -291,19 +323,26 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        message: { type: 'string', example: 'If your email is registered, you will receive a verification code shortly.' }
-      }
-    }
+        message: {
+          type: 'string',
+          example:
+            'If your email is registered, you will receive a verification code shortly.',
+        },
+      },
+    },
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid input data',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+  async forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<{ message: string }> {
     await this.authService.forgotPassword(forgotPasswordDto.email);
-    return { 
-      message: 'If your email is registered, you will receive a verification code shortly.' 
+    return {
+      message:
+        'If your email is registered, you will receive a verification code shortly.',
     };
   }
 
@@ -311,7 +350,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Verify password reset code',
-    description: 'Verify the 6-digit code sent to email'
+    description: 'Verify the 6-digit code sent to email',
   })
   @ApiBody({ type: VerifyResetCodeDto })
   @ApiResponse({
@@ -320,14 +359,14 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        message: { type: 'string', example: 'Code verified successfully' }
-      }
-    }
+        message: { type: 'string', example: 'Code verified successfully' },
+      },
+    },
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
     description: 'Invalid or expired verification code',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
   async verifyResetCode(@Body() verifyResetCodeDto: VerifyResetCodeDto) {
     await this.authService.verifyResetCode(
@@ -341,7 +380,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Reset password with verification code',
-    description: 'Reset password using the verified code. This will invalidate all refresh tokens.'
+    description:
+      'Reset password using the verified code. This will invalidate all refresh tokens.',
   })
   @ApiBody({ type: ResetPasswordDto })
   @ApiResponse({
@@ -350,14 +390,18 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        message: { type: 'string', example: 'Password reset successfully. Please login with your new password.' }
-      }
-    }
+        message: {
+          type: 'string',
+          example:
+            'Password reset successfully. Please login with your new password.',
+        },
+      },
+    },
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
     description: 'Invalid or expired verification code',
-    type: ErrorResponseDto
+    type: ErrorResponseDto,
   })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     await this.authService.resetPassword(
@@ -365,8 +409,9 @@ export class AuthController {
       resetPasswordDto.code,
       resetPasswordDto.newPassword,
     );
-    return { 
-      message: 'Password reset successfully. Please login with your new password.' 
+    return {
+      message:
+        'Password reset successfully. Please login with your new password.',
     };
   }
 }

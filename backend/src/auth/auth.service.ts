@@ -1,11 +1,19 @@
-import { Injectable, ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { User, UserDocument } from '../users/schemas/user.schema';
-import { EmailVerification, EmailVerificationDocument } from './schemas/email-verification.schema';
+import {
+  EmailVerification,
+  EmailVerificationDocument,
+} from './schemas/email-verification.schema';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { MailService } from '../mail/mail.service';
@@ -14,7 +22,8 @@ import { MailService } from '../mail/mail.service';
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @InjectModel(EmailVerification.name) private emailVerificationModel: Model<EmailVerificationDocument>,
+    @InjectModel(EmailVerification.name)
+    private emailVerificationModel: Model<EmailVerificationDocument>,
     private jwtService: JwtService,
     private configService: ConfigService,
     private mailService: MailService,
@@ -24,7 +33,7 @@ export class AuthService {
     const payload = { email: user.email, sub: user._id, role: user.role };
     const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
-    
+
     return { accessToken, refreshToken };
   }
 
@@ -33,13 +42,17 @@ export class AuthService {
     return bcrypt.hash(refreshToken, saltRounds);
   }
 
-  async signup(signupDto: SignupDto): Promise<{ accessToken: string; refreshToken: string; user: any }> {
+  async signup(
+    signupDto: SignupDto,
+  ): Promise<{ accessToken: string; refreshToken: string; user: any }> {
     const { email, password, verificationCode, ...userData } = signupDto;
 
     // Prevent admin role creation through signup
     // This check is redundant due to DTO validation, but kept as defense in depth
     if ((userData.role as string) === 'admin') {
-      throw new BadRequestException('Admin accounts can only be created by system administrators');
+      throw new BadRequestException(
+        'Admin accounts can only be created by system administrators',
+      );
     }
 
     // Check if user already exists
@@ -49,7 +62,9 @@ export class AuthService {
     }
 
     // Verify the email verification code
-    const verification = await this.emailVerificationModel.findOne({ email }).exec();
+    const verification = await this.emailVerificationModel
+      .findOne({ email })
+      .exec();
 
     if (!verification) {
       throw new BadRequestException(
@@ -59,10 +74,15 @@ export class AuthService {
 
     if (new Date() > verification.expiresAt) {
       await this.emailVerificationModel.deleteOne({ email });
-      throw new BadRequestException('Verification code has expired. Please request a new code.');
+      throw new BadRequestException(
+        'Verification code has expired. Please request a new code.',
+      );
     }
 
-    const isValidCode = await bcrypt.compare(verificationCode, verification.code);
+    const isValidCode = await bcrypt.compare(
+      verificationCode,
+      verification.code,
+    );
     if (!isValidCode) {
       throw new BadRequestException('Invalid verification code');
     }
@@ -91,6 +111,11 @@ export class AuthService {
     user.refreshToken = hashedRefreshToken;
     await user.save();
 
+    // Send welcome email (non-blocking)
+    this.mailService
+      .sendWelcomeEmail(user.email, user.fullName)
+      .catch((err) => console.error('Failed to send welcome email:', err));
+
     return {
       accessToken,
       refreshToken,
@@ -106,7 +131,9 @@ export class AuthService {
     };
   }
 
-  async login(loginDto: LoginDto): Promise<{ accessToken: string; refreshToken: string; user: any }> {
+  async login(
+    loginDto: LoginDto,
+  ): Promise<{ accessToken: string; refreshToken: string; user: any }> {
     const { email, password } = loginDto;
 
     // Find user by email
@@ -144,19 +171,26 @@ export class AuthService {
     };
   }
 
-  async refreshTokens(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+  async refreshTokens(
+    refreshToken: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       // Verify refresh token
+
       const payload = this.jwtService.verify(refreshToken);
-      
+
       // Find user
+
       const user = await this.userModel.findById(payload.sub);
       if (!user || !user.refreshToken) {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
       // Verify stored refresh token matches
-      const refreshTokenMatches = await bcrypt.compare(refreshToken, user.refreshToken);
+      const refreshTokenMatches = await bcrypt.compare(
+        refreshToken,
+        user.refreshToken,
+      );
       if (!refreshTokenMatches) {
         throw new UnauthorizedException('Invalid refresh token');
       }
@@ -165,12 +199,14 @@ export class AuthService {
       const tokens = this.generateTokens(user);
 
       // Hash and store new refresh token
-      const hashedRefreshToken = await this.hashRefreshToken(tokens.refreshToken);
+      const hashedRefreshToken = await this.hashRefreshToken(
+        tokens.refreshToken,
+      );
       user.refreshToken = hashedRefreshToken;
       await user.save();
 
       return tokens;
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
@@ -184,26 +220,34 @@ export class AuthService {
     await this.userModel.findByIdAndUpdate(userId, { refreshToken: undefined });
   }
 
-  async getProfile(userId: string): Promise<any> {
+  async getProfile(userId: string): Promise<{
+    id: string;
+    fullName: string;
+    email: string;
+    phone?: string;
+    role: string;
+    profilePic?: string;
+    createdAt: Date;
+  }> {
     const user = await this.userModel.findById(userId);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
     return {
-      id: user._id,
+      id: user._id.toString(),
       fullName: user.fullName,
       email: user.email,
       phone: user.phone,
       role: user.role,
       profilePic: user.profilePic,
-      createdAt: user.createdAt,
+      createdAt: user.createdAt || new Date(),
     };
   }
 
   async forgotPassword(email: string): Promise<void> {
     const user = await this.userModel.findOne({ email });
-    
+
     // Don't reveal if email exists or not for security
     if (!user) {
       return;
@@ -211,10 +255,10 @@ export class AuthService {
 
     // Generate 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Hash the code before storing
     const hashedCode = await bcrypt.hash(code, 10);
-    
+
     // Set expiration to 10 minutes from now
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10);
@@ -223,13 +267,13 @@ export class AuthService {
     user.passwordResetExpires = expiresAt;
     await user.save();
 
-    // Send email with the plain code
-    await this.mailService.sendVerificationCode(email, code);
+    // Send email with the plain code using new template
+    await this.mailService.sendPasswordResetCode(email, code);
   }
 
   async verifyResetCode(email: string, code: string): Promise<boolean> {
     const user = await this.userModel.findOne({ email });
-    
+
     if (!user || !user.passwordResetCode || !user.passwordResetExpires) {
       throw new UnauthorizedException('Invalid or expired verification code');
     }
@@ -244,7 +288,7 @@ export class AuthService {
 
     // Verify the code
     const isValidCode = await bcrypt.compare(code, user.passwordResetCode);
-    
+
     if (!isValidCode) {
       throw new UnauthorizedException('Invalid verification code');
     }
@@ -252,12 +296,16 @@ export class AuthService {
     return true;
   }
 
-  async resetPassword(email: string, code: string, newPassword: string): Promise<void> {
+  async resetPassword(
+    email: string,
+    code: string,
+    newPassword: string,
+  ): Promise<void> {
     // First verify the code
     await this.verifyResetCode(email, code);
 
     const user = await this.userModel.findOne({ email });
-    
+
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
@@ -283,10 +331,10 @@ export class AuthService {
 
     // Generate 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Hash the code before storing
     const hashedCode = await bcrypt.hash(code, 10);
-    
+
     // Set expiration to 10 minutes from now
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10);
@@ -308,10 +356,14 @@ export class AuthService {
   }
 
   async verifyEmailCode(email: string, code: string): Promise<boolean> {
-    const verification = await this.emailVerificationModel.findOne({ email }).exec();
-    
+    const verification = await this.emailVerificationModel
+      .findOne({ email })
+      .exec();
+
     if (!verification) {
-      throw new BadRequestException('No verification code found for this email');
+      throw new BadRequestException(
+        'No verification code found for this email',
+      );
     }
 
     if (new Date() > verification.expiresAt) {
@@ -320,7 +372,7 @@ export class AuthService {
     }
 
     const isValidCode = await bcrypt.compare(code, verification.code);
-    
+
     if (!isValidCode) {
       throw new BadRequestException('Invalid verification code');
     }

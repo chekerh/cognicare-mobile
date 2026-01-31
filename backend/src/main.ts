@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import * as compression from 'compression';
@@ -11,28 +11,44 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Security headers
-  app.use(helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" }
-  }));
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
 
   // Enable compression
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   app.use(compression.default());
 
   // Enable CORS for Flutter app
   const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:8080',
-    'http://localhost:54200',  // Flutter web dev server
+    'http://localhost:54200', // Flutter web dev server
     'http://localhost:54201',
     'http://localhost:54202',
     process.env.CORS_ORIGIN,
   ].filter(Boolean);
 
   app.enableCors({
-    origin: (origin, callback) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       // Allow requests with no origin (like mobile apps or Postman)
-      if (!origin) return callback(null, true);
-      
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      // In development, allow all localhost origins (Flutter web uses random ports)
+      if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) {
+        callback(null, true);
+        return;
+      }
+
+      // Check against allowed origins list
       if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
@@ -54,19 +70,23 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggingInterceptor());
 
   // Enable global validation pipes
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    transform: true,
-    forbidNonWhitelisted: true,
-    transformOptions: {
-      enableImplicitConversion: true,
-    },
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
 
   // Swagger/OpenAPI documentation
   const config = new DocumentBuilder()
     .setTitle('CogniCare API')
-    .setDescription('Personalized cognitive health and development platform API')
+    .setDescription(
+      'Personalized cognitive health and development platform API',
+    )
     .setVersion('1.0')
     .addTag('auth', 'Authentication endpoints')
     .addTag('users', 'User management')
@@ -100,4 +120,4 @@ async function bootstrap() {
   console.log(`🚀 CogniCare API is running on: http://localhost:${port}`);
   console.log(`📚 Swagger documentation: http://localhost:${port}/api`);
 }
-bootstrap();
+void bootstrap();

@@ -21,7 +21,8 @@ export class EmailVerification {
   updatedAt?: Date;
 }
 
-export const EmailVerificationSchema = SchemaFactory.createForClass(EmailVerification);
+export const EmailVerificationSchema =
+  SchemaFactory.createForClass(EmailVerification);
 
 // Index to automatically delete expired documents after 15 minutes
 EmailVerificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });

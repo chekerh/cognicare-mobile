@@ -28,8 +28,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
       if (typeof exceptionResponse === 'string') {
         message = exceptionResponse;
         error = exception.message;
-      } else if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
-        const responseObj = exceptionResponse as any;
+      } else if (
+        typeof exceptionResponse === 'object' &&
+        exceptionResponse !== null
+      ) {
+        const responseObj = exceptionResponse as {
+          message?: string;
+          error?: string;
+        };
         message = responseObj.message || exception.message;
         error = responseObj.error || 'Http Exception';
       } else {
@@ -57,9 +63,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       message,
     };
 
-    this.logger.warn(
-      `${request.method} ${request.url} ${status} - ${message}`,
-    );
+    this.logger.warn(`${request.method} ${request.url} ${status} - ${message}`);
 
     response.status(status).json(errorResponse);
   }

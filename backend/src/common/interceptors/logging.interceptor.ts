@@ -17,7 +17,6 @@ export class LoggingInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
     const { method, url } = request;
-    const userAgent = request.get('User-Agent') || '';
     const now = Date.now();
 
     return next.handle().pipe(

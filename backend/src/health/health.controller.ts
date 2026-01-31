@@ -17,7 +17,8 @@ export class HealthController {
   @Get()
   @ApiOperation({
     summary: 'Health check',
-    description: 'Check the health status of the application and its dependencies',
+    description:
+      'Check the health status of the application and its dependencies',
   })
   @ApiResponse({
     status: 200,
@@ -32,19 +33,17 @@ export class HealthController {
             mongodb: {
               type: 'object',
               properties: {
-                status: { type: 'string', example: 'up' }
-              }
-            }
-          }
-        }
-      }
-    }
+                status: { type: 'string', example: 'up' },
+              },
+            },
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 503, description: 'Service unavailable' })
   @HealthCheck()
   check() {
-    return this.health.check([
-      () => this.mongoose.pingCheck('mongodb'),
-    ]);
+    return this.health.check([() => this.mongoose.pingCheck('mongodb')]);
   }
 }

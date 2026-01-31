@@ -8,7 +8,8 @@ import { MailMockService } from './mail-mock.service';
   providers: [
     {
       provide: MailService,
-      useClass: process.env.NODE_ENV === 'development' ? MailMockService : MailService,
+      useClass:
+        process.env.NODE_ENV === 'development' ? MailMockService : MailService,
     },
   ],
   exports: [MailService],

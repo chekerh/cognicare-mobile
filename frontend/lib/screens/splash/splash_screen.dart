@@ -62,13 +62,15 @@ class _SplashScreenState extends State<SplashScreen>
         // Token is valid, update user data and navigate to home
         if (mounted) {
           authProvider.updateUser(user);
-          context.go(AppConstants.homeRoute);
+          final router = GoRouter.of(context);
+          router.go(AppConstants.homeRoute);
         }
       } catch (e) {
         // Token is invalid or expired, clear storage and go to login
         if (mounted) {
+          final router = GoRouter.of(context);
           await authProvider.logout();
-          context.go(AppConstants.loginRoute);
+          router.go(AppConstants.loginRoute);
         }
       }
     } else {
@@ -77,12 +79,13 @@ class _SplashScreenState extends State<SplashScreen>
       final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
       
       if (mounted) {
+        final router = GoRouter.of(context);
         if (onboardingComplete) {
           // User has seen onboarding, go to login
-          context.go(AppConstants.loginRoute);
+          router.go(AppConstants.loginRoute);
         } else {
           // First time user, show onboarding
-          context.go(AppConstants.onboardingRoute);
+          router.go(AppConstants.onboardingRoute);
         }
       }
     }
@@ -115,7 +118,7 @@ class _SplashScreenState extends State<SplashScreen>
                   borderRadius: BorderRadius.circular(60),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -143,7 +146,7 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Text(
                   localizations.splashTagline,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         fontWeight: FontWeight.w300,
                       ),
                   textAlign: TextAlign.center,

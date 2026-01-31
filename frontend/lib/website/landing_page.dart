@@ -88,21 +88,42 @@ class LandingPage extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    'A Personalized Path to Cognitive Progress',
+                    'CogniCare 🧠',
                     style: TextStyle(
-                      fontSize: isMobile ? 32 : 56,
+                      fontSize: isMobile ? 36 : 64,
                       fontWeight: FontWeight.bold,
                       color: AppTheme.text,
                       height: 1.2,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
                   Text(
-                    'Your journey to better cognitive health starts here. We provide personalized care and support for your cognitive development.',
+                    'Your companion for better cognitive health',
+                    style: TextStyle(
+                      fontSize: isMobile ? 20 : 28,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.primary,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    'CogniCare is a digital platform dedicated to supporting cognitive well-being and mental development in a simple, accessible, and personalized way. It helps users better understand, monitor, and improve their cognitive health through guided experiences designed for everyday life.',
                     style: TextStyle(
                       fontSize: isMobile ? 16 : 20,
-                      color: AppTheme.text.withOpacity(0.8),
+                      color: AppTheme.text.withValues(alpha: 0.8),
+                      height: 1.6,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'With an intuitive interface and a smooth user experience, CogniCare makes it easy to get started, follow your progress, and stay engaged over time. The app adapts to individual needs and preferences, offering a personalized journey for each user.',
+                    style: TextStyle(
+                      fontSize: isMobile ? 16 : 18,
+                      color: AppTheme.text.withValues(alpha: 0.75),
                       height: 1.6,
                     ),
                     textAlign: TextAlign.center,
@@ -152,8 +173,30 @@ class LandingPage extends StatelessWidget {
                     ),
                     textAlign: TextAlign.center,
                   ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Available in multiple languages, CogniCare is built to be inclusive and accessible to a wide audience. Whether you are using it for yourself or for a loved one, the platform provides a safe and supportive environment focused on long-term well-being.',
+                    style: TextStyle(
+                      fontSize: isMobile ? 16 : 18,
+                      color: AppTheme.text.withValues(alpha: 0.75),
+                      height: 1.6,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                   SizedBox(height: isMobile ? 30 : 50),
                   _buildFeaturesGrid(isMobile),
+                  SizedBox(height: isMobile ? 30 : 50),
+                  Text(
+                    'CogniCare is more than an app — it\'s a step toward a healthier, sharper, and more balanced mind. 🧠✨',
+                    style: TextStyle(
+                      fontSize: isMobile ? 18 : 22,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primary,
+                      fontStyle: FontStyle.italic,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ],
               ),
             ),
@@ -263,27 +306,39 @@ class LandingPage extends StatelessWidget {
       alignment: WrapAlignment.center,
       children: [
         _buildFeatureCard(
-          icon: Icons.psychology,
-          title: 'Personalized Care',
-          description: 'Tailored exercises and tracking designed specifically for your cognitive development needs.',
+          icon: Icons.spa,
+          title: 'Simple & Accessible',
+          description: 'Easy to get started with an intuitive interface designed for everyday use.',
           isMobile: isMobile,
         ),
         _buildFeatureCard(
-          icon: Icons.track_changes,
-          title: 'Progress Tracking',
-          description: 'Monitor your cognitive development journey with detailed analytics and insights.',
+          icon: Icons.trending_up,
+          title: 'Track Your Progress',
+          description: 'Follow your cognitive development journey and stay engaged over time.',
           isMobile: isMobile,
         ),
         _buildFeatureCard(
-          icon: Icons.people,
-          title: 'Expert Support',
-          description: 'Connect with healthcare professionals and volunteers who understand your needs.',
+          icon: Icons.person_outline,
+          title: 'Personalized Journey',
+          description: 'The app adapts to your individual needs and preferences for a unique experience.',
           isMobile: isMobile,
         ),
         _buildFeatureCard(
           icon: Icons.language,
-          title: 'Multi-Language',
-          description: 'Available in English, French, and Arabic for accessible care worldwide.',
+          title: 'Multi-Language Support',
+          description: 'Available in English, French, and Arabic for inclusive and accessible care.',
+          isMobile: isMobile,
+        ),
+        _buildFeatureCard(
+          icon: Icons.favorite_outline,
+          title: 'Safe & Supportive',
+          description: 'A secure environment focused on your long-term well-being and mental health.',
+          isMobile: isMobile,
+        ),
+        _buildFeatureCard(
+          icon: Icons.psychology_outlined,
+          title: 'Guided Experiences',
+          description: 'Expertly designed activities to help you understand, monitor, and improve cognitive health.',
           isMobile: isMobile,
         ),
       ],
@@ -304,7 +359,7 @@ class LandingPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -315,7 +370,7 @@ class LandingPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.1),
+              color: AppTheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -339,7 +394,7 @@ class LandingPage extends StatelessWidget {
             description,
             style: TextStyle(
               fontSize: 14,
-              color: AppTheme.text.withOpacity(0.7),
+              color: AppTheme.text.withValues(alpha: 0.7),
               height: 1.5,
             ),
             textAlign: TextAlign.center,

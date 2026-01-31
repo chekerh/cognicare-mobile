@@ -16,7 +16,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final _adminService = AdminService();
   User? _adminUser;
   bool _isLoading = true;
-  Map<String, int> _userStats = {
+  final Map<String, int> _userStats = {
     'total': 0,
     'family': 0,
     'doctor': 0,
@@ -362,7 +362,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withOpacity(0.1),
+                  color: AppTheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: AppTheme.primary, size: 28),
