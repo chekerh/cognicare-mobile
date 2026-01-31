@@ -360,7 +360,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Center(
           child: TextButton(
             onPressed: _isLoading ? null : _requestCode,
-            child: Text(
+            child: const Text(
               'Resend Code',
               style: TextStyle(
                 color: AppTheme.primary,

@@ -56,7 +56,7 @@ class CustomTextField extends StatelessWidget {
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
-      style: TextStyle(color: AppTheme.text),
+      style: const TextStyle(color: AppTheme.text),
       validator: validator,
     );
   }

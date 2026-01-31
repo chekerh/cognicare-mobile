@@ -17,7 +17,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<OnboardingSlideData> _slides = [
+  final List<OnboardingSlideData> _slides = const [
     OnboardingSlideData(
       icon: Icons.waving_hand,
       titleKey: 'onboardingWelcomeTitle',

@@ -147,8 +147,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => context.push('/forgot-password'),
-                    child: Text(
+                    onPressed: () => context.go('/forgot-password'),
+                    child: const Text(
                       'Forgot Password?',
                       style: TextStyle(
                         color: AppTheme.primary,
@@ -193,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () => context.go(AppConstants.signupRoute),
                     child: Text(
                       localizations.createAccountLink,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppTheme.primary,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,

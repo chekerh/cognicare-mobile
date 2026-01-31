@@ -373,8 +373,8 @@ class _SignupScreenState extends State<SignupScreen> {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.green),
                     ),
-                    child: Row(
-                      children: const [
+                    child: const Row(
+                      children: [
                         Icon(Icons.check_circle, color: Colors.green),
                         SizedBox(width: 8),
                         Text(
@@ -403,7 +403,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 // Role selection
                 Text(
                   localizations.roleLabel,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppTheme.text,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -532,7 +532,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     onPressed: () => context.go(AppConstants.loginRoute),
                     child: Text(
                       localizations.alreadyHaveAccountLink,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppTheme.primary,
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
