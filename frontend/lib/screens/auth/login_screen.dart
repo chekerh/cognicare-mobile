@@ -103,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   localizations.loginSubtitle,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.text.withValues(alpha: 0.7),
+                        color: AppTheme.text.withOpacity(0.7),
                       ),
                 ),
 

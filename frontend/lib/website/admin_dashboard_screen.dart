@@ -362,7 +362,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.1),
+                  color: AppTheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: AppTheme.primary, size: 28),

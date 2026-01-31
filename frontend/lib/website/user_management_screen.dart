@@ -466,7 +466,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         });
       },
       backgroundColor: Colors.white,
-      selectedColor: AppTheme.primary.withValues(alpha: 0.2),
+      selectedColor: AppTheme.primary.withOpacity(0.2),
       checkmarkColor: AppTheme.primary,
     );
   }
@@ -506,7 +506,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            color: _getRoleColor(user.role).withValues(alpha: 0.2),
+            color: _getRoleColor(user.role).withOpacity(0.2),
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -554,7 +554,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
-                  color: _getRoleColor(user.role).withValues(alpha: 0.1),
+                  color: _getRoleColor(user.role).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: _getRoleColor(user.role)),
                 ),

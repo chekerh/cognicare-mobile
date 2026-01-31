@@ -36,7 +36,7 @@ class OnboardingSlide extends StatelessWidget {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.1),
+              color: AppTheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(60),
             ),
             child: Icon(
@@ -62,7 +62,7 @@ class OnboardingSlide extends StatelessWidget {
           Text(
             _getLocalizedText(localizations, data.descriptionKey),
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.text.withValues(alpha: 0.7),
+                  color: AppTheme.text.withOpacity(0.7),
                   height: 1.6,
                 ),
             textAlign: TextAlign.center,

@@ -113,7 +113,7 @@ class LandingPage extends StatelessWidget {
                     'CogniCare is a digital platform dedicated to supporting cognitive well-being and mental development in a simple, accessible, and personalized way. It helps users better understand, monitor, and improve their cognitive health through guided experiences designed for everyday life.',
                     style: TextStyle(
                       fontSize: isMobile ? 16 : 20,
-                      color: AppTheme.text.withValues(alpha: 0.8),
+                      color: AppTheme.text.withOpacity(0.8),
                       height: 1.6,
                     ),
                     textAlign: TextAlign.center,
@@ -123,7 +123,7 @@ class LandingPage extends StatelessWidget {
                     'With an intuitive interface and a smooth user experience, CogniCare makes it easy to get started, follow your progress, and stay engaged over time. The app adapts to individual needs and preferences, offering a personalized journey for each user.',
                     style: TextStyle(
                       fontSize: isMobile ? 16 : 18,
-                      color: AppTheme.text.withValues(alpha: 0.75),
+                      color: AppTheme.text.withOpacity(0.75),
                       height: 1.6,
                     ),
                     textAlign: TextAlign.center,
@@ -178,7 +178,7 @@ class LandingPage extends StatelessWidget {
                     'Available in multiple languages, CogniCare is built to be inclusive and accessible to a wide audience. Whether you are using it for yourself or for a loved one, the platform provides a safe and supportive environment focused on long-term well-being.',
                     style: TextStyle(
                       fontSize: isMobile ? 16 : 18,
-                      color: AppTheme.text.withValues(alpha: 0.75),
+                      color: AppTheme.text.withOpacity(0.75),
                       height: 1.6,
                     ),
                     textAlign: TextAlign.center,
@@ -359,7 +359,7 @@ class LandingPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -370,7 +370,7 @@ class LandingPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.1),
+              color: AppTheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -394,7 +394,7 @@ class LandingPage extends StatelessWidget {
             description,
             style: TextStyle(
               fontSize: 14,
-              color: AppTheme.text.withValues(alpha: 0.7),
+              color: AppTheme.text.withOpacity(0.7),
               height: 1.5,
             ),
             textAlign: TextAlign.center,

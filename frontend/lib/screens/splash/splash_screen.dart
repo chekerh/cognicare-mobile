@@ -118,7 +118,7 @@ class _SplashScreenState extends State<SplashScreen>
                   borderRadius: BorderRadius.circular(60),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
+                      color: Colors.black.withOpacity(0.2),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -146,7 +146,7 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Text(
                   localizations.splashTagline,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: Colors.white.withOpacity(0.9),
                         fontWeight: FontWeight.w300,
                       ),
                   textAlign: TextAlign.center,

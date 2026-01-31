@@ -30,7 +30,7 @@ class _HomeContainerScreenState extends State<HomeContainerScreen> {
           });
         },
         selectedItemColor: AppTheme.primary,
-        unselectedItemColor: AppTheme.text.withValues(alpha: 0.5),
+        unselectedItemColor: AppTheme.text.withOpacity(0.5),
         backgroundColor: Colors.white,
         elevation: 8,
         type: BottomNavigationBarType.fixed,

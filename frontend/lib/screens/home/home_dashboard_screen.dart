@@ -45,7 +45,7 @@ class HomeDashboardScreen extends StatelessWidget {
                   Text(
                     'Welcome back,',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: Colors.white.withOpacity(0.9),
                       fontSize: 16,
                     ),
                   ),
@@ -160,7 +160,7 @@ class HomeDashboardScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -172,7 +172,7 @@ class HomeDashboardScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -191,7 +191,7 @@ class HomeDashboardScreen extends StatelessWidget {
             title,
             style: TextStyle(
               fontSize: 14,
-              color: AppTheme.text.withValues(alpha: 0.7),
+              color: AppTheme.text.withOpacity(0.7),
             ),
           ),
         ],
@@ -207,7 +207,7 @@ class HomeDashboardScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -219,14 +219,14 @@ class HomeDashboardScreen extends StatelessWidget {
             Icon(
               Icons.inbox_outlined,
               size: 64,
-              color: AppTheme.text.withValues(alpha: 0.3),
+              color: AppTheme.text.withOpacity(0.3),
             ),
             const SizedBox(height: 16),
             Text(
               'No activities yet',
               style: TextStyle(
                 fontSize: 16,
-                color: AppTheme.text.withValues(alpha: 0.6),
+                color: AppTheme.text.withOpacity(0.6),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -235,7 +235,7 @@ class HomeDashboardScreen extends StatelessWidget {
               'Start your cognitive health journey today!',
               style: TextStyle(
                 fontSize: 14,
-                color: AppTheme.text.withValues(alpha: 0.4),
+                color: AppTheme.text.withOpacity(0.4),
               ),
               textAlign: TextAlign.center,
             ),

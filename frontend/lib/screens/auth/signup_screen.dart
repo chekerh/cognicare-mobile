@@ -266,7 +266,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 Text(
                   localizations.signupSubtitle,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.text.withValues(alpha: 0.7),
+                        color: AppTheme.text.withOpacity(0.7),
                       ),
                 ),
 
@@ -369,7 +369,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.1),
+                      color: Colors.green.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.green),
                     ),
@@ -415,7 +415,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
+                    border: Border.all(color: AppTheme.primary.withOpacity(0.3)),
                   ),
                   child: DropdownButtonFormField<String>(
                     initialValue: _selectedRole,
@@ -490,7 +490,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       child: Text(
                         localizations.termsAgreement,
                         style: TextStyle(
-                          color: AppTheme.text.withValues(alpha: 0.7),
+                          color: AppTheme.text.withOpacity(0.7),
                           fontSize: 14,
                         ),
                       ),

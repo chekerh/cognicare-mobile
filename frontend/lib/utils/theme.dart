@@ -59,14 +59,14 @@ class AppTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: primary.withValues(alpha: 0.5)),
+          borderSide: BorderSide(color: primary.withOpacity(0.5)),
         ),
         focusedBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(8)),
           borderSide: BorderSide(color: primary, width: 2),
         ),
         labelStyle: const TextStyle(color: text),
-        hintStyle: TextStyle(color: text.withValues(alpha: 0.6)),
+        hintStyle: TextStyle(color: text.withOpacity(0.6)),
       ),
 
       // Text Themes

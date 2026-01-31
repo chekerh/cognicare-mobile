@@ -31,16 +31,16 @@ class CustomTextField extends StatelessWidget {
       maxLength: maxLength,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: AppTheme.text.withValues(alpha: 0.7)),
+        labelStyle: TextStyle(color: AppTheme.text.withOpacity(0.7)),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppTheme.primary.withValues(alpha: 0.3)),
+          borderSide: BorderSide(color: AppTheme.primary.withOpacity(0.3)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppTheme.primary.withValues(alpha: 0.3)),
+          borderSide: BorderSide(color: AppTheme.primary.withOpacity(0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

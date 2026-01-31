@@ -90,7 +90,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: Text(
                     localizations.skipButton,
                     style: TextStyle(
-                      color: AppTheme.text.withValues(alpha: 0.7),
+                      color: AppTheme.text.withOpacity(0.7),
                       fontSize: 16,
                     ),
                   ),
@@ -130,7 +130,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         decoration: BoxDecoration(
                           color: _currentPage == index
                               ? AppTheme.primary
-                              : AppTheme.primary.withValues(alpha: 0.3),
+                              : AppTheme.primary.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
