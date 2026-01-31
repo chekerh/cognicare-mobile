@@ -51,6 +51,12 @@ dependencies:
   # Secure storage for JWT
   flutter_secure_storage: ^9.0.0
 
+  # Shared preferences for app settings
+  shared_preferences: ^2.2.2
+
+  # URL launcher for opening links
+  url_launcher: ^6.2.2
+
   # Internationalization
   intl: ^0.20.2
 

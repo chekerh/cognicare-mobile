@@ -142,11 +142,32 @@ abstract class AppLocalizations {
   String get invalidCredentials;
   String get emailAlreadyExists;
   String get unknownError;
+  String get signupSuccess;
 
   /// Roles
   String get roleFamily;
   String get roleDoctor;
   String get roleVolunteer;
+
+  /// Profile
+  String get profileTitle;
+  String get accountInformation;
+  String get accountSettings;
+  String get emailInfo;
+  String get phoneInfo;
+  String get memberSince;
+  String get notProvided;
+  String get changePassword;
+  String get changeEmail;
+  String get changeLanguage;
+  String get logout;
+  String get logoutConfirmTitle;
+  String get logoutConfirmMessage;
+  String get cancel;
+  String get errorLoadingProfile;
+  String get retry;
+  String get selectLanguage;
+  String get languageChanged;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

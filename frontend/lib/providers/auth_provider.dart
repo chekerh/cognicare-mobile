@@ -4,13 +4,15 @@ import '../services/auth_service.dart';
 
 class AuthProvider with ChangeNotifier {
   User? _user;
-  String? _token;
+  String? _accessToken;
+  String? _refreshToken;
   bool _isLoading = false;
 
   User? get user => _user;
-  String? get token => _token;
+  String? get accessToken => _accessToken;
+  String? get refreshToken => _refreshToken;
   bool get isLoading => _isLoading;
-  bool get isAuthenticated => _token != null && _user != null;
+  bool get isAuthenticated => _accessToken != null && _user != null;
 
   final AuthService _authService = AuthService();
 
@@ -20,7 +22,8 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final response = await _authService.login(email, password);
-      _token = response.token;
+      _accessToken = response.accessToken;
+      _refreshToken = response.refreshToken;
       _user = response.user;
       _isLoading = false;
       notifyListeners();
@@ -28,7 +31,7 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       notifyListeners();
-      return false;
+      rethrow;
     }
   }
 
@@ -38,6 +41,7 @@ class AuthProvider with ChangeNotifier {
     required String password,
     String? phone,
     required String role,
+    required String verificationCode,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -49,8 +53,10 @@ class AuthProvider with ChangeNotifier {
         password: password,
         phone: phone,
         role: role,
+        verificationCode: verificationCode,
       );
-      _token = response.token;
+      _accessToken = response.accessToken;
+      _refreshToken = response.refreshToken;
       _user = response.user;
       _isLoading = false;
       notifyListeners();
@@ -58,7 +64,7 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       notifyListeners();
-      return false;
+      rethrow;
     }
   }
 
@@ -67,7 +73,7 @@ class AuthProvider with ChangeNotifier {
     final storedUser = await _authService.getStoredUser();
 
     if (storedToken != null && storedUser != null) {
-      _token = storedToken;
+      _accessToken = storedToken;
       _user = storedUser;
       notifyListeners();
       return true;
@@ -77,8 +83,14 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> logout() async {
     await _authService.clearStoredData();
-    _token = null;
+    _accessToken = null;
+    _refreshToken = null;
     _user = null;
+    notifyListeners();
+  }
+
+  void updateUser(User user) {
+    _user = user;
     notifyListeners();
   }
 }

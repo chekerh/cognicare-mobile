@@ -6,7 +6,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 import { HealthModule } from './health/health.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -29,7 +31,9 @@ import { HealthModule } from './health/health.module';
 
     // Application modules
     DatabaseModule,
+    MailModule,
     AuthModule,
+    UsersModule,
     HealthModule,
   ],
   controllers: [AppController],

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 
@@ -47,12 +49,42 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final isAuthenticated = await authProvider.loadStoredAuth();
+    
+    // Try to load stored authentication data
+    final hasStoredAuth = await authProvider.loadStoredAuth();
 
-    if (isAuthenticated) {
-      context.go(AppConstants.homeRoute);
+    if (hasStoredAuth) {
+      // Token exists, validate it by fetching profile
+      try {
+        final authService = AuthService();
+        final user = await authService.getProfile();
+        
+        // Token is valid, update user data and navigate to home
+        if (mounted) {
+          authProvider.updateUser(user);
+          context.go(AppConstants.homeRoute);
+        }
+      } catch (e) {
+        // Token is invalid or expired, clear storage and go to login
+        if (mounted) {
+          await authProvider.logout();
+          context.go(AppConstants.loginRoute);
+        }
+      }
     } else {
-      context.go(AppConstants.onboardingRoute);
+      // No stored auth, check if onboarding was completed
+      final prefs = await SharedPreferences.getInstance();
+      final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+      
+      if (mounted) {
+        if (onboardingComplete) {
+          // User has seen onboarding, go to login
+          context.go(AppConstants.loginRoute);
+        } else {
+          // First time user, show onboarding
+          context.go(AppConstants.onboardingRoute);
+        }
+      }
     }
   }
 

@@ -46,4 +46,12 @@ export class SignupDto {
   @IsNotEmpty()
   @IsEnum(['family', 'doctor', 'volunteer'])
   role: 'family' | 'doctor' | 'volunteer';
+
+  @ApiProperty({
+    description: '6-digit verification code sent to email',
+    example: '123456',
+  })
+  @IsNotEmpty()
+  @IsString()
+  verificationCode: string;
 }

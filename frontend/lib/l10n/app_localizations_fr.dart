@@ -2,7 +2,7 @@ import 'app_localizations.dart';
 
 /// The translations for French (`fr`).
 class AppLocalizationsFr extends AppLocalizations {
-  AppLocalizationsFr([String locale = 'fr']) : super(locale);
+  AppLocalizationsFr([super.locale = 'fr']);
 
   @override
   String get appTitle => 'CogniCare';
@@ -128,6 +128,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get unknownError => 'Une erreur inattendue s\'est produite. Veuillez réessayer.';
 
   @override
+  String get signupSuccess => 'Compte créé avec succès! Veuillez vous connecter.';
+
+  @override
   String get roleFamily => 'Membre de la famille';
 
   @override
@@ -135,4 +138,58 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get roleVolunteer => 'Bénévole';
+
+  @override
+  String get profileTitle => 'Profil';
+
+  @override
+  String get accountInformation => 'Informations du compte';
+
+  @override
+  String get accountSettings => 'Paramètres du compte';
+
+  @override
+  String get emailInfo => 'Email';
+
+  @override
+  String get phoneInfo => 'Téléphone';
+
+  @override
+  String get memberSince => 'Membre depuis';
+
+  @override
+  String get notProvided => 'Non fourni';
+
+  @override
+  String get changePassword => 'Changer le mot de passe';
+
+  @override
+  String get changeEmail => 'Changer l\'email';
+
+  @override
+  String get changeLanguage => 'Changer la langue';
+
+  @override
+  String get logout => 'Déconnexion';
+
+  @override
+  String get logoutConfirmTitle => 'Déconnexion';
+
+  @override
+  String get logoutConfirmMessage => 'Êtes-vous sûr de vouloir vous déconnecter ?';
+
+  @override
+  String get cancel => 'Annuler';
+
+  @override
+  String get errorLoadingProfile => 'Erreur lors du chargement du profil';
+
+  @override
+  String get retry => 'Réessayer';
+
+  @override
+  String get selectLanguage => 'Sélectionner la langue';
+
+  @override
+  String get languageChanged => 'Langue changée en';
 }

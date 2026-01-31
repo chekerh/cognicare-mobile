@@ -103,11 +103,9 @@ class AppTheme {
         primary: primary,
         secondary: secondary,
         surface: Colors.white,
-        background: background,
         onPrimary: text,
         onSecondary: text,
         onSurface: text,
-        onBackground: text,
       ),
     );
   }

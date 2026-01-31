@@ -2,7 +2,7 @@ import 'app_localizations.dart';
 
 /// The translations for Arabic (`ar`).
 class AppLocalizationsAr extends AppLocalizations {
-  AppLocalizationsAr([String locale = 'ar']) : super(locale);
+  AppLocalizationsAr([super.locale = 'ar']);
 
   @override
   String get appTitle => 'كوجنيكير';
@@ -128,6 +128,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get unknownError => 'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
 
   @override
+  String get signupSuccess => 'تم إنشاء الحساب بنجاح! يرجى تسجيل الدخول.';
+
+  @override
   String get roleFamily => 'عضو عائلة';
 
   @override
@@ -135,4 +138,58 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get roleVolunteer => 'متطوع';
+
+  @override
+  String get profileTitle => 'الملف الشخصي';
+
+  @override
+  String get accountInformation => 'معلومات الحساب';
+
+  @override
+  String get accountSettings => 'إعدادات الحساب';
+
+  @override
+  String get emailInfo => 'البريد الإلكتروني';
+
+  @override
+  String get phoneInfo => 'الهاتف';
+
+  @override
+  String get memberSince => 'عضو منذ';
+
+  @override
+  String get notProvided => 'غير متوفر';
+
+  @override
+  String get changePassword => 'تغيير كلمة المرور';
+
+  @override
+  String get changeEmail => 'تغيير البريد الإلكتروني';
+
+  @override
+  String get changeLanguage => 'تغيير اللغة';
+
+  @override
+  String get logout => 'تسجيل الخروج';
+
+  @override
+  String get logoutConfirmTitle => 'تسجيل الخروج';
+
+  @override
+  String get logoutConfirmMessage => 'هل أنت متأكد أنك تريد تسجيل الخروج؟';
+
+  @override
+  String get cancel => 'إلغاء';
+
+  @override
+  String get errorLoadingProfile => 'خطأ في تحميل الملف الشخصي';
+
+  @override
+  String get retry => 'إعادة المحاولة';
+
+  @override
+  String get selectLanguage => 'اختر اللغة';
+
+  @override
+  String get languageChanged => 'تم تغيير اللغة إلى';
 }

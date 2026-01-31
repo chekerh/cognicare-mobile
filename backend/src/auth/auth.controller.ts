@@ -19,6 +19,9 @@ import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { ForgotPasswordDto, VerifyResetCodeDto, ResetPasswordDto } from './dto/forgot-password.dto';
+import { SendVerificationCodeDto, VerifyEmailCodeDto } from './dto/verify-email.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ErrorResponseDto } from '../common/dto/error-response.dto';
 
@@ -27,6 +30,71 @@ import { ErrorResponseDto } from '../common/dto/error-response.dto';
 @UseGuards(ThrottlerGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('send-verification-code')
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 requests per minute
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Send email verification code',
+    description: 'Send a 6-digit verification code to the email address for signup verification'
+  })
+  @ApiBody({ type: SendVerificationCodeDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Verification code sent successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Verification code sent to your email' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'User with this email already exists',
+    type: ErrorResponseDto
+  })
+  @ApiResponse({
+    status: HttpStatus.TOO_MANY_REQUESTS,
+    description: 'Too many requests',
+    type: ErrorResponseDto
+  })
+  async sendVerificationCode(@Body() sendVerificationCodeDto: SendVerificationCodeDto) {
+    await this.authService.sendVerificationCode(sendVerificationCodeDto.email);
+    return { message: 'Verification code sent to your email' };
+  }
+
+  @Post('verify-email-code')
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per minute
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Verify email with code',
+    description: 'Verify the email address using the code sent via email'
+  })
+  @ApiBody({ type: VerifyEmailCodeDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Email verified successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Email verified successfully' },
+        verified: { type: 'boolean', example: true }
+      }
+    }
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid or expired verification code',
+    type: ErrorResponseDto
+  })
+  async verifyEmailCode(@Body() verifyEmailCodeDto: VerifyEmailCodeDto) {
+    const verified = await this.authService.verifyEmailCode(
+      verifyEmailCodeDto.email,
+      verifyEmailCodeDto.code
+    );
+    return { message: 'Email verified successfully', verified };
+  }
 
   @Post('signup')
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per minute for signup
@@ -41,7 +109,8 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        token: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
+        accessToken: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
+        refreshToken: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
         user: {
           type: 'object',
           properties: {
@@ -152,5 +221,152 @@ export class AuthController {
   })
   async getProfile(@Request() req) {
     return this.authService.getProfile(req.user.id);
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Refresh access token',
+    description: 'Get a new access token and refresh token using a valid refresh token'
+  })
+  @ApiBody({ type: RefreshTokenDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Tokens refreshed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        accessToken: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
+        refreshToken: { type: 'string', example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
+      }
+    }
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid or expired refresh token',
+    type: ErrorResponseDto
+  })
+  async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authService.refreshTokens(refreshTokenDto.refreshToken);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  @ApiBearerAuth('JWT-auth')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Logout user',
+    description: 'Invalidate the user\'s refresh token'
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Logged out successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Logged out successfully' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid or expired token',
+    type: ErrorResponseDto
+  })
+  async logout(@Request() req) {
+    await this.authService.logout(req.user.id);
+    return { message: 'Logged out successfully' };
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Request password reset',
+    description: 'Send a verification code to the email address if it exists. For security, always returns success regardless of whether email exists.'
+  })
+  @ApiBody({ type: ForgotPasswordDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'If email exists, verification code has been sent',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'If your email is registered, you will receive a verification code shortly.' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid input data',
+    type: ErrorResponseDto
+  })
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    await this.authService.forgotPassword(forgotPasswordDto.email);
+    return { 
+      message: 'If your email is registered, you will receive a verification code shortly.' 
+    };
+  }
+
+  @Post('verify-reset-code')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Verify password reset code',
+    description: 'Verify the 6-digit code sent to email'
+  })
+  @ApiBody({ type: VerifyResetCodeDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Code verified successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Code verified successfully' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid or expired verification code',
+    type: ErrorResponseDto
+  })
+  async verifyResetCode(@Body() verifyResetCodeDto: VerifyResetCodeDto) {
+    await this.authService.verifyResetCode(
+      verifyResetCodeDto.email,
+      verifyResetCodeDto.code,
+    );
+    return { message: 'Code verified successfully' };
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reset password with verification code',
+    description: 'Reset password using the verified code. This will invalidate all refresh tokens.'
+  })
+  @ApiBody({ type: ResetPasswordDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Password reset successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Password reset successfully. Please login with your new password.' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid or expired verification code',
+    type: ErrorResponseDto
+  })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    await this.authService.resetPassword(
+      resetPasswordDto.email,
+      resetPasswordDto.code,
+      resetPasswordDto.newPassword,
+    );
+    return { 
+      message: 'Password reset successfully. Please login with your new password.' 
+    };
   }
 }

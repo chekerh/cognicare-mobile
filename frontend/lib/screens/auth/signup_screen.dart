@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
@@ -21,9 +23,13 @@ class _SignupScreenState extends State<SignupScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _verificationCodeController = TextEditingController();
 
   String _selectedRole = 'family';
   bool _acceptTerms = false;
+  bool _emailVerified = false;
+  bool _codeSent = false;
+  bool _isSendingCode = false;
 
   @override
   void dispose() {
@@ -32,11 +38,125 @@ class _SignupScreenState extends State<SignupScreen> {
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _verificationCodeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _sendVerificationCode() async {
+    if (_emailController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your email address'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSendingCode = true);
+
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/api/v1/auth/send-verification-code'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': _emailController.text.trim()}),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _codeSent = true;
+          _emailVerified = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Verification code sent to your email'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Failed to send verification code');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() => _isSendingCode = false);
+    }
+  }
+
+  Future<void> _verifyEmailCode() async {
+    if (_verificationCodeController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter verification code'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSendingCode = true);
+
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/api/v1/auth/verify-email-code'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': _emailController.text.trim(),
+          'code': _verificationCodeController.text.trim(),
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() => _emailVerified = true);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Email verified successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Invalid verification code');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() => _isSendingCode = false);
+    }
   }
 
   Future<void> _signup() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    if (!_emailVerified) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please verify your email first'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
     if (!_acceptTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -57,10 +177,19 @@ class _SignupScreenState extends State<SignupScreen> {
         password: _passwordController.text,
         phone: _phoneController.text.isEmpty ? null : _phoneController.text.trim(),
         role: _selectedRole,
+        verificationCode: _verificationCodeController.text.trim(),
       );
 
       if (success && mounted) {
-        context.go(AppConstants.homeRoute);
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully! Please login.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Navigate to login screen
+        context.go(AppConstants.loginRoute);
       }
     } catch (e) {
       if (mounted) {
@@ -174,6 +303,92 @@ class _SignupScreenState extends State<SignupScreen> {
                   },
                 ),
 
+                const SizedBox(height: 16),
+
+                // Email verification section
+                if (!_emailVerified) ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _isSendingCode || _codeSent ? null : _sendVerificationCode,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _codeSent ? Colors.grey : AppTheme.secondary,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          icon: _isSendingCode
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Icon(_codeSent ? Icons.check : Icons.email),
+                          label: Text(_codeSent ? 'Code Sent' : 'Send Code'),
+                        ),
+                      ),
+                      if (_codeSent) ...[
+                        const SizedBox(width: 8),
+                        TextButton(
+                          onPressed: _isSendingCode ? null : _sendVerificationCode,
+                          child: const Text('Resend'),
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (_codeSent) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CustomTextField(
+                            controller: _verificationCodeController,
+                            label: 'Verification Code',
+                            keyboardType: TextInputType.number,
+                            maxLength: 6,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: _isSendingCode ? null : _verifyEmailCode,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primary,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                          ),
+                          child: const Text('Verify'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ] else ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green),
+                    ),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.check_circle, color: Colors.green),
+                        SizedBox(width: 8),
+                        Text(
+                          'Email verified',
+                          style: TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 24),
 
                 // Phone field
@@ -203,7 +418,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     border: Border.all(color: AppTheme.primary.withOpacity(0.3)),
                   ),
                   child: DropdownButtonFormField<String>(
-                    value: _selectedRole,
+                    initialValue: _selectedRole,
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                     ),

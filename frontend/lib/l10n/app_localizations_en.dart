@@ -2,7 +2,7 @@ import 'app_localizations.dart';
 
 /// The translations for English (`en`).
 class AppLocalizationsEn extends AppLocalizations {
-  AppLocalizationsEn([String locale = 'en']) : super(locale);
+  AppLocalizationsEn([super.locale = 'en']);
 
   @override
   String get appTitle => 'CogniCare';
@@ -128,6 +128,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unknownError => 'An unexpected error occurred. Please try again.';
 
   @override
+  String get signupSuccess => 'Account created successfully! Please login.';
+
+  @override
   String get roleFamily => 'Family Member';
 
   @override
@@ -135,4 +138,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get roleVolunteer => 'Volunteer';
+
+  @override
+  String get profileTitle => 'Profile';
+
+  @override
+  String get accountInformation => 'Account Information';
+
+  @override
+  String get accountSettings => 'Account Settings';
+
+  @override
+  String get emailInfo => 'Email';
+
+  @override
+  String get phoneInfo => 'Phone';
+
+  @override
+  String get memberSince => 'Member Since';
+
+  @override
+  String get notProvided => 'Not provided';
+
+  @override
+  String get changePassword => 'Change Password';
+
+  @override
+  String get changeEmail => 'Change Email';
+
+  @override
+  String get changeLanguage => 'Change Language';
+
+  @override
+  String get logout => 'Logout';
+
+  @override
+  String get logoutConfirmTitle => 'Logout';
+
+  @override
+  String get logoutConfirmMessage => 'Are you sure you want to logout?';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get errorLoadingProfile => 'Error loading profile';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get selectLanguage => 'Select Language';
+
+  @override
+  String get languageChanged => 'Language changed to';
 }

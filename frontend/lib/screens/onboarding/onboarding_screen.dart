@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
@@ -51,12 +52,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void _skipToLogin() {
-    context.go(AppConstants.loginRoute);
+  Future<void> _skipToLogin() async {
+    await _markOnboardingComplete();
+    if (mounted) {
+      context.go(AppConstants.loginRoute);
+    }
   }
 
-  void _completeOnboarding() {
-    context.go(AppConstants.loginRoute);
+  Future<void> _completeOnboarding() async {
+    await _markOnboardingComplete();
+    if (mounted) {
+      context.go(AppConstants.loginRoute);
+    }
+  }
+
+  Future<void> _markOnboardingComplete() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_complete', true);
   }
 
   @override

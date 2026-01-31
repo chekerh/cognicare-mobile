@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="CogniCare - A personalized path to cognitive progress. Your journey to better cognitive health starts here.">
+  <meta name="keywords" content="cognitive health, mental wellness, brain training, healthcare app">
+  <meta name="author" content="CogniCare">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://cognicare.app/">
+  <meta property="og:title" content="CogniCare - Cognitive Health Management">
+  <meta property="og:description" content="A personalized path to cognitive progress. Available on iOS and Android.">
+  <meta property="og:image" content="/icons/Icon-512.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://cognicare.app/">
+  <meta property="twitter:title" content="CogniCare - Cognitive Health Management">
+  <meta property="twitter:description" content="A personalized path to cognitive progress. Available on iOS and Android.">
+  <meta property="twitter:image" content="/icons/Icon-512.png">
+
+  <title>CogniCare - Cognitive Health Management</title>
+  <link rel="manifest" href="manifest.json">
+
+  <script>
+    // The value below is injected by flutter build, do not touch.
+    const serviceWorkerVersion = null;
+  </script>
+  <!-- This script adds the flutter initialization JS code -->
+  <script src="flutter_bootstrap.js" async></script>
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: #F6F6F6;
+    }
+    
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    
+    .loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #A4D7E1;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      margin-top: 20px;
+      color: #5A5A5A;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="loading">
+    <div class="loader"></div>
+    <div class="loading-text">Loading CogniCare...</div>
+  </div>
+</body>
+</html>

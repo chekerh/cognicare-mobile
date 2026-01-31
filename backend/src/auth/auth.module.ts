@@ -6,12 +6,15 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
-import { UserSchema } from '../schemas/user.schema';
+import { User, UserSchema } from '../users/schemas/user.schema';
+import { EmailVerification, EmailVerificationSchema } from './schemas/email-verification.schema';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
     ConfigModule,
     PassportModule,
+    MailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -22,7 +25,10 @@ import { UserSchema } from '../schemas/user.schema';
       }),
       inject: [ConfigService],
     }),
-    MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: EmailVerification.name, schema: EmailVerificationSchema },
+    ]),
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],

@@ -21,6 +21,7 @@ class AuthService {
     required String password,
     String? phone,
     required String role,
+    required String verificationCode,
   }) async {
     try {
       final response = await _client.post(
@@ -32,6 +33,7 @@ class AuthService {
           'password': password,
           'phone': phone,
           'role': role,
+          'verificationCode': verificationCode,
         }),
       );
 
@@ -101,7 +103,7 @@ class AuthService {
   Future<void> _storeAuthData(AuthResponse authResponse) async {
     await _storage.write(
       key: AppConstants.jwtTokenKey,
-      value: authResponse.token,
+      value: authResponse.accessToken,
     );
     await _storage.write(
       key: AppConstants.userDataKey,

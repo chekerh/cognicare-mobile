@@ -3,7 +3,8 @@ import '../screens/splash/splash_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/signup_screen.dart';
-import '../screens/home_screen.dart';
+import '../screens/auth/forgot_password_screen.dart';
+import '../screens/home/home_container_screen.dart';
 import 'constants.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -26,8 +27,12 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const SignupScreen(),
     ),
     GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
       path: AppConstants.homeRoute,
-      builder: (context, state) => const HomeScreen(),
+      builder: (context, state) => const HomeContainerScreen(),
     ),
   ],
 );
