@@ -1,4 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import sgMail = require('@sendgrid/mail');
 import { getEmailBaseTemplate } from './templates/email-base.template';
@@ -10,18 +11,35 @@ import {
 
 @Injectable()
 export class MailService {
-  constructor() {
-    const apiKey = process.env.SENDGRID_API_KEY;
-    if (!apiKey) {
-      throw new Error('SENDGRID_API_KEY is not defined');
+  private readonly apiKey: string | undefined;
+  private readonly from: string | undefined;
+
+  constructor(private readonly configService: ConfigService) {
+    this.apiKey = this.configService.get<string>('SENDGRID_API_KEY');
+    this.from = this.configService.get<string>('MAIL_FROM');
+
+    if (!this.apiKey) {
+      console.warn(
+        'WARNING: SENDGRID_API_KEY is not defined. Email functionality will be disabled.',
+      );
+      return;
     }
-    sgMail.setApiKey(apiKey);
+
+    sgMail.setApiKey(this.apiKey);
+
+    if (!this.from) {
+      console.warn(
+        'WARNING: MAIL_FROM is not defined. Email functionality may not work as expected.',
+      );
+    }
   }
 
   async sendVerificationCode(email: string, code: string): Promise<void> {
-    const from = process.env.MAIL_FROM;
-    if (!from) {
-      throw new Error('MAIL_FROM is not defined');
+    if (!this.apiKey || !this.from) {
+      console.warn(
+        'Skipping verification email: SENDGRID_API_KEY or MAIL_FROM not configured',
+      );
+      return;
     }
 
     const emailContent = getVerificationCodeTemplate(code);
@@ -29,7 +47,7 @@ export class MailService {
 
     const msg = {
       to: email,
-      from: from,
+      from: this.from,
       subject: 'CogniCare - Verify Your Email Address',
       html: htmlContent,
     };
@@ -58,9 +76,11 @@ export class MailService {
   }
 
   async sendPasswordResetCode(email: string, code: string): Promise<void> {
-    const from = process.env.MAIL_FROM;
-    if (!from) {
-      throw new Error('MAIL_FROM is not defined');
+    if (!this.apiKey || !this.from) {
+      console.warn(
+        'Skipping password reset email: SENDGRID_API_KEY or MAIL_FROM not configured',
+      );
+      return;
     }
 
     const emailContent = getPasswordResetTemplate(code);
@@ -68,7 +88,7 @@ export class MailService {
 
     const msg = {
       to: email,
-      from: from,
+      from: this.from,
       subject: 'CogniCare - Password Reset Request',
       html: htmlContent,
     };
@@ -85,9 +105,11 @@ export class MailService {
   }
 
   async sendWelcomeEmail(email: string, userName: string): Promise<void> {
-    const from = process.env.MAIL_FROM;
-    if (!from) {
-      throw new Error('MAIL_FROM is not defined');
+    if (!this.apiKey || !this.from) {
+      console.warn(
+        'Skipping welcome email: SENDGRID_API_KEY or MAIL_FROM not configured',
+      );
+      return;
     }
 
     const emailContent = getWelcomeTemplate(userName);
@@ -95,7 +117,7 @@ export class MailService {
 
     const msg = {
       to: email,
-      from: from,
+      from: this.from,
       subject: 'Welcome to CogniCare! 🎉',
       html: htmlContent,
     };
