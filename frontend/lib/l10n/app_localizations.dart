@@ -168,6 +168,28 @@ abstract class AppLocalizations {
   String get retry;
   String get selectLanguage;
   String get languageChanged;
+  String get welcomeToApp;
+  String get selectLanguageDescription;
+  String get resetPasswordTitle;
+  String get enterEmailStepTitle;
+  String get enterEmailStepSubtitle;
+  String get codeSentSuccess;
+  String get verifyCodeStepTitle;
+  String get checkEmailStepSubtitle;
+  String get codeVerifiedSuccess;
+  String get createNewPasswordStepTitle;
+  String get createNewPasswordStepSubtitle;
+  String get passwordResetSuccess;
+  String get resendCodeButton;
+  String get verificationCodeLabel;
+  String get newPasswordLabel;
+  String get sendCodeButton;
+  String get verifyCodeButton;
+  String get emailVerifiedMessage;
+  String get codeSentButton;
+  String get verifyButton;
+  String get resendButton;
+  String get codeInvalid;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

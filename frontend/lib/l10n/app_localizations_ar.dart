@@ -5,13 +5,13 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([super.locale = 'ar']);
 
   @override
-  String get appTitle => 'كوجنيكير';
+  String get appTitle => 'CogniCare';
 
   @override
   String get splashTagline => 'مسار مخصص نحو التقدم المعرفي';
 
   @override
-  String get onboardingWelcomeTitle => 'مرحباً بك في كوجنيكير';
+  String get onboardingWelcomeTitle => 'مرحباً بك في CogniCare';
 
   @override
   String get onboardingWelcomeDescription => 'رحلتك نحو صحة معرفية أفضل تبدأ هنا. نحن نقدم رعاية مخصصة ودعماً لتطويرك المعرفي.';
@@ -41,7 +41,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get signupTitle => 'إنشاء حساب';
 
   @override
-  String get signupSubtitle => 'انضم إلى كوجنيكير لبدء رحلة الرعاية المعرفية المخصصة';
+  String get signupSubtitle => 'انضم إلى CogniCare لبدء رحلة الرعاية المعرفية المخصصة';
 
   @override
   String get emailLabel => 'البريد الإلكتروني';
@@ -192,4 +192,70 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get languageChanged => 'تم تغيير اللغة إلى';
+
+  @override
+  String get welcomeToApp => 'مرحباً بك في CogniCare';
+
+  @override
+  String get selectLanguageDescription => 'يرجى اختيار لغتك المفضلة للمتابعة';
+
+  @override
+  String get resetPasswordTitle => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get enterEmailStepTitle => 'أدخل بريدك الإلكتروني';
+
+  @override
+  String get enterEmailStepSubtitle => 'سنرسل لك رمز تحقق مكون من 6 أرقام';
+
+  @override
+  String get codeSentSuccess => 'تم إرسال رمز التحقق إلى بريدك الإلكتروني';
+
+  @override
+  String get verifyCodeStepTitle => 'أدخل رمز التحقق';
+
+  @override
+  String get checkEmailStepSubtitle => 'تحقق من بريدك الإلكتروني للحصول على الرمز';
+
+  @override
+  String get codeVerifiedSuccess => 'تم التحقق من الرمز بنجاح';
+
+  @override
+  String get createNewPasswordStepTitle => 'إنشاء كلمة مرور جديدة';
+
+  @override
+  String get createNewPasswordStepSubtitle => 'أدخل كلمة مرور قوية لحسابك';
+
+  @override
+  String get passwordResetSuccess => 'تم إعادة تعيين كلمة المرور بنجاح!';
+
+  @override
+  String get resendCodeButton => 'إعادة إرسال الرمز';
+
+  @override
+  String get verificationCodeLabel => 'رمز التحقق';
+
+  @override
+  String get newPasswordLabel => 'كلمة مرور جديدة';
+
+  @override
+  String get sendCodeButton => 'إرسال الرمز';
+
+  @override
+  String get verifyCodeButton => 'التحقق من الرمز';
+
+  @override
+  String get emailVerifiedMessage => 'تم التحقق من البريد الإلكتروني';
+
+  @override
+  String get codeSentButton => 'تم إرسال الرمز';
+
+  @override
+  String get verifyButton => 'تحقق';
+
+  @override
+  String get resendButton => 'إعادة إرسال';
+
+  @override
+  String get codeInvalid => 'يجب أن يكون الرمز 6 أرقام بالضبط';
 }

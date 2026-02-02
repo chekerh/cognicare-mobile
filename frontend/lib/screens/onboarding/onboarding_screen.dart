@@ -80,21 +80,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Skip button
-            Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: TextButton(
-                  onPressed: _skipToLogin,
-                  child: Text(
-                    localizations.skipButton,
-                    style: TextStyle(
-                      color: AppTheme.text.withOpacity(0.7),
-                      fontSize: 16,
+            // Top bar with Language and Skip
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Language button
+                  TextButton.icon(
+                    onPressed: () => context.push(AppConstants.languageSelectionRoute),
+                    icon: const Icon(Icons.language, size: 20),
+                    label: Text(
+                      localizations.changeLanguage,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppTheme.primary,
                     ),
                   ),
-                ),
+                  // Skip button
+                  TextButton(
+                    onPressed: _skipToLogin,
+                    child: Text(
+                      localizations.skipButton,
+                      style: TextStyle(
+                        color: AppTheme.text.withOpacity(0.7),
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 

@@ -192,4 +192,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageChanged => 'Language changed to';
+
+  @override
+  String get welcomeToApp => 'Welcome to CogniCare';
+
+  @override
+  String get selectLanguageDescription => 'Please choose your preferred language to continue';
+
+  @override
+  String get resetPasswordTitle => 'Reset Password';
+
+  @override
+  String get enterEmailStepTitle => 'Enter your email';
+
+  @override
+  String get enterEmailStepSubtitle => 'We\'ll send you a 6-digit verification code';
+
+  @override
+  String get codeSentSuccess => 'Verification code sent to your email';
+
+  @override
+  String get verifyCodeStepTitle => 'Enter verification code';
+
+  @override
+  String get checkEmailStepSubtitle => 'Check your email for the 6-digit code';
+
+  @override
+  String get codeVerifiedSuccess => 'Code verified successfully';
+
+  @override
+  String get createNewPasswordStepTitle => 'Create new password';
+
+  @override
+  String get createNewPasswordStepSubtitle => 'Enter a strong password for your account';
+
+  @override
+  String get passwordResetSuccess => 'Password reset successfully!';
+
+  @override
+  String get resendCodeButton => 'Resend Code';
+
+  @override
+  String get verificationCodeLabel => 'Verification Code';
+
+  @override
+  String get newPasswordLabel => 'New Password';
+
+  @override
+  String get sendCodeButton => 'Send Code';
+
+  @override
+  String get verifyCodeButton => 'Verify Code';
+
+  @override
+  String get emailVerifiedMessage => 'Email verified';
+
+  @override
+  String get codeSentButton => 'Code Sent';
+
+  @override
+  String get verifyButton => 'Verify';
+
+  @override
+  String get resendButton => 'Resend';
+
+  @override
+  String get codeInvalid => 'Code must be exactly 6 digits';
 }

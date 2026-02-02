@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/theme.dart';
 import '../../utils/constants.dart';
 import '../../widgets/custom_text_field.dart';
@@ -44,24 +45,27 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         body: jsonEncode({'email': _emailController.text.trim()}),
       );
 
+      final localizations = AppLocalizations.of(context)!;
+
       if (response.statusCode == 200) {
         setState(() => _currentStep = 1);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Verification code sent to your email'),
+            SnackBar(
+              content: Text(localizations.codeSentSuccess),
               backgroundColor: Colors.green,
             ),
           );
         }
       } else {
-        throw Exception('Failed to send code');
+        throw Exception(localizations.unknownError);
       }
     } catch (e) {
       if (mounted) {
+        final localizations = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text('${localizations.unknownError}: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -86,25 +90,28 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         }),
       );
 
+      final localizations = AppLocalizations.of(context)!;
+
       if (response.statusCode == 200) {
         setState(() => _currentStep = 2);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Code verified successfully'),
+            SnackBar(
+              content: Text(localizations.codeVerifiedSuccess),
               backgroundColor: Colors.green,
             ),
           );
         }
       } else {
         final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? 'Invalid verification code');
+        throw Exception(error['message'] ?? localizations.unknownError);
       }
     } catch (e) {
       if (mounted) {
+        final localizations = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
+            content: Text('${localizations.unknownError}: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -117,10 +124,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _resetPassword() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final localizations = AppLocalizations.of(context)!;
+
     if (_passwordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Passwords do not match'),
+        SnackBar(
+          content: Text(localizations.passwordsDontMatch),
           backgroundColor: Colors.red,
         ),
       );
@@ -143,8 +152,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       if (response.statusCode == 200) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Password reset successfully!'),
+            SnackBar(
+              content: Text(localizations.passwordResetSuccess),
               backgroundColor: Colors.green,
             ),
           );
@@ -152,13 +161,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         }
       } else {
         final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? 'Failed to reset password');
+        throw Exception(error['message'] ?? localizations.unknownError);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
+            content: Text('${localizations.unknownError}: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -170,6 +179,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
@@ -177,11 +187,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppTheme.text),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (_currentStep > 0) {
+              setState(() => _currentStep--);
+            } else {
+              context.go(AppConstants.loginRoute);
+            }
+          },
         ),
-        title: const Text(
-          'Reset Password',
-          style: TextStyle(color: AppTheme.text),
+        title: Text(
+          localizations.resetPasswordTitle,
+          style: const TextStyle(color: AppTheme.text),
         ),
       ),
       body: SafeArea(
@@ -236,13 +252,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Widget _buildProgressIndicator() {
+    final localizations = AppLocalizations.of(context)!;
     return Row(
       children: [
-        _buildStepIndicator(0, 'Email'),
+        _buildStepIndicator(0, localizations.emailLabel),
         Expanded(child: Container(height: 2, color: _currentStep > 0 ? AppTheme.primary : Colors.grey[300])),
-        _buildStepIndicator(1, 'Code'),
+        _buildStepIndicator(1, localizations.verificationCodeLabel),
         Expanded(child: Container(height: 2, color: _currentStep > 1 ? AppTheme.primary : Colors.grey[300])),
-        _buildStepIndicator(2, 'Password'),
+        _buildStepIndicator(2, localizations.passwordLabel),
       ],
     );
   }
@@ -281,11 +298,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Widget _buildEmailStep() {
+    final localizations = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Enter your email',
+          localizations.enterEmailStepTitle,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 color: AppTheme.text,
                 fontWeight: FontWeight.bold,
@@ -293,7 +311,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'We\'ll send you a 6-digit verification code',
+          localizations.enterEmailStepSubtitle,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: AppTheme.text.withOpacity(0.7),
               ),
@@ -301,15 +319,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 24),
         CustomTextField(
           controller: _emailController,
-          label: 'Email Address',
+          label: localizations.emailLabel,
           keyboardType: TextInputType.emailAddress,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Email is required';
+              return localizations.emailRequired;
             }
             final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
             if (!emailRegex.hasMatch(value)) {
-              return 'Invalid email format';
+              return localizations.emailInvalid;
             }
             return null;
           },
@@ -319,11 +337,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Widget _buildCodeStep() {
+    final localizations = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Enter verification code',
+          localizations.verifyCodeStepTitle,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 color: AppTheme.text,
                 fontWeight: FontWeight.bold,
@@ -331,7 +350,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Check your email for the 6-digit code',
+          localizations.checkEmailStepSubtitle,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: AppTheme.text.withOpacity(0.7),
               ),
@@ -339,19 +358,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 24),
         CustomTextField(
           controller: _codeController,
-          label: 'Verification Code',
+          label: localizations.verificationCodeLabel,
           keyboardType: TextInputType.number,
           maxLength: 6,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Code is required';
+              return localizations.unknownError;
             }
             final trimmed = value.trim();
             if (trimmed.length != 6) {
-              return 'Code must be exactly 6 digits';
+              return localizations.codeInvalid;
             }
             if (!RegExp(r'^\d{6}$').hasMatch(trimmed)) {
-              return 'Code must contain only numbers';
+              return localizations.unknownError;
             }
             return null;
           },
@@ -360,9 +379,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Center(
           child: TextButton(
             onPressed: _isLoading ? null : _requestCode,
-            child: const Text(
-              'Resend Code',
-              style: TextStyle(
+            child: Text(
+              localizations.resendCodeButton,
+              style: const TextStyle(
                 color: AppTheme.primary,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -375,11 +394,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Widget _buildPasswordStep() {
+    final localizations = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Create new password',
+          localizations.createNewPasswordStepTitle,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 color: AppTheme.text,
                 fontWeight: FontWeight.bold,
@@ -387,7 +407,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Enter a strong password for your account',
+          localizations.createNewPasswordStepSubtitle,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: AppTheme.text.withOpacity(0.7),
               ),
@@ -395,14 +415,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 24),
         CustomTextField(
           controller: _passwordController,
-          label: 'New Password',
+          label: localizations.newPasswordLabel,
           obscureText: true,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Password is required';
+              return localizations.passwordRequired;
             }
             if (value.length < 6) {
-              return 'Password must be at least 6 characters';
+              return localizations.passwordTooShort;
             }
             return null;
           },
@@ -410,14 +430,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 16),
         CustomTextField(
           controller: _confirmPasswordController,
-          label: 'Confirm Password',
+          label: localizations.confirmPasswordLabel,
           obscureText: true,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please confirm your password';
+              return localizations.confirmPasswordRequired;
             }
             if (value != _passwordController.text) {
-              return 'Passwords do not match';
+              return localizations.passwordsDontMatch;
             }
             return null;
           },
@@ -427,15 +447,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   String _getButtonText() {
+    final localizations = AppLocalizations.of(context)!;
     switch (_currentStep) {
       case 0:
-        return 'Send Code';
+        return localizations.sendCodeButton;
       case 1:
-        return 'Verify Code';
+        return localizations.verifyCodeButton;
       case 2:
-        return 'Reset Password';
+        return localizations.resetPasswordTitle;
       default:
-        return 'Continue';
+        return localizations.nextButton;
     }
   }
 

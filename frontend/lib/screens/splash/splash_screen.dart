@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/language_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
@@ -76,18 +77,20 @@ class _SplashScreenState extends State<SplashScreen>
         }
       }
     } else {
-      // No stored auth, check if onboarding was completed
-      final prefs = await SharedPreferences.getInstance();
-      final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
-      
+      // No stored auth, check if language was selected
+      final languageProvider =
+          Provider.of<LanguageProvider>(context, listen: false);
+
       if (mounted) {
         final router = GoRouter.of(context);
-        if (onboardingComplete) {
-          // User has seen onboarding, go to login
-          router.go(AppConstants.loginRoute);
-        } else {
-          // First time user, show onboarding
+        // Check if onboarding was completed
+        final prefs = await SharedPreferences.getInstance();
+        final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+
+        if (!onboardingComplete) {
           router.go(AppConstants.onboardingRoute);
+        } else {
+          router.go(AppConstants.loginRoute);
         }
       }
     }

@@ -13,8 +13,10 @@ class AppConstants {
 
   // Route Names
   static const String splashRoute = '/splash';
+  static const String languageSelectionRoute = '/language-selection';
   static const String onboardingRoute = '/onboarding';
   static const String loginRoute = '/login';
   static const String signupRoute = '/signup';
+  static const String forgotPasswordRoute = '/forgot-password';
   static const String homeRoute = '/home';
 }

@@ -192,4 +192,70 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get languageChanged => 'Langue changée en';
+
+  @override
+  String get welcomeToApp => 'Bienvenue sur CogniCare';
+
+  @override
+  String get selectLanguageDescription => 'Veuillez choisir votre langue préférée pour continuer';
+
+  @override
+  String get resetPasswordTitle => 'Réinitialiser le mot de passe';
+
+  @override
+  String get enterEmailStepTitle => 'Entrez votre email';
+
+  @override
+  String get enterEmailStepSubtitle => 'Nous vous enverrons un code de vérification à 6 chiffres';
+
+  @override
+  String get codeSentSuccess => 'Code de vérification envoyé à votre email';
+
+  @override
+  String get verifyCodeStepTitle => 'Entrez le code de vérification';
+
+  @override
+  String get checkEmailStepSubtitle => 'Vérifiez votre email pour le code à 6 chiffres';
+
+  @override
+  String get codeVerifiedSuccess => 'Code vérifié avec succès';
+
+  @override
+  String get createNewPasswordStepTitle => 'Créer un nouveau mot de passe';
+
+  @override
+  String get createNewPasswordStepSubtitle => 'Entrez un mot de passe fort pour votre compte';
+
+  @override
+  String get passwordResetSuccess => 'Mot de passe réinitialisé avec succès !';
+
+  @override
+  String get resendCodeButton => 'Renvoyer le code';
+
+  @override
+  String get verificationCodeLabel => 'Code de vérification';
+
+  @override
+  String get newPasswordLabel => 'Nouveau mot de passe';
+
+  @override
+  String get sendCodeButton => 'Envoyer le code';
+
+  @override
+  String get verifyCodeButton => 'Vérifier le code';
+
+  @override
+  String get emailVerifiedMessage => 'Email vérifié';
+
+  @override
+  String get codeSentButton => 'Code envoyé';
+
+  @override
+  String get verifyButton => 'Vérifier';
+
+  @override
+  String get resendButton => 'Renvoyer';
+
+  @override
+  String get codeInvalid => 'Le code doit comporter exactement 6 chiffres';
 }

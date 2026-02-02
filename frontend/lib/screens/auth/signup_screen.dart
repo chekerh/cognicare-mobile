@@ -45,8 +45,8 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _sendVerificationCode() async {
     if (_emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your email address'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.emailRequired),
           backgroundColor: Colors.red,
         ),
       );
@@ -69,8 +69,8 @@ class _SignupScreenState extends State<SignupScreen> {
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Verification code sent to your email'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.codeSentSuccess),
               backgroundColor: Colors.green,
             ),
           );
@@ -96,8 +96,8 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _verifyEmailCode() async {
     if (_verificationCodeController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter verification code'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.unknownError),
           backgroundColor: Colors.red,
         ),
       );
@@ -120,8 +120,8 @@ class _SignupScreenState extends State<SignupScreen> {
         setState(() => _emailVerified = true);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Email verified successfully!'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.codeVerifiedSuccess),
               backgroundColor: Colors.green,
             ),
           );
@@ -149,8 +149,8 @@ class _SignupScreenState extends State<SignupScreen> {
     
     if (!_emailVerified) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please verify your email first'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.unknownError),
           backgroundColor: Colors.red,
         ),
       );
@@ -183,8 +183,8 @@ class _SignupScreenState extends State<SignupScreen> {
       if (success && mounted) {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account created successfully! Please login.'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.signupSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -326,14 +326,14 @@ class _SignupScreenState extends State<SignupScreen> {
                                   ),
                                 )
                               : Icon(_codeSent ? Icons.check : Icons.email),
-                          label: Text(_codeSent ? 'Code Sent' : 'Send Code'),
+                          label: Text(_codeSent ? localizations.codeSentButton : localizations.sendCodeButton),
                         ),
                       ),
                       if (_codeSent) ...[
                         const SizedBox(width: 8),
                         TextButton(
                           onPressed: _isSendingCode ? null : _sendVerificationCode,
-                          child: const Text('Resend'),
+                          child: Text(localizations.resendButton),
                         ),
                       ],
                     ],
@@ -345,7 +345,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         Expanded(
                           child: CustomTextField(
                             controller: _verificationCodeController,
-                            label: 'Verification Code',
+                            label: localizations.verificationCodeLabel,
                             keyboardType: TextInputType.number,
                             maxLength: 6,
                           ),
@@ -360,7 +360,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               vertical: 16,
                             ),
                           ),
-                          child: const Text('Verify'),
+                          child: Text(localizations.verifyButton),
                         ),
                       ],
                     ),
@@ -373,20 +373,20 @@ class _SignupScreenState extends State<SignupScreen> {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.green),
                     ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.check_circle, color: Colors.green),
-                        SizedBox(width: 8),
-                        Text(
-                          'Email verified',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.w500,
+                          child: Row(
+                            children: [
+                              Icon(Icons.check_circle, color: Colors.green),
+                              SizedBox(width: 8),
+                              Text(
+                                localizations.emailVerifiedMessage,
+                                style: const TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
                 ],
 
                 const SizedBox(height: 24),

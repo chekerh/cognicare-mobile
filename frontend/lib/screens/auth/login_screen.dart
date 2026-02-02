@@ -147,10 +147,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => context.go('/forgot-password'),
-                    child: const Text(
-                      'Forgot Password?',
-                      style: TextStyle(
+                    onPressed: () => context.go(AppConstants.forgotPasswordRoute),
+                    child: Text(
+                      '${localizations.resetPasswordTitle}?',
+                      style: const TextStyle(
                         color: AppTheme.primary,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
