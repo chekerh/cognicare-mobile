@@ -9,6 +9,7 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { User, UserDocument } from './schemas/user.schema';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { MailService } from '../mail/mail.service';
 
 @Injectable()
@@ -17,6 +18,32 @@ export class UsersService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private mailService: MailService,
   ) {}
+
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const { email, password, ...userData } = createUserDto;
+
+    // Check if user already exists
+    const existingUser = await this.userModel.findOne({ email });
+    if (existingUser) {
+      throw new BadRequestException('User with this email already exists');
+    }
+
+    // Hash password
+    const saltRounds = 12;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // Create user (admin-created users don't need email verification)
+    const user = new this.userModel({
+      ...userData,
+      email,
+      passwordHash,
+    });
+
+    await user.save();
+
+    // Return user without passwordHash
+    return this.findOne(user._id.toString());
+  }
 
   async findAll(): Promise<User[]> {
     return this.userModel.find().select('-passwordHash').exec();
