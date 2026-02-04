@@ -6,6 +6,8 @@ import '../screens/auth/signup_screen.dart';
 import '../screens/auth/forgot_password_screen.dart';
 import '../screens/language/language_selection_screen.dart';
 import '../screens/home/home_container_screen.dart';
+import '../screens/organization/organization_dashboard_screen.dart';
+import '../screens/organization/staff_management_screen.dart';
 import 'constants.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -38,6 +40,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppConstants.homeRoute,
       builder: (context, state) => const HomeContainerScreen(),
+    ),
+    GoRoute(
+      path: AppConstants.organizationDashboardRoute,
+      builder: (context, state) => const OrganizationDashboardScreen(),
     ),
   ],
 );

@@ -39,7 +39,11 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success && mounted) {
-        context.go(AppConstants.homeRoute);
+        if (authProvider.user?.role == 'organization_leader') {
+          context.go(AppConstants.organizationDashboardRoute);
+        } else {
+          context.go(AppConstants.homeRoute);
+        }
       }
     } catch (e) {
       if (mounted) {

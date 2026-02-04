@@ -12,6 +12,10 @@ import {
   EmailVerificationSchema,
 } from './schemas/email-verification.schema';
 import { MailModule } from '../mail/mail.module';
+import {
+  Organization,
+  OrganizationSchema,
+} from '../organization/schemas/organization.schema';
 
 @Module({
   imports: [
@@ -32,10 +36,11 @@ import { MailModule } from '../mail/mail.module';
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: EmailVerification.name, schema: EmailVerificationSchema },
+      { name: Organization.name, schema: OrganizationSchema },
     ]),
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
   exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

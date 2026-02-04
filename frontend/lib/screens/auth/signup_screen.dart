@@ -220,6 +220,8 @@ class _SignupScreenState extends State<SignupScreen> {
         return localizations.roleDoctor;
       case 'volunteer':
         return localizations.roleVolunteer;
+      case 'organization_leader':
+        return localizations.roleOrganizationLeader;
       default:
         return role;
     }
@@ -422,7 +424,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                     ),
-                    items: ['family', 'doctor', 'volunteer'].map((role) {
+                    items: ['family', 'doctor', 'volunteer', 'organization_leader'].map((role) {
                       return DropdownMenuItem(
                         value: role,
                         child: Text(_getRoleDisplayName(role, localizations)),

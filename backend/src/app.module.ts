@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { HealthModule } from './health/health.module';
 import { MailModule } from './mail/mail.module';
+import { OrganizationModule } from './organization/organization.module';
 
 @Module({
   imports: [
@@ -35,8 +36,9 @@ import { MailModule } from './mail/mail.module';
     AuthModule,
     UsersModule,
     HealthModule,
+    OrganizationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

@@ -19,4 +19,6 @@ class AppConstants {
   static const String signupRoute = '/signup';
   static const String forgotPasswordRoute = '/forgot-password';
   static const String homeRoute = '/home';
+  static const String organizationDashboardRoute = '/organization-dashboard';
+  static const String staffManagementRoute = '/organization/staff';
 }

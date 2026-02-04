@@ -140,6 +140,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get roleVolunteer => 'متطوع';
 
   @override
+  String get roleOrganizationLeader => 'قائد المنظمة';
+
+  @override
   String get profileTitle => 'الملف الشخصي';
 
   @override

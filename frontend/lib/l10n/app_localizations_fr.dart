@@ -140,6 +140,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get roleVolunteer => 'Bénévole';
 
   @override
+  String get roleOrganizationLeader => 'Responsable d\'organisation';
+
+  @override
   String get profileTitle => 'Profil';
 
   @override

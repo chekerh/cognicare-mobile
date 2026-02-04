@@ -48,11 +48,11 @@ export class SignupDto {
   @ApiProperty({
     description: "User's role in the platform",
     example: 'family',
-    enum: ['family', 'doctor', 'volunteer'],
+    enum: ['family', 'doctor', 'volunteer', 'organization_leader'],
   })
   @IsNotEmpty()
-  @IsEnum(['family', 'doctor', 'volunteer'])
-  role: 'family' | 'doctor' | 'volunteer';
+  @IsEnum(['family', 'doctor', 'volunteer', 'organization_leader'])
+  role: 'family' | 'doctor' | 'volunteer' | 'organization_leader';
 
   @ApiProperty({
     description: '6-digit verification code sent to email',
