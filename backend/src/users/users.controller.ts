@@ -21,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import {
   UpdatePasswordDto,
   RequestEmailChangeDto,
@@ -35,6 +36,27 @@ import { AdminGuard } from '../auth/admin.guard';
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Post()
+  @UseGuards(AdminGuard)
+  @ApiOperation({
+    summary: 'Create user (Admin only)',
+    description:
+      'Create a new user without email verification. Only admins can use this endpoint.',
+  })
+  @ApiBody({ type: CreateUserDto })
+  @ApiResponse({
+    status: 201,
+    description: 'User created successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'User with this email already exists',
+  })
+  @ApiResponse({ status: 403, description: 'Admin access required' })
+  async create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
+  }
 
   @Get()
   @UseGuards(AdminGuard)
