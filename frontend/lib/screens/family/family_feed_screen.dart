@@ -1,11 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/community_feed_provider.dart';
+import '../../models/marketplace_product.dart';
+import '../../services/marketplace_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 
@@ -34,9 +37,24 @@ class FamilyFeedScreen extends StatefulWidget {
 
 class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   int _selectedTab = 0; // 0: Community, 1: Marketplace, 2: Experts
+  late final Future<List<MarketplaceProduct>> _marketplaceProductsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _marketplaceProductsFuture = MarketplaceService().getProducts(limit: 6);
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Barre de statut en bleu (icônes claires) — header tout en bleu
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+    );
     final bottomPadding = MediaQuery.paddingOf(context).bottom + 88;
     return Scaffold(
       backgroundColor: _feedBackground,
@@ -123,7 +141,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                         color: Colors.white,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.psychology, color: _feedPrimary, size: 22),
+                      child: const Icon(Icons.psychology, color: _feedPrimary, size: 22),
                     ),
                     const SizedBox(width: 8),
                     const Text(
@@ -203,7 +221,13 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     final selected = _selectedTab == index;
     return Expanded(
       child: InkWell(
-        onTap: () => setState(() => _selectedTab = index),
+        onTap: () {
+          if (index == 1) {
+            context.go(AppConstants.familyMarketRoute);
+            return;
+          }
+          setState(() => _selectedTab = index);
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Column(
@@ -319,7 +343,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Text(
                     AppLocalizations.of(context)!.open,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: _feedSecondary,
@@ -411,7 +435,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(Icons.add_photo_alternate, color: _feedPrimary, size: 26),
+                const Icon(Icons.add_photo_alternate, color: _feedPrimary, size: 26),
               ],
             ),
           ),
@@ -700,7 +724,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     ),
                     const SizedBox(width: 8),
                     IconButton(
-                      icon: Icon(Icons.send, color: _feedPrimary),
+                      icon: const Icon(Icons.send, color: _feedPrimary),
                       onPressed: () {
                         final text = controller.text.trim();
                         if (text.isEmpty) return;
@@ -818,7 +842,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                         value: 'edit',
                         child: Row(
                           children: [
-                            Icon(Icons.edit_outlined, color: AppTheme.primary, size: 20),
+                            const Icon(Icons.edit_outlined, color: AppTheme.primary, size: 20),
                             const SizedBox(width: 8),
                             Text(AppLocalizations.of(context)!.editPost),
                           ],
@@ -1091,26 +1115,52 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   letterSpacing: 1.5,
                 ),
               ),
-              Text(
-                AppLocalizations.of(context)!.viewAll,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: _feedPrimary,
+              InkWell(
+                onTap: () => context.go(AppConstants.familyMarketRoute),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                  child: Text(
+                    AppLocalizations.of(context)!.viewAll,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: _feedPrimary,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
           SizedBox(
-            height: 120,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _marketplaceCard(AppLocalizations.of(context)!.weightedBlanket, '\$45.00'),
-                _marketplaceCard(AppLocalizations.of(context)!.noiseCancelling, '\$129.00'),
-                _marketplaceCard(AppLocalizations.of(context)!.visualTimer, '\$18.50'),
-              ],
+            height: 128,
+            child: FutureBuilder<List<MarketplaceProduct>>(
+              future: _marketplaceProductsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: List.generate(3, (_) => _marketplaceCardPlaceholder()),
+                  );
+                }
+                List<MarketplaceProduct> products = snapshot.data ?? [];
+                if (snapshot.hasError || products.isEmpty) {
+                  products = _fallbackMarketplaceProducts();
+                }
+                if (products.isEmpty) {
+                  return ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [_marketplaceCardPlaceholder()],
+                  );
+                }
+                return ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    return _marketplaceProductCard(products[index]);
+                  },
+                );
+              },
             ),
           ),
         ],
@@ -1118,35 +1168,63 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     );
   }
 
-  Widget _marketplaceCard(String title, String price) {
+  /// URLs d'images de repli (Unsplash) quand l'API n'en fournit pas.
+  static const List<String> _fallbackImageUrls = [
+    'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400', // weighted blanket
+    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', // headphones
+    'https://images.unsplash.com/photo-1560869713-72d2c8364444?w=400',   // timer
+  ];
+
+  /// Produits affichés quand l'API est indisponible ou renvoie une liste vide.
+  List<MarketplaceProduct> _fallbackMarketplaceProducts() {
+    final loc = AppLocalizations.of(context)!;
+    return [
+      MarketplaceProduct(
+        id: 'fallback_1',
+        title: loc.weightedBlanket,
+        price: '\$45.00',
+        imageUrl: _fallbackImageUrls[0],
+        description: '',
+      ),
+      MarketplaceProduct(
+        id: 'fallback_2',
+        title: loc.noiseCancelling,
+        price: '\$129.00',
+        imageUrl: _fallbackImageUrls[1],
+        description: '',
+      ),
+      MarketplaceProduct(
+        id: 'fallback_3',
+        title: loc.visualTimer,
+        price: '\$18.50',
+        imageUrl: _fallbackImageUrls[2],
+        description: '',
+      ),
+    ];
+  }
+
+  Widget _marketplaceCardPlaceholder() {
     return Container(
       width: 140,
       margin: const EdgeInsets.only(right: 16),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            height: 96,
+            height: 82,
             decoration: BoxDecoration(
               color: _feedPrimary.withOpacity(0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Center(
-              child: Icon(
-                title.contains(AppLocalizations.of(context)!.weightedBlanket) || title.contains('Blanket') || title.contains('Couverture')
-                    ? Icons.bed
-                    : title.contains(AppLocalizations.of(context)!.noiseCancelling) || title.contains('Noise') || title.contains('Bruit')
-                        ? Icons.headphones
-                        : Icons.timer_outlined,
-                size: 40,
-                color: _feedPrimary,
-              ),
+            child: const Center(
+              child: Icon(Icons.shopping_bag_outlined, size: 32, color: _feedPrimary),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
+          const SizedBox(height: 6),
+          const Text(
+            '...',
+            style: TextStyle(
               fontWeight: FontWeight.w600,
               color: AppTheme.text,
               fontSize: 12,
@@ -1155,15 +1233,92 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
-          Text(
-            price,
-            style: const TextStyle(
+          const Text(
+            '\$0.00',
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               color: _feedSecondary,
               fontSize: 12,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _marketplaceProductCard(MarketplaceProduct product) {
+    return InkWell(
+      onTap: () {
+        context.push(
+          AppConstants.familyProductDetailRoute,
+          extra: {
+            'productId': product.id,
+            'title': product.title,
+            'price': product.price,
+            'imageUrl': product.imageUrl,
+            'description': product.description,
+            'badge': product.badge,
+            'badgeColorValue': null,
+          },
+        );
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: 140,
+        margin: const EdgeInsets.only(right: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 82,
+              decoration: BoxDecoration(
+                color: _feedPrimary.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: product.imageUrl.isNotEmpty
+                  ? Image.network(
+                      product.imageUrl,
+                      width: double.infinity,
+                      height: 82,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (_, child, progress) {
+                        if (progress == null) return child;
+                        return const Center(
+                          child: Icon(Icons.shopping_bag_outlined, size: 32, color: _feedPrimary),
+                        );
+                      },
+                      errorBuilder: (_, __, ___) => const Center(
+                        child: Icon(Icons.shopping_bag_outlined, size: 32, color: _feedPrimary),
+                      ),
+                    )
+                  : const Center(
+                      child: Icon(Icons.shopping_bag_outlined, size: 32, color: _feedPrimary),
+                    ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              product.title,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: AppTheme.text,
+                fontSize: 12,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              product.price,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: _feedSecondary,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

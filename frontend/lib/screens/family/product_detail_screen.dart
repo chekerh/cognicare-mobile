@@ -37,32 +37,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.text),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          loc.productDetails,
-          style: const TextStyle(
-            color: AppTheme.text,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.text),
+            onPressed: () => context.pop(),
           ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined, color: AppTheme.text),
-            onPressed: () {},
+          title: Text(
+            loc.productDetails,
+            style: const TextStyle(
+              color: AppTheme.text,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.shopping_cart_outlined, color: AppTheme.text),
+              onPressed: () {},
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -74,22 +75,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             const SizedBox(height: 24),
             // Reviews section
             _buildReviewsSection(),
-            const SizedBox(height: 100), // Space for bottom bar
+            SizedBox(height: MediaQuery.paddingOf(context).bottom + 100),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomBar(),
+        bottomNavigationBar: _buildBottomBar(),
+      ),
     );
   }
 
+  static const String _placeholderImageUrl =
+      'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800';
+
   Widget _buildImageCarousel() {
+    final imageUrl = widget.imageUrl.trim().isEmpty ? _placeholderImageUrl : widget.imageUrl;
     return Stack(
       children: [
         SizedBox(
           height: 300,
           width: double.infinity,
           child: Image.network(
-            widget.imageUrl,
+            imageUrl,
             fit: BoxFit.cover,
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
@@ -99,8 +105,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               );
             },
             errorBuilder: (context, error, stackTrace) => Container(
+              height: 300,
               color: Colors.grey.shade200,
-              child: const Icon(Icons.image_not_supported, size: 64),
+              child: const Center(
+                child: Icon(Icons.image_not_supported, size: 64, color: Colors.grey),
+              ),
             ),
           ),
         ),
@@ -360,8 +369,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildBottomBar() {
     final loc = AppLocalizations.of(context)!;
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomPadding),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -372,8 +382,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
         ],
       ),
-      child: SafeArea(
-        child: Row(
+      child: Row(
           children: [
             Container(
               width: 56,
@@ -429,7 +438,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 }

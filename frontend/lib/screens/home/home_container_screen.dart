@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/theme.dart';
 import 'home_dashboard_screen.dart';
-import '../profile/profile_screen.dart';
+import '../profile/healthcare_profile_screen.dart';
 
 /// Écran Patients pour les professionnels de santé.
 class HomePatientsScreen extends StatelessWidget {
@@ -112,10 +112,10 @@ class _HomeContainerScreenState extends State<HomeContainerScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    const HomeDashboardScreen(), // Tableau
-    const HomePatientsScreen(),  // Patients
-    const HomeMessagesScreen(),  // Messages
-    const ProfileScreen(),       // Profil
+    const HomeDashboardScreen(),       // Tableau
+    const HomePatientsScreen(),        // Patients
+    const HomeMessagesScreen(),        // Messages
+    const HealthcareProfileScreen(),   // Profil professionnel de santé
   ];
 
   @override

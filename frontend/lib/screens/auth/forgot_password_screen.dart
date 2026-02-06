@@ -1,11 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/theme.dart';
 import '../../utils/constants.dart';
-import '../../widgets/custom_text_field.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+// Design Premium OTP / Forgot : primary #A3D9E2, background #F8FBFC
+const Color _authPrimary = Color(0xFFA3D9E2);
+const Color _authBackground = Color(0xFFF8FBFC);
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -23,14 +28,30 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   int _currentStep = 0;
   bool _isLoading = false;
+  int _resendCountdown = 0;
+  Timer? _resendTimer;
 
   @override
   void dispose() {
+    _resendTimer?.cancel();
     _emailController.dispose();
     _codeController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _startResendCountdown() {
+    _resendTimer?.cancel();
+    setState(() => _resendCountdown = 60);
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (_resendCountdown <= 0) {
+        t.cancel();
+        if (mounted) setState(() {});
+        return;
+      }
+      if (mounted) setState(() => _resendCountdown--);
+    });
   }
 
   Future<void> _requestCode() async {
@@ -39,25 +60,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final response = await http.post(
-        Uri.parse('${AppConstants.baseUrl}/api/v1/auth/forgot-password'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': _emailController.text.trim()}),
-      );
-
+      final ok = await _sendForgotPasswordRequest();
       final localizations = AppLocalizations.of(context)!;
-
-      if (response.statusCode == 200) {
+      if (ok && mounted) {
         setState(() => _currentStep = 1);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(localizations.codeSentSuccess),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else {
+        _startResendCountdown();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(localizations.codeSentSuccess),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else if (!ok && mounted) {
         throw Exception(localizations.unknownError);
       }
     } catch (e) {
@@ -75,7 +89,29 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
+  Future<bool> _sendForgotPasswordRequest() async {
+    final response = await http.post(
+      Uri.parse('${AppConstants.baseUrl}/api/v1/auth/forgot-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': _emailController.text.trim()}),
+    );
+    return response.statusCode == 200;
+  }
+
   Future<void> _verifyCode() async {
+    if (_currentStep == 1) {
+      final code = _codeController.text.trim();
+      if (code.length != 6 || !RegExp(r'^\d{6}$').hasMatch(code)) {
+        final localizations = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(localizations.codeInvalid),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -181,68 +217,85 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppTheme.text),
-          onPressed: () {
-            if (_currentStep > 0) {
-              setState(() => _currentStep--);
-            } else {
-              context.go(AppConstants.loginRoute);
-            }
-          },
-        ),
-        title: Text(
-          localizations.resetPasswordTitle,
-          style: const TextStyle(color: AppTheme.text),
-        ),
-      ),
+      backgroundColor: _authBackground,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Progress indicator
-                _buildProgressIndicator(),
-                
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
+                // Back button
+                Material(
+                  color: Colors.white.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(20),
+                  child: InkWell(
+                    onTap: () {
+                      if (_currentStep > 0) {
+                        setState(() => _currentStep--);
+                      } else {
+                        context.go(AppConstants.loginRoute);
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(20),
+                    child: const SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Icon(Icons.arrow_back_ios_new, color: AppTheme.text, size: 20),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
 
-                // Step content
-                if (_currentStep == 0) _buildEmailStep(),
-                if (_currentStep == 1) _buildCodeStep(),
-                if (_currentStep == 2) _buildPasswordStep(),
+                if (_currentStep == 0) ..._buildEmailStep(localizations),
+                if (_currentStep == 1) ..._buildOtpStep(localizations),
+                if (_currentStep == 2) ..._buildPasswordStep(localizations),
 
                 const SizedBox(height: 32),
 
                 // Action button
-                SizedBox(
+                Container(
                   width: double.infinity,
                   height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(_currentStep == 1 ? 28 : 20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _authPrimary.withOpacity(0.4),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleAction,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primary,
+                      backgroundColor: _authPrimary,
+                      foregroundColor: AppTheme.text,
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(_currentStep == 1 ? 28 : 20),
                       ),
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
                         : Text(
                             _getButtonText(),
                             style: const TextStyle(
                               fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                   ),
                 ),
+                const SizedBox(height: 40),
               ],
             ),
           ),
@@ -251,198 +304,299 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  Widget _buildProgressIndicator() {
-    final localizations = AppLocalizations.of(context)!;
-    return Row(
-      children: [
-        _buildStepIndicator(0, localizations.emailLabel),
-        Expanded(child: Container(height: 2, color: _currentStep > 0 ? AppTheme.primary : Colors.grey[300])),
-        _buildStepIndicator(1, localizations.verificationCodeLabel),
-        Expanded(child: Container(height: 2, color: _currentStep > 1 ? AppTheme.primary : Colors.grey[300])),
-        _buildStepIndicator(2, localizations.passwordLabel),
-      ],
+  List<Widget> _buildEmailStep(AppLocalizations localizations) {
+    return [
+      Text(
+        localizations.enterEmailStepTitle,
+        style: const TextStyle(
+          fontSize: 26,
+          fontWeight: FontWeight.w800,
+          color: AppTheme.text,
+        ),
+      ),
+      const SizedBox(height: 8),
+      Text(
+        localizations.enterEmailStepSubtitle,
+        style: TextStyle(
+          fontSize: 15,
+          color: AppTheme.text.withOpacity(0.6),
+          height: 1.4,
+        ),
+      ),
+      const SizedBox(height: 24),
+      _buildEmailInput(localizations),
+    ];
+  }
+
+  Widget _buildEmailInput(AppLocalizations localizations) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: _authPrimary.withOpacity(0.6), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: _authPrimary.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: TextFormField(
+        controller: _emailController,
+        keyboardType: TextInputType.emailAddress,
+        decoration: InputDecoration(
+          hintText: localizations.emailLabel,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.w500),
+        ),
+        style: const TextStyle(color: AppTheme.text, fontSize: 15, fontWeight: FontWeight.w500),
+        validator: (v) {
+          if (v == null || v.isEmpty) return localizations.emailRequired;
+          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
+            return localizations.emailInvalid;
+          }
+          return null;
+        },
+      ),
     );
   }
 
-  Widget _buildStepIndicator(int step, String label) {
-    final isActive = _currentStep >= step;
-    return Column(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: isActive ? AppTheme.primary : Colors.grey[300],
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              '${step + 1}',
-              style: TextStyle(
-                color: isActive ? Colors.white : Colors.grey[600],
-                fontWeight: FontWeight.bold,
+  List<Widget> _buildOtpStep(AppLocalizations localizations) {
+    return [
+      // Email en lecture seule (comme sur la photo)
+      _buildReadOnlyField(
+        icon: Icons.mail_outline,
+        value: _emailController.text.trim(),
+      ),
+      const SizedBox(height: 16),
+      // Code Sent + Resend (style photo : bouton gris + lien bleu)
+      Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.check_circle, color: Colors.grey.shade700, size: 22),
+                  const SizedBox(width: 10),
+                  Text(
+                    localizations.codeSentButton,
+                    style: TextStyle(
+                      color: Colors.grey.shade700,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: isActive ? AppTheme.text : Colors.grey[600],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmailStep() {
-    final localizations = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          localizations.enterEmailStepTitle,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppTheme.text,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          localizations.enterEmailStepSubtitle,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.text.withOpacity(0.7),
-              ),
-        ),
-        const SizedBox(height: 24),
-        CustomTextField(
-          controller: _emailController,
-          label: localizations.emailLabel,
-          keyboardType: TextInputType.emailAddress,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return localizations.emailRequired;
-            }
-            final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-            if (!emailRegex.hasMatch(value)) {
-              return localizations.emailInvalid;
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCodeStep() {
-    final localizations = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          localizations.verifyCodeStepTitle,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppTheme.text,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          localizations.checkEmailStepSubtitle,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.text.withOpacity(0.7),
-              ),
-        ),
-        const SizedBox(height: 24),
-        CustomTextField(
-          controller: _codeController,
-          label: localizations.verificationCodeLabel,
-          keyboardType: TextInputType.number,
-          maxLength: 6,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return localizations.unknownError;
-            }
-            final trimmed = value.trim();
-            if (trimmed.length != 6) {
-              return localizations.codeInvalid;
-            }
-            if (!RegExp(r'^\d{6}$').hasMatch(trimmed)) {
-              return localizations.unknownError;
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-        Center(
-          child: TextButton(
-            onPressed: _isLoading ? null : _requestCode,
+          const SizedBox(width: 12),
+          TextButton(
+            onPressed: (_resendCountdown > 0 || _isLoading)
+                ? null
+                : () async {
+                    setState(() => _isLoading = true);
+                    final ok = await _sendForgotPasswordRequest();
+                    if (mounted) {
+                      setState(() => _isLoading = false);
+                      if (ok) {
+                        _startResendCountdown();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(AppLocalizations.of(context)!.codeSentSuccess),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    }
+                  },
             child: Text(
-              localizations.resendCodeButton,
+              localizations.resendButton,
+              style: TextStyle(
+                color: _resendCountdown > 0 ? Colors.grey : _authPrimary,
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 20),
+      // Champ code unique + compteur 0/6
+      _buildCodeInput(localizations),
+      const SizedBox(height: 24),
+    ];
+  }
+
+  Widget _buildReadOnlyField({required IconData icon, required String value}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: _authPrimary.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.grey.shade400, size: 22),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              value.isEmpty ? '—' : value,
               style: const TextStyle(
-                color: AppTheme.primary,
-                fontSize: 14,
+                color: AppTheme.text,
+                fontSize: 15,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCodeInput(AppLocalizations localizations) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: _authPrimary.withOpacity(0.06),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: TextFormField(
+            controller: _codeController,
+            keyboardType: TextInputType.number,
+            maxLength: 6,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            decoration: InputDecoration(
+              hintText: localizations.verificationCodeLabel,
+              prefixIcon: Icon(Icons.pin_outlined, color: Colors.grey.shade400, size: 22),
+              counterText: '',
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.w500),
+            ),
+            style: const TextStyle(
+              color: AppTheme.text,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+            onChanged: (_) => setState(() {}),
+            validator: (v) {
+              final s = (v ?? '').trim();
+              if (s.isEmpty) return null;
+              if (s.length != 6 || !RegExp(r'^\d{6}$').hasMatch(s)) {
+                return localizations.codeInvalid;
+              }
+              return null;
+            },
+          ),
+        ),
+        const SizedBox(height: 6),
+        ValueListenableBuilder<TextEditingValue>(
+          valueListenable: _codeController,
+          builder: (context, value, _) {
+            return Text(
+              '${value.text.length}/6',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade600,
+              ),
+            );
+          },
         ),
       ],
     );
   }
 
-  Widget _buildPasswordStep() {
-    final localizations = AppLocalizations.of(context)!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          localizations.createNewPasswordStepTitle,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppTheme.text,
-                fontWeight: FontWeight.bold,
-              ),
+  List<Widget> _buildPasswordStep(AppLocalizations localizations) {
+    return [
+      Text(
+        localizations.createNewPasswordStepTitle,
+        style: const TextStyle(
+          fontSize: 26,
+          fontWeight: FontWeight.w800,
+          color: AppTheme.text,
         ),
-        const SizedBox(height: 8),
-        Text(
-          localizations.createNewPasswordStepSubtitle,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.text.withOpacity(0.7),
-              ),
+      ),
+      const SizedBox(height: 8),
+      Text(
+        localizations.createNewPasswordStepSubtitle,
+        style: TextStyle(
+          fontSize: 15,
+          color: AppTheme.text.withOpacity(0.6),
+          height: 1.4,
         ),
-        const SizedBox(height: 24),
-        CustomTextField(
-          controller: _passwordController,
-          label: localizations.newPasswordLabel,
-          obscureText: true,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return localizations.passwordRequired;
-            }
-            if (value.length < 6) {
-              return localizations.passwordTooShort;
-            }
-            return null;
-          },
+      ),
+      const SizedBox(height: 24),
+      _buildPasswordInput(localizations.newPasswordLabel, _passwordController, (v) {
+        if (v == null || v.isEmpty) return localizations.passwordRequired;
+        if (v.length < 6) return localizations.passwordTooShort;
+        return null;
+      }),
+      const SizedBox(height: 16),
+      _buildPasswordInput(localizations.confirmPasswordLabel, _confirmPasswordController, (v) {
+        if (v == null || v.isEmpty) return localizations.confirmPasswordRequired;
+        if (v != _passwordController.text) return localizations.passwordsDontMatch;
+        return null;
+      }),
+    ];
+  }
+
+  Widget _buildPasswordInput(
+    String label,
+    TextEditingController controller,
+    String? Function(String?)? validator,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: _authPrimary.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: TextFormField(
+        controller: controller,
+        obscureText: true,
+        decoration: InputDecoration(
+          hintText: label,
+          prefixIcon: Icon(Icons.lock, color: Colors.grey.shade400, size: 22),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
-        const SizedBox(height: 16),
-        CustomTextField(
-          controller: _confirmPasswordController,
-          label: localizations.confirmPasswordLabel,
-          obscureText: true,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return localizations.confirmPasswordRequired;
-            }
-            if (value != _passwordController.text) {
-              return localizations.passwordsDontMatch;
-            }
-            return null;
-          },
-        ),
-      ],
+        style: const TextStyle(color: AppTheme.text, fontSize: 15, fontWeight: FontWeight.w500),
+        validator: validator,
+      ),
     );
   }
 

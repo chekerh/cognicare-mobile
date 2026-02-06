@@ -173,6 +173,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changeLanguage => 'Change Language';
 
   @override
+  String get changePhone => 'Change Phone';
+
+  @override
   String get logout => 'Logout';
 
   @override
@@ -504,4 +507,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get visualTimer => 'Visual Timer';
+
+  @override
+  String get monProfil => 'My Profile';
+  @override
+  String get familyCaregiver => 'Family Caregiver';
+  @override
+  String get myFamily => 'My Family';
+  @override
+  String get quickSettings => 'Quick Settings';
+  @override
+  String get childMode => 'Child Mode';
+  @override
+  String get dataSharing => 'Data Sharing';
+  @override
+  String get familyNotifications => 'Family Notifications';
+  @override
+  String get simplifiedInterfaceActive => 'Simplified interface active';
+  @override
+  String get syncWithRelatives => 'Sync with close ones';
+  @override
+  String get importantActivityAlerts => 'Important activity alerts';
+  @override
+  String get engagement => 'Engagement';
+  @override
+  String get activitiesThisWeek => 'Activities this week';
+  @override
+  String get addMember => 'Add';
+
+  @override
+  String get myPatients => 'My Patients';
+  @override
+  String get lastAppointment => 'Last appointment';
+  @override
+  String get yesterday => 'Yesterday';
+  @override
+  String get clinicSettings => 'Clinic Settings';
+  @override
+  String get consultationHours => 'Consultation hours';
+  @override
+  String get consultationHoursValue => 'Mon - Fri, 09:00 - 18:00';
+  @override
+  String get teleconsultationSettings => 'Teleconsultation settings';
+  @override
+  String get teleconsultationSettingsValue => 'Zoom link, Waiting room active';
+  @override
+  String get prescriptionTemplates => 'Prescription templates';
+  @override
+  String get prescriptionTemplatesValue => '3 templates saved';
+  @override
+  String get myAccount => 'My Account';
+  @override
+  String get securityAndPrivacy => 'Security & Privacy';
+  @override
+  String get helpAndSupport => 'Help & Support';
+  @override
+  String get verifiedByOrder => 'Verified by the Order';
+  @override
+  String get patientsStat => 'Patients';
+  @override
+  String get todayStat => 'Today';
+  @override
+  String get ratingStat => 'Rating';
 }

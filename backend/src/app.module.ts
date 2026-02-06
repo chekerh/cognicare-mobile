@@ -11,6 +11,7 @@ import { HealthModule } from './health/health.module';
 import { MailModule } from './mail/mail.module';
 import { OrganizationModule } from './organization/organization.module';
 import { CommunityModule } from './community/community.module';
+import { MarketplaceModule } from './marketplace/marketplace.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { CommunityModule } from './community/community.module';
     HealthModule,
     OrganizationModule,
     CommunityModule,
+    MarketplaceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

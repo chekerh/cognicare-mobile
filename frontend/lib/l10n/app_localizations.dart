@@ -161,6 +161,7 @@ abstract class AppLocalizations {
   String get changePassword;
   String get changeEmail;
   String get changeLanguage;
+  String get changePhone;
   String get logout;
   String get logoutConfirmTitle;
   String get logoutConfirmMessage;
@@ -280,6 +281,40 @@ abstract class AppLocalizations {
   String get weightedBlanket;
   String get noiseCancelling;
   String get visualTimer;
+
+  /// Family profile (HTML design)
+  String get monProfil;
+  String get familyCaregiver;
+  String get myFamily;
+  String get quickSettings;
+  String get childMode;
+  String get dataSharing;
+  String get familyNotifications;
+  String get simplifiedInterfaceActive;
+  String get syncWithRelatives;
+  String get importantActivityAlerts;
+  String get engagement;
+  String get activitiesThisWeek;
+  String get addMember;
+
+  /// Healthcare professional profile
+  String get myPatients;
+  String get lastAppointment;
+  String get yesterday;
+  String get clinicSettings;
+  String get consultationHours;
+  String get consultationHoursValue;
+  String get teleconsultationSettings;
+  String get teleconsultationSettingsValue;
+  String get prescriptionTemplates;
+  String get prescriptionTemplatesValue;
+  String get myAccount;
+  String get securityAndPrivacy;
+  String get helpAndSupport;
+  String get verifiedByOrder;
+  String get patientsStat;
+  String get todayStat;
+  String get ratingStat;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

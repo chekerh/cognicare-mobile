@@ -173,6 +173,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get changeLanguage => 'تغيير اللغة';
 
   @override
+  String get changePhone => 'تغيير الهاتف';
+
+  @override
   String get logout => 'تسجيل الخروج';
 
   @override
@@ -504,4 +507,66 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get visualTimer => 'مؤقت بصري';
+
+  @override
+  String get monProfil => 'ملفي';
+  @override
+  String get familyCaregiver => 'مقدم رعاية عائلية';
+  @override
+  String get myFamily => 'عائلتي';
+  @override
+  String get quickSettings => 'إعدادات سريعة';
+  @override
+  String get childMode => 'وضع الطفل';
+  @override
+  String get dataSharing => 'مشاركة البيانات';
+  @override
+  String get familyNotifications => 'إشعارات العائلة';
+  @override
+  String get simplifiedInterfaceActive => 'واجهة مبسطة نشطة';
+  @override
+  String get syncWithRelatives => 'مزامنة مع الأقارب';
+  @override
+  String get importantActivityAlerts => 'تنبيهات النشاط المهمة';
+  @override
+  String get engagement => 'مشاركة';
+  @override
+  String get activitiesThisWeek => 'أنشطة هذا الأسبوع';
+  @override
+  String get addMember => 'إضافة';
+
+  @override
+  String get myPatients => 'مرضاي';
+  @override
+  String get lastAppointment => 'آخر موعد';
+  @override
+  String get yesterday => 'أمس';
+  @override
+  String get clinicSettings => 'إعدادات العيادة';
+  @override
+  String get consultationHours => 'ساعات الاستشارة';
+  @override
+  String get consultationHoursValue => 'الإثنين - الجمعة، 09:00 - 18:00';
+  @override
+  String get teleconsultationSettings => 'إعدادات الاستشارة عن بُعد';
+  @override
+  String get teleconsultationSettingsValue => 'رابط Zoom، غرفة انتظار نشطة';
+  @override
+  String get prescriptionTemplates => 'قوالب الوصفات';
+  @override
+  String get prescriptionTemplatesValue => '3 قوالب محفوظة';
+  @override
+  String get myAccount => 'حسابي';
+  @override
+  String get securityAndPrivacy => 'الأمان والخصوصية';
+  @override
+  String get helpAndSupport => 'المساعدة والدعم';
+  @override
+  String get verifiedByOrder => 'موثق من الهيئة';
+  @override
+  String get patientsStat => 'المرضى';
+  @override
+  String get todayStat => 'اليوم';
+  @override
+  String get ratingStat => 'التقييم';
 }

@@ -18,6 +18,9 @@ class AppConstants {
   static const String communityPostLikeStatusEndpoint = '/api/v1/community/posts/like-status';
   static const String communityUploadPostImageEndpoint = '/api/v1/community/upload-post-image';
 
+  // Marketplace
+  static const String marketplaceProductsEndpoint = '/api/v1/marketplace/products';
+
   // Storage Keys
   static const String jwtTokenKey = 'jwt_token';
   static const String userDataKey = 'user_data';

@@ -7,7 +7,10 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
-import '../../widgets/custom_text_field.dart';
+
+// Design Premium Sign-up : primary #A3D9E2, background #F8FBFC
+const Color _authPrimary = Color(0xFFA3D9E2);
+const Color _authBackground = Color(0xFFF8FBFC);
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -30,6 +33,7 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _emailVerified = false;
   bool _codeSent = false;
   bool _isSendingCode = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -146,7 +150,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> _signup() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     if (!_emailVerified) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -156,7 +160,7 @@ class _SignupScreenState extends State<SignupScreen> {
       );
       return;
     }
-    
+
     if (!_acceptTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -181,14 +185,12 @@ class _SignupScreenState extends State<SignupScreen> {
       );
 
       if (success && mounted) {
-        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.signupSuccess),
             backgroundColor: Colors.green,
           ),
         );
-        // Navigate to login screen
         context.go(AppConstants.loginRoute);
       }
     } catch (e) {
@@ -233,109 +235,152 @@ class _SignupScreenState extends State<SignupScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: _authBackground,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 24),
-
-                // Back button
-                IconButton(
-                  onPressed: () => context.go(AppConstants.loginRoute),
-                  icon: const Icon(Icons.arrow_back),
-                  color: AppTheme.text,
+                Material(
+                  color: Colors.white.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(20),
+                  child: InkWell(
+                    onTap: () => context.go(AppConstants.loginRoute),
+                    borderRadius: BorderRadius.circular(20),
+                    child: const SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Icon(Icons.arrow_back_ios_new, color: AppTheme.text, size: 20),
+                    ),
+                  ),
                 ),
-
-                const SizedBox(height: 16),
-
-                // Title
-                Text(
-                  localizations.signupTitle,
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                        color: AppTheme.text,
-                        fontWeight: FontWeight.bold,
+                const SizedBox(height: 24),
+                // Illustration (volunteer_activism + favorite)
+                Center(
+                  child: Container(
+                    width: 176,
+                    height: 176,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [_authPrimary.withOpacity(0.2), _authPrimary.withOpacity(0.05)],
                       ),
-                ),
-
-                const SizedBox(height: 8),
-
-                // Subtitle
-                Text(
-                  localizations.signupSubtitle,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.text.withOpacity(0.7),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: _authPrimary.withOpacity(0.15),
+                          blurRadius: 24,
+                          spreadRadius: -4,
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Container(
+                        width: 112,
+                        height: 112,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(32),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _authPrimary.withOpacity(0.15),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.favorite, color: _authPrimary, size: 48),
+                            const SizedBox(height: 4),
+                            Icon(Icons.volunteer_activism, color: Colors.green.shade400, size: 28),
+                          ],
+                        ),
                       ),
+                    ),
+                  ),
                 ),
-
-                const SizedBox(height: 32),
-
-                // Full Name field
-                CustomTextField(
+                const SizedBox(height: 24),
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        localizations.signupTitle,
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.text,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        localizations.signupSubtitle,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.text.withOpacity(0.6),
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 28),
+                // Nom complet
+                _buildInput(
+                  context: context,
                   controller: _fullNameController,
-                  label: localizations.fullNameLabel,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return localizations.fullNameRequired;
-                    }
+                  icon: Icons.person,
+                  hint: localizations.fullNameLabel,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return localizations.fullNameRequired;
                     return null;
                   },
                 ),
-
-                const SizedBox(height: 24),
-
-                // Email field
-                CustomTextField(
+                const SizedBox(height: 16),
+                // Email
+                _buildInput(
+                  context: context,
                   controller: _emailController,
-                  label: localizations.emailLabel,
+                  icon: Icons.mail,
+                  hint: localizations.emailLabel,
                   keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return localizations.emailRequired;
-                    }
-                    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                    if (!emailRegex.hasMatch(value)) {
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return localizations.emailRequired;
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
                       return localizations.emailInvalid;
                     }
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 16),
-
-                // Email verification section
+                // Email verification
                 if (!_emailVerified) ...[
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton.icon(
+                        child: _authButton(
                           onPressed: _isSendingCode || _codeSent ? null : _sendVerificationCode,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _codeSent ? Colors.grey : AppTheme.secondary,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                          icon: _isSendingCode
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : Icon(_codeSent ? Icons.check : Icons.email),
-                          label: Text(_codeSent ? localizations.codeSentButton : localizations.sendCodeButton),
+                          label: _codeSent ? localizations.codeSentButton : localizations.sendCodeButton,
+                          isLoading: _isSendingCode && !_codeSent,
+                          icon: _codeSent ? Icons.check : Icons.email,
                         ),
                       ),
                       if (_codeSent) ...[
                         const SizedBox(width: 8),
                         TextButton(
                           onPressed: _isSendingCode ? null : _sendVerificationCode,
-                          child: Text(localizations.resendButton),
+                          child: Text(
+                            localizations.resendButton,
+                            style: TextStyle(color: _authPrimary, fontWeight: FontWeight.w600),
+                          ),
                         ),
                       ],
                     ],
@@ -343,208 +388,336 @@ class _SignupScreenState extends State<SignupScreen> {
                   if (_codeSent) ...[
                     const SizedBox(height: 16),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          child: CustomTextField(
+                          child: _buildInput(
+                            context: context,
                             controller: _verificationCodeController,
-                            label: localizations.verificationCodeLabel,
+                            icon: Icons.pin,
+                            hint: localizations.verificationCodeLabel,
                             keyboardType: TextInputType.number,
                             maxLength: 6,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        ElevatedButton(
+                        _authButton(
                           onPressed: _isSendingCode ? null : _verifyEmailCode,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primary,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                          ),
-                          child: Text(localizations.verifyButton),
+                          label: localizations.verifyButton,
+                          isLoading: _isSendingCode,
                         ),
                       ],
                     ),
                   ],
                 ] else ...[
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: Colors.green.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.green),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.green.shade400),
                     ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.check_circle, color: Colors.green),
-                              SizedBox(width: 8),
-                              Text(
-                                localizations.emailVerifiedMessage,
-                                style: const TextStyle(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
+                    child: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green.shade700, size: 22),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            localizations.emailVerifiedMessage,
+                            style: TextStyle(
+                              color: Colors.green.shade800,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
+                      ],
+                    ),
+                  ),
                 ],
-
-                const SizedBox(height: 24),
-
-                // Phone field
-                CustomTextField(
+                const SizedBox(height: 16),
+                // Téléphone (optionnel)
+                _buildInput(
+                  context: context,
                   controller: _phoneController,
-                  label: localizations.phoneLabel,
+                  icon: Icons.phone,
+                  hint: localizations.phoneLabel,
                   keyboardType: TextInputType.phone,
                 ),
-
-                const SizedBox(height: 24),
-
-                // Role selection
-                Text(
-                  localizations.roleLabel,
-                  style: const TextStyle(
-                    color: AppTheme.text,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.primary.withOpacity(0.3)),
-                  ),
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedRole,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                    ),
-                    items: ['family', 'doctor', 'volunteer', 'organization_leader'].map((role) {
-                      return DropdownMenuItem(
-                        value: role,
-                        child: Text(_getRoleDisplayName(role, localizations)),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedRole = value!;
-                      });
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Password field
-                CustomTextField(
+                const SizedBox(height: 16),
+                // Je suis... (dropdown)
+                _buildDropdown(context, localizations),
+                const SizedBox(height: 16),
+                // Mot de passe
+                _buildInput(
+                  context: context,
                   controller: _passwordController,
-                  label: localizations.passwordLabel,
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return localizations.passwordRequired;
-                    }
-                    if (value.length < 6) {
-                      return localizations.passwordTooShort;
-                    }
+                  icon: Icons.lock,
+                  hint: localizations.passwordLabel,
+                  obscureText: _obscurePassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                      color: Colors.grey.shade400,
+                      size: 22,
+                    ),
+                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return localizations.passwordRequired;
+                    if (v.length < 6) return localizations.passwordTooShort;
                     return null;
                   },
                 ),
-
-                const SizedBox(height: 24),
-
-                // Confirm Password field
-                CustomTextField(
+                const SizedBox(height: 16),
+                _buildInput(
+                  context: context,
                   controller: _confirmPasswordController,
-                  label: localizations.confirmPasswordLabel,
+                  icon: Icons.lock,
+                  hint: localizations.confirmPasswordLabel,
                   obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return localizations.confirmPasswordRequired;
-                    }
-                    if (value != _passwordController.text) {
-                      return localizations.passwordsDontMatch;
-                    }
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return localizations.confirmPasswordRequired;
+                    if (v != _passwordController.text) return localizations.passwordsDontMatch;
                     return null;
                   },
                 ),
-
-                const SizedBox(height: 24),
-
-                // Terms checkbox
+                const SizedBox(height: 20),
+                // Terms
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Checkbox(
                       value: _acceptTerms,
-                      onChanged: (value) {
-                        setState(() {
-                          _acceptTerms = value ?? false;
-                        });
-                      },
-                      activeColor: AppTheme.primary,
+                      onChanged: (value) => setState(() => _acceptTerms = value ?? false),
+                      activeColor: _authPrimary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                     ),
                     Expanded(
-                      child: Text(
-                        localizations.termsAgreement,
-                        style: TextStyle(
-                          color: AppTheme.text.withOpacity(0.7),
-                          fontSize: 14,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                          localizations.termsAgreement,
+                          style: TextStyle(
+                            color: AppTheme.text.withOpacity(0.7),
+                            fontSize: 13,
+                            height: 1.3,
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 32),
-
-                // Signup button
-                SizedBox(
+                const SizedBox(height: 24),
+                // S'inscrire button
+                Container(
                   width: double.infinity,
                   height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(32),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _authPrimary.withOpacity(0.45),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
                   child: ElevatedButton(
                     onPressed: authProvider.isLoading ? null : _signup,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primary,
+                      backgroundColor: _authPrimary,
+                      foregroundColor: AppTheme.text,
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(32),
                       ),
                     ),
                     child: authProvider.isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : Text(
-                            localizations.signupButton,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                localizations.signupButton,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.arrow_forward, size: 22),
+                            ],
                           ),
                   ),
                 ),
-
-                const SizedBox(height: 24),
-
-                // Already have account link
+                const SizedBox(height: 20),
                 Center(
                   child: TextButton(
                     onPressed: () => context.go(AppConstants.loginRoute),
                     child: Text(
                       localizations.alreadyHaveAccountLink,
                       style: const TextStyle(
-                        color: AppTheme.primary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                        color: _authPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
+                const SizedBox(height: 40),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _authButton({
+    required VoidCallback? onPressed,
+    required String label,
+    bool isLoading = false,
+    IconData? icon,
+  }) {
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: _authPrimary.withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _authPrimary,
+          foregroundColor: AppTheme.text,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 20),
+                    const SizedBox(width: 8),
+                  ],
+                  Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _buildDropdown(BuildContext context, AppLocalizations localizations) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: _authPrimary.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: DropdownButtonFormField<String>(
+        value: _selectedRole,
+        decoration: const InputDecoration(
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 12),
+        ),
+        icon: Icon(Icons.expand_more, color: Colors.grey.shade400),
+        items: ['family', 'doctor', 'volunteer', 'organization_leader'].map((role) {
+          return DropdownMenuItem(
+            value: role,
+            child: Row(
+              children: [
+                Icon(Icons.groups, color: Colors.grey.shade400, size: 22),
+                const SizedBox(width: 12),
+                Text(
+                  _getRoleDisplayName(role, localizations),
+                  style: const TextStyle(
+                    color: AppTheme.text,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+        onChanged: (value) => setState(() => _selectedRole = value!),
+      ),
+    );
+  }
+
+  Widget _buildInput({
+    required BuildContext context,
+    required TextEditingController controller,
+    required IconData icon,
+    required String hint,
+    TextInputType? keyboardType,
+    bool obscureText = false,
+    Widget? suffixIcon,
+    int? maxLength,
+    String? Function(String?)? validator,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: _authPrimary.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        obscureText: obscureText,
+        maxLength: maxLength,
+        validator: validator,
+        decoration: InputDecoration(
+          hintText: hint,
+          prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 22),
+          suffixIcon: suffixIcon,
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.w500),
+        ),
+        style: const TextStyle(
+          color: AppTheme.text,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

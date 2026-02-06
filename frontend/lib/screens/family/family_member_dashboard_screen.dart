@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -27,13 +28,20 @@ class FamilyMemberDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+    );
     final auth = context.watch<AuthProvider>();
     final userName = auth.user?.fullName ?? 'Sarah';
 
     return Scaffold(
       backgroundColor: _primary,
       body: SafeArea(
-        top: true,
+        top: false,
         bottom: false,
         child: Stack(
           children: [
@@ -72,8 +80,9 @@ class FamilyMemberDashboardScreen extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context, String userName) {
+    final topPadding = MediaQuery.paddingOf(context).top;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+      padding: EdgeInsets.fromLTRB(24, topPadding + 16, 24, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

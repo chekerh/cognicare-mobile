@@ -173,6 +173,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get changeLanguage => 'Changer la langue';
 
   @override
+  String get changePhone => 'Changer le téléphone';
+
+  @override
   String get logout => 'Déconnexion';
 
   @override
@@ -504,4 +507,66 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get visualTimer => 'Minuteur Visuel';
+
+  @override
+  String get monProfil => 'Mon Profil';
+  @override
+  String get familyCaregiver => 'Aidant Familial';
+  @override
+  String get myFamily => 'Ma Famille';
+  @override
+  String get quickSettings => 'Paramètres rapides';
+  @override
+  String get childMode => 'Mode Enfant';
+  @override
+  String get dataSharing => 'Partage de données';
+  @override
+  String get familyNotifications => 'Notifications familiales';
+  @override
+  String get simplifiedInterfaceActive => 'Interface simplifiée active';
+  @override
+  String get syncWithRelatives => 'Synchronisation avec les proches';
+  @override
+  String get importantActivityAlerts => 'Alertes d\'activité importantes';
+  @override
+  String get engagement => 'Engagement';
+  @override
+  String get activitiesThisWeek => 'Activités cette semaine';
+  @override
+  String get addMember => 'Ajouter';
+
+  @override
+  String get myPatients => 'Mes Patients';
+  @override
+  String get lastAppointment => 'Dernier rdv';
+  @override
+  String get yesterday => 'Hier';
+  @override
+  String get clinicSettings => 'Paramètres du Cabinet';
+  @override
+  String get consultationHours => 'Horaires de consultation';
+  @override
+  String get consultationHoursValue => 'Lundi - Vendredi, 09:00 - 18:00';
+  @override
+  String get teleconsultationSettings => 'Paramètres de téléconsultation';
+  @override
+  String get teleconsultationSettingsValue => 'Lien Zoom, Salle d\'attente active';
+  @override
+  String get prescriptionTemplates => 'Modèles d\'ordonnances';
+  @override
+  String get prescriptionTemplatesValue => '3 modèles enregistrés';
+  @override
+  String get myAccount => 'Mon Compte';
+  @override
+  String get securityAndPrivacy => 'Sécurité & Confidentialité';
+  @override
+  String get helpAndSupport => 'Aide & Support';
+  @override
+  String get verifiedByOrder => 'Vérifié par l\'Ordre';
+  @override
+  String get patientsStat => 'Patients';
+  @override
+  String get todayStat => 'Aujourd\'hui';
+  @override
+  String get ratingStat => 'Note';
 }
