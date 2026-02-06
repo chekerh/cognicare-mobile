@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../models/community_post.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/community_feed_provider.dart';
 import '../../utils/constants.dart';
@@ -59,7 +59,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'No posts yet',
+                              AppLocalizations.of(context)!.noPostsYet,
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
@@ -68,7 +68,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Tap "Share an experience or milestone..." above to share.',
+                              AppLocalizations.of(context)!.tapToShare,
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 14,
@@ -173,6 +173,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   }
 
   Widget _buildTabs() {
+    final loc = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: _feedPrimary,
@@ -182,9 +183,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
       ),
       child: Row(
         children: [
-          _tab('Community', 0),
-          _tab('Marketplace', 1),
-          _tab('Experts', 2),
+          _tab(loc.community, 0),
+          _tab(loc.marketplaceTitle, 1),
+          _tab(loc.experts, 2),
         ],
       ),
     );
@@ -281,9 +282,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Family Chat',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.familyChat,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                       color: AppTheme.text,
@@ -309,7 +310,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Text(
-                    'OPEN',
+                    AppLocalizations.of(context)!.open,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -393,7 +394,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      'Share an experience or milestone...',
+                      AppLocalizations.of(context)!.shareExperiencePlaceholder,
                       style: TextStyle(
                         color: AppTheme.text.withOpacity(0.5),
                         fontSize: 14,
@@ -456,20 +457,21 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         canDelete: canDelete,
         onDeleteTap: canDelete
             ? () async {
+                final loc = AppLocalizations.of(context)!;
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: const Text('Delete post'),
-                    content: const Text('Are you sure you want to delete this post?'),
+                    title: Text(loc.deletePost),
+                    content: Text(loc.deletePostConfirm),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(ctx).pop(false),
-                        child: const Text('Cancel'),
+                        child: Text(loc.cancel),
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(ctx).pop(true),
                         style: TextButton.styleFrom(foregroundColor: Colors.red),
-                        child: const Text('Delete'),
+                        child: Text(loc.delete),
                       ),
                     ],
                   ),
@@ -478,8 +480,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   await feedProvider.deletePost(post.id);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Post deleted'),
+                      SnackBar(
+                        content: Text(loc.postDeleted),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -523,9 +525,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Comments',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.comments,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppTheme.text,
@@ -601,7 +603,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                       child: TextField(
                         controller: controller,
                         decoration: InputDecoration(
-                          hintText: 'Write a comment...',
+                          hintText: AppLocalizations.of(context)!.writeComment,
                           hintStyle: TextStyle(
                             color: AppTheme.text.withOpacity(0.5),
                             fontSize: 14,
@@ -738,13 +740,13 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     }
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem<String>(
+                    PopupMenuItem<String>(
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outline, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Delete post'),
+                          const Icon(Icons.delete_outline, color: Colors.red),
+                          const SizedBox(width: 8),
+                          Text(AppLocalizations.of(context)!.deletePost),
                         ],
                       ),
                     ),
@@ -960,7 +962,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'FROM MARKETPLACE',
+                AppLocalizations.of(context)!.fromMarketplace,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
@@ -969,7 +971,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                 ),
               ),
               Text(
-                'View all',
+                AppLocalizations.of(context)!.viewAll,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -984,9 +986,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                _marketplaceCard('Weighted Blanket', '\$45.00'),
-                _marketplaceCard('Noise Cancelling', '\$129.00'),
-                _marketplaceCard('Visual Timer', '\$18.50'),
+                _marketplaceCard(AppLocalizations.of(context)!.weightedBlanket, '\$45.00'),
+                _marketplaceCard(AppLocalizations.of(context)!.noiseCancelling, '\$129.00'),
+                _marketplaceCard(AppLocalizations.of(context)!.visualTimer, '\$18.50'),
               ],
             ),
           ),
@@ -1010,9 +1012,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
             ),
             child: Center(
               child: Icon(
-                title.contains('Blanket')
+                title.contains(AppLocalizations.of(context)!.weightedBlanket) || title.contains('Blanket') || title.contains('Couverture')
                     ? Icons.bed
-                    : title.contains('Noise')
+                    : title.contains(AppLocalizations.of(context)!.noiseCancelling) || title.contains('Noise') || title.contains('Bruit')
                         ? Icons.headphones
                         : Icons.timer_outlined,
                 size: 40,

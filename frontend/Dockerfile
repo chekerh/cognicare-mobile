@@ -6,7 +6,7 @@ RUN apt-get update && \
     apt-get install -y curl git unzip xz-utils zip libglu1-mesa && \
     rm -rf /var/lib/apt/lists/*
 
-# Clone Flutter SDK
+# Clone Flutter SDKfli
 RUN git clone https://github.com/flutter/flutter.git -b stable --depth 1 /flutter
 ENV PATH="$PATH:/flutter/bin"
 

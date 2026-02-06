@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/language_provider.dart';
@@ -20,11 +23,23 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = false;
   String? _error;
+  String? _localProfilePicPath;
 
   @override
   void initState() {
     super.initState();
     _refreshProfile();
+    _loadLocalProfilePic();
+  }
+
+  Future<void> _loadLocalProfilePic() async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/profile_pic.jpg');
+      if (await file.exists()) {
+        setState(() => _localProfilePicPath = file.path);
+      }
+    } catch (_) {}
   }
 
   Future<void> _refreshProfile() async {
@@ -87,6 +102,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
       
       if (mounted) {
         context.go(AppConstants.loginRoute);
+      }
+    }
+  }
+
+  Future<void> _pickProfilePicture() async {
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choisir depuis la galerie'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Prendre une photo'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.cancel),
+              title: const Text('Annuler'),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return;
+
+    try {
+      final xFile = await picker.pickImage(
+        source: source,
+        imageQuality: 85,
+        maxWidth: 800,
+      );
+      if (xFile == null) return;
+
+      final dir = await getApplicationDocumentsDirectory();
+      final dest = File('${dir.path}/profile_pic.jpg');
+      await File(xFile.path).copy(dest.path);
+
+      setState(() => _localProfilePicPath = dest.path);
+
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
+      if (user != null) {
+        authProvider.updateUser(user.copyWith(profilePic: dest.path));
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Photo de profil mise à jour'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -269,30 +354,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         child: Column(
                           children: [
-                            CircleAvatar(
-                              radius: 50,
-                              backgroundColor: Colors.white,
-                              child: user?.profilePic != null
-                                  ? ClipOval(
-                                      child: Image.network(
-                                        user!.profilePic!,
-                                        width: 100,
-                                        height: 100,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return const Icon(
-                                            Icons.person,
-                                            size: 50,
-                                            color: AppTheme.primary,
-                                          );
-                                        },
+                            GestureDetector(
+                              onTap: _pickProfilePicture,
+                              child: Stack(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 50,
+                                    backgroundColor: Colors.white,
+                                    child: _localProfilePicPath != null
+                                        ? ClipOval(
+                                            child: Image.file(
+                                              File(_localProfilePicPath!),
+                                              width: 100,
+                                              height: 100,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return const Icon(
+                                                  Icons.person,
+                                                  size: 50,
+                                                  color: AppTheme.primary,
+                                                );
+                                              },
+                                            ),
+                                          )
+                                        : user?.profilePic != null
+                                            ? ClipOval(
+                                                child: Image.network(
+                                                  user!.profilePic!,
+                                                  width: 100,
+                                                  height: 100,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error, stackTrace) {
+                                                    return const Icon(
+                                                      Icons.person,
+                                                      size: 50,
+                                                      color: AppTheme.primary,
+                                                    );
+                                                  },
+                                                ),
+                                              )
+                                            : const Icon(
+                                                Icons.person,
+                                                size: 50,
+                                                color: AppTheme.primary,
+                                              ),
+                                  ),
+                                  Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: const BoxDecoration(
+                                        color: AppTheme.primary,
+                                        shape: BoxShape.circle,
                                       ),
-                                    )
-                                  : const Icon(
-                                      Icons.person,
-                                      size: 50,
-                                      color: AppTheme.primary,
+                                      child: const Icon(
+                                        Icons.camera_alt,
+                                        size: 18,
+                                        color: Colors.white,
+                                      ),
                                     ),
+                                  ),
+                                ],
+                              ),
                             ),
                             const SizedBox(height: 16),
                             Text(

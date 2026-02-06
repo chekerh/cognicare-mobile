@@ -185,6 +185,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancel => 'Cancel';
 
   @override
+  String get delete => 'Delete';
+
+  @override
   String get errorLoadingProfile => 'Error loading profile';
 
   @override
@@ -261,4 +264,232 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get codeInvalid => 'Code must be exactly 6 digits';
+
+  @override
+  String get marketplaceTitle => 'Marketplace';
+
+  @override
+  String get marketplaceSubtitle => 'Tools for growth & play';
+
+  @override
+  String get allItems => 'All Items';
+
+  @override
+  String get sensory => 'Sensory';
+
+  @override
+  String get motorSkills => 'Motor Skills';
+
+  @override
+  String get cognitive => 'Cognitive';
+
+  @override
+  String get recommendedFor => 'Recommended for';
+
+  @override
+  String get seeAll => 'See all';
+
+  @override
+  String get newArrivals => 'New Arrivals';
+
+  @override
+  String get buyNow => 'Buy Now';
+
+  @override
+  String get quickBuy => 'Quick Buy';
+
+  @override
+  String get stockAvailable => 'Stock available';
+
+  @override
+  String get outOfStock => 'Out of stock';
+
+  @override
+  String get productDetails => 'Product Details';
+
+  @override
+  String get keyBenefits => 'Key Benefits:';
+
+  @override
+  String get communityReviews => 'Community Reviews';
+
+  @override
+  String get addToCart => 'Add to Cart';
+
+  @override
+  String get productAddedToCart => 'Product added to cart';
+
+  @override
+  String get anxietyReduction => 'Anxiety reduction';
+
+  @override
+  String get improvesSleepQuality => 'Improves sleep quality';
+
+  @override
+  String get aiHealthInsights => 'AI Health Insights';
+
+  @override
+  String get updatedTodayAt => 'Updated today at';
+
+  @override
+  String get aiSmartSummary => 'AI SMART SUMMARY';
+
+  @override
+  String get healthMetricCards => 'HEALTH METRIC CARDS';
+
+  @override
+  String get focusScore => 'Focus Score';
+
+  @override
+  String get socialReaction => 'Social React.';
+
+  @override
+  String get motorSkillsTitle => 'Motor Skills';
+
+  @override
+  String get calmState => 'Calm State';
+
+  @override
+  String get suggestedBy => 'Suggested by';
+
+  @override
+  String get nextMilestoneTarget => 'Next Milestone Target';
+
+  @override
+  String get adjustGameDifficulty => 'Adjust Game Difficulty';
+
+  @override
+  String get messageDoctor => 'Message Doctor';
+
+  @override
+  String get tableau => 'TABLEAU';
+
+  @override
+  String get parents => 'PARENTS';
+
+  @override
+  String get messages => 'MESSAGES';
+
+  @override
+  String get profil => 'PROFIL';
+
+  @override
+  String get home => 'Home';
+
+  @override
+  String get games => 'Games';
+
+  @override
+  String get insights => 'Insights';
+
+  @override
+  String get shop => 'Shop';
+
+  @override
+  String get therapy => 'Therapy';
+
+  @override
+  String get noPatientsYet => 'No patients yet';
+
+  @override
+  String get patientsListWillAppear => 'Your patients list will appear here.';
+
+  @override
+  String get noMessagesYet => 'No messages yet';
+
+  @override
+  String get conversationsWillAppear => 'Conversations with patients will appear here.';
+
+  @override
+  String get community => 'Community';
+
+  @override
+  String get experts => 'Experts';
+
+  @override
+  String get familyChat => 'Family Chat';
+
+  @override
+  String get open => 'OPEN';
+
+  @override
+  String get shareExperiencePlaceholder => 'Share an experience or milestone...';
+
+  @override
+  String get fromMarketplace => 'FROM MARKETPLACE';
+
+  @override
+  String get viewAll => 'View all';
+
+  @override
+  String get noPostsYet => 'No posts yet';
+
+  @override
+  String get tapToShare => 'Tap "Share an experience or milestone..." above to share.';
+
+  @override
+  String get hoursAgo => 'hours ago';
+
+  @override
+  String get minAgo => 'min ago';
+
+  @override
+  String get deletePost => 'Delete post';
+
+  @override
+  String get deletePostConfirm => 'Are you sure you want to delete this post?';
+
+  @override
+  String get postDeleted => 'Post deleted';
+
+  @override
+  String get comments => 'Comments';
+
+  @override
+  String get likes => 'Likes';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get keepGoing => 'Keep going! You\'re doing great.';
+
+  @override
+  String get level => 'LEVEL';
+
+  @override
+  String get tracingProgress => 'Tracing Progress';
+
+  @override
+  String get stars => 'Stars';
+
+  @override
+  String get hint => 'Hint';
+
+  @override
+  String get starTracer => 'Star Tracer';
+
+  @override
+  String get congratulationsLeo => 'Congratulations, Leo!';
+
+  @override
+  String completedAllLevels(int maxLevel) => 'You completed all $maxLevel levels of Star Tracer!';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String traceLevel(String levelName) => 'Trace: $levelName';
+
+  @override
+  String get writeComment => 'Write a comment...';
+
+  @override
+  String get weightedBlanket => 'Weighted Blanket';
+
+  @override
+  String get noiseCancelling => 'Noise Cancelling';
+
+  @override
+  String get visualTimer => 'Visual Timer';
 }

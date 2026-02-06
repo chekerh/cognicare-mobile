@@ -185,6 +185,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cancel => 'إلغاء';
 
   @override
+  String get delete => 'حذف';
+
+  @override
   String get errorLoadingProfile => 'خطأ في تحميل الملف الشخصي';
 
   @override
@@ -261,4 +264,232 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get codeInvalid => 'يجب أن يكون الرمز 6 أرقام بالضبط';
+
+  @override
+  String get marketplaceTitle => 'المتجر';
+
+  @override
+  String get marketplaceSubtitle => 'أدوات للنمو واللعب';
+
+  @override
+  String get allItems => 'جميع العناصر';
+
+  @override
+  String get sensory => 'حسي';
+
+  @override
+  String get motorSkills => 'المهارات الحركية';
+
+  @override
+  String get cognitive => 'إدراكي';
+
+  @override
+  String get recommendedFor => 'موصى به لـ';
+
+  @override
+  String get seeAll => 'عرض الكل';
+
+  @override
+  String get newArrivals => 'وصل حديثاً';
+
+  @override
+  String get buyNow => 'اشتري الآن';
+
+  @override
+  String get quickBuy => 'شراء سريع';
+
+  @override
+  String get stockAvailable => 'متوفر في المخزون';
+
+  @override
+  String get outOfStock => 'نفد المخزون';
+
+  @override
+  String get productDetails => 'تفاصيل المنتج';
+
+  @override
+  String get keyBenefits => 'الفوائد الرئيسية:';
+
+  @override
+  String get communityReviews => 'آراء المجتمع';
+
+  @override
+  String get addToCart => 'أضف إلى السلة';
+
+  @override
+  String get productAddedToCart => 'تمت إضافة المنتج إلى السلة';
+
+  @override
+  String get anxietyReduction => 'تقليل القلق';
+
+  @override
+  String get improvesSleepQuality => 'يحسن جودة النوم';
+
+  @override
+  String get aiHealthInsights => 'رؤى الصحة بالذكاء الاصطناعي';
+
+  @override
+  String get updatedTodayAt => 'تم التحديث اليوم في';
+
+  @override
+  String get aiSmartSummary => 'ملخص ذكي بالذكاء الاصطناعي';
+
+  @override
+  String get healthMetricCards => 'بطاقات مقاييس الصحة';
+
+  @override
+  String get focusScore => 'درجة التركيز';
+
+  @override
+  String get socialReaction => 'رد الفعل الاجتماعي';
+
+  @override
+  String get motorSkillsTitle => 'المهارات الحركية';
+
+  @override
+  String get calmState => 'حالة الهدوء';
+
+  @override
+  String get suggestedBy => 'اقترحه';
+
+  @override
+  String get nextMilestoneTarget => 'الهدف التالي';
+
+  @override
+  String get adjustGameDifficulty => 'تعديل صعوبة اللعبة';
+
+  @override
+  String get messageDoctor => 'رسالة للطبيب';
+
+  @override
+  String get tableau => 'الجدول';
+
+  @override
+  String get parents => 'الوالدين';
+
+  @override
+  String get messages => 'الرسائل';
+
+  @override
+  String get profil => 'الملف الشخصي';
+
+  @override
+  String get home => 'الرئيسية';
+
+  @override
+  String get games => 'الألعاب';
+
+  @override
+  String get insights => 'الرؤى';
+
+  @override
+  String get shop => 'المتجر';
+
+  @override
+  String get therapy => 'العلاج';
+
+  @override
+  String get noPatientsYet => 'لا يوجد مرضى بعد';
+
+  @override
+  String get patientsListWillAppear => 'ستظهر قائمة مرضاك هنا.';
+
+  @override
+  String get noMessagesYet => 'لا توجد رسائل بعد';
+
+  @override
+  String get conversationsWillAppear => 'ستظهر المحادثات مع المرضى هنا.';
+
+  @override
+  String get community => 'المجتمع';
+
+  @override
+  String get experts => 'الخبراء';
+
+  @override
+  String get familyChat => 'دردشة العائلة';
+
+  @override
+  String get open => 'افتح';
+
+  @override
+  String get shareExperiencePlaceholder => 'شارك تجربة أو إنجاز...';
+
+  @override
+  String get fromMarketplace => 'من المتجر';
+
+  @override
+  String get viewAll => 'عرض الكل';
+
+  @override
+  String get noPostsYet => 'لا توجد منشورات بعد';
+
+  @override
+  String get tapToShare => 'اضغط على "شارك تجربة أو إنجاز..." أعلاه للمشاركة.';
+
+  @override
+  String get hoursAgo => 'ساعات';
+
+  @override
+  String get minAgo => 'دقيقة';
+
+  @override
+  String get deletePost => 'حذف المنشور';
+
+  @override
+  String get deletePostConfirm => 'هل أنت متأكد من رغبتك في حذف هذا المنشور؟';
+
+  @override
+  String get postDeleted => 'تم حذف المنشور';
+
+  @override
+  String get comments => 'التعليقات';
+
+  @override
+  String get likes => 'الإعجابات';
+
+  @override
+  String get share => 'مشاركة';
+
+  @override
+  String get keepGoing => 'استمر! أنت تقوم بعمل رائع.';
+
+  @override
+  String get level => 'المستوى';
+
+  @override
+  String get tracingProgress => 'تقدم التتبع';
+
+  @override
+  String get stars => 'النجوم';
+
+  @override
+  String get hint => 'تلميح';
+
+  @override
+  String get starTracer => 'تتبع النجوم';
+
+  @override
+  String get congratulationsLeo => 'مبروك، ليو!';
+
+  @override
+  String completedAllLevels(int maxLevel) => 'لقد أكملت $maxLevel مستويات من تتبع النجوم!';
+
+  @override
+  String get next => 'التالي';
+
+  @override
+  String traceLevel(String levelName) => 'تتبع: $levelName';
+
+  @override
+  String get writeComment => 'اكتب تعليق...';
+
+  @override
+  String get weightedBlanket => 'بطانية مرجحة';
+
+  @override
+  String get noiseCancelling => 'إلغاء الضوضاء';
+
+  @override
+  String get visualTimer => 'مؤقت بصري';
 }

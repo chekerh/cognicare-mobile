@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 
 // Star Tracer — couleurs du HTML
 const Color _primary = Color(0xFF2b8cee);
@@ -189,15 +190,15 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Bravo, Léo !'),
-        content: Text('Tu as terminé les $_maxLevel niveaux du Star Tracer !'),
+        title: Text(AppLocalizations.of(context)!.congratulationsLeo),
+        content: Text(AppLocalizations.of(context)!.completedAllLevels(_maxLevel)),
         actions: [
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop();
               context.pop();
             },
-            child: const Text('Suivant'),
+            child: Text(AppLocalizations.of(context)!.next),
           ),
         ],
       ),
@@ -266,7 +267,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
                                 border: Border.all(color: _primary.withOpacity(0.1)),
                               ),
                               child: Text(
-                                "Keep going! You're doing great.",
+                                AppLocalizations.of(context)!.keepGoing,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -302,11 +303,11 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
             onPressed: () => context.pop(),
             icon: const Icon(Icons.chevron_left_rounded, color: _primary, size: 32),
           ),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Star Tracer',
+              AppLocalizations.of(context)!.starTracer,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: _primary,
@@ -328,7 +329,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
       child: Column(
         children: [
           Text(
-            'Trace: $_currentLevelName',
+            AppLocalizations.of(context)!.traceLevel(_currentLevelName),
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -383,7 +384,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'LEVEL $_level',
+                    '${AppLocalizations.of(context)!.level} $_level',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -392,9 +393,9 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Tracing Progress',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.tracingProgress,
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: _primary,
@@ -438,7 +439,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '$_starsCollected/5 Stars',
+                    '$_starsCollected/5 ${AppLocalizations.of(context)!.stars}',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -453,11 +454,11 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
                 child: InkWell(
                   onTap: () {},
                   borderRadius: BorderRadius.circular(999),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     child: Text(
-                      'Hint',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.hint,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,

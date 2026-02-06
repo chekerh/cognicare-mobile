@@ -20,6 +20,7 @@ import '../screens/family/family_market_screen.dart';
 import '../screens/family/matching_game_screen.dart';
 import '../screens/family/shape_sorting_screen.dart';
 import '../screens/family/star_tracer_screen.dart';
+import '../screens/family/product_detail_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import 'constants.dart';
 
@@ -122,6 +123,28 @@ GoRouter createAppRouter(AuthProvider authProvider) {
         GoRoute(
           path: 'star-tracer',
           builder: (context, state) => const StarTracerScreen(),
+        ),
+        GoRoute(
+          path: 'product-detail',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            if (extra == null) {
+              return const Scaffold(
+                body: Center(child: Text('Produit non trouvé')),
+              );
+            }
+            return ProductDetailScreen(
+              productId: extra['productId'] as String,
+              title: extra['title'] as String,
+              price: extra['price'] as String,
+              imageUrl: extra['imageUrl'] as String,
+              description: extra['description'] as String,
+              badge: extra['badge'] as String?,
+              badgeColor: extra['badgeColorValue'] != null
+                  ? Color(extra['badgeColorValue'] as int)
+                  : null,
+            );
+          },
         ),
         GoRoute(
           path: 'group-chat',

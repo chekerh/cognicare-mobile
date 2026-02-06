@@ -34,6 +34,7 @@ class AppConstants {
   static const String familyMatchingGameRoute = '/family/matching-game';
   static const String familyShapeSortingRoute = '/family/shape-sorting';
   static const String familyStarTracerRoute = '/family/star-tracer';
+  static const String familyProductDetailRoute = '/family/product-detail';
 
   // Public routes (no JWT required)
   static const List<String> publicRoutes = [

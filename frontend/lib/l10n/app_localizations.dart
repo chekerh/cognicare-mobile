@@ -165,6 +165,7 @@ abstract class AppLocalizations {
   String get logoutConfirmTitle;
   String get logoutConfirmMessage;
   String get cancel;
+  String get delete;
   String get errorLoadingProfile;
   String get retry;
   String get selectLanguage;
@@ -191,6 +192,90 @@ abstract class AppLocalizations {
   String get verifyButton;
   String get resendButton;
   String get codeInvalid;
+
+  /// Marketplace
+  String get marketplaceTitle;
+  String get marketplaceSubtitle;
+  String get allItems;
+  String get sensory;
+  String get motorSkills;
+  String get cognitive;
+  String get recommendedFor;
+  String get seeAll;
+  String get newArrivals;
+  String get buyNow;
+  String get quickBuy;
+  String get stockAvailable;
+  String get outOfStock;
+
+  /// Product Detail
+  String get productDetails;
+  String get keyBenefits;
+  String get communityReviews;
+  String get addToCart;
+  String get productAddedToCart;
+  String get anxietyReduction;
+  String get improvesSleepQuality;
+
+  /// Healthcare Professional Dashboard
+  String get aiHealthInsights;
+  String get updatedTodayAt;
+  String get aiSmartSummary;
+  String get healthMetricCards;
+  String get focusScore;
+  String get socialReaction;
+  String get motorSkillsTitle;
+  String get calmState;
+  String get suggestedBy;
+  String get nextMilestoneTarget;
+  String get adjustGameDifficulty;
+  String get messageDoctor;
+
+  /// Navigation
+  String get tableau;
+  String get parents;
+  String get messages;
+  String get profil;
+  String get home;
+  String get games;
+  String get insights;
+  String get shop;
+  String get therapy;
+  String get noPatientsYet;
+  String get patientsListWillAppear;
+  String get noMessagesYet;
+  String get conversationsWillAppear;
+  String get community;
+  String get experts;
+  String get familyChat;
+  String get open;
+  String get shareExperiencePlaceholder;
+  String get fromMarketplace;
+  String get viewAll;
+  String get noPostsYet;
+  String get tapToShare;
+  String get hoursAgo;
+  String get minAgo;
+  String get deletePost;
+  String get deletePostConfirm;
+  String get postDeleted;
+  String get comments;
+  String get likes;
+  String get share;
+  String get keepGoing;
+  String get level;
+  String get tracingProgress;
+  String get stars;
+  String get hint;
+  String get starTracer;
+  String get congratulationsLeo;
+  String completedAllLevels(int maxLevel);
+  String get next;
+  String traceLevel(String levelName);
+  String get writeComment;
+  String get weightedBlanket;
+  String get noiseCancelling;
+  String get visualTimer;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

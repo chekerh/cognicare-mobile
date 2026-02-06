@@ -1,7 +1,101 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/theme.dart';
 import 'home_dashboard_screen.dart';
 import '../profile/profile_screen.dart';
+
+/// Écran Patients pour les professionnels de santé.
+class HomePatientsScreen extends StatelessWidget {
+  const HomePatientsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(
+        backgroundColor: AppTheme.primary,
+        elevation: 0,
+        title: Text(
+          loc.parents,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.group_outlined, size: 56, color: AppTheme.text.withOpacity(0.3)),
+            const SizedBox(height: 16),
+            Text(
+              loc.noPatientsYet,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.text.withOpacity(0.8),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              loc.patientsListWillAppear,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppTheme.text.withOpacity(0.6),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Écran Messages pour les professionnels de santé.
+class HomeMessagesScreen extends StatelessWidget {
+  const HomeMessagesScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(
+        backgroundColor: AppTheme.primary,
+        elevation: 0,
+        title: Text(
+          loc.messages,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.chat_bubble_outline, size: 56, color: AppTheme.text.withOpacity(0.3)),
+            const SizedBox(height: 16),
+            Text(
+              loc.noMessagesYet,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.text.withOpacity(0.8),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              loc.conversationsWillAppear,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppTheme.text.withOpacity(0.6),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 // Palette alignée sur la nav famille
 const Color _navPrimary = Color(0xFFA3D9E2);
@@ -18,12 +112,15 @@ class _HomeContainerScreenState extends State<HomeContainerScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    const HomeDashboardScreen(),
-    const ProfileScreen(),
+    const HomeDashboardScreen(), // Tableau
+    const HomePatientsScreen(),  // Patients
+    const HomeMessagesScreen(),  // Messages
+    const ProfileScreen(),       // Profil
   ];
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
@@ -46,17 +143,33 @@ class _HomeContainerScreenState extends State<HomeContainerScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _navItem(
+                  context: context,
                   index: 0,
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home,
-                  label: 'Home',
+                  icon: Icons.grid_view_outlined,
+                  activeIcon: Icons.grid_view,
+                  label: loc.tableau,
+                ),
+                _navItem(
+                  context: context,
+                  index: 1,
+                  icon: Icons.groups_outlined,
+                  activeIcon: Icons.groups,
+                  label: loc.parents,
                 ),
                 _centerHomeButton(),
                 _navItem(
-                  index: 1,
+                  context: context,
+                  index: 2,
+                  icon: Icons.chat_bubble_outline,
+                  activeIcon: Icons.chat_bubble,
+                  label: loc.messages,
+                ),
+                _navItem(
+                  context: context,
+                  index: 3,
                   icon: Icons.person_outline,
                   activeIcon: Icons.person,
-                  label: 'Profile',
+                  label: loc.profil,
                 ),
               ],
             ),
@@ -66,6 +179,7 @@ class _HomeContainerScreenState extends State<HomeContainerScreen> {
     );
   }
 
+  /// Bouton rond central qui ramène au tableau (index 0), comme pour la famille.
   Widget _centerHomeButton() {
     return InkWell(
       onTap: () => setState(() => _currentIndex = 0),
@@ -94,6 +208,7 @@ class _HomeContainerScreenState extends State<HomeContainerScreen> {
   }
 
   Widget _navItem({
+    required BuildContext context,
     required int index,
     required IconData icon,
     required IconData activeIcon,
@@ -117,8 +232,9 @@ class _HomeContainerScreenState extends State<HomeContainerScreen> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                fontSize: 11,
+                letterSpacing: 0.5,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color: isSelected ? _navPrimary : _navInactive,
               ),
             ),

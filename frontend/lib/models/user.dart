@@ -40,4 +40,24 @@ class User {
       'createdAt': createdAt.toIso8601String(),
     };
   }
+
+  User copyWith({
+    String? id,
+    String? fullName,
+    String? email,
+    String? phone,
+    String? role,
+    String? profilePic,
+    DateTime? createdAt,
+  }) {
+    return User(
+      id: id ?? this.id,
+      fullName: fullName ?? this.fullName,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      role: role ?? this.role,
+      profilePic: profilePic ?? this.profilePic,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }
