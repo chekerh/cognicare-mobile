@@ -33,7 +33,10 @@ export class CommunityController {
   @ApiOperation({ summary: 'Upload image for a post' })
   @ApiResponse({ status: 201, description: 'Returns { imageUrl }' })
   @ApiResponse({ status: 400, description: 'No file or invalid type' })
-  async uploadPostImage(@UploadedFile() file: Express.Multer.File | undefined) {
+  async uploadPostImage(
+    // Avoid relying on Multer types — use a minimal inline shape for the uploaded file.
+    @UploadedFile() file?: { buffer: Buffer; mimetype: string; originalname?: string },
+  ) {
     if (!file || !file.buffer) throw new BadRequestException('No file provided');
     const allowed = [
       'image/jpeg',

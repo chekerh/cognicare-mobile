@@ -310,7 +310,9 @@ export class AuthController {
   })
   async uploadProfilePicture(
     @Request() req: { user: { id: string } },
-    @UploadedFile() file: Express.Multer.File | undefined,
+    // Avoid relying on Multer types (may not be present in devDependencies).
+    // Use a minimal local shape for the uploaded file to satisfy TypeScript.
+    @UploadedFile() file?: { buffer: Buffer; mimetype: string; originalname?: string },
   ) {
     if (!file || !file.buffer) {
       throw new BadRequestException('No file provided');
