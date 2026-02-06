@@ -57,6 +57,17 @@ dependencies:
   # URL launcher for opening links
   url_launcher: ^6.2.2
 
+  # Image picker (galerie / appareil photo)
+  image_picker: ^1.0.7
+
+  # Path provider (sauvegarder les images)
+  path_provider: ^2.1.2
+
+  # Enregistrement audio (message vocal)
+  record: ^6.2.0
+  # Lecture des messages vocaux
+  audioplayers: ^6.0.0
+
   # Internationalization (managed by flutter_localizations)
   intl: any
 

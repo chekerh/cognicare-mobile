@@ -91,11 +91,18 @@ class AuthService {
 
       if (response.statusCode == 200) {
         return User.fromJson(jsonDecode(response.body));
-      } else {
+      }
+      if (response.statusCode == 401) {
+        throw Exception('Unauthorized');
+      }
+      try {
         final error = jsonDecode(response.body);
         throw Exception(error['message'] ?? 'Failed to get profile');
+      } catch (_) {
+        throw Exception('Failed to get profile');
       }
     } catch (e) {
+      if (e is Exception && e.toString().contains('Unauthorized')) rethrow;
       throw Exception('Network error during profile fetch: $e');
     }
   }

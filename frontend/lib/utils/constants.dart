@@ -21,4 +21,32 @@ class AppConstants {
   static const String homeRoute = '/home';
   static const String organizationDashboardRoute = '/organization-dashboard';
   static const String staffManagementRoute = '/organization/staff';
+
+  // Family sector routes (JWT-protected, role: family)
+  static const String familyRoute = '/family';
+  static const String familyDashboardRoute = '/family/dashboard';
+  static const String familyFeedRoute = '/family/feed';
+  static const String familyFamiliesRoute = '/family/families';
+  static const String familyGroupChatRoute = '/family/group-chat';
+  static const String familyMarketRoute = '/family/market';
+  static const String familyProfileRoute = '/family/profile';
+  static const String familyCreatePostRoute = '/family/create-post';
+  static const String familyMatchingGameRoute = '/family/matching-game';
+  static const String familyShapeSortingRoute = '/family/shape-sorting';
+  static const String familyStarTracerRoute = '/family/star-tracer';
+
+  // Public routes (no JWT required)
+  static const List<String> publicRoutes = [
+    splashRoute,
+    languageSelectionRoute,
+    onboardingRoute,
+    loginRoute,
+    signupRoute,
+    forgotPasswordRoute,
+  ];
+
+  /// Comparaison insensible à la casse (backend peut renvoyer "family", "Family", "FAMILY").
+  static bool isFamilyRole(String? role) => role?.toLowerCase() == 'family';
+  static bool isOrganizationLeaderRole(String? role) =>
+      role?.toLowerCase() == 'organization_leader';
 }

@@ -62,11 +62,17 @@ class _SplashScreenState extends State<SplashScreen>
         final authService = AuthService();
         final user = await authService.getProfile();
         
-        // Token is valid, update user data and navigate to home
+        // Token is valid, update user data and navigate by role
         if (mounted) {
           authProvider.updateUser(user);
           final router = GoRouter.of(context);
-          router.go(AppConstants.homeRoute);
+          if (AppConstants.isFamilyRole(user.role)) {
+            router.go(AppConstants.familyFeedRoute);
+          } else if (AppConstants.isOrganizationLeaderRole(user.role)) {
+            router.go(AppConstants.organizationDashboardRoute);
+          } else {
+            router.go(AppConstants.homeRoute);
+          }
         }
       } catch (e) {
         // Token is invalid or expired, clear storage and go to login

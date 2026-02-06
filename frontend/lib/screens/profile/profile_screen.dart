@@ -28,28 +28,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _refreshProfile() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final hasCachedUser = authProvider.user != null;
+
     setState(() {
-      _isLoading = true;
       _error = null;
+      _isLoading = !hasCachedUser;
     });
 
     try {
       final authService = AuthService();
       final user = await authService.getProfile();
-      
       if (mounted) {
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        // Update user data in provider
         authProvider.updateUser(user);
+        setState(() => _isLoading = false);
       }
     } catch (e) {
-      setState(() {
-        _error = e.toString().replaceAll('Exception: ', '');
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      final message = e.toString().replaceAll('Exception: ', '');
+      final isUnauthorized = message.contains('Unauthorized') ||
+          message.contains('No authentication token');
+      if (mounted) {
+        setState(() {
+          _error = message;
+          _isLoading = false;
+        });
+        if (isUnauthorized) {
+          await authProvider.logout();
+          if (mounted) context.go(AppConstants.loginRoute);
+        }
+      }
     }
   }
 
