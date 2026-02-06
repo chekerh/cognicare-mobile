@@ -14,7 +14,10 @@ import {
   EmailVerification,
   EmailVerificationDocument,
 } from './schemas/email-verification.schema';
-import { Organization, OrganizationDocument } from '../organization/schemas/organization.schema';
+import {
+  Organization,
+  OrganizationDocument,
+} from '../organization/schemas/organization.schema';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -26,11 +29,12 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(EmailVerification.name)
     private emailVerificationModel: Model<EmailVerificationDocument>,
-    @InjectModel(Organization.name) private organizationModel: Model<OrganizationDocument>,
+    @InjectModel(Organization.name)
+    private organizationModel: Model<OrganizationDocument>,
     private jwtService: JwtService,
     private configService: ConfigService,
     private mailService: MailService,
-  ) { }
+  ) {}
 
   private generateTokens(user: UserDocument) {
     const payload = { email: user.email, sub: user._id, role: user.role };

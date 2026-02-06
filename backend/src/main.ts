@@ -50,8 +50,11 @@ async function bootstrap() {
       }
 
       // In development, allow localhost and 127.0.0.1 (Flutter web uses random ports)
-      if (process.env.NODE_ENV !== 'production' &&
-          (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))) {
+      if (
+        process.env.NODE_ENV !== 'production' &&
+        (origin.startsWith('http://localhost:') ||
+          origin.startsWith('http://127.0.0.1:'))
+      ) {
         callback(null, true);
         return;
       }

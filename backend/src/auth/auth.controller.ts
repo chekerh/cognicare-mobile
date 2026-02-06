@@ -256,7 +256,8 @@ export class AuthController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Update own profile',
-    description: 'Update the authenticated user profile (fullName, phone, profilePic)',
+    description:
+      'Update the authenticated user profile (fullName, phone, profilePic)',
   })
   @ApiBody({ type: UpdateProfileDto })
   @ApiResponse({
@@ -293,7 +294,8 @@ export class AuthController {
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
     summary: 'Upload profile picture',
-    description: 'Upload a profile picture for the authenticated user (multipart/form-data, field: file)',
+    description:
+      'Upload a profile picture for the authenticated user (multipart/form-data, field: file)',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -319,7 +321,9 @@ export class AuthController {
     }
     const allowed = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowed.includes(file.mimetype)) {
-      throw new BadRequestException('Invalid file type. Use JPEG, PNG or WebP.');
+      throw new BadRequestException(
+        'Invalid file type. Use JPEG, PNG or WebP.',
+      );
     }
     return this.authService.uploadProfilePicture(req.user.id, {
       buffer: file.buffer,

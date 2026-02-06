@@ -14,7 +14,12 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CommunityService } from './community.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -47,7 +52,9 @@ export class CommunityController {
     ];
     const mimetype = (file.mimetype ?? '').toLowerCase();
     if (!allowed.includes(mimetype) && !mimetype.startsWith('image/')) {
-      throw new BadRequestException('Invalid file type. Use JPEG, PNG or WebP.');
+      throw new BadRequestException(
+        'Invalid file type. Use JPEG, PNG or WebP.',
+      );
     }
     const imageUrl = await this.communityService.uploadPostImage({
       buffer: file.buffer,
@@ -60,7 +67,10 @@ export class CommunityController {
   @ApiOperation({ summary: 'Create a new post' })
   @ApiResponse({ status: 201, description: 'Post created' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async createPost(@Request() req: { user: { id: string } }, @Body() dto: CreatePostDto) {
+  async createPost(
+    @Request() req: { user: { id: string } },
+    @Body() dto: CreatePostDto,
+  ) {
     return this.communityService.createPost(req.user.id, dto);
   }
 
@@ -90,7 +100,10 @@ export class CommunityController {
   @ApiResponse({ status: 200, description: 'Post deleted' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Post not found' })
-  async deletePost(@Request() req: { user: { id: string } }, @Param('id') postId: string) {
+  async deletePost(
+    @Request() req: { user: { id: string } },
+    @Param('id') postId: string,
+  ) {
     await this.communityService.deletePost(postId, req.user.id);
     return { success: true };
   }
@@ -99,7 +112,10 @@ export class CommunityController {
   @ApiOperation({ summary: 'Toggle like on a post' })
   @ApiResponse({ status: 200, description: 'Like toggled' })
   @ApiResponse({ status: 404, description: 'Post not found' })
-  async toggleLike(@Request() req: { user: { id: string } }, @Param('id') postId: string) {
+  async toggleLike(
+    @Request() req: { user: { id: string } },
+    @Param('id') postId: string,
+  ) {
     return this.communityService.toggleLike(postId, req.user.id);
   }
 

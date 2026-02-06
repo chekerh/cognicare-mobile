@@ -26,4 +26,4 @@ import { MailMockService } from './mail-mock.service';
   ],
   exports: [MailService],
 })
-export class MailModule { }
+export class MailModule {}

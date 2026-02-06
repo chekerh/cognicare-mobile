@@ -14,7 +14,9 @@ export class UpdateProfileDto {
   @MaxLength(50)
   phone?: string;
 
-  @ApiPropertyOptional({ description: "Profile picture URL or path (e.g. from upload)" })
+  @ApiPropertyOptional({
+    description: 'Profile picture URL or path (e.g. from upload)',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(500)

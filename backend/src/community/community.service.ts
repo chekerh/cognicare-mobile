@@ -38,14 +38,24 @@ export class CommunityService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
-  async uploadPostImage(file: { buffer: Buffer; mimetype: string }): Promise<string> {
+  async uploadPostImage(file: {
+    buffer: Buffer;
+    mimetype: string;
+  }): Promise<string> {
     const path = await import('path');
     const fs = await import('fs/promises');
     const crypto = await import('crypto');
     const uploadsDir = path.join(process.cwd(), 'uploads', 'posts');
     await fs.mkdir(uploadsDir, { recursive: true });
     const m = file.mimetype ?? '';
-    const ext = m === 'image/png' ? 'png' : m === 'image/webp' ? 'webp' : m === 'image/heic' ? 'heic' : 'jpg';
+    const ext =
+      m === 'image/png'
+        ? 'png'
+        : m === 'image/webp'
+          ? 'webp'
+          : m === 'image/heic'
+            ? 'heic'
+            : 'jpg';
     const id = crypto.randomUUID();
     const filename = `${id}.${ext}`;
     const filePath = path.join(uploadsDir, filename);
@@ -56,8 +66,20 @@ export class CommunityService {
   async createPost(
     userId: string,
     dto: CreatePostDto,
-  ): Promise<{ id: string; authorName: string; authorId: string; text: string; createdAt: string; imageUrl?: string; tags: string[]; likeCount: number }> {
-    const user = await this.userModel.findById(userId).select('fullName').exec();
+  ): Promise<{
+    id: string;
+    authorName: string;
+    authorId: string;
+    text: string;
+    createdAt: string;
+    imageUrl?: string;
+    tags: string[];
+    likeCount: number;
+  }> {
+    const user = await this.userModel
+      .findById(userId)
+      .select('fullName')
+      .exec();
     if (!user) throw new NotFoundException('User not found');
 
     const post = new this.postModel({
@@ -138,16 +160,21 @@ export class CommunityService {
     if (post.authorId.toString() !== userId) {
       throw new ForbiddenException('You can only delete your own posts');
     }
-    await this.commentModel.deleteMany({ postId: new Types.ObjectId(postId) }).exec();
+    await this.commentModel
+      .deleteMany({ postId: new Types.ObjectId(postId) })
+      .exec();
     await this.postModel.findByIdAndDelete(postId).exec();
   }
 
-  async toggleLike(postId: string, userId: string): Promise<{ liked: boolean; likeCount: number }> {
+  async toggleLike(
+    postId: string,
+    userId: string,
+  ): Promise<{ liked: boolean; likeCount: number }> {
     const post = await this.postModel.findById(postId).exec();
     if (!post) throw new NotFoundException('Post not found');
 
     const uid = new Types.ObjectId(userId);
-    const likedBy = (post.likedBy ?? []) as Types.ObjectId[];
+    const likedBy = post.likedBy ?? [];
     const index = likedBy.findIndex((id) => id.equals(uid));
     if (index >= 0) {
       likedBy.splice(index, 1);
@@ -158,14 +185,14 @@ export class CommunityService {
     await post.save();
 
     return {
-      liked: (post.likedBy as Types.ObjectId[]).some((id) => id.equals(uid)),
+      liked: post.likedBy.some((id) => id.equals(uid)),
       likeCount: post.likedBy.length,
     };
   }
 
-  async getComments(postId: string): Promise<
-    { authorName: string; text: string; createdAt: string }[]
-  > {
+  async getComments(
+    postId: string,
+  ): Promise<{ authorName: string; text: string; createdAt: string }[]> {
     const comments = await this.commentModel
       .find({ postId: new Types.ObjectId(postId) })
       .sort({ createdAt: 1 })
@@ -187,7 +214,10 @@ export class CommunityService {
     const post = await this.postModel.findById(postId).exec();
     if (!post) throw new NotFoundException('Post not found');
 
-    const user = await this.userModel.findById(userId).select('fullName').exec();
+    const user = await this.userModel
+      .findById(userId)
+      .select('fullName')
+      .exec();
     if (!user) throw new NotFoundException('User not found');
 
     const comment = new this.commentModel({

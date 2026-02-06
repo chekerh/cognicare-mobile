@@ -45,4 +45,4 @@ import { MarketplaceModule } from './marketplace/marketplace.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
