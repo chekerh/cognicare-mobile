@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import * as compression from 'compression';
+import { join } from 'path';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -10,12 +11,17 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Security headers
+  // Security headers (cross-origin allow so images can be loaded from app)
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
     }),
   );
+
+  // Serve uploaded files (e.g. profile pictures, post images) at /uploads
+  const uploadsPath = join(process.cwd(), 'uploads');
+  const express = await import('express');
+  app.use('/uploads', express.default.static(uploadsPath, { index: false }));
 
   // Enable compression
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -24,6 +30,7 @@ async function bootstrap() {
   // Enable CORS for Flutter app
   const allowedOrigins = [
     'http://localhost:3000',
+    'http://127.0.0.1:3000',
     'http://localhost:8080',
     'http://localhost:54200', // Flutter web dev server
     'http://localhost:54201',
@@ -42,8 +49,9 @@ async function bootstrap() {
         return;
       }
 
-      // In development, allow all localhost origins (Flutter web uses random ports)
-      if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) {
+      // In development, allow localhost and 127.0.0.1 (Flutter web uses random ports)
+      if (process.env.NODE_ENV !== 'production' &&
+          (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'))) {
         callback(null, true);
         return;
       }

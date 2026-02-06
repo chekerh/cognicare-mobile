@@ -14,6 +14,14 @@ const Color _feedPrimary = Color(0xFFA3D9E2);
 const Color _feedSecondary = Color(0xFF7FBAC4);
 const Color _feedBackground = Color(0xFFF8FAFC);
 
+/// Construit l'URL complète pour une image du backend (ex. /uploads/posts/xxx.jpg).
+String _fullImageUrl(String path) {
+  final base = AppConstants.baseUrl.endsWith('/')
+      ? AppConstants.baseUrl.substring(0, AppConstants.baseUrl.length - 1)
+      : AppConstants.baseUrl;
+  return path.startsWith('/') ? '$base$path' : path;
+}
+
 /// Family Community Feed — aligné sur le design HTML fourni.
 /// Header blanc (psychology + CogniCare), onglets Community/Marketplace/Experts,
 /// carte Family Chat, partage, fil de posts, section From Marketplace.
@@ -448,13 +456,16 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         imagePath: post.imagePath,
         lastComment: lastComment,
         onLikeTap: () => feedProvider.toggleLike(post.id),
-        onCommentTap: () => _showCommentsSheet(
-          context,
-          post.id,
-          feedProvider,
-          authProvider,
-        ),
+        onCommentTap: () async {
+          await feedProvider.loadCommentsForPost(post.id);
+          if (context.mounted) {
+            _showCommentsSheet(context, post.id, feedProvider, authProvider);
+          }
+        },
         canDelete: canDelete,
+        onEditTap: canDelete
+            ? () => _showEditPostDialog(context, post.id, post.text, feedProvider)
+            : null,
         onDeleteTap: canDelete
             ? () async {
                 final loc = AppLocalizations.of(context)!;
@@ -491,6 +502,65 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
             : null,
       );
     }).toList();
+  }
+
+  void _showEditPostDialog(
+    BuildContext context,
+    String postId,
+    String initialText,
+    CommunityFeedProvider feedProvider,
+  ) {
+    final loc = AppLocalizations.of(context)!;
+    final controller = TextEditingController(text: initialText);
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(loc.editPostTitle),
+        content: TextField(
+          controller: controller,
+          maxLines: 4,
+          decoration: InputDecoration(
+            hintText: loc.shareExperiencePlaceholder,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(loc.cancel),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final newText = controller.text.trim();
+              if (newText.isEmpty) return;
+              Navigator.of(ctx).pop();
+              try {
+                await feedProvider.updatePost(postId, newText);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(loc.postUpdated),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              } catch (_) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(loc.errorLoadingProfile),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: Text(loc.save),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showCommentsSheet(
@@ -664,6 +734,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     required VoidCallback onLikeTap,
     required VoidCallback onCommentTap,
     bool canDelete = false,
+    VoidCallback? onEditTap,
     VoidCallback? onDeleteTap,
     bool hasImage = false,
     String? imagePath,
@@ -727,7 +798,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     ],
                   ),
                 ),
-              if (canDelete && onDeleteTap != null)
+              if (canDelete && (onEditTap != null || onDeleteTap != null))
                 PopupMenuButton<String>(
                   icon: Icon(
                     Icons.more_horiz,
@@ -735,21 +806,35 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     size: 22,
                   ),
                   onSelected: (value) {
-                    if (value == 'delete') {
+                    if (value == 'edit' && onEditTap != null) {
+                      onEditTap();
+                    } else if (value == 'delete' && onDeleteTap != null) {
                       onDeleteTap();
                     }
                   },
                   itemBuilder: (context) => [
-                    PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.delete_outline, color: Colors.red),
-                          const SizedBox(width: 8),
-                          Text(AppLocalizations.of(context)!.deletePost),
-                        ],
+                    if (onEditTap != null)
+                      PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit_outlined, color: AppTheme.primary, size: 20),
+                            const SizedBox(width: 8),
+                            Text(AppLocalizations.of(context)!.editPost),
+                          ],
+                        ),
                       ),
-                    ),
+                    if (onDeleteTap != null)
+                      PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.delete_outline, color: Colors.red),
+                            const SizedBox(width: 8),
+                            Text(AppLocalizations.of(context)!.deletePost),
+                          ],
+                        ),
+                      ),
                   ],
                 )
               else
@@ -801,21 +886,57 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: imagePath != null
-                    ? Image.file(
-                        File(imagePath),
-                        width: double.infinity,
-                        height: 256,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 256,
-                          color: _feedPrimary.withOpacity(0.2),
-                          child: Icon(
-                            Icons.broken_image_outlined,
-                            size: 72,
-                            color: _feedPrimary.withOpacity(0.6),
-                          ),
-                        ),
-                      )
+                    ? (imagePath.startsWith('http') || imagePath.startsWith('/uploads/')
+                        ? Image.network(
+                            imagePath.startsWith('http')
+                                ? imagePath
+                                : _fullImageUrl(imagePath),
+                            width: double.infinity,
+                            height: 256,
+                            fit: BoxFit.cover,
+                            cacheWidth: 800,
+                            cacheHeight: 512,
+                            loadingBuilder: (_, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                height: 256,
+                                color: _feedPrimary.withOpacity(0.15),
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                    color: _feedSecondary,
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (_, __, ___) => Container(
+                              height: 256,
+                              color: _feedPrimary.withOpacity(0.2),
+                              child: Icon(
+                                Icons.broken_image_outlined,
+                                size: 72,
+                                color: _feedPrimary.withOpacity(0.6),
+                              ),
+                            ),
+                          )
+                        : Image.file(
+                            File(imagePath),
+                            width: double.infinity,
+                            height: 256,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              height: 256,
+                              color: _feedPrimary.withOpacity(0.2),
+                              child: Icon(
+                                Icons.broken_image_outlined,
+                                size: 72,
+                                color: _feedPrimary.withOpacity(0.6),
+                              ),
+                            ),
+                          ))
                     : Container(
                         height: 256,
                         decoration: BoxDecoration(

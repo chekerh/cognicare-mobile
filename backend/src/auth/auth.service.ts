@@ -17,6 +17,7 @@ import {
 import { Organization, OrganizationDocument } from '../organization/schemas/organization.schema';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { MailService } from '../mail/mail.service';
 
 @Injectable()
@@ -261,6 +262,59 @@ export class AuthService {
       profilePic: user.profilePic,
       createdAt: user.createdAt || new Date(),
     };
+  }
+
+  async updateProfile(
+    userId: string,
+    dto: UpdateProfileDto,
+  ): Promise<{
+    id: string;
+    fullName: string;
+    email: string;
+    phone?: string;
+    role: string;
+    profilePic?: string;
+    createdAt: Date;
+  }> {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    if (dto.fullName !== undefined) user.fullName = dto.fullName;
+    if (dto.phone !== undefined) user.phone = dto.phone;
+    if (dto.profilePic !== undefined) user.profilePic = dto.profilePic;
+    await user.save();
+    return this.getProfile(userId);
+  }
+
+  async uploadProfilePicture(
+    userId: string,
+    file: { buffer: Buffer; mimetype: string },
+  ): Promise<{
+    id: string;
+    fullName: string;
+    email: string;
+    phone?: string;
+    role: string;
+    profilePic?: string;
+    createdAt: Date;
+  }> {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    const path = await import('path');
+    const fs = await import('fs/promises');
+    const uploadsDir = path.join(process.cwd(), 'uploads', 'profiles');
+    await fs.mkdir(uploadsDir, { recursive: true });
+    const ext = file.mimetype === 'image/png' ? 'png' : 'jpg';
+    const filename = `${userId}.${ext}`;
+    const filePath = path.join(uploadsDir, filename);
+    await fs.writeFile(filePath, file.buffer);
+    const profilePicUrl = `/uploads/profiles/${filename}`;
+    user.profilePic = profilePicUrl;
+    await user.save();
+    return this.getProfile(userId);
   }
 
   async forgotPassword(email: string): Promise<void> {

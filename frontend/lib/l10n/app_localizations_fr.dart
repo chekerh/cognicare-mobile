@@ -443,6 +443,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get postDeleted => 'Post supprimé';
 
   @override
+  String get editPost => 'Modifier le post';
+
+  @override
+  String get postUpdated => 'Post modifié';
+
+  @override
+  String get editPostTitle => 'Modifier le post';
+
+  @override
+  String get save => 'Enregistrer';
+
+  @override
   String get comments => 'Commentaires';
 
   @override

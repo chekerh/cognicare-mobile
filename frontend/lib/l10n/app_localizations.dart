@@ -259,6 +259,10 @@ abstract class AppLocalizations {
   String get deletePost;
   String get deletePostConfirm;
   String get postDeleted;
+  String get editPost;
+  String get postUpdated;
+  String get editPostTitle;
+  String get save;
   String get comments;
   String get likes;
   String get share;

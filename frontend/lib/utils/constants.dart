@@ -1,11 +1,22 @@
 class AppConstants {
   // API Configuration
-  static const String baseUrl = 'http://localhost:3000'; // Change to your backend URL
+  // Sur simulateur: défaut 127.0.0.1. Sur appareil réel: flutter run --dart-define=BASE_URL=http://VOTRE_IP:3000
+  static const String baseUrl = String.fromEnvironment(
+    'BASE_URL',
+    defaultValue: 'http://127.0.0.1:3000',
+  );
 
   // API Endpoints
   static const String signupEndpoint = '/api/v1/auth/signup';
   static const String loginEndpoint = '/api/v1/auth/login';
   static const String profileEndpoint = '/api/v1/auth/profile';
+  static const String updateProfileEndpoint = '/api/v1/auth/profile';
+  static const String uploadProfilePictureEndpoint = '/api/v1/auth/upload-profile-picture';
+
+  // Community (feed) endpoints
+  static const String communityPostsEndpoint = '/api/v1/community/posts';
+  static const String communityPostLikeStatusEndpoint = '/api/v1/community/posts/like-status';
+  static const String communityUploadPostImageEndpoint = '/api/v1/community/upload-post-image';
 
   // Storage Keys
   static const String jwtTokenKey = 'jwt_token';

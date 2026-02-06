@@ -443,6 +443,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get postDeleted => 'تم حذف المنشور';
 
   @override
+  String get editPost => 'تعديل المنشور';
+
+  @override
+  String get postUpdated => 'تم تحديث المنشور';
+
+  @override
+  String get editPostTitle => 'تعديل المنشور';
+
+  @override
+  String get save => 'حفظ';
+
+  @override
   String get comments => 'التعليقات';
 
   @override

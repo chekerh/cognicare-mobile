@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/auth_response.dart';
@@ -116,6 +117,60 @@ class AuthService {
       key: AppConstants.userDataKey,
       value: jsonEncode(authResponse.user.toJson()),
     );
+  }
+
+  /// Update own profile (fullName, phone, profilePic URL).
+  Future<User> updateProfile({
+    String? fullName,
+    String? phone,
+    String? profilePic,
+  }) async {
+    final token = await getStoredToken();
+    if (token == null) throw Exception('No authentication token found');
+    final body = <String, dynamic>{};
+    if (fullName != null) body['fullName'] = fullName;
+    if (phone != null) body['phone'] = phone;
+    if (profilePic != null) body['profilePic'] = profilePic;
+    final response = await _client.patch(
+      Uri.parse('${AppConstants.baseUrl}${AppConstants.updateProfileEndpoint}'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(body),
+    );
+    if (response.statusCode != 200) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to update profile');
+      } catch (_) {
+        throw Exception('Failed to update profile: ${response.statusCode}');
+      }
+    }
+    return User.fromJson(jsonDecode(response.body));
+  }
+
+  /// Upload profile picture (multipart). Returns updated user with profilePic URL.
+  Future<User> uploadProfilePicture(File imageFile) async {
+    final token = await getStoredToken();
+    if (token == null) throw Exception('No authentication token found');
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${AppConstants.baseUrl}${AppConstants.uploadProfilePictureEndpoint}'),
+    );
+    request.headers['Authorization'] = 'Bearer $token';
+    request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to upload picture');
+      } catch (_) {
+        throw Exception('Failed to upload picture: ${response.statusCode}');
+      }
+    }
+    return User.fromJson(jsonDecode(response.body));
   }
 
   Future<String?> getStoredToken() async {

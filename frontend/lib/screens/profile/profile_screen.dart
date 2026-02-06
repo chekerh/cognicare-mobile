@@ -156,6 +156,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         authProvider.updateUser(user.copyWith(profilePic: dest.path));
       }
 
+      // Persist on backend if possible
+      try {
+        final updatedUser = await AuthService().uploadProfilePicture(dest);
+        if (mounted) {
+          Provider.of<AuthProvider>(context, listen: false).updateUser(updatedUser);
+        }
+      } catch (_) {
+        // Keep local update only if backend fails
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -380,7 +390,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         : user?.profilePic != null
                                             ? ClipOval(
                                                 child: Image.network(
-                                                  user!.profilePic!,
+                                                  user!.profilePic!.startsWith('http')
+                                                      ? user!.profilePic!
+                                                      : '${AppConstants.baseUrl}${user!.profilePic}',
                                                   width: 100,
                                                   height: 100,
                                                   fit: BoxFit.cover,

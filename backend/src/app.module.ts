@@ -10,6 +10,7 @@ import { UsersModule } from './users/users.module';
 import { HealthModule } from './health/health.module';
 import { MailModule } from './mail/mail.module';
 import { OrganizationModule } from './organization/organization.module';
+import { CommunityModule } from './community/community.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { OrganizationModule } from './organization/organization.module';
     UsersModule,
     HealthModule,
     OrganizationModule,
+    CommunityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

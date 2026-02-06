@@ -2,12 +2,17 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
   UseGuards,
   Request,
   HttpStatus,
   HttpCode,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
   ApiOperation,
@@ -29,6 +34,7 @@ import {
   SendVerificationCodeDto,
   VerifyEmailCodeDto,
 } from './dto/verify-email.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ErrorResponseDto } from '../common/dto/error-response.dto';
 
@@ -243,6 +249,80 @@ export class AuthController {
   })
   async getProfile(@Request() req: { user: { id: string } }) {
     return this.authService.getProfile(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('profile')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Update own profile',
+    description: 'Update the authenticated user profile (fullName, phone, profilePic)',
+  })
+  @ApiBody({ type: UpdateProfileDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Profile updated successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' },
+        fullName: { type: 'string' },
+        email: { type: 'string' },
+        phone: { type: 'string' },
+        role: { type: 'string' },
+        profilePic: { type: 'string' },
+        createdAt: { type: 'string', format: 'date-time' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid or expired token',
+    type: ErrorResponseDto,
+  })
+  async updateProfile(
+    @Request() req: { user: { id: string } },
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    return this.authService.updateProfile(req.user.id, updateProfileDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('upload-profile-picture')
+  @ApiBearerAuth('JWT-auth')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({
+    summary: 'Upload profile picture',
+    description: 'Upload a profile picture for the authenticated user (multipart/form-data, field: file)',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Profile picture uploaded, returns updated profile',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'No file or invalid file type',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Invalid or expired token',
+    type: ErrorResponseDto,
+  })
+  async uploadProfilePicture(
+    @Request() req: { user: { id: string } },
+    @UploadedFile() file: Express.Multer.File | undefined,
+  ) {
+    if (!file || !file.buffer) {
+      throw new BadRequestException('No file provided');
+    }
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.mimetype)) {
+      throw new BadRequestException('Invalid file type. Use JPEG, PNG or WebP.');
+    }
+    return this.authService.uploadProfilePicture(req.user.id, {
+      buffer: file.buffer,
+      mimetype: file.mimetype,
+    });
   }
 
   @Post('refresh')
