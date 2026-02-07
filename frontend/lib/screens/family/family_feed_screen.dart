@@ -429,13 +429,17 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     );
   }
 
+  /// Catégories dons : 0 Tout, 1 Mobilité, 2 Éveil, 3 Vêtements
+  static const int _catAll = 0, _catMobility = 1, _catEarlyLearning = 2, _catClothing = 3;
+
   List<Widget> _buildDonationCards(AppLocalizations loc) {
     const cardData = [
       (
         title: 'Vêtements sensoriels',
         description: 'Textiles adaptés sans coutures irritantes pour le confort sensoriel au quotidien.',
-        condition: 0, // 0: très bon, 1: bon, 2: comme neuf
+        condition: 0,
         location: 'Paris 15e • 2km',
+        category: 3, // Vêtements
         imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNwpJkxXJO4qPvJguyMJI8Jj88n_cMeQpmeJ63D72nrT2h90NZ859t1A8minaQ01kX1yk4QnB9teSjXGeEYzkpbKipI7RfPGJobNOAsBjk4fpKddk-MM9kz4yOhH3tRdsuJudTtF4QstUtzLwYJ_awa2QheQHTygqORQNQ4yMqHZ96GRkTLApID38iQL9fPZD5MsHqEE-mHsdzqe9iOiehayCPKYyG7HQ4lcIMHYlWestP5gwoWly2gRYLJd7XbXsEcIQUFCPoG6I',
       ),
       (
@@ -443,6 +447,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         description: 'Lit avec réglages électriques et barrières de sécurité. Disponible immédiatement.',
         condition: 1,
         location: 'Lyon • 5km',
+        category: 1, // Mobilité
         imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCb8SXYxcrQ4CgCujtTt7fyG-k61uPITDNwrJTWzYKq-U4ZY0bIdijFvRAiH_MPJTUX9gWaVwYoAVal5YaYgIbxmjyyZiPCh4GWFQquL3xQWz9ywGw2ywUWn1Fss4VAh3Rgtle-gVREM-fphtNAN8MEbcrgx60VPNtITY2D7_VjDGfo1gypD70ogxVDENtD3la2XEm7AsjpcfXvNwvQvUYgNeZ7PC-kDgKsPdufaXu5RAW06WxKn6TqGCatPdGlypP0chAws6irEm0',
       ),
       (
@@ -450,11 +455,39 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         description: 'Ensemble de jeux en bois pour le développement de la motricité fine.',
         condition: 2,
         location: 'Bordeaux • 12km',
+        category: 2, // Éveil
         imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCxkZXpSV2sgwfy7eL_wAO1VsHV3zZ3O38eifySxi_30mTe2bbtkA_R3-okaq759yz1-H9z8NffBRyQeRPi52wJ7oDhkMdkBeg58wlnBcXv_cVyjCZ3VeTr16QDFESkDDeuEZTARH_dKSUn5tI39xeZgP_uwRuSgLl1YIaqVuubechX6zjuSmiyce8q7dDGcCHDUtpuZkwDhnysqYydnUck6NKWjiepuPqt3vVRuB6lNrfPHLoHr8n4vCyg1IbHEB8Vye4Pu3JN8TU',
       ),
+      (
+        title: 'Déambulateur',
+        description: 'Déambulateur réglable avec freins et panier. Idéal pour la mobilité au quotidien.',
+        condition: 0,
+        location: 'Marseille • 8km',
+        category: 1, // Mobilité
+        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNwpJkxXJO4qPvJguyMJI8Jj88n_cMeQpmeJ63D72nrT2h90NZ859t1A8minaQ01kX1yk4QnB9teSjXGeEYzkpbKipI7RfPGJobNOAsBjk4fpKddk-MM9kz4yOhH3tRdsuJudTtF4QstUtzLwYJ_awa2QheQHTygqORQNQ4yMqHZ96GRkTLApID38iQL9fPZD5MsHqEE-mHsdzqe9iOiehayCPKYyG7HQ4lcIMHYlWestP5gwoWly2gRYLJd7XbXsEcIQUFCPoG6I',
+      ),
+      (
+        title: 'Puzzle sensoriel',
+        description: 'Puzzle en bois à encastrer pour l\'éveil et la motricité fine.',
+        condition: 2,
+        location: 'Toulouse • 15km',
+        category: 2, // Éveil
+        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCxkZXpSV2sgwfy7eL_wAO1VsHV3zZ3O38eifySxi_30mTe2bbtkA_R3-okaq759yz1-H9z8NffBRyQeRPi52wJ7oDhkMdkBeg58wlnBcXv_cVyjCZ3VeTr16QDFESkDDeuEZTARH_dKSUn5tI39xeZgP_uwRuSgLl1YIaqVuubechX6zjuSmiyce8q7dDGcCHDUtpuZkwDhnysqYydnUck6NKWjiepuPqt3vVRuB6lNrfPHLoHr8n4vCyg1IbHEB8Vye4Pu3JN8TU',
+      ),
+      (
+        title: 'Combinaison adaptée',
+        description: 'Combinaison à pressions pour faciliter l\'habillage. Taille 2 ans.',
+        condition: 1,
+        location: 'Nantes • 10km',
+        category: 3, // Vêtements
+        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNwpJkxXJO4qPvJguyMJI8Jj88n_cMeQpmeJ63D72nrT2h90NZ859t1A8minaQ01kX1yk4QnB9teSjXGeEYzkpbKipI7RfPGJobNOAsBjk4fpKddk-MM9kz4yOhH3tRdsuJudTtF4QstUtzLwYJ_awa2QheQHTygqORQNQ4yMqHZ96GRkTLApID38iQL9fPZD5MsHqEE-mHsdzqe9iOiehayCPKYyG7HQ4lcIMHYlWestP5gwoWly2gRYLJd7XbXsEcIQUFCPoG6I',
+      ),
     ];
-    return cardData.asMap().entries.map((e) {
-      final d = e.value;
+    final selectedCategory = _donationsCategoryIndex;
+    final filtered = selectedCategory == _catAll
+        ? cardData
+        : cardData.where((d) => d.category == selectedCategory).toList();
+    return filtered.map((d) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: _donationCard(
