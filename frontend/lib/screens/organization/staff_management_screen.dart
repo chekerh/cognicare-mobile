@@ -29,12 +29,12 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final localizations = AppLocalizations.of(context)!; // Uncomment when translations are ready
+    final loc = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('Staff Management'), // TODO: Localize
+        title: Text(loc.staffManagement),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -68,7 +68,7 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
               trailing: IconButton(
                 icon: const Icon(Icons.delete, color: Colors.red),
                 onPressed: () {
-                  // TODO: Implement remove staff
+                  setState(() => _staff.removeAt(index));
                 },
               ),
             ),
@@ -113,7 +113,14 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              // TODO: Implement add staff logic
+              setState(() {
+                _staff.add({
+                  'id': '${_staff.length + 1}',
+                  'name': 'New Member',
+                  'role': 'volunteer',
+                  'email': 'new@example.com',
+                });
+              });
               Navigator.pop(context);
             },
             child: const Text('Add'),

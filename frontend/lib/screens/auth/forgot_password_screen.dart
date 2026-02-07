@@ -61,8 +61,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     try {
       final ok = await _sendForgotPasswordRequest();
+      if (!mounted) return;
       final localizations = AppLocalizations.of(context)!;
-      if (ok && mounted) {
+      if (ok) {
         setState(() => _currentStep = 1);
         _startResendCountdown();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -71,7 +72,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             backgroundColor: Colors.green,
           ),
         );
-      } else if (!ok && mounted) {
+      } else if (!ok) {
         throw Exception(localizations.unknownError);
       }
     } catch (e) {
@@ -85,7 +86,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -126,6 +127,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         }),
       );
 
+      if (!mounted) return;
       final localizations = AppLocalizations.of(context)!;
 
       if (response.statusCode == 200) {
@@ -140,7 +142,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         }
       } else {
         final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? localizations.unknownError);
+        throw Exception(error['message'] ?? localizations.unknownError        );
       }
     } catch (e) {
       if (mounted) {
@@ -153,7 +155,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

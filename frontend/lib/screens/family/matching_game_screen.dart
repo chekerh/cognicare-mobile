@@ -1,13 +1,14 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/sticker_book_provider.dart';
 import '../../utils/constants.dart';
 
 // Cognitive Matching Game — couleurs du HTML
 const Color _primary = Color(0xFFA0DCE8);
 const Color _primaryDark = Color(0xFF457B9D);
 const Color _slate600 = Color(0xFF475569);
-const Color _slate300 = Color(0xFFCBD5E1);
 
 /// Une carte du jeu : paire (icon + label) ou face cachée (?).
 class _GameCard {
@@ -15,16 +16,14 @@ class _GameCard {
   final IconData icon;
   final Color iconColor;
   final String label;
-  bool isRevealed;
-  bool isMatched;
+  bool isRevealed = false;
+  bool isMatched = false;
 
   _GameCard({
     required this.pairId,
     required this.icon,
     required this.iconColor,
     required this.label,
-    this.isRevealed = false,
-    this.isMatched = false,
   });
 }
 
@@ -95,7 +94,14 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
       if (newPairs == 3) {
         await Future.delayed(const Duration(milliseconds: 400));
         if (!mounted) return;
-        _showWinDialog();
+        final provider = Provider.of<StickerBookProvider>(context, listen: false);
+        provider.recordLevelCompleted(StickerBookProvider.levelKeyForMatching());
+        final stickerIndex = provider.unlockedCount - 1;
+        if (!context.mounted) return;
+        context.push(AppConstants.familyGameSuccessRoute, extra: {
+          'stickerIndex': stickerIndex,
+          'gameRoute': AppConstants.familyMatchingGameRoute,
+        });
       }
       return;
     }
@@ -109,34 +115,6 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
       _firstSelectedIndex = null;
       _canTap = true;
     });
-  }
-
-  void _showWinDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Bravo, Léo !'),
-        content: const Text('Tu as trouvé toutes les paires !'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.pop();
-            },
-            child: const Text('Retour'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.pop();
-              context.push(AppConstants.familyShapeSortingRoute);
-            },
-            child: const Text('Suivant'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -154,7 +132,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   const gap = 24.0;
-                  final padding = 24.0 * 2;
+                  const padding = 24.0 * 2;
                   final availableWidth = constraints.maxWidth - padding;
                   final availableHeight = constraints.maxHeight;
                   // 3 lignes + 2 espaces : 3 * cell + 2 * gap <= availableHeight
@@ -206,7 +184,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
               ),
             ),
           ),
-          Text(
+          const Text(
             'MATCH PAIRS!',
             style: TextStyle(
               fontSize: 20,

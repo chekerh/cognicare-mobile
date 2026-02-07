@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:math';
+import 'package:provider/provider.dart';
+import '../../providers/sticker_book_provider.dart';
 import '../../utils/constants.dart';
 
 // Shape Sorting Challenge — couleurs du HTML
@@ -23,7 +25,7 @@ class ShapeSortingScreen extends StatefulWidget {
 }
 
 class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
-  static const int _maxLevel = 3;
+  static const int _maxLevel = 1;
   static const int _maxAttempts = 3;
   int _level = 1;
   int _score = 0;
@@ -43,11 +45,26 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
       _blocked = false;
       _levelProgress = (_levelProgress + 0.2).clamp(0.0, 1.0);
       if (_levelProgress >= 1.0 && _level < _maxLevel) {
+        final k = StickerBookProvider.levelKeyForShapeSortingLevel(_level);
         _level++;
         _levelProgress = 0.0;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) Provider.of<StickerBookProvider>(context, listen: false).recordLevelCompleted(k);
+        });
       } else if (_level == _maxLevel && _levelProgress >= 1.0) {
+        final k = StickerBookProvider.levelKeyForShapeSortingLevel(_maxLevel);
         _gameFinished = true;
-        _showGameFinishedDialog();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          final provider = Provider.of<StickerBookProvider>(context, listen: false);
+          provider.recordLevelCompleted(k);
+          final stickerIndex = provider.unlockedCount - 1;
+          if (!context.mounted) return;
+          context.push(AppConstants.familyGameSuccessRoute, extra: {
+            'stickerIndex': stickerIndex,
+            'gameRoute': AppConstants.familyShapeSortingRoute,
+          });
+        });
       }
     });
   }
@@ -60,11 +77,26 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
       _blocked = false;
       _levelProgress = (_levelProgress + 0.25).clamp(0.0, 1.0);
       if (_levelProgress >= 1.0 && _level < _maxLevel) {
+        final k = StickerBookProvider.levelKeyForShapeSortingLevel(_level);
         _level++;
         _levelProgress = 0.0;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) Provider.of<StickerBookProvider>(context, listen: false).recordLevelCompleted(k);
+        });
       } else if (_level == _maxLevel && _levelProgress >= 1.0) {
+        final k = StickerBookProvider.levelKeyForShapeSortingLevel(_maxLevel);
         _gameFinished = true;
-        _showGameFinishedDialog();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          final provider = Provider.of<StickerBookProvider>(context, listen: false);
+          provider.recordLevelCompleted(k);
+          final stickerIndex = provider.unlockedCount - 1;
+          if (!context.mounted) return;
+          context.push(AppConstants.familyGameSuccessRoute, extra: {
+            'stickerIndex': stickerIndex,
+            'gameRoute': AppConstants.familyShapeSortingRoute,
+          });
+        });
         return;
       }
       _targetShape = _ShapeType.values[_rnd.nextInt(3)];
@@ -74,29 +106,6 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
         const SnackBar(content: Text('Bien joué !'), duration: Duration(milliseconds: 800), behavior: SnackBarBehavior.floating),
       );
     }
-  }
-
-  void _showGameFinishedDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Bravo, Léo !'),
-        content: Text(
-          'Tu as terminé les $_maxLevel niveaux ! Score final : $_score',
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.pop();
-              context.push(AppConstants.familyStarTracerRoute);
-            },
-            child: const Text('Suivant'),
-          ),
-        ],
-      ),
-    );
   }
 
   void _onWrongMatch() {
@@ -267,8 +276,8 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
   }
 
   Widget _buildInstruction() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 16),
       child: Text(
         'Match the shapes!',
         style: TextStyle(
@@ -505,14 +514,14 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
             child: InkWell(
               onTap: () {},
               borderRadius: BorderRadius.circular(999),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.volume_up_rounded, color: _primaryDark),
-                    const SizedBox(width: 8),
-                    const Text(
+                    Icon(Icons.volume_up_rounded, color: _primaryDark),
+                    SizedBox(width: 8),
+                    Text(
                       'Sound On',
                       style: TextStyle(
                         fontSize: 14,

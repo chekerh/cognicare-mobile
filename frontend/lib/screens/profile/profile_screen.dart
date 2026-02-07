@@ -11,6 +11,7 @@ import '../../providers/language_provider.dart';
 import '../../utils/theme.dart';
 import '../../utils/constants.dart';
 import '../../services/auth_service.dart';
+import '../../providers/child_security_code_provider.dart';
 import 'change_password_dialog.dart';
 import 'change_email_dialog.dart';
 import 'change_phone_dialog.dart';
@@ -137,9 +138,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final xFile = await picker.pickImage(source: source, imageQuality: 85, maxWidth: 800);
       if (xFile == null) return;
+      if (!mounted) return;
       final dir = await getApplicationDocumentsDirectory();
+      if (!mounted) return;
       final dest = File('${dir.path}/profile_pic.jpg');
       await File(xFile.path).copy(dest.path);
+      if (!mounted) return;
       setState(() => _localProfilePicPath = dest.path);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final user = authProvider.user;
@@ -246,9 +250,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final loc = AppLocalizations.of(context)!;
 
     if (_isLoading) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: _profileBackground,
-        body: const Center(child: CircularProgressIndicator()),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -285,7 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     // Barre de statut en bleu (icônes claires)
     SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
+      const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
@@ -442,38 +446,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 12),
                     _buildActionTile(icon: Icons.lock_outline, label: loc.changePassword, onTap: () async {
+                      final messenger = ScaffoldMessenger.of(context);
                       final result = await showDialog<bool>(context: context, builder: (_) => const ChangePasswordDialog());
-                      if (result == true && mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Mot de passe mis à jour. Veuillez vous reconnecter.'), backgroundColor: Colors.green),
-                        );
-                        await _handleLogout();
-                      }
+                      if (result != true) return;
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('Mot de passe mis à jour. Veuillez vous reconnecter.'), backgroundColor: Colors.green),
+                      );
+                      await _handleLogout();
                     }),
                     const SizedBox(height: 8),
                     _buildActionTile(icon: Icons.email_outlined, label: loc.changeEmail, onTap: () async {
+                      final messenger = ScaffoldMessenger.of(context);
                       final result = await showDialog<bool>(context: context, builder: (_) => const ChangeEmailDialog());
-                      if (result == true && mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Email mis à jour. Veuillez vous reconnecter.'), backgroundColor: Colors.green),
-                        );
-                        await _handleLogout();
-                      }
+                      if (result != true) return;
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('Email mis à jour. Veuillez vous reconnecter.'), backgroundColor: Colors.green),
+                      );
+                      await _handleLogout();
                     }),
                     const SizedBox(height: 8),
                     _buildActionTile(icon: Icons.language_outlined, label: loc.changeLanguage, onTap: _showLanguageDialog),
                     const SizedBox(height: 8),
                     _buildActionTile(icon: Icons.phone_outlined, label: loc.changePhone, onTap: () async {
+                      final messenger = ScaffoldMessenger.of(context);
                       final result = await showDialog<bool>(
                         context: context,
                         builder: (_) => ChangePhoneDialog(currentPhone: user?.phone),
                       );
-                      if (result == true && mounted) {
-                        _refreshProfile();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Téléphone mis à jour'), backgroundColor: Colors.green),
-                        );
-                      }
+                      if (result != true) return;
+                      _refreshProfile();
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('Téléphone mis à jour'), backgroundColor: Colors.green),
+                      );
                     }),
 
                     const SizedBox(height: 24),
@@ -525,7 +529,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _profilePlaceholder() {
     return Container(
       color: Colors.white,
-      child: Icon(Icons.person, size: 64, color: _profilePrimary),
+      child: const Icon(Icons.person, size: 64, color: _profilePrimary),
     );
   }
 
@@ -568,7 +572,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               Text(
                 loc.seeAll,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _profilePrimary),
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _profilePrimary),
               ),
             ],
           ),
@@ -603,11 +607,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Icon(Icons.person, color: _profilePrimary)),
+            child: Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.person, color: _profilePrimary)),
           ),
         ),
         const SizedBox(height: 8),
-        Text(name, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.text)),
+        Text(name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.text)),
       ],
     );
   }
@@ -649,7 +653,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: loc.childMode,
             subtitle: loc.simplifiedInterfaceActive,
             value: _childMode,
-            onChanged: (v) => setState(() => _childMode = v),
+            onChanged: (v) {
+              setState(() => _childMode = v);
+              if (v) context.push(AppConstants.familyChildModeRoute);
+            },
           ),
           Divider(height: 1, color: Colors.grey.shade100),
           _settingRow(
@@ -669,8 +676,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
             value: _familyNotifications,
             onChanged: (v) => setState(() => _familyNotifications = v),
           ),
+          Divider(height: 1, color: Colors.grey.shade100),
+          _securityCodeRow(context, loc),
         ],
       ),
+    );
+  }
+
+  Widget _securityCodeRow(BuildContext context, AppLocalizations loc) {
+    return Consumer<ChildSecurityCodeProvider>(
+      builder: (context, codeProvider, _) {
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.push(AppConstants.familyCreateSecurityCodeRoute),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.lock_outline, color: Colors.orange.shade700, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          loc.securityCode,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.text),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          loc.manageChildModeExitCode,
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey.shade400),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -754,7 +811,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     Text(
                       loc.engagement.toUpperCase(),
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _profilePrimary, letterSpacing: 1.2),
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _profilePrimary, letterSpacing: 1.2),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -764,7 +821,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: _profilePrimary, size: 28),
+              const Icon(Icons.chevron_right, color: _profilePrimary, size: 28),
             ],
           ),
         ),

@@ -149,6 +149,10 @@ abstract class AppLocalizations {
   String get roleDoctor;
   String get roleVolunteer;
   String get roleOrganizationLeader;
+  String get staffManagement;
+  String get totalStaff;
+  String get addStaffMember;
+  String get welcomeBack;
 
   /// Profile
   String get profileTitle;
@@ -247,7 +251,21 @@ abstract class AppLocalizations {
   String get noMessagesYet;
   String get conversationsWillAppear;
   String get community;
+  String get donations;
   String get experts;
+  String get leCercleDuDon;
+  String get jeDonne;
+  String get jeRecherche;
+  String get all;
+  String get mobility;
+  String get earlyLearning;
+  String get clothing;
+  String get proposeDonation;
+  String get veryGoodCondition;
+  String get goodCondition;
+  String get likeNew;
+  String get donation;
+  String get details;
   String get familyChat;
   String get open;
   String get shareExperiencePlaceholder;
@@ -296,6 +314,71 @@ abstract class AppLocalizations {
   String get engagement;
   String get activitiesThisWeek;
   String get addMember;
+
+  /// Child mode (emotion selection)
+  String get howDoYouFeelToday;
+  String get tapTheFriendThatLooksLikeYou;
+  String get happy;
+  String get sad;
+  String get angry;
+  String get tired;
+  String get silly;
+  String get helpLeoSpeakHisMind;
+
+  /// Child dashboard (after emotion selection)
+  String get greetingWhenHappy;
+  String get greetingWhenSad;
+  String get greetingWhenAngry;
+  String get greetingWhenTired;
+  String get greetingWhenSilly;
+  String get childDashboardDefaultGreeting;
+  String get childDashboardPlay;
+  String get childDashboardMyProgress;
+  String get myProgress;
+  String get bravo;
+  String get almostThere;
+  String get childDashboardMyGifts;
+  String get childDashboardLongPress;
+  String get securityCode;
+  String get manageChildModeExitCode;
+  String get createYourSecurityCode;
+  String get securityCodeRequiredToExitChildMode;
+  String get confirm;
+  String get securityCodeCreated;
+  String get parentCode;
+  String get enterCodeToExitChildMode;
+  String get incorrectCode;
+  String get chooseAGame;
+  String get gameMatchPairs;
+  String get gameShapeSorting;
+
+  /// Sticker book (rewards)
+  String get myStickerBook;
+  String get fantasticJob;
+  String youEarnedStickersToday(int count);
+  String get nextReward;
+  String get superHeroPack;
+  String justXMoreTasksToGo(int count);
+  String get rewardReached;
+  String get superHeroPackUnlocked;
+  String get unlockedAnimalFriends;
+  String get comingSoon;
+  String get stickerLeoTheLion;
+  String get stickerHappyHippo;
+  String get stickerBraveBear;
+  String get stickerSmartyPaws;
+  String get stickerSortingChamp;
+  String get stickerMemoryMaster;
+  String get stickerPatternPro;
+  String get stickerFocusStar;
+  String get stickerComingSoon;
+  String completeXMoreTasksToUnlock(int count);
+
+  /// Game success (Bravo + sticker earned)
+  String get youSucceededTheGame;
+  String get stickerWon;
+  String get addToMyCollection;
+  String get playAgain;
 
   /// Healthcare professional profile
   String get myPatients;

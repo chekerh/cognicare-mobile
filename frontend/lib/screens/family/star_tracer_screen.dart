@@ -1,7 +1,10 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/sticker_book_provider.dart';
+import '../../utils/constants.dart';
 
 // Star Tracer — couleurs du HTML
 const Color _primary = Color(0xFF2b8cee);
@@ -15,25 +18,14 @@ class _LevelConfig {
   const _LevelConfig(this.name, this.points);
 }
 
+/// Une seule forme : l’étoile à 5 branches (5 segments à tracer).
 final List<_LevelConfig> _levelConfigs = [
-  _LevelConfig('Étoile', [
-    const Offset(50, 5), const Offset(63, 38), const Offset(98, 38), const Offset(70, 59),
-    const Offset(78, 95), const Offset(50, 75), const Offset(22, 95), const Offset(30, 59),
-    const Offset(2, 38), const Offset(37, 38),
-  ]),
-  _LevelConfig('Étoile', [
-    const Offset(50, 5), const Offset(63, 38), const Offset(98, 38), const Offset(70, 59),
-    const Offset(78, 95), const Offset(50, 75), const Offset(22, 95), const Offset(30, 59),
-    const Offset(2, 38), const Offset(37, 38),
-  ]),
-  _LevelConfig('Carré', [
-    const Offset(25, 25), const Offset(75, 25), const Offset(75, 75), const Offset(25, 75),
-  ]),
-  _LevelConfig('5 lignes', [
-    const Offset(50, 10), const Offset(91, 35), const Offset(74, 82), const Offset(26, 82), const Offset(9, 35),
-  ]),
-  _LevelConfig('Triangle', [
-    const Offset(50, 12), const Offset(88, 88), const Offset(12, 88),
+  const _LevelConfig('Étoile', [
+    Offset(50, 8),   // haut
+    Offset(90, 38),   // droite-haut
+    Offset(72, 88),   // droite-bas
+    Offset(28, 88),   // gauche-bas
+    Offset(10, 38),  // gauche-haut
   ]),
 ];
 
@@ -136,7 +128,7 @@ class StarTracerScreen extends StatefulWidget {
 }
 
 class _StarTracerScreenState extends State<StarTracerScreen> {
-  static const int _maxLevel = 5;
+  static const int _maxLevel = 1;
   int _level = 1;
   int _segmentsTraced = 0;
   bool _gameFinished = false;
@@ -149,29 +141,65 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
   int get _starsCollected => _totalSegments > 0 ? (_segmentsTraced / _totalSegments * 5).floor().clamp(0, 5) : 0;
   int get _progressPercent => _totalSegments > 0 ? (_segmentsTraced / _totalSegments * 100).round() : 0;
 
-  void _onCanvasTap(Offset local) {
-    if (_gameFinished) return;
-    if (_canvasSize.width <= 0 || _canvasSize.height <= 0) return;
+  List<Offset> get _scaledPoints {
+    if (_canvasSize.width <= 0 || _canvasSize.height <= 0) return [];
     final scale = min(_canvasSize.width, _canvasSize.height) / 100;
     final center = Offset(_canvasSize.width / 2, _canvasSize.height / 2);
     final origin = center - Offset(50 * scale, 50 * scale);
-    final pts = _currentPoints.map((p) => origin + Offset(p.dx * scale, p.dy * scale)).toList();
+    return _currentPoints.map((p) => origin + Offset(p.dx * scale, p.dy * scale)).toList();
+  }
 
-    const hitRadius = 44.0;
+  /// Distance from point P to segment A-B.
+  double _distToSegment(Offset p, Offset a, Offset b) {
+    final dx = b.dx - a.dx, dy = b.dy - a.dy;
+    final len2 = dx * dx + dy * dy;
+    if (len2 == 0) return (p - a).distance;
+    double t = ((p.dx - a.dx) * dx + (p.dy - a.dy) * dy) / len2;
+    t = t.clamp(0.0, 1.0);
+    final proj = Offset(a.dx + t * dx, a.dy + t * dy);
+    return (p - proj).distance;
+  }
+
+  void _onPanUpdate(Offset local) {
+    if (_gameFinished) return;
+    if (_canvasSize.width <= 0 || _canvasSize.height <= 0) return;
     if (_segmentsTraced >= _totalSegments) return;
-    final nextIndex = _segmentsTraced;
-    final nextPt = pts[nextIndex];
-    if ((local - nextPt).distance <= hitRadius) {
+    final pts = _scaledPoints;
+    if (pts.length < 2) return;
+    final i = _segmentsTraced % pts.length;
+    final j = (i + 1) % pts.length;
+    final a = pts[i];
+    final b = pts[j];
+    const endRadius = 32.0;
+    const segmentTolerance = 50.0;
+    final distToEnd = (local - b).distance;
+    final distToSegment = _distToSegment(local, a, b);
+    if (distToEnd < endRadius && distToSegment < segmentTolerance) {
       setState(() {
         _segmentsTraced++;
         if (_segmentsTraced >= _totalSegments) {
           _segmentsTraced = _totalSegments;
           if (_level >= _maxLevel) {
+            final k = StickerBookProvider.levelKeyForStarTracerLevel(_maxLevel);
             _gameFinished = true;
-            _showGameFinishedDialog();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              final provider = Provider.of<StickerBookProvider>(context, listen: false);
+              provider.recordLevelCompleted(k);
+              final stickerIndex = provider.unlockedCount - 1;
+              if (!context.mounted) return;
+              context.push(AppConstants.familyGameSuccessRoute, extra: {
+                'stickerIndex': stickerIndex,
+                'gameRoute': AppConstants.familyStarTracerRoute,
+              });
+            });
           } else {
+            final k = StickerBookProvider.levelKeyForStarTracerLevel(_level);
             _level++;
             _segmentsTraced = 0;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) Provider.of<StickerBookProvider>(context, listen: false).recordLevelCompleted(k);
+            });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Niveau $_level !'),
@@ -183,26 +211,6 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
         }
       });
     }
-  }
-
-  void _showGameFinishedDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.congratulationsLeo),
-        content: Text(AppLocalizations.of(context)!.completedAllLevels(_maxLevel)),
-        actions: [
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.pop();
-            },
-            child: Text(AppLocalizations.of(context)!.next),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -239,7 +247,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
                             borderRadius: BorderRadius.circular(12),
                             child: GestureDetector(
                               behavior: HitTestBehavior.opaque,
-                              onTapUp: (d) => _onCanvasTap(d.localPosition),
+                              onPanUpdate: (d) => _onPanUpdate(d.localPosition),
                               child: CustomPaint(
                                 size: _canvasSize,
                                 painter: _ShapePathPainter(
@@ -268,7 +276,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
                               ),
                               child: Text(
                                 AppLocalizations.of(context)!.keepGoing,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   color: _primary,
@@ -337,8 +345,8 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Follow the dots at your own pace',
+          const Text(
+            'Suis les lignes avec ton doigt',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -347,7 +355,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Tape les points bleus dans l\'ordre',
+            'Trace chaque trait jusqu\'au point bleu',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -385,7 +393,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
                 children: [
                   Text(
                     '${AppLocalizations.of(context)!.level} $_level',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: _textMuted,
@@ -440,7 +448,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
                   const SizedBox(width: 8),
                   Text(
                     '$_starsCollected/5 ${AppLocalizations.of(context)!.stars}',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: _textDark,

@@ -297,7 +297,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.favorite, color: _authPrimary, size: 48),
+                            const Icon(Icons.favorite, color: _authPrimary, size: 48),
                             const SizedBox(height: 4),
                             Icon(Icons.volunteer_activism, color: Colors.green.shade400, size: 28),
                           ],
@@ -379,7 +379,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           onPressed: _isSendingCode ? null : _sendVerificationCode,
                           child: Text(
                             localizations.resendButton,
-                            style: TextStyle(color: _authPrimary, fontWeight: FontWeight.w600),
+                            style: const TextStyle(color: _authPrimary, fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],

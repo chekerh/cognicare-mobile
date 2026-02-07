@@ -261,7 +261,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               title: 'Analytics',
               description: 'View platform statistics and reports',
               onTap: () {
-                // TODO: Navigate to analytics
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Analytics - Coming Soon')),
                 );
@@ -274,7 +273,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               title: 'System Settings',
               description: 'Configure platform settings',
               onTap: () {
-                // TODO: Navigate to settings
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('System Settings - Coming Soon')),
                 );
@@ -287,7 +285,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               title: 'Email Templates',
               description: 'Manage email templates and notifications',
               onTap: () {
-                // TODO: Navigate to email templates
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Email Templates - Coming Soon')),
                 );

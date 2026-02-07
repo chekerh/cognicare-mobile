@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (AppConstants.isOrganizationLeaderRole(role)) {
           context.go(AppConstants.organizationDashboardRoute);
         } else if (AppConstants.isFamilyRole(role)) {
-          context.go(AppConstants.familyFeedRoute);
+          context.go(AppConstants.familyDashboardRoute);
         } else {
           context.go(AppConstants.homeRoute);
         }

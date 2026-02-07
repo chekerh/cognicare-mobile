@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
-import '../../providers/auth_provider.dart';
 import '../../utils/theme.dart';
 
 class HomeDashboardScreen extends StatelessWidget {
@@ -10,8 +8,6 @@ class HomeDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.user;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -178,9 +174,9 @@ class HomeDashboardScreen extends StatelessWidget {
                         iconColor: const Color(0xFF007AFF),
                         title: loc.focusScore,
                         value: '84%',
-                        trailing: Row(
+                        trailing: const Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: const [
+                          children: [
                             Icon(Icons.trending_up, size: 14, color: Colors.green),
                             SizedBox(width: 2),
                             Text(
@@ -227,9 +223,9 @@ class HomeDashboardScreen extends StatelessWidget {
                         iconColor: Colors.indigo.shade500,
                         title: loc.calmState,
                         value: '4.2h',
-                        trailing: Row(
+                        trailing: const Row(
                           mainAxisSize: MainAxisSize.min,
-                          children: const [
+                          children: [
                             Icon(Icons.trending_up, size: 14, color: Colors.green),
                             SizedBox(width: 2),
                             Text(

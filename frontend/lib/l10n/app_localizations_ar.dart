@@ -143,6 +143,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get roleOrganizationLeader => 'قائد المنظمة';
 
   @override
+  String get staffManagement => 'إدارة الموظفين';
+
+  @override
+  String get totalStaff => 'إجمالي الموظفين';
+
+  @override
+  String get addStaffMember => 'إضافة عضو';
+
+  @override
+  String get welcomeBack => 'مرحباً بعودتك،';
+
+  @override
   String get profileTitle => 'الملف الشخصي';
 
   @override
@@ -407,7 +419,49 @@ class AppLocalizationsAr extends AppLocalizations {
   String get community => 'المجتمع';
 
   @override
+  String get donations => 'التبرعات';
+
+  @override
   String get experts => 'الخبراء';
+
+  @override
+  String get leCercleDuDon => 'Le Cercle du Don';
+
+  @override
+  String get jeDonne => 'أنا أمنح';
+
+  @override
+  String get jeRecherche => 'أنا أبحث';
+
+  @override
+  String get all => 'الكل';
+
+  @override
+  String get mobility => 'التنقل';
+
+  @override
+  String get earlyLearning => 'التنمية المبكرة';
+
+  @override
+  String get clothing => 'الملابس';
+
+  @override
+  String get proposeDonation => 'اقترح تبرعاً';
+
+  @override
+  String get veryGoodCondition => 'حالة جيدة جداً';
+
+  @override
+  String get goodCondition => 'حالة جيدة';
+
+  @override
+  String get likeNew => 'كالجديد';
+
+  @override
+  String get donation => 'تبرع';
+
+  @override
+  String get details => 'التفاصيل';
 
   @override
   String get familyChat => 'دردشة العائلة';
@@ -534,6 +588,125 @@ class AppLocalizationsAr extends AppLocalizations {
   String get activitiesThisWeek => 'أنشطة هذا الأسبوع';
   @override
   String get addMember => 'إضافة';
+
+  @override
+  String get howDoYouFeelToday => 'كيف تشعر اليوم؟';
+  @override
+  String get tapTheFriendThatLooksLikeYou => 'اضغط على الصديق الذي يشبهك!';
+  @override
+  String get happy => 'سعيد';
+  @override
+  String get sad => 'حزين';
+  @override
+  String get angry => 'غاضب';
+  @override
+  String get tired => 'متعب';
+  @override
+  String get silly => 'مضحك!';
+  @override
+  String get helpLeoSpeakHisMind => 'ساعد ليو يعبر عن رأيه';
+
+  @override
+  String get greetingWhenHappy => '{name}، يا له من ابتسامة جميلة! تبدو سعيداً!';
+  @override
+  String get greetingWhenSad => '{name}، نحن هنا من أجلك. هل تريد اللعب معاً؟';
+  @override
+  String get greetingWhenAngry => '{name}، من الطبيعي أن تشعر بالإحباط. تنفس معي.';
+  @override
+  String get greetingWhenTired => '{name}، تبدو متعباً. هل تريد أخذ استراحة هادئة؟';
+  @override
+  String get greetingWhenSilly => '{name}، يبدو أنك تستمتع! رائع!';
+  @override
+  String get childDashboardDefaultGreeting => 'مرحباً {name}!';
+  @override
+  String get childDashboardPlay => 'اللعب';
+  @override
+  String get childDashboardMyProgress => 'تقدمي';
+  @override
+  String get myProgress => 'تقدمي';
+  @override
+  String get bravo => 'أحسنت!';
+  @override
+  String get almostThere => 'القليل فقط!';
+  @override
+  String get childDashboardMyGifts => 'هداياي';
+  @override
+  String get childDashboardLongPress => 'اضغط مطولاً';
+  @override
+  String get securityCode => 'رمز الأمان';
+  @override
+  String get manageChildModeExitCode => 'إدارة رمز الخروج من وضع الطفل';
+  @override
+  String get createYourSecurityCode => 'إنشاء رمز الأمان الخاص بك';
+  @override
+  String get securityCodeRequiredToExitChildMode => 'سيكون هذا الرمز مطلوباً للخروج من وضع الطفل';
+  @override
+  String get confirm => 'تأكيد';
+  @override
+  String get securityCodeCreated => 'تم إنشاء رمز الأمان بنجاح';
+  @override
+  String get parentCode => 'رمز الوالدين';
+  @override
+  String get enterCodeToExitChildMode => 'أدخل رمزك للخروج من وضع الطفل';
+  @override
+  String get incorrectCode => 'رمز غير صحيح. حاول مرة أخرى.';
+
+  @override
+  String get chooseAGame => 'اختر لعبة';
+  @override
+  String get gameMatchPairs => 'تطابق الأزواج!';
+  @override
+  String get gameShapeSorting => 'ترتيب الأشكال';
+
+  @override
+  String get myStickerBook => 'كتاب الملصقات';
+  @override
+  String get fantasticJob => 'عمل رائع!';
+  @override
+  String youEarnedStickersToday(int count) => 'لقد ربحت $count ملصقات اليوم!';
+  @override
+  String get nextReward => 'المكافأة التالية';
+  @override
+  String get superHeroPack => 'حزمة البطل الخارق';
+  @override
+  String justXMoreTasksToGo(int count) => 'بقي $count مهام فقط!';
+  @override
+  String get rewardReached => 'تم الوصول إلى المكافأة!';
+  @override
+  String get superHeroPackUnlocked => 'لقد فتحت حزمة البطل الخارق! أحسنت!';
+  @override
+  String get unlockedAnimalFriends => 'أصدقاء الحيوانات المُفتوحون';
+  @override
+  String get comingSoon => 'قريباً';
+  @override
+  String get stickerLeoTheLion => 'ليو الأسد';
+  @override
+  String get stickerHappyHippo => 'أفراس النهر السعيد';
+  @override
+  String get stickerBraveBear => 'الدب الشجاع';
+  @override
+  String get stickerSmartyPaws => 'الذكي';
+  @override
+  String get stickerSortingChamp => 'بطل الترتيب';
+  @override
+  String get stickerMemoryMaster => 'سيد الذاكرة';
+  @override
+  String get stickerPatternPro => 'محترف الأنماط';
+  @override
+  String get stickerFocusStar => 'نجم التركيز';
+  @override
+  String get stickerComingSoon => 'قريباً';
+  @override
+  String completeXMoreTasksToUnlock(int count) => 'أكمل $count مهام لفتح ملصق جديد!';
+
+  @override
+  String get youSucceededTheGame => 'لقد نجحت في اللعبة!';
+  @override
+  String get stickerWon => 'ملصق مكتسب';
+  @override
+  String get addToMyCollection => 'أضف إلى مجموعتي';
+  @override
+  String get playAgain => 'العب مرة أخرى';
 
   @override
   String get myPatients => 'مرضاي';

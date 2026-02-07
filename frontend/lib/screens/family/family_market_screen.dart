@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
-import 'product_detail_screen.dart';
 
 const Color _marketPrimary = Color(0xFFADD8E6);
 const Color _marketBackground = Color(0xFFF8FAFC);
@@ -24,21 +23,10 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
     return [loc.allItems, loc.sensory, loc.motorSkills, loc.cognitive];
   }
 
-  String _getCategoryKey(String category, BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
-    if (category == loc.allItems) return 'all';
-    if (category == loc.sensory) return 'sensory';
-    if (category == loc.motorSkills) return 'motor';
-    if (category == loc.cognitive) return 'cognitive';
-    return 'all';
-  }
-
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    if (_selectedCategoryKey == null) {
-      _selectedCategoryKey = loc.allItems;
-    }
+    _selectedCategoryKey ??= loc.allItems;
     return Scaffold(
       backgroundColor: _marketBackground,
       body: SafeArea(
@@ -114,7 +102,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
               ),
               Row(
                 children: [
-                  _headerButton(Icons.shopping_cart_outlined),
+                  _headerButton(Icons.shopping_cart_outlined, onTap: () => context.push(AppConstants.familyCartRoute)),
                   const SizedBox(width: 12),
                   _headerButton(Icons.search),
                 ],
@@ -159,15 +147,22 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
     );
   }
 
-  Widget _headerButton(IconData icon) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.3),
-        shape: BoxShape.circle,
+  Widget _headerButton(IconData icon, {VoidCallback? onTap}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.3),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: AppTheme.text, size: 22),
+        ),
       ),
-      child: Icon(icon, color: AppTheme.text, size: 22),
     );
   }
 

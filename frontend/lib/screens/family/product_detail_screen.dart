@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/cart_provider.dart';
+import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 
 const Color _marketPrimary = Color(0xFFADD8E6);
@@ -31,55 +34,65 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  int _currentImageIndex = 0;
+  final int _currentImageIndex = 0;
   bool _isFavorite = false;
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.text),
+    final padding = MediaQuery.paddingOf(context);
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: Column(
+        children: [
+          _buildHeader(context, loc, padding.top),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildImageCarousel(),
+                  const SizedBox(height: 16),
+                  _buildProductCard(),
+                  const SizedBox(height: 24),
+                  _buildReviewsSection(),
+                  SizedBox(height: padding.bottom + 100),
+                ],
+              ),
+            ),
+          ),
+          _buildBottomBar(padding.bottom),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, AppLocalizations loc, double topPadding) {
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.fromLTRB(8, topPadding + 8, 8, 8),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.text, size: 20),
             onPressed: () => context.pop(),
           ),
-          title: Text(
-            loc.productDetails,
-            style: const TextStyle(
-              color: AppTheme.text,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
+          Expanded(
+            child: Text(
+              loc.productDetails,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppTheme.text,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
             ),
           ),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.shopping_cart_outlined, color: AppTheme.text),
-              onPressed: () {},
-            ),
-          ],
-        ),
-        body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image carousel
-            _buildImageCarousel(),
-            const SizedBox(height: 16),
-            // Product info card
-            _buildProductCard(),
-            const SizedBox(height: 24),
-            // Reviews section
-            _buildReviewsSection(),
-            SizedBox(height: MediaQuery.paddingOf(context).bottom + 100),
-          ],
-        ),
-      ),
-        bottomNavigationBar: _buildBottomBar(),
+          IconButton(
+            icon: const Icon(Icons.shopping_cart_outlined, color: AppTheme.text),
+            onPressed: () => context.push(AppConstants.familyCartRoute),
+          ),
+        ],
       ),
     );
   }
@@ -367,9 +380,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildBottomBar() {
+  Widget _buildBottomBar(double bottomPadding) {
     final loc = AppLocalizations.of(context)!;
-    final bottomPadding = MediaQuery.paddingOf(context).bottom;
     return Container(
       padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomPadding),
       decoration: BoxDecoration(
@@ -405,12 +417,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(loc.productAddedToCart),
-                      backgroundColor: Colors.green,
-                    ),
+                  Provider.of<CartProvider>(context, listen: false).addItem(
+                    productId: widget.productId,
+                    title: widget.title,
+                    price: widget.price,
+                    imageUrl: widget.imageUrl.trim().isEmpty
+                        ? 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800'
+                        : widget.imageUrl,
                   );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(loc.productAddedToCart),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _marketPrimary,

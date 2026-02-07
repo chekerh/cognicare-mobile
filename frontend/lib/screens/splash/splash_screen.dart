@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../l10n/app_localizations.dart';
-import '../../providers/language_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
@@ -67,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen>
           authProvider.updateUser(user);
           final router = GoRouter.of(context);
           if (AppConstants.isFamilyRole(user.role)) {
-            router.go(AppConstants.familyFeedRoute);
+            router.go(AppConstants.familyDashboardRoute);
           } else if (AppConstants.isOrganizationLeaderRole(user.role)) {
             router.go(AppConstants.organizationDashboardRoute);
           } else {
@@ -83,14 +82,12 @@ class _SplashScreenState extends State<SplashScreen>
         }
       }
     } else {
-      // No stored auth, check if language was selected
-      final languageProvider =
-          Provider.of<LanguageProvider>(context, listen: false);
-
+      // No stored auth
       if (mounted) {
-        final router = GoRouter.of(context);
         // Check if onboarding was completed
         final prefs = await SharedPreferences.getInstance();
+        if (!mounted) return;
+        final router = GoRouter.of(context);
         final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
 
         if (!onboardingComplete) {

@@ -4,12 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
-import '../../utils/theme.dart';
 
 // Aligné sur le HTML Family Member Dashboard
 const Color _primary = Color(0xFFA3D9E5);
 const Color _primaryDark = Color(0xFF7BBCCB);
-const Color _backgroundLight = Color(0xFFF8FDFF);
 const Color _cardLight = Color(0xFFFFFFFF);
 const Color _slate600 = Color(0xFF475569);
 const Color _slate800 = Color(0xFF1E293B);
@@ -112,7 +110,7 @@ class FamilyMemberDashboardScreen extends StatelessWidget {
             color: Colors.white.withOpacity(0.5),
             borderRadius: BorderRadius.circular(24),
             child: InkWell(
-              onTap: () {},
+              onTap: () => context.push(AppConstants.familyNotificationsRoute),
               borderRadius: BorderRadius.circular(24),
               child: Container(
                 width: 48,
@@ -130,7 +128,7 @@ class FamilyMemberDashboardScreen extends StatelessWidget {
   Widget _buildPlayWithLeoCard(BuildContext context) {
     return _Card(
       child: InkWell(
-        onTap: () => context.push(AppConstants.familyMatchingGameRoute),
+        onTap: () => context.push(AppConstants.familyGamesSelectionRoute),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -146,11 +144,11 @@ class FamilyMemberDashboardScreen extends StatelessWidget {
                 child: const Icon(Icons.smart_toy_rounded, color: Colors.white, size: 32),
               ),
               const SizedBox(width: 16),
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Jouer avec Léo',
                       style: TextStyle(
                         fontSize: 20,
@@ -158,7 +156,7 @@ class FamilyMemberDashboardScreen extends StatelessWidget {
                         color: _slate800,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       'Lancer une session de thérapie ludique',
                       style: TextStyle(
@@ -319,7 +317,7 @@ class FamilyMemberDashboardScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    const Text(
                       '2 nouveaux messages',
                       style: TextStyle(fontSize: 12, color: _slate500),
                     ),
@@ -333,7 +331,7 @@ class FamilyMemberDashboardScreen extends StatelessWidget {
         Expanded(
           child: _Card(
             child: InkWell(
-              onTap: () {},
+              onTap: () => context.push(AppConstants.familyPatientRecordRoute),
               borderRadius: BorderRadius.circular(16),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -359,7 +357,7 @@ class FamilyMemberDashboardScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    const Text(
                       'RDV demain 10h',
                       style: TextStyle(fontSize: 12, color: _slate500),
                     ),
@@ -383,10 +381,10 @@ class FamilyMemberDashboardScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(
+          const CircleAvatar(
             radius: 16,
             backgroundColor: _primaryDark,
-            child: const Icon(Icons.person_rounded, color: Colors.white, size: 20),
+            child: Icon(Icons.person_rounded, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -406,7 +404,7 @@ class FamilyMemberDashboardScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
+          const Text(
             'Il y a 2h',
             style: TextStyle(
               fontSize: 10,

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,7 +5,7 @@ import 'package:go_router/go_router.dart';
 const Color _navPrimary = Color(0xFFA3D9E2);
 const Color _navInactive = Color(0xFF94A3B8);
 
-/// Shell secteur famille : Feed | Families | [+] (écran Accueil) | Market | Profile.
+/// Shell secteur famille : Feed | Chats | [+] (écran Accueil) | Market | Profile.
 /// Pas d’onglet Accueil : le + affiche le dashboard (contenu Accueil).
 class FamilyShellScreen extends StatelessWidget {
   const FamilyShellScreen({
@@ -48,7 +47,7 @@ class FamilyShellScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _navItem(context, 1, Icons.article_outlined, Icons.article, 'Feed', currentIndex),
-                _navItem(context, 2, Icons.groups_outlined, Icons.groups, 'Families', currentIndex),
+                _navItem(context, 2, Icons.chat_bubble_outline, Icons.chat_bubble, 'Chats', currentIndex),
                 _centerPlusButton(context, currentIndex),
                 _navItem(context, 3, Icons.shopping_bag_outlined, Icons.shopping_bag, 'Market', currentIndex),
                 _navItem(context, 4, Icons.person_outline, Icons.person, 'Profile', currentIndex),

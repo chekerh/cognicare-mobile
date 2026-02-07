@@ -38,7 +38,7 @@ class OrganizationDashboardScreen extends StatelessWidget {
               _buildWelcomeCard(context, user?.fullName ?? ''),
               const SizedBox(height: 24),
               Text(
-                'Staff Management', // TODO: Localize
+                localizations.staffManagement,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppTheme.text,
@@ -47,7 +47,7 @@ class OrganizationDashboardScreen extends StatelessWidget {
               const SizedBox(height: 16),
               _buildStatCard(
                 context,
-                title: 'Total Staff', // TODO: Localize
+                title: localizations.totalStaff,
                 value: '0',
                 icon: Icons.people,
                 color: Colors.blue,
@@ -58,7 +58,7 @@ class OrganizationDashboardScreen extends StatelessWidget {
                   context.push(AppConstants.staffManagementRoute);
                 },
                 icon: const Icon(Icons.add),
-                label: Text('Add Staff Member'), // TODO: Localize
+                label: Text(localizations.addStaffMember),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
                   minimumSize: const Size(double.infinity, 50),
@@ -72,6 +72,7 @@ class OrganizationDashboardScreen extends StatelessWidget {
   }
 
   Widget _buildWelcomeCard(BuildContext context, String name) {
+    final loc = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -101,9 +102,9 @@ class OrganizationDashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Welcome back,', // TODO: Localize
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                Text(
+                  loc.welcomeBack,
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 Text(
                   name,

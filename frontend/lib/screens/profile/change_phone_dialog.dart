@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
-import '../../utils/theme.dart';
-import '../../utils/constants.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/custom_text_field.dart';
 

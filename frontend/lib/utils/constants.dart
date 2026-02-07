@@ -42,6 +42,7 @@ class AppConstants {
   static const String familyFeedRoute = '/family/feed';
   static const String familyFamiliesRoute = '/family/families';
   static const String familyGroupChatRoute = '/family/group-chat';
+  static const String familyPrivateChatRoute = '/family/private-chat';
   static const String familyMarketRoute = '/family/market';
   static const String familyProfileRoute = '/family/profile';
   static const String familyCreatePostRoute = '/family/create-post';
@@ -49,6 +50,18 @@ class AppConstants {
   static const String familyShapeSortingRoute = '/family/shape-sorting';
   static const String familyStarTracerRoute = '/family/star-tracer';
   static const String familyProductDetailRoute = '/family/product-detail';
+  static const String familyPatientRecordRoute = '/family/patient-record';
+  static const String familyNotificationsRoute = '/family/notifications';
+  static const String familyCartRoute = '/family/cart';
+  static const String familyCheckoutRoute = '/family/checkout';
+  static const String familyOrderConfirmationRoute = '/family/order-confirmation';
+  static const String familyChildModeRoute = '/family/child-mode';
+  static const String familyChildDashboardRoute = '/family/child-dashboard';
+  static const String familyChildProgressRoute = '/family/child-progress';
+  static const String familyCreateSecurityCodeRoute = '/family/create-security-code';
+  static const String familyStickerBookRoute = '/family/sticker-book';
+  static const String familyGameSuccessRoute = '/family/game-success';
+  static const String familyGamesSelectionRoute = '/family/games';
 
   // Public routes (no JWT required)
   static const List<String> publicRoutes = [

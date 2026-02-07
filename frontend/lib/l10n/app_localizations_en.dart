@@ -143,6 +143,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roleOrganizationLeader => 'Organization Leader';
 
   @override
+  String get staffManagement => 'Staff Management';
+
+  @override
+  String get totalStaff => 'Total Staff';
+
+  @override
+  String get addStaffMember => 'Add Staff Member';
+
+  @override
+  String get welcomeBack => 'Welcome back,';
+
+  @override
   String get profileTitle => 'Profile';
 
   @override
@@ -407,7 +419,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get community => 'Community';
 
   @override
+  String get donations => 'Donations';
+
+  @override
   String get experts => 'Experts';
+
+  @override
+  String get leCercleDuDon => 'Le Cercle du Don';
+
+  @override
+  String get jeDonne => 'I give';
+
+  @override
+  String get jeRecherche => 'I search';
+
+  @override
+  String get all => 'All';
+
+  @override
+  String get mobility => 'Mobility';
+
+  @override
+  String get earlyLearning => 'Early Learning';
+
+  @override
+  String get clothing => 'Clothing';
+
+  @override
+  String get proposeDonation => 'Propose a donation';
+
+  @override
+  String get veryGoodCondition => 'Very good condition';
+
+  @override
+  String get goodCondition => 'Good condition';
+
+  @override
+  String get likeNew => 'Like new';
+
+  @override
+  String get donation => 'Donation';
+
+  @override
+  String get details => 'Details';
 
   @override
   String get familyChat => 'Family Chat';
@@ -534,6 +588,125 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activitiesThisWeek => 'Activities this week';
   @override
   String get addMember => 'Add';
+
+  @override
+  String get howDoYouFeelToday => 'How Do You Feel Today?';
+  @override
+  String get tapTheFriendThatLooksLikeYou => 'Tap the friend that looks like you!';
+  @override
+  String get happy => 'Happy';
+  @override
+  String get sad => 'Sad';
+  @override
+  String get angry => 'Angry';
+  @override
+  String get tired => 'Tired';
+  @override
+  String get silly => 'Silly!';
+  @override
+  String get helpLeoSpeakHisMind => 'Help Leo speak his mind';
+
+  @override
+  String get greetingWhenHappy => '{name}, what a beautiful smile! You look happy!';
+  @override
+  String get greetingWhenSad => '{name}, we\'re here for you. Want to play together?';
+  @override
+  String get greetingWhenAngry => '{name}, it\'s okay to feel frustrated. Breathe with me.';
+  @override
+  String get greetingWhenTired => '{name}, you look tired. Want to take a calm break?';
+  @override
+  String get greetingWhenSilly => '{name}, you look like you\'re having fun! That\'s great!';
+  @override
+  String get childDashboardDefaultGreeting => 'Hello {name}!';
+  @override
+  String get childDashboardPlay => 'Play';
+  @override
+  String get childDashboardMyProgress => 'My\nProgress';
+  @override
+  String get myProgress => 'My Progress';
+  @override
+  String get bravo => 'Bravo!';
+  @override
+  String get almostThere => 'A little more!';
+  @override
+  String get childDashboardMyGifts => 'My\nGifts';
+  @override
+  String get childDashboardLongPress => 'Long Press';
+  @override
+  String get securityCode => 'Security Code';
+  @override
+  String get manageChildModeExitCode => 'Manage the child mode exit code';
+  @override
+  String get createYourSecurityCode => 'Create your security code';
+  @override
+  String get securityCodeRequiredToExitChildMode => 'This code will be required to exit child mode';
+  @override
+  String get confirm => 'Confirm';
+  @override
+  String get securityCodeCreated => 'Security code created successfully';
+  @override
+  String get parentCode => 'Parent Code';
+  @override
+  String get enterCodeToExitChildMode => 'Enter your code to exit child mode';
+  @override
+  String get incorrectCode => 'Incorrect code. Try again.';
+
+  @override
+  String get chooseAGame => 'Choose a game';
+  @override
+  String get gameMatchPairs => 'Match Pairs!';
+  @override
+  String get gameShapeSorting => 'Shape Sorting';
+
+  @override
+  String get myStickerBook => 'My Sticker Book';
+  @override
+  String get fantasticJob => 'Fantastic Job!';
+  @override
+  String youEarnedStickersToday(int count) => 'You\'ve earned $count stickers today!';
+  @override
+  String get nextReward => 'Next Reward';
+  @override
+  String get superHeroPack => 'Super Hero Pack';
+  @override
+  String justXMoreTasksToGo(int count) => 'Just $count more tasks to go!';
+  @override
+  String get rewardReached => 'Reward reached!';
+  @override
+  String get superHeroPackUnlocked => 'You\'ve unlocked the Super Hero Pack! Great job!';
+  @override
+  String get unlockedAnimalFriends => 'Unlocked Animal Friends';
+  @override
+  String get comingSoon => 'Coming Soon';
+  @override
+  String get stickerLeoTheLion => 'Leo the Lion';
+  @override
+  String get stickerHappyHippo => 'Happy Hippo';
+  @override
+  String get stickerBraveBear => 'Brave Bear';
+  @override
+  String get stickerSmartyPaws => 'Smarty Paws';
+  @override
+  String get stickerSortingChamp => 'Sorting Champ';
+  @override
+  String get stickerMemoryMaster => 'Memory Master';
+  @override
+  String get stickerPatternPro => 'Pattern Pro';
+  @override
+  String get stickerFocusStar => 'Focus Star';
+  @override
+  String get stickerComingSoon => 'Coming Soon';
+  @override
+  String completeXMoreTasksToUnlock(int count) => 'Complete $count more tasks to unlock a new sticker!';
+
+  @override
+  String get youSucceededTheGame => 'You succeeded in the game!';
+  @override
+  String get stickerWon => 'Sticker Won';
+  @override
+  String get addToMyCollection => 'Add to my collection';
+  @override
+  String get playAgain => 'Play again';
 
   @override
   String get myPatients => 'My Patients';

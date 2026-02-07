@@ -85,9 +85,12 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
     try {
       final xFile = await ImagePicker().pickImage(source: source, imageQuality: 85, maxWidth: 800);
       if (xFile == null) return;
+      if (!mounted) return;
       final dir = await getApplicationDocumentsDirectory();
+      if (!mounted) return;
       final dest = File('${dir.path}/profile_pic.jpg');
       await File(xFile.path).copy(dest.path);
+      if (!mounted) return;
       setState(() => _localProfilePicPath = dest.path);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final user = authProvider.user;
@@ -138,14 +141,13 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
     );
     if (selectedLanguage != null && mounted) {
       await languageProvider.setLanguage(selectedLanguage);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${loc.languageChanged} ${languageProvider.getLanguageName(selectedLanguage)}'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${loc.languageChanged} ${languageProvider.getLanguageName(selectedLanguage)}'),
+          backgroundColor: Colors.green,
+        ),
+      );
     }
   }
 
@@ -189,7 +191,7 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
     final loc = AppLocalizations.of(context)!;
     // Barre de statut en bleu (icônes claires)
     SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle(
+      const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
@@ -308,7 +310,7 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
                         Text(loc.myPatients, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.text)),
                         TextButton(
                           onPressed: () {},
-                          child: Text(loc.seeAll, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _hpPrimary)),
+                          child: Text(loc.seeAll, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _hpPrimary)),
                         ),
                       ],
                     ),
@@ -355,40 +357,40 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
                     Text(loc.accountSettings, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.text)),
                     const SizedBox(height: 12),
                     _buildActionTile(icon: Icons.lock_outline, label: loc.changePassword, onTap: () async {
+                      final messenger = ScaffoldMessenger.of(context);
                       final result = await showDialog<bool>(context: context, builder: (_) => const ChangePasswordDialog());
-                      if (result == true && mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Mot de passe mis à jour. Reconnectez-vous.'), backgroundColor: Colors.green),
-                        );
-                        await _handleLogout();
-                      }
+                      if (result != true) return;
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('Mot de passe mis à jour. Reconnectez-vous.'), backgroundColor: Colors.green),
+                      );
+                      await _handleLogout();
                     }),
                     const SizedBox(height: 8),
                     _buildActionTile(icon: Icons.email_outlined, label: loc.changeEmail, onTap: () async {
+                      final messenger = ScaffoldMessenger.of(context);
                       final result = await showDialog<bool>(context: context, builder: (_) => const ChangeEmailDialog());
-                      if (result == true && mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Email mis à jour. Reconnectez-vous.'), backgroundColor: Colors.green),
-                        );
-                        await _handleLogout();
-                      }
+                      if (result != true) return;
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('Email mis à jour. Reconnectez-vous.'), backgroundColor: Colors.green),
+                      );
+                      await _handleLogout();
                     }),
                     const SizedBox(height: 8),
                     _buildActionTile(icon: Icons.language_outlined, label: loc.changeLanguage, onTap: _showLanguageDialog),
                     const SizedBox(height: 8),
                     _buildActionTile(icon: Icons.phone_outlined, label: loc.changePhone, onTap: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      final auth = Provider.of<AuthProvider>(context, listen: false);
                       final result = await showDialog<bool>(context: context, builder: (_) => ChangePhoneDialog(currentPhone: user?.phone));
-                      if (result == true && mounted) {
-                        try {
-                          final updated = await AuthService().getProfile();
-                          Provider.of<AuthProvider>(context, listen: false).updateUser(updated);
-                        } catch (_) {}
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Téléphone mis à jour'), backgroundColor: Colors.green),
-                          );
-                        }
-                      }
+                      if (result != true) return;
+                      try {
+                        final updated = await AuthService().getProfile();
+                        if (!mounted) return;
+                        auth.updateUser(updated);
+                      } catch (_) {}
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('Téléphone mis à jour'), backgroundColor: Colors.green),
+                      );
                     }),
 
                     const SizedBox(height: 24),
@@ -437,7 +439,7 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
     return _placeholder();
   }
 
-  Widget _placeholder() => Container(color: Colors.white, child: Icon(Icons.person, size: 48, color: _hpPrimary));
+  Widget _placeholder() => Container(color: Colors.white, child: const Icon(Icons.person, size: 48, color: _hpPrimary));
 
   Widget _headerButton(IconData icon, {VoidCallback? onTap}) {
     return Material(
@@ -465,7 +467,7 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
         children: [
           Column(
             children: [
-              Text('42', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.text)),
+              const Text('42', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.text)),
               const SizedBox(height: 4),
               Text(loc.patientsStat.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.grey.shade600, letterSpacing: 0.5)),
             ],
@@ -473,7 +475,7 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
           Container(width: 1, height: 40, color: Colors.grey.shade200),
           Column(
             children: [
-              Text('12', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.text)),
+              const Text('12', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.text)),
               const SizedBox(height: 4),
               Text(loc.todayStat.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.grey.shade600, letterSpacing: 0.5)),
             ],
@@ -481,7 +483,7 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
           Container(width: 1, height: 40, color: Colors.grey.shade200),
           Column(
             children: [
-              Text('4.9', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.text)),
+              const Text('4.9', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.text)),
               const SizedBox(height: 4),
               Text(loc.ratingStat.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.grey.shade600, letterSpacing: 0.5)),
             ],

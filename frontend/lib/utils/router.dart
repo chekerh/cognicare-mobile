@@ -16,11 +16,24 @@ import '../screens/family/family_member_dashboard_screen.dart';
 import '../screens/family/family_feed_screen.dart';
 import '../screens/family/family_families_screen.dart';
 import '../screens/family/family_group_chat_screen.dart';
+import '../screens/family/family_private_chat_screen.dart';
 import '../screens/family/family_market_screen.dart';
 import '../screens/family/matching_game_screen.dart';
 import '../screens/family/shape_sorting_screen.dart';
 import '../screens/family/star_tracer_screen.dart';
 import '../screens/family/product_detail_screen.dart';
+import '../screens/family/clinical_patient_record_screen.dart';
+import '../screens/family/family_notifications_screen.dart';
+import '../screens/family/cart_screen.dart';
+import '../screens/family/checkout_screen.dart';
+import '../screens/family/order_confirmation_screen.dart';
+import '../screens/family/child_mode_screen.dart';
+import '../screens/family/child_dashboard_screen.dart';
+import '../screens/family/child_progress_screen.dart';
+import '../screens/family/create_security_code_screen.dart';
+import '../screens/family/sticker_book_screen.dart';
+import '../screens/family/game_success_screen.dart';
+import '../screens/family/games_selection_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import 'constants.dart';
 
@@ -147,6 +160,14 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           },
         ),
         GoRoute(
+          path: 'patient-record',
+          builder: (context, state) => const ClinicalPatientRecordScreen(),
+        ),
+        GoRoute(
+          path: 'notifications',
+          builder: (context, state) => const FamilyNotificationsScreen(),
+        ),
+        GoRoute(
           path: 'group-chat',
           builder: (context, state) {
             final name = state.uri.queryParameters['name'] ?? 'Family Group';
@@ -156,6 +177,76 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               groupName: name,
               memberCount: members,
               groupId: id?.isEmpty == true ? null : id,
+            );
+          },
+        ),
+        GoRoute(
+          path: 'private-chat',
+          builder: (context, state) {
+            final id = state.uri.queryParameters['id'] ?? '';
+            final name = state.uri.queryParameters['name'] ?? 'Person';
+            final imageUrl = state.uri.queryParameters['imageUrl'];
+            return FamilyPrivateChatScreen(
+              personId: id,
+              personName: name,
+              personImageUrl: imageUrl?.isEmpty == true ? null : imageUrl,
+            );
+          },
+        ),
+        GoRoute(
+          path: 'cart',
+          builder: (context, state) => const CartScreen(),
+        ),
+        GoRoute(
+          path: 'checkout',
+          builder: (context, state) => const CheckoutScreen(),
+        ),
+        GoRoute(
+          path: 'child-mode',
+          builder: (context, state) => const ChildModeScreen(),
+        ),
+        GoRoute(
+          path: 'child-dashboard',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            final emotion = extra?['emotion'] as String?;
+            return ChildDashboardScreen(selectedEmotion: emotion);
+          },
+        ),
+        GoRoute(
+          path: 'child-progress',
+          builder: (context, state) => const ChildProgressScreen(),
+        ),
+        GoRoute(
+          path: 'sticker-book',
+          builder: (context, state) => const StickerBookScreen(),
+        ),
+        GoRoute(
+          path: 'game-success',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            final stickerIndex = extra?['stickerIndex'] as int? ?? 0;
+            final gameRoute = extra?['gameRoute'] as String?;
+            return GameSuccessScreen(stickerIndex: stickerIndex, gameRoute: gameRoute);
+          },
+        ),
+        GoRoute(
+          path: 'games',
+          builder: (context, state) => const GamesSelectionScreen(),
+        ),
+        GoRoute(
+          path: 'create-security-code',
+          builder: (context, state) => const CreateSecurityCodeScreen(),
+        ),
+        GoRoute(
+          path: 'order-confirmation',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            final orderId = extra?['orderId']?.toString() ?? '12345';
+            final address = extra?['address']?.toString() ?? '15 Rue de la Paix, 75002 Paris, France';
+            return OrderConfirmationScreen(
+              orderId: orderId,
+              address: address,
             );
           },
         ),

@@ -214,7 +214,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
   String _formatDuration(Duration d) {
     final m = d.inMinutes;
     final s = d.inSeconds % 60;
-    return '${m}:${s.toString().padLeft(2, '0')}';
+    return '$m:${s.toString().padLeft(2, '0')}';
   }
 
   void _sendMessage() {
@@ -322,13 +322,13 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                 child: InkWell(
                   onTap: () {},
                   borderRadius: BorderRadius.circular(999),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.add_rounded, color: Colors.white, size: 16),
-                        const SizedBox(width: 4),
+                        Icon(Icons.add_rounded, color: Colors.white, size: 16),
+                        SizedBox(width: 4),
                         Text(
                           'ADD',
                           style: TextStyle(
@@ -417,7 +417,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                 child: const Icon(Icons.push_pin_rounded, color: _amber600, size: 22),
               ),
               const SizedBox(width: 12),
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -430,8 +430,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                         letterSpacing: 1,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    const Text(
+                    SizedBox(height: 2),
+                    Text(
                       "Timmy's Focus Goals - Week 12",
                       style: TextStyle(
                         fontSize: 12,
@@ -458,7 +458,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
           color: Colors.black.withOpacity(0.05),
           borderRadius: BorderRadius.circular(999),
         ),
-        child: Text(
+        child: const Text(
           'TODAY',
           style: TextStyle(
             fontSize: 10,
@@ -632,7 +632,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                     ),
                     if (msg.showReadReceipt) ...[
                       const SizedBox(width: 4),
-                      Icon(Icons.done_all_rounded, size: 14, color: _primary),
+                      const Icon(Icons.done_all_rounded, size: 14, color: _primary),
                     ],
                   ],
                 ),
@@ -680,7 +680,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                     width: 40,
                     height: 40,
                     alignment: Alignment.center,
-                    child: Icon(Icons.add_rounded, color: _primary, size: 24),
+                    child: const Icon(Icons.add_rounded, color: _primary, size: 24),
                   ),
                 ),
               ),
@@ -698,7 +698,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                       borderSide: BorderSide.none,
                     ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    suffixIcon: Icon(Icons.sentiment_satisfied_alt_rounded, size: 22, color: _slate500),
+                    suffixIcon: const Icon(Icons.sentiment_satisfied_alt_rounded, size: 22, color: _slate500),
                   ),
                   textCapitalization: TextCapitalization.sentences,
                   onSubmitted: (_) => _sendMessage(),

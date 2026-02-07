@@ -3,8 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/auth_provider.dart';
+import 'providers/cart_provider.dart';
 import 'providers/community_feed_provider.dart';
 import 'providers/language_provider.dart';
+import 'providers/sticker_book_provider.dart';
+import 'providers/child_security_code_provider.dart';
 import 'utils/router.dart';
 import 'utils/theme.dart';
 
@@ -36,7 +39,10 @@ class _CogniCareAppState extends State<CogniCareApp> {
       providers: [
         ChangeNotifierProvider.value(value: _authProvider),
         ChangeNotifierProvider(create: (_) => LanguageProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => CommunityFeedProvider()),
+        ChangeNotifierProvider(create: (_) => StickerBookProvider()),
+        ChangeNotifierProvider(create: (_) => ChildSecurityCodeProvider()),
       ],
       child: Consumer<LanguageProvider>(
         builder: (context, languageProvider, child) => MaterialApp.router(
