@@ -191,7 +191,11 @@ class _SignupScreenState extends State<SignupScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        context.go(AppConstants.loginRoute);
+        if (_selectedRole == 'family') {
+          context.go(AppConstants.familyChildProfileSetupRoute);
+        } else {
+          context.go(AppConstants.loginRoute);
+        }
       }
     } catch (e) {
       if (mounted) {

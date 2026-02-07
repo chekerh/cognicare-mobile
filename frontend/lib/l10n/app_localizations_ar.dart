@@ -461,7 +461,52 @@ class AppLocalizationsAr extends AppLocalizations {
   String get donation => 'تبرع';
 
   @override
+  String get recherche => 'بحث';
+
+  @override
   String get details => 'التفاصيل';
+
+  @override
+  String get donatedBy => 'تبرع به';
+
+  @override
+  String get contactDonor => 'الاتصال بالمتبرع';
+
+  @override
+  String get distanceFromYou => 'منك';
+
+  @override
+  String get searchDonationsHint => 'البحث عن تبرع...';
+
+  @override
+  String get donationProposedSuccess => 'تم نشر الإعلان';
+
+  @override
+  String get donationFormTitle => 'العنوان';
+
+  @override
+  String get donationFormDescription => 'الوصف';
+
+  @override
+  String get donationFormCategory => 'الفئة';
+
+  @override
+  String get donationFormCondition => 'الحالة';
+
+  @override
+  String get donationFormLocation => 'المدينة أو الحي';
+
+  @override
+  String get donationFormSubmit => 'نشر الإعلان';
+
+  @override
+  String get donationFormTitleRequired => 'أدخل عنواناً';
+
+  @override
+  String get donationFormDescriptionRequired => 'صف المنتج';
+
+  @override
+  String get donationFormLocationRequired => 'أدخل الموقع';
 
   @override
   String get familyChat => 'دردشة العائلة';
@@ -659,6 +704,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gameShapeSorting => 'ترتيب الأشكال';
 
   @override
+  String get gameBasketSort => 'تحدي ترتيب السلة';
+
+  @override
+  String get homeForObjects => 'منزل للأشياء';
+
+  @override
+  String get dragItemToBasket => 'اسحب الغرض إلى السلة الصحيحة!';
+
+  @override
+  String get food => 'طعام';
+
+  @override
+  String get toys => 'ألعاب';
+
+  @override
+  String get tryAgain => 'حاول مرة أخرى!';
+
+  @override
   String get myStickerBook => 'كتاب الملصقات';
   @override
   String get fantasticJob => 'عمل رائع!';
@@ -742,4 +805,105 @@ class AppLocalizationsAr extends AppLocalizations {
   String get todayStat => 'اليوم';
   @override
   String get ratingStat => 'التقييم';
+
+  @override
+  String get childProfileTitle => 'ملف الطفل';
+  @override
+  String get childProfileConfigTitle => 'التكوين الطبي';
+  @override
+  String get childProfileConfigSubtitle => 'تخصيص المتابعة والحساسيات.';
+  @override
+  String get childProfileIdentityLabel => 'الهوية والعمر';
+  @override
+  String get childProfileFirstNameHint => 'الاسم الأول';
+  @override
+  String get childProfileYears => 'سنوات';
+  @override
+  String get childProfileNameRequired => 'أدخل الاسم الأول';
+  @override
+  String get childProfileMedicalCareLabel => 'الرعاية الطبية';
+  @override
+  String get childProfileMedicationsLabel => 'العلاجات أو الأدوية';
+  @override
+  String get childProfileMedicationsHint => 'مثال: ميلاتونين مساءً...';
+  @override
+  String get childProfileSensitivitiesLabel => 'الحساسيات الحسية';
+  @override
+  String get childProfileSensitivityLoudNoises => 'الأصوات العالية';
+  @override
+  String get childProfileSensitivityLight => 'الضوء الساطع';
+  @override
+  String get childProfileSensitivityTexture => 'الملمس';
+  @override
+  String get childProfileSpecialNotesLabel => 'ملاحظات خاصة';
+  @override
+  String get childProfileSpecialNotesHint => 'محفزات محددة أو تقنيات مهدئة مفضلة...';
+  @override
+  String get childProfileSleepLabel => 'النوم اليومي';
+  @override
+  String get childProfileTarget => 'الهدف';
+  @override
+  String get childProfileSaveButton => 'حفظ الملف';
+  @override
+  String get childProfileEncryptedNote => 'بيانات صحية مشفرة';
+  @override
+  String get childProfileSaved => 'تم حفظ الملف';
+  @override
+  String get childProfileAddLabel => 'إضافة';
+
+  @override
+  String get schedulePickup => 'جدولة الاستلام';
+  @override
+  String get itemReceived => 'تم استلام العنصر';
+  @override
+  String get writeMessage => 'اكتب رسالة...';
+  @override
+  String get todayLabel => 'اليوم';
+
+  @override
+  String get expertBookingTitle => 'حجز موعد';
+  @override
+  String get expertBookingAvailableSlots => 'المواعيد المتاحة';
+  @override
+  String get expertBookingConsultationType => 'نوع الاستشارة';
+  @override
+  String get expertBookingVideoCall => 'مكالمة فيديو';
+  @override
+  String get expertBookingInPerson => 'حضوري';
+  @override
+  String get expertBookingConfirmButton => 'تأكيد الموعد';
+  @override
+  String get expertBookingConfirmationTitle => 'التأكيد';
+  @override
+  String get expertBookingConfirmedTitle => 'تم تأكيد الموعد!';
+  @override
+  String get expertBookingConfirmedSubtitle => 'تم تسجيل استشارتك بنجاح.';
+  @override
+  String get expertBookingSpecialistLabel => 'الأخصائي';
+  @override
+  String get expertBookingDateTimeLabel => 'التاريخ والوقت';
+  @override
+  String get expertBookingModeLabel => 'الوضع';
+  @override
+  String get expertBookingAddToCalendar => 'إضافة إلى التقويم';
+  @override
+  String get expertBookingViewAppointments => 'عرض مواعيدي';
+  @override
+  String get atLabel => 'في';
+  @override
+  String get expertAppointmentsTitle => 'مواعيدي';
+  @override
+  String get expertAppointmentsUpcoming => 'القادمة';
+  @override
+  String get expertAppointmentsPast => 'الماضية';
+  @override
+  String get expertAppointmentsConfirmed => 'مؤكد';
+  @override
+  String get expertAppointmentsPending => 'قيد الانتظار';
+  @override
+  String get expertAppointmentsJoinCall => 'الانضمام للمكالمة';
+  @override
+  String get expertAppointmentsViewItinerary => 'عرض المسار';
+  @override
+  String get expertAppointmentsAppointmentDetails => 'تفاصيل الموعد';
 }

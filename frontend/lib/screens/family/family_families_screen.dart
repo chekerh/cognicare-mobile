@@ -38,6 +38,7 @@ class FamilyFamiliesScreen extends StatefulWidget {
 
 class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
   int _selectedTab = 0; // 0: Persons, 1: Families, 2: Benevole
+  String _searchQuery = '';
 
   static const List<_Conversation> _personsConversations = [
     _Conversation(
@@ -224,6 +225,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
           border: Border.all(color: Colors.transparent),
         ),
         child: TextField(
+          onChanged: (value) => setState(() => _searchQuery = value.trim()),
           decoration: InputDecoration(
             hintText: 'Search family & friends',
             hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
@@ -254,12 +256,19 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
         ),
         SizedBox(
           height: 88,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: _onlineNow.length,
-            itemBuilder: (context, index) {
-              final u = _onlineNow[index];
+          child: Builder(
+            builder: (context) {
+              final onlineFiltered = _searchQuery.isEmpty
+                  ? _onlineNow
+                  : _onlineNow
+                      .where((u) => (u['name'] ?? '').toLowerCase().contains(_searchQuery.toLowerCase()))
+                      .toList();
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: onlineFiltered.length,
+                itemBuilder: (context, index) {
+                  final u = onlineFiltered[index];
               return Padding(
                 padding: const EdgeInsets.only(right: 20),
                 child: Column(
@@ -307,6 +316,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
                     ),
                   ],
                 ),
+              );
+                },
               );
             },
           ),
@@ -362,12 +373,19 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
     );
   }
 
+  List<_Conversation> _filterBySearch(List<_Conversation> list) {
+    if (_searchQuery.isEmpty) return list;
+    final q = _searchQuery.toLowerCase();
+    return list.where((c) => c.name.toLowerCase().contains(q)).toList();
+  }
+
   Widget _buildContent() {
-    final list = _selectedTab == 0
+    final rawList = _selectedTab == 0
         ? _personsConversations
         : _selectedTab == 1
             ? _familiesConversations
             : _benevoleConversations;
+    final list = _filterBySearch(rawList);
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(

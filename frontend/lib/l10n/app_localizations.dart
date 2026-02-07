@@ -265,7 +265,22 @@ abstract class AppLocalizations {
   String get goodCondition;
   String get likeNew;
   String get donation;
+  String get recherche;
   String get details;
+  String get donatedBy;
+  String get contactDonor;
+  String get distanceFromYou;
+  String get searchDonationsHint;
+  String get donationProposedSuccess;
+  String get donationFormTitle;
+  String get donationFormDescription;
+  String get donationFormCategory;
+  String get donationFormCondition;
+  String get donationFormLocation;
+  String get donationFormSubmit;
+  String get donationFormTitleRequired;
+  String get donationFormDescriptionRequired;
+  String get donationFormLocationRequired;
   String get familyChat;
   String get open;
   String get shareExperiencePlaceholder;
@@ -351,6 +366,12 @@ abstract class AppLocalizations {
   String get chooseAGame;
   String get gameMatchPairs;
   String get gameShapeSorting;
+  String get gameBasketSort;
+  String get homeForObjects;
+  String get dragItemToBasket;
+  String get food;
+  String get toys;
+  String get tryAgain;
 
   /// Sticker book (rewards)
   String get myStickerBook;
@@ -398,6 +419,61 @@ abstract class AppLocalizations {
   String get patientsStat;
   String get todayStat;
   String get ratingStat;
+
+  /// Child profile setup (after signup)
+  String get childProfileTitle;
+  String get childProfileConfigTitle;
+  String get childProfileConfigSubtitle;
+  String get childProfileIdentityLabel;
+  String get childProfileFirstNameHint;
+  String get childProfileYears;
+  String get childProfileNameRequired;
+  String get childProfileMedicalCareLabel;
+  String get childProfileMedicationsLabel;
+  String get childProfileMedicationsHint;
+  String get childProfileSensitivitiesLabel;
+  String get childProfileSensitivityLoudNoises;
+  String get childProfileSensitivityLight;
+  String get childProfileSensitivityTexture;
+  String get childProfileSpecialNotesLabel;
+  String get childProfileSpecialNotesHint;
+  String get childProfileSleepLabel;
+  String get childProfileTarget;
+  String get childProfileSaveButton;
+  String get childProfileEncryptedNote;
+  String get childProfileSaved;
+  String get childProfileAddLabel;
+
+  /// Donation chat
+  String get schedulePickup;
+  String get itemReceived;
+  String get writeMessage;
+  String get todayLabel;
+
+  /// Expert booking
+  String get expertBookingTitle;
+  String get expertBookingAvailableSlots;
+  String get expertBookingConsultationType;
+  String get expertBookingVideoCall;
+  String get expertBookingInPerson;
+  String get expertBookingConfirmButton;
+  String get expertBookingConfirmationTitle;
+  String get expertBookingConfirmedTitle;
+  String get expertBookingConfirmedSubtitle;
+  String get expertBookingSpecialistLabel;
+  String get expertBookingDateTimeLabel;
+  String get expertBookingModeLabel;
+  String get expertBookingAddToCalendar;
+  String get expertBookingViewAppointments;
+  String get atLabel;
+  String get expertAppointmentsTitle;
+  String get expertAppointmentsUpcoming;
+  String get expertAppointmentsPast;
+  String get expertAppointmentsConfirmed;
+  String get expertAppointmentsPending;
+  String get expertAppointmentsJoinCall;
+  String get expertAppointmentsViewItinerary;
+  String get expertAppointmentsAppointmentDetails;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

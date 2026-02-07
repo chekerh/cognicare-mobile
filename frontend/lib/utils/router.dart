@@ -21,6 +21,13 @@ import '../screens/family/family_market_screen.dart';
 import '../screens/family/matching_game_screen.dart';
 import '../screens/family/shape_sorting_screen.dart';
 import '../screens/family/star_tracer_screen.dart';
+import '../screens/family/basket_sort_screen.dart';
+import '../screens/family/donation_detail_screen.dart';
+import '../screens/family/donation_chat_screen.dart';
+import '../screens/family/expert_booking_screen.dart';
+import '../screens/family/expert_booking_confirmation_screen.dart';
+import '../screens/family/expert_appointments_screen.dart';
+import '../screens/family/propose_donation_screen.dart';
 import '../screens/family/product_detail_screen.dart';
 import '../screens/family/clinical_patient_record_screen.dart';
 import '../screens/family/family_notifications_screen.dart';
@@ -30,6 +37,9 @@ import '../screens/family/order_confirmation_screen.dart';
 import '../screens/family/child_mode_screen.dart';
 import '../screens/family/child_dashboard_screen.dart';
 import '../screens/family/child_progress_screen.dart';
+import '../screens/family/child_profile_setup_screen.dart';
+import '../screens/family/community_member_profile_screen.dart';
+import '../screens/family/engagement_dashboard_screen.dart';
 import '../screens/family/create_security_code_screen.dart';
 import '../screens/family/sticker_book_screen.dart';
 import '../screens/family/game_success_screen.dart';
@@ -136,6 +146,46 @@ GoRouter createAppRouter(AuthProvider authProvider) {
         GoRoute(
           path: 'star-tracer',
           builder: (context, state) => const StarTracerScreen(),
+        ),
+        GoRoute(
+          path: 'basket-sort',
+          builder: (context, state) => const BasketSortScreen(),
+        ),
+        GoRoute(
+          path: 'donation-detail',
+          builder: (context, state) => DonationDetailScreen.fromState(state),
+        ),
+        GoRoute(
+          path: 'donation-chat',
+          builder: (context, state) => DonationChatScreen.fromState(state),
+        ),
+        GoRoute(
+          path: 'expert-booking',
+          builder: (context, state) => ExpertBookingScreen.fromState(state),
+        ),
+        GoRoute(
+          path: 'expert-booking-confirmation',
+          builder: (context, state) => ExpertBookingConfirmationScreen.fromState(state),
+        ),
+        GoRoute(
+          path: 'expert-appointments',
+          builder: (context, state) => const ExpertAppointmentsScreen(),
+        ),
+        GoRoute(
+          path: 'community-member-profile',
+          builder: (context, state) => CommunityMemberProfileScreen.fromState(state),
+        ),
+        GoRoute(
+          path: 'engagement-dashboard',
+          builder: (context, state) => const EngagementDashboardScreen(),
+        ),
+        GoRoute(
+          path: 'propose-donation',
+          builder: (context, state) => const ProposeDonationScreen(),
+        ),
+        GoRoute(
+          path: 'child-profile-setup',
+          builder: (context, state) => const ChildProfileSetupScreen(),
         ),
         GoRoute(
           path: 'product-detail',

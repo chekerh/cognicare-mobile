@@ -73,6 +73,13 @@ class GamesSelectionScreen extends StatelessWidget {
                     title: loc.starTracer,
                     onTap: () => context.push(AppConstants.familyStarTracerRoute),
                   ),
+                  const SizedBox(height: 20),
+                  _GameCard(
+                    icon: Icons.shopping_basket_rounded,
+                    iconBg: const Color(0xFF2B8CEE),
+                    title: loc.gameBasketSort,
+                    onTap: () => context.push(AppConstants.familyBasketSortRoute),
+                  ),
                 ],
               ),
             ),

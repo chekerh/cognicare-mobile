@@ -461,7 +461,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get donation => 'Donation';
 
   @override
+  String get recherche => 'Search';
+
+  @override
   String get details => 'Details';
+
+  @override
+  String get donatedBy => 'Donated by';
+
+  @override
+  String get contactDonor => 'Contact the donor';
+
+  @override
+  String get distanceFromYou => 'from you';
+
+  @override
+  String get searchDonationsHint => 'Search donations...';
+
+  @override
+  String get donationProposedSuccess => 'Ad published';
+
+  @override
+  String get donationFormTitle => 'Title';
+
+  @override
+  String get donationFormDescription => 'Description';
+
+  @override
+  String get donationFormCategory => 'Category';
+
+  @override
+  String get donationFormCondition => 'Condition';
+
+  @override
+  String get donationFormLocation => 'City or area';
+
+  @override
+  String get donationFormSubmit => 'Publish ad';
+
+  @override
+  String get donationFormTitleRequired => 'Enter a title';
+
+  @override
+  String get donationFormDescriptionRequired => 'Describe the item';
+
+  @override
+  String get donationFormLocationRequired => 'Enter a location';
 
   @override
   String get familyChat => 'Family Chat';
@@ -659,6 +704,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gameShapeSorting => 'Shape Sorting';
 
   @override
+  String get gameBasketSort => 'Basket Sort Challenge';
+
+  @override
+  String get homeForObjects => 'Home for Objects';
+
+  @override
+  String get dragItemToBasket => 'Drag the item to the right basket!';
+
+  @override
+  String get food => 'Food';
+
+  @override
+  String get toys => 'Toys';
+
+  @override
+  String get tryAgain => 'Try again!';
+
+  @override
   String get myStickerBook => 'My Sticker Book';
   @override
   String get fantasticJob => 'Fantastic Job!';
@@ -742,4 +805,105 @@ class AppLocalizationsEn extends AppLocalizations {
   String get todayStat => 'Today';
   @override
   String get ratingStat => 'Rating';
+
+  @override
+  String get childProfileTitle => 'Child Profile';
+  @override
+  String get childProfileConfigTitle => 'Medical Configuration';
+  @override
+  String get childProfileConfigSubtitle => 'Customize tracking and sensitivities.';
+  @override
+  String get childProfileIdentityLabel => 'Identity & Age';
+  @override
+  String get childProfileFirstNameHint => 'First name';
+  @override
+  String get childProfileYears => 'years';
+  @override
+  String get childProfileNameRequired => 'Enter first name';
+  @override
+  String get childProfileMedicalCareLabel => 'Medical Care';
+  @override
+  String get childProfileMedicationsLabel => 'Treatments or Medication';
+  @override
+  String get childProfileMedicationsHint => 'Ex: Melatonin in the evening...';
+  @override
+  String get childProfileSensitivitiesLabel => 'Sensory Sensitivities';
+  @override
+  String get childProfileSensitivityLoudNoises => 'Loud noises';
+  @override
+  String get childProfileSensitivityLight => 'Bright light';
+  @override
+  String get childProfileSensitivityTexture => 'Textures';
+  @override
+  String get childProfileSpecialNotesLabel => 'Special Notes';
+  @override
+  String get childProfileSpecialNotesHint => 'Specific triggers or preferred calming techniques...';
+  @override
+  String get childProfileSleepLabel => 'Daily Sleep';
+  @override
+  String get childProfileTarget => 'Target';
+  @override
+  String get childProfileSaveButton => 'Save profile';
+  @override
+  String get childProfileEncryptedNote => 'Encrypted health data';
+  @override
+  String get childProfileSaved => 'Profile saved';
+  @override
+  String get childProfileAddLabel => 'Add';
+
+  @override
+  String get schedulePickup => 'Schedule pickup';
+  @override
+  String get itemReceived => 'Item received';
+  @override
+  String get writeMessage => 'Write a message...';
+  @override
+  String get todayLabel => 'Today';
+
+  @override
+  String get expertBookingTitle => 'Book Appointment';
+  @override
+  String get expertBookingAvailableSlots => 'Available slots';
+  @override
+  String get expertBookingConsultationType => 'Consultation type';
+  @override
+  String get expertBookingVideoCall => 'Video Call';
+  @override
+  String get expertBookingInPerson => 'In Person';
+  @override
+  String get expertBookingConfirmButton => 'Confirm appointment';
+  @override
+  String get expertBookingConfirmationTitle => 'Confirmation';
+  @override
+  String get expertBookingConfirmedTitle => 'Appointment Confirmed!';
+  @override
+  String get expertBookingConfirmedSubtitle => 'Your consultation has been successfully registered.';
+  @override
+  String get expertBookingSpecialistLabel => 'Specialist';
+  @override
+  String get expertBookingDateTimeLabel => 'Date & Time';
+  @override
+  String get expertBookingModeLabel => 'Mode';
+  @override
+  String get expertBookingAddToCalendar => 'Add to my calendar';
+  @override
+  String get expertBookingViewAppointments => 'View my appointments';
+  @override
+  String get atLabel => 'at';
+  @override
+  String get expertAppointmentsTitle => 'My Appointments';
+  @override
+  String get expertAppointmentsUpcoming => 'Upcoming';
+  @override
+  String get expertAppointmentsPast => 'Past';
+  @override
+  String get expertAppointmentsConfirmed => 'Confirmed';
+  @override
+  String get expertAppointmentsPending => 'Pending';
+  @override
+  String get expertAppointmentsJoinCall => 'Join the call';
+  @override
+  String get expertAppointmentsViewItinerary => 'View itinerary';
+  @override
+  String get expertAppointmentsAppointmentDetails => 'Appointment details';
 }

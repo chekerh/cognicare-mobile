@@ -788,7 +788,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       color: _profilePrimary.withOpacity(0.12),
       borderRadius: BorderRadius.circular(24),
       child: InkWell(
-        onTap: () {},
+        onTap: () => context.push(AppConstants.familyEngagementDashboardRoute),
         borderRadius: BorderRadius.circular(24),
         child: Padding(
           padding: const EdgeInsets.all(16),

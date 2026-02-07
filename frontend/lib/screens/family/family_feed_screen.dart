@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +19,7 @@ const Color _feedSecondary = Color(0xFF7FBAC4);
 const Color _feedBackground = Color(0xFFF8FAFC);
 
 // Couleurs Le Cercle du Don
-const Color _donationPrimary = Color(0xFF2B8CEE);
+const Color _donationPrimary = Color(0xFFA3D9E2);
 
 /// Construit l'URL complète pour une image du backend (ex. /uploads/posts/xxx.jpg).
 String _fullImageUrl(String path) {
@@ -43,11 +44,21 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   int _donationsToggleIndex = 0; // 0: Je donne, 1: Je recherche
   int _donationsCategoryIndex = 0; // 0: Tout, 1: Mobilité, 2: Éveil, 3: Vêtements
   late final Future<List<MarketplaceProduct>> _marketplaceProductsFuture;
+  final TextEditingController _donationSearchController = TextEditingController();
+  final FocusNode _donationSearchFocusNode = FocusNode();
+  String _donationSearchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _marketplaceProductsFuture = MarketplaceService().getProducts(limit: 6);
+  }
+
+  @override
+  void dispose() {
+    _donationSearchController.dispose();
+    _donationSearchFocusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -122,8 +133,6 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           ),
           Row(
             children: [
-              _headerButton(Icons.search),
-              const SizedBox(width: 12),
               Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -332,6 +341,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   ],
                 ),
               ),
+              const SizedBox(height: 16),
+              _buildDonationSearchBar(),
               const SizedBox(height: 20),
               ..._buildDonationCards(loc),
               SizedBox(height: bottomPadding),
@@ -350,7 +361,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               shape: const CircleBorder(),
               color: _donationPrimary,
               child: InkWell(
-                onTap: () {},
+                onTap: () => context.push(AppConstants.familyProposeDonationRoute),
                 customBorder: const CircleBorder(),
                 child: const SizedBox(
                   width: 56,
@@ -429,74 +440,162 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     );
   }
 
+  Widget _buildDonationSearchBar() {
+    final loc = AppLocalizations.of(context)!;
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _donationPrimary.withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _donationSearchController,
+        focusNode: _donationSearchFocusNode,
+        decoration: InputDecoration(
+          hintText: loc.searchDonationsHint,
+          hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+          prefixIcon: Icon(Icons.search, color: _donationPrimary.withOpacity(0.8), size: 22),
+          suffixIcon: _donationSearchQuery.isNotEmpty
+              ? IconButton(
+                  icon: Icon(Icons.clear, size: 20, color: Colors.grey.shade600),
+                  onPressed: () {
+                    _donationSearchController.clear();
+                    setState(() => _donationSearchQuery = '');
+                  },
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+        onChanged: (value) => setState(() => _donationSearchQuery = value),
+      ),
+    );
+  }
+
   /// Catégories dons : 0 Tout, 1 Mobilité, 2 Éveil, 3 Vêtements
-  static const int _catAll = 0, _catMobility = 1, _catEarlyLearning = 2, _catClothing = 3;
+  static const int _catAll = 0;
+  /// Toggle : 0 = Je donne (offres), 1 = Je recherche (demandes)
+  static const int _toggleGive = 0;
 
   List<Widget> _buildDonationCards(AppLocalizations loc) {
     const cardData = [
       (
         title: 'Vêtements sensoriels',
         description: 'Textiles adaptés sans coutures irritantes pour le confort sensoriel au quotidien.',
+        fullDescription: 'Ensemble de 5 hauts en coton biologique, conçus spécifiquement pour les enfants avec hypersensibilité tactile. Sans étiquettes intérieures et avec des coutures plates inversées pour éviter toute irritation. Très utiles pour les enfants TSA ou avec des troubles de l\'intégration sensorielle.',
         condition: 0,
-        location: 'Paris 15e • 2km',
-        category: 3, // Vêtements
+        location: 'Paris 15e, Javel',
+        category: 3,
+        isGive: true,
         imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNwpJkxXJO4qPvJguyMJI8Jj88n_cMeQpmeJ63D72nrT2h90NZ859t1A8minaQ01kX1yk4QnB9teSjXGeEYzkpbKipI7RfPGJobNOAsBjk4fpKddk-MM9kz4yOhH3tRdsuJudTtF4QstUtzLwYJ_awa2QheQHTygqORQNQ4yMqHZ96GRkTLApID38iQL9fPZD5MsHqEE-mHsdzqe9iOiehayCPKYyG7HQ4lcIMHYlWestP5gwoWly2gRYLJd7XbXsEcIQUFCPoG6I',
+        distanceText: '2.4 km',
       ),
       (
         title: 'Lit médicalisé',
         description: 'Lit avec réglages électriques et barrières de sécurité. Disponible immédiatement.',
+        fullDescription: null,
         condition: 1,
         location: 'Lyon • 5km',
-        category: 1, // Mobilité
+        category: 1,
+        isGive: true,
         imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCb8SXYxcrQ4CgCujtTt7fyG-k61uPITDNwrJTWzYKq-U4ZY0bIdijFvRAiH_MPJTUX9gWaVwYoAVal5YaYgIbxmjyyZiPCh4GWFQquL3xQWz9ywGw2ywUWn1Fss4VAh3Rgtle-gVREM-fphtNAN8MEbcrgx60VPNtITY2D7_VjDGfo1gypD70ogxVDENtD3la2XEm7AsjpcfXvNwvQvUYgNeZ7PC-kDgKsPdufaXu5RAW06WxKn6TqGCatPdGlypP0chAws6irEm0',
+        distanceText: null,
       ),
       (
         title: 'Kit d\'éveil Montessori',
         description: 'Ensemble de jeux en bois pour le développement de la motricité fine.',
+        fullDescription: null,
         condition: 2,
         location: 'Bordeaux • 12km',
-        category: 2, // Éveil
+        category: 2,
+        isGive: true,
         imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCxkZXpSV2sgwfy7eL_wAO1VsHV3zZ3O38eifySxi_30mTe2bbtkA_R3-okaq759yz1-H9z8NffBRyQeRPi52wJ7oDhkMdkBeg58wlnBcXv_cVyjCZ3VeTr16QDFESkDDeuEZTARH_dKSUn5tI39xeZgP_uwRuSgLl1YIaqVuubechX6zjuSmiyce8q7dDGcCHDUtpuZkwDhnysqYydnUck6NKWjiepuPqt3vVRuB6lNrfPHLoHr8n4vCyg1IbHEB8Vye4Pu3JN8TU',
+        distanceText: null,
       ),
       (
         title: 'Déambulateur',
         description: 'Déambulateur réglable avec freins et panier. Idéal pour la mobilité au quotidien.',
+        fullDescription: null,
         condition: 0,
         location: 'Marseille • 8km',
-        category: 1, // Mobilité
+        category: 1,
+        isGive: false,
         imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNwpJkxXJO4qPvJguyMJI8Jj88n_cMeQpmeJ63D72nrT2h90NZ859t1A8minaQ01kX1yk4QnB9teSjXGeEYzkpbKipI7RfPGJobNOAsBjk4fpKddk-MM9kz4yOhH3tRdsuJudTtF4QstUtzLwYJ_awa2QheQHTygqORQNQ4yMqHZ96GRkTLApID38iQL9fPZD5MsHqEE-mHsdzqe9iOiehayCPKYyG7HQ4lcIMHYlWestP5gwoWly2gRYLJd7XbXsEcIQUFCPoG6I',
+        distanceText: null,
       ),
       (
         title: 'Puzzle sensoriel',
         description: 'Puzzle en bois à encastrer pour l\'éveil et la motricité fine.',
+        fullDescription: null,
         condition: 2,
         location: 'Toulouse • 15km',
-        category: 2, // Éveil
+        category: 2,
+        isGive: false,
         imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCxkZXpSV2sgwfy7eL_wAO1VsHV3zZ3O38eifySxi_30mTe2bbtkA_R3-okaq759yz1-H9z8NffBRyQeRPi52wJ7oDhkMdkBeg58wlnBcXv_cVyjCZ3VeTr16QDFESkDDeuEZTARH_dKSUn5tI39xeZgP_uwRuSgLl1YIaqVuubechX6zjuSmiyce8q7dDGcCHDUtpuZkwDhnysqYydnUck6NKWjiepuPqt3vVRuB6lNrfPHLoHr8n4vCyg1IbHEB8Vye4Pu3JN8TU',
+        distanceText: null,
       ),
       (
         title: 'Combinaison adaptée',
         description: 'Combinaison à pressions pour faciliter l\'habillage. Taille 2 ans.',
+        fullDescription: null,
         condition: 1,
         location: 'Nantes • 10km',
-        category: 3, // Vêtements
+        category: 3,
+        isGive: false,
         imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNwpJkxXJO4qPvJguyMJI8Jj88n_cMeQpmeJ63D72nrT2h90NZ859t1A8minaQ01kX1yk4QnB9teSjXGeEYzkpbKipI7RfPGJobNOAsBjk4fpKddk-MM9kz4yOhH3tRdsuJudTtF4QstUtzLwYJ_awa2QheQHTygqORQNQ4yMqHZ96GRkTLApID38iQL9fPZD5MsHqEE-mHsdzqe9iOiehayCPKYyG7HQ4lcIMHYlWestP5gwoWly2gRYLJd7XbXsEcIQUFCPoG6I',
+        distanceText: null,
       ),
     ];
+    final isGiveMode = _donationsToggleIndex == _toggleGive;
+    var filtered = cardData.where((d) => d.isGive == isGiveMode).toList();
     final selectedCategory = _donationsCategoryIndex;
-    final filtered = selectedCategory == _catAll
-        ? cardData
-        : cardData.where((d) => d.category == selectedCategory).toList();
+    if (selectedCategory != _catAll) {
+      filtered = filtered.where((d) => d.category == selectedCategory).toList();
+    }
+    final search = _donationSearchQuery.trim().toLowerCase();
+    if (search.isNotEmpty) {
+      filtered = filtered.where((d) {
+        return d.title.toLowerCase().contains(search) ||
+            d.description.toLowerCase().contains(search) ||
+            (d.fullDescription?.toLowerCase().contains(search) ?? false) ||
+            d.location.toLowerCase().contains(search);
+      }).toList();
+    }
     return filtered.map((d) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: _donationCard(
           title: d.title,
           description: d.description,
+          fullDescription: d.fullDescription,
           conditionIndex: d.condition,
+          categoryIndex: d.category,
           location: d.location,
+          distanceText: d.distanceText,
           imageUrl: d.imageUrl,
+          isOffer: d.isGive,
           loc: loc,
+          onDetailsTap: () {
+            context.push(AppConstants.familyDonationDetailRoute, extra: {
+              'title': d.title,
+              'description': d.description,
+              'fullDescription': d.fullDescription,
+              'conditionIndex': d.condition,
+              'categoryIndex': d.category,
+              'imageUrl': d.imageUrl,
+              'location': d.location,
+              'distanceText': d.distanceText,
+            });
+          },
         ),
       );
     }).toList();
@@ -505,10 +604,15 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   Widget _donationCard({
     required String title,
     required String description,
+    String? fullDescription,
     required int conditionIndex,
+    required int categoryIndex,
     required String location,
+    String? distanceText,
     required String imageUrl,
+    required bool isOffer,
     required AppLocalizations loc,
+    VoidCallback? onDetailsTap,
   }) {
     final conditionLabels = [
       loc.veryGoodCondition,
@@ -614,7 +718,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                       ),
                     ),
                     Text(
-                      loc.donation,
+                      isOffer ? loc.donation : loc.recherche,
                       style: const TextStyle(
                         color: _donationPrimary,
                         fontWeight: FontWeight.bold,
@@ -649,7 +753,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                       ],
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: onDetailsTap,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -817,7 +921,14 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           location: e['location']!,
           imageUrl: e['imageUrl']!,
           primaryColor: _feedSecondary,
-          onBookConsultation: () {},
+          onBookConsultation: () {
+            context.push(AppConstants.familyExpertBookingRoute, extra: {
+              'name': e['name'],
+              'specialization': e['specialization'],
+              'location': e['location'],
+              'imageUrl': e['imageUrl'],
+            });
+          },
           onMessage: () {},
         ),
       );
@@ -1053,12 +1164,22 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         hasImage: post.hasImage,
         imagePath: post.imagePath,
         lastComment: lastComment,
+        onAuthorTap: () {
+          context.push(AppConstants.familyCommunityMemberProfileRoute, extra: {
+            'memberId': post.authorId,
+            'memberName': post.authorName,
+          });
+        },
         onLikeTap: () => feedProvider.toggleLike(post.id),
         onCommentTap: () async {
           await feedProvider.loadCommentsForPost(post.id);
           if (context.mounted) {
             _showCommentsSheet(context, post.id, feedProvider, authProvider);
           }
+        },
+        onShareTap: () {
+          final shareText = '${post.authorName}: ${post.text}\n\n— CogniCare Community';
+          Share.share(shareText, subject: 'Publication CogniCare');
         },
         canDelete: canDelete,
         onEditTap: canDelete
@@ -1331,6 +1452,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     required bool liked,
     required VoidCallback onLikeTap,
     required VoidCallback onCommentTap,
+    VoidCallback? onShareTap,
+    VoidCallback? onAuthorTap,
     bool canDelete = false,
     VoidCallback? onEditTap,
     VoidCallback? onDeleteTap,
@@ -1361,39 +1484,50 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: _feedPrimary.withOpacity(0.4),
-                  child: Text(
-                    name.substring(0, 1).toUpperCase(),
-                    style: const TextStyle(
-                      color: AppTheme.text,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.text,
-                          fontSize: 14,
+                  child: GestureDetector(
+                    onTap: onAuthorTap,
+                    behavior: HitTestBehavior.opaque,
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: _feedPrimary.withOpacity(0.4),
+                          child: Text(
+                            name.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(
+                              color: AppTheme.text,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
                         ),
-                      ),
-                      Text(
-                        time,
-                        style: TextStyle(
-                          color: AppTheme.text.withOpacity(0.5),
-                          fontSize: 12,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.text,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              Text(
+                                time,
+                                style: TextStyle(
+                                  color: AppTheme.text.withOpacity(0.5),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               if (canDelete && (onEditTap != null || onDeleteTap != null))
@@ -1609,7 +1743,14 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   ),
                 ),
                 const Spacer(),
-                Icon(Icons.share_outlined, size: 22, color: AppTheme.text.withOpacity(0.5)),
+                InkWell(
+                  onTap: onShareTap ?? () {},
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                    child: Icon(Icons.share_outlined, size: 22, color: AppTheme.text.withOpacity(0.5)),
+                  ),
+                ),
               ],
             ),
           ),

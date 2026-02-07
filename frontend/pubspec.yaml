@@ -57,6 +57,9 @@ dependencies:
   # URL launcher for opening links
   url_launcher: ^6.2.2
 
+  # Share (partage natif)
+  share_plus: ^10.0.0
+
   # Image picker (galerie / appareil photo)
   image_picker: ^1.0.7
 
