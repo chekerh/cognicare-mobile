@@ -2,36 +2,38 @@ import {
   IsEmail,
   IsNotEmpty,
   IsString,
-  IsOptional,
   MinLength,
-  ValidateNested,
+  IsOptional,
   IsArray,
-  IsDateString,
+  ValidateNested,
   IsEnum,
+  IsDateString,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
-class ChildDto {
+export class ChildInfoDto {
   @ApiProperty({
-    description: "Child's full name",
-    example: 'Emma Smith',
+    description: 'Child full name',
+    example: 'John Doe Jr.',
   })
   @IsNotEmpty()
   @IsString()
   fullName!: string;
 
   @ApiProperty({
-    description: "Child's date of birth",
-    example: '2018-05-15',
+    description: 'Child date of birth',
+    example: '2015-05-15',
+    type: String,
+    format: 'date',
   })
   @IsNotEmpty()
   @IsDateString()
   dateOfBirth!: string;
 
   @ApiProperty({
-    description: "Child's gender",
-    example: 'female',
+    description: 'Child gender',
+    example: 'male',
     enum: ['male', 'female', 'other'],
   })
   @IsNotEmpty()
@@ -39,21 +41,24 @@ class ChildDto {
   gender!: 'male' | 'female' | 'other';
 
   @ApiPropertyOptional({
-    description: 'Medical diagnosis',
+    description: 'Child diagnosis or medical condition',
+    example: 'Autism Spectrum Disorder',
   })
   @IsOptional()
   @IsString()
   diagnosis?: string;
 
   @ApiPropertyOptional({
-    description: 'Medical history',
+    description: 'Child medical history',
+    example: 'Previous surgeries, chronic conditions',
   })
   @IsOptional()
   @IsString()
   medicalHistory?: string;
 
   @ApiPropertyOptional({
-    description: 'Known allergies',
+    description: 'Child allergies',
+    example: 'Peanuts, dairy',
   })
   @IsOptional()
   @IsString()
@@ -61,13 +66,15 @@ class ChildDto {
 
   @ApiPropertyOptional({
     description: 'Current medications',
+    example: 'Medication A, Medication B',
   })
   @IsOptional()
   @IsString()
   medications?: string;
 
   @ApiPropertyOptional({
-    description: 'Additional notes',
+    description: 'Additional notes about the child',
+    example: 'Requires special attention during activities',
   })
   @IsOptional()
   @IsString()
@@ -76,23 +83,24 @@ class ChildDto {
 
 export class CreateFamilyDto {
   @ApiProperty({
-    description: "Parent's full name",
-    example: 'John Smith',
+    description: 'Parent full name',
+    example: 'John Doe',
   })
   @IsNotEmpty()
   @IsString()
   fullName!: string;
 
   @ApiProperty({
-    description: "Parent's email address",
-    example: 'john.smith@example.com',
+    description: 'Parent email address',
+    example: 'john.doe@example.com',
+    format: 'email',
   })
   @IsNotEmpty()
   @IsEmail()
   email!: string;
 
   @ApiPropertyOptional({
-    description: "Parent's phone number",
+    description: 'Parent phone number',
     example: '+1234567890',
   })
   @IsOptional()
@@ -100,8 +108,8 @@ export class CreateFamilyDto {
   phone?: string;
 
   @ApiProperty({
-    description: 'Temporary password for parent account',
-    example: 'TempPass123!',
+    description: 'Parent password (minimum 6 characters)',
+    example: 'securePassword123',
     minLength: 6,
   })
   @IsNotEmpty()
@@ -110,12 +118,12 @@ export class CreateFamilyDto {
   password!: string;
 
   @ApiPropertyOptional({
-    description: 'Array of children to create for this family',
-    type: [ChildDto],
+    description: 'Array of children information',
+    type: [ChildInfoDto],
   })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => ChildDto)
-  children?: ChildDto[];
+  @Type(() => ChildInfoDto)
+  children?: ChildInfoDto[];
 }

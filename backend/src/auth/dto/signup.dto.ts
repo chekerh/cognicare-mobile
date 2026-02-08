@@ -55,6 +55,15 @@ export class SignupDto {
   @IsEnum(['family', 'doctor', 'volunteer', 'organization_leader'])
   role!: 'family' | 'doctor' | 'volunteer' | 'organization_leader';
 
+  @ApiPropertyOptional({
+    description:
+      'Organization name (required when role is organization_leader)',
+    example: 'Hope Care Foundation',
+  })
+  @IsOptional()
+  @IsString()
+  organizationName?: string;
+
   @ApiProperty({
     description: '6-digit verification code sent to email',
     example: '123456',

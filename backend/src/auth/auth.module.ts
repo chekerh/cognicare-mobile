@@ -16,6 +16,7 @@ import {
   Organization,
   OrganizationSchema,
 } from '../organization/schemas/organization.schema';
+import { Child, ChildSchema } from '../children/schemas/child.schema';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import {
       { name: User.name, schema: UserSchema },
       { name: EmailVerification.name, schema: EmailVerificationSchema },
       { name: Organization.name, schema: OrganizationSchema },
+      { name: Child.name, schema: ChildSchema },
     ]),
   ],
   providers: [AuthService, JwtStrategy],

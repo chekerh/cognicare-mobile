@@ -18,6 +18,7 @@ import {
   Organization,
   OrganizationDocument,
 } from '../organization/schemas/organization.schema';
+import { Child, ChildDocument } from '../children/schemas/child.schema';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -31,6 +32,7 @@ export class AuthService {
     private emailVerificationModel: Model<EmailVerificationDocument>,
     @InjectModel(Organization.name)
     private organizationModel: Model<OrganizationDocument>,
+    @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     private jwtService: JwtService,
     private configService: ConfigService,
     private mailService: MailService,
@@ -52,7 +54,8 @@ export class AuthService {
   async signup(
     signupDto: SignupDto,
   ): Promise<{ accessToken: string; refreshToken: string; user: any }> {
-    const { email, password, verificationCode, ...userData } = signupDto;
+    const { email, password, verificationCode, organizationName, ...userData } =
+      signupDto;
 
     // Prevent admin role creation through signup
     // This check is redundant due to DTO validation, but kept as defense in depth
@@ -111,9 +114,10 @@ export class AuthService {
     await user.save();
 
     // If role is organization_leader, create an organization
+    let organization: OrganizationDocument | null = null;
     if (userData.role === 'organization_leader') {
-      const orgName = `${user.fullName}'s Organization`; // Default name, can be updated later
-      const organization = new this.organizationModel({
+      const orgName = organizationName || `${user.fullName}'s Organization`; // Use provided name or default
+      organization = new this.organizationModel({
         name: orgName,
         leaderId: user._id,
         staffIds: [],
@@ -139,19 +143,35 @@ export class AuthService {
       .sendWelcomeEmail(user.email, user.fullName)
       .catch((err) => console.error('Failed to send welcome email:', err));
 
+    const userResponse: any = {
+      id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      organizationId: user.organizationId,
+      profilePic: user.profilePic,
+      createdAt: user.createdAt,
+    };
+
+    // Include organization data for organization leaders
+    if (userData.role === 'organization_leader' && organization) {
+      userResponse.organization = {
+        id: organization._id,
+        name: organization.name,
+        staff: [],
+        families: [],
+        children: [],
+        totalStaff: 0,
+        totalFamilies: 0,
+        totalChildren: 0,
+      };
+    }
+
     return {
       accessToken,
       refreshToken,
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        organizationId: user.organizationId,
-        profilePic: user.profilePic,
-        createdAt: user.createdAt,
-      },
+      user: userResponse,
     };
   }
 
@@ -180,19 +200,107 @@ export class AuthService {
     user.refreshToken = hashedRefreshToken;
     await user.save();
 
-    return {
+    const userResponse: any = {
+      id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      profilePic: user.profilePic,
+      createdAt: user.createdAt,
+    };
+
+    if (user.role === 'organization_leader') {
+      const organization = await this.organizationModel
+        .findOne({ leaderId: user._id })
+        // Populate arrays from Organization document (NOT from User document)
+        .populate('staffIds') // Fetch all staff users linked to this organization
+        .populate('familyIds') // Fetch all family users linked to this organization
+        .populate('childrenIds'); // Fetch all children linked to this organization
+
+      console.log('Organization found:', organization ? 'YES' : 'NO');
+      if (organization) {
+        console.log('Organization ID:', organization._id);
+        console.log('Organization Name:', organization.name);
+        console.log('Staff IDs array:', organization.staffIds);
+        console.log('Staff count:', organization.staffIds?.length || 0);
+        console.log('Families count:', organization.familyIds?.length || 0);
+        console.log('Children count:', organization.childrenIds?.length || 0);
+
+        // Build clean arrays without circular references
+        const staffArray = (organization.staffIds || []).map((staff: any) => ({
+          id: staff._id,
+          fullName: staff.fullName,
+          email: staff.email,
+          phone: staff.phone,
+          role: staff.role,
+          createdAt: staff.createdAt,
+        }));
+
+        const familiesArray = (organization.familyIds || []).map(
+          (family: any) => ({
+            id: family._id,
+            fullName: family.fullName,
+            email: family.email,
+            phone: family.phone,
+            role: family.role,
+            createdAt: family.createdAt,
+          }),
+        );
+
+        const childrenArray = (organization.childrenIds || []).map(
+          (child: any) => ({
+            id: child._id,
+            fullName: child.fullName,
+            dateOfBirth: child.dateOfBirth,
+            gender: child.gender,
+            diagnosis: child.diagnosis,
+            parentId: child.parentId,
+          }),
+        );
+
+        const orgData = {
+          id: organization._id,
+          name: organization.name,
+          staff: staffArray,
+          families: familiesArray,
+          children: childrenArray,
+          totalStaff: staffArray.length,
+          totalFamilies: familiesArray.length,
+          totalChildren: childrenArray.length,
+        };
+
+        console.log(
+          'Organization data to return:',
+          JSON.stringify(orgData, null, 2),
+        );
+        userResponse.organization = orgData;
+      } else {
+        console.log('No organization found for leader:', user._id);
+      }
+    }
+
+    const response = {
       accessToken,
       refreshToken,
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        profilePic: user.profilePic,
-        createdAt: user.createdAt,
-      },
+      user: userResponse,
     };
+
+    console.log('Login response user role:', userResponse.role);
+    console.log(
+      'Login response has organization:',
+      !!userResponse.organization,
+    );
+    if (userResponse.organization) {
+      console.log(
+        'Organization in response (full):',
+        JSON.stringify(userResponse.organization, null, 2),
+      );
+    }
+
+    console.log('FINAL RESPONSE TO CLIENT:', JSON.stringify(response, null, 2));
+
+    return response;
   }
 
   async refreshTokens(

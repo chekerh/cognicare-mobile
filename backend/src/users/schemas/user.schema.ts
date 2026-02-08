@@ -19,15 +19,31 @@ export class User {
 
   @Prop({
     required: true,
-    enum: ['family', 'doctor', 'volunteer', 'admin', 'organization_leader', 'psychologist', 'speech_therapist', 'occupational_therapist', 'other'],
+    enum: [
+      'family',
+      'doctor',
+      'volunteer',
+      'admin',
+      'organization_leader',
+      'psychologist',
+      'speech_therapist',
+      'occupational_therapist',
+      'other',
+    ],
   })
-  role: 'family' | 'doctor' | 'volunteer' | 'admin' | 'organization_leader' | 'psychologist' | 'speech_therapist' | 'occupational_therapist' | 'other';
+  role:
+    | 'family'
+    | 'doctor'
+    | 'volunteer'
+    | 'admin'
+    | 'organization_leader'
+    | 'psychologist'
+    | 'speech_therapist'
+    | 'occupational_therapist'
+    | 'other';
 
   @Prop({ type: 'ObjectId', ref: 'Organization' })
   organizationId?: string;
-
-  @Prop({ type: [{ type: 'ObjectId', ref: 'User' }] })
-  staffIds?: string[];
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Child' }] })
   childrenIds?: Types.ObjectId[];

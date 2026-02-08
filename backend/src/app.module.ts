@@ -12,7 +12,6 @@ import { MailModule } from './mail/mail.module';
 import { OrganizationModule } from './organization/organization.module';
 import { CommunityModule } from './community/community.module';
 import { MarketplaceModule } from './marketplace/marketplace.module';
-import { ChildrenModule } from './children/children.module';
 
 @Module({
   imports: [
@@ -42,7 +41,6 @@ import { ChildrenModule } from './children/children.module';
     OrganizationModule,
     CommunityModule,
     MarketplaceModule,
-    ChildrenModule,
   ],
   controllers: [AppController],
   providers: [AppService],

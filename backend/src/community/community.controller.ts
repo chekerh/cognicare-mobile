@@ -40,9 +40,11 @@ export class CommunityController {
   @ApiResponse({ status: 400, description: 'No file or invalid type' })
   async uploadPostImage(
     // Avoid relying on Multer types — use a minimal inline shape for the uploaded file.
-    @UploadedFile() file?: { buffer: Buffer; mimetype: string; originalname?: string },
+    @UploadedFile()
+    file?: { buffer: Buffer; mimetype: string; originalname?: string },
   ) {
-    if (!file || !file.buffer) throw new BadRequestException('No file provided');
+    if (!file || !file.buffer)
+      throw new BadRequestException('No file provided');
     const allowed = [
       'image/jpeg',
       'image/jpg',

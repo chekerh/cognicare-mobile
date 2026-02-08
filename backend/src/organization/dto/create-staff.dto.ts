@@ -3,30 +3,31 @@ import {
   IsNotEmpty,
   IsString,
   IsEnum,
-  IsOptional,
   MinLength,
+  IsOptional,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateStaffDto {
   @ApiProperty({
-    description: "Staff member's full name",
-    example: 'Dr. Sarah Johnson',
+    description: 'Staff member full name',
+    example: 'Dr. Jane Smith',
   })
   @IsNotEmpty()
   @IsString()
   fullName!: string;
 
   @ApiProperty({
-    description: "Staff member's email address",
-    example: 'sarah.johnson@example.com',
+    description: 'Staff member email address',
+    example: 'jane.smith@example.com',
+    format: 'email',
   })
   @IsNotEmpty()
   @IsEmail()
   email!: string;
 
   @ApiPropertyOptional({
-    description: "Staff member's phone number",
+    description: 'Staff member phone number',
     example: '+1234567890',
   })
   @IsOptional()
@@ -34,8 +35,8 @@ export class CreateStaffDto {
   phone?: string;
 
   @ApiProperty({
-    description: 'Temporary password (user should change on first login)',
-    example: 'TempPass123!',
+    description: 'Staff member password (minimum 6 characters)',
+    example: 'securePassword123',
     minLength: 6,
   })
   @IsNotEmpty()
@@ -44,31 +45,23 @@ export class CreateStaffDto {
   password!: string;
 
   @ApiProperty({
-    description: "Staff member's role",
-    example: 'psychologist',
+    description: 'Staff member role',
     enum: [
+      'doctor',
+      'volunteer',
       'psychologist',
       'speech_therapist',
       'occupational_therapist',
-      'doctor',
-      'volunteer',
-      'other',
     ],
+    example: 'doctor',
   })
   @IsNotEmpty()
   @IsEnum([
+    'doctor',
+    'volunteer',
     'psychologist',
     'speech_therapist',
     'occupational_therapist',
-    'doctor',
-    'volunteer',
-    'other',
   ])
-  role!:
-    | 'psychologist'
-    | 'speech_therapist'
-    | 'occupational_therapist'
-    | 'doctor'
-    | 'volunteer'
-    | 'other';
+  role!: string;
 }

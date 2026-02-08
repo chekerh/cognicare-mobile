@@ -11,13 +11,13 @@ export class Organization {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   leaderId!: Types.ObjectId;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
   staffIds!: Types.ObjectId[];
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
   familyIds!: Types.ObjectId[];
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Child' }] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Child' }], default: [] })
   childrenIds!: Types.ObjectId[];
 
   @Prop()

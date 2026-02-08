@@ -1,32 +1,34 @@
 import {
   IsNotEmpty,
   IsString,
-  IsEnum,
   IsOptional,
+  IsEnum,
   IsDateString,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class CreateChildDto {
+export class AddChildDto {
   @ApiProperty({
-    description: "Child's full name",
-    example: 'Sarah Doe',
+    description: 'Child full name',
+    example: 'John Doe Jr.',
   })
   @IsNotEmpty()
   @IsString()
   fullName!: string;
 
   @ApiProperty({
-    description: "Child's date of birth",
-    example: '2018-05-15',
+    description: 'Child date of birth',
+    example: '2015-05-15',
+    type: String,
+    format: 'date',
   })
   @IsNotEmpty()
   @IsDateString()
   dateOfBirth!: string;
 
   @ApiProperty({
-    description: "Child's gender",
-    example: 'female',
+    description: 'Child gender',
+    example: 'male',
     enum: ['male', 'female', 'other'],
   })
   @IsNotEmpty()
@@ -34,7 +36,7 @@ export class CreateChildDto {
   gender!: 'male' | 'female' | 'other';
 
   @ApiPropertyOptional({
-    description: 'Medical diagnosis',
+    description: 'Child diagnosis or medical condition',
     example: 'Autism Spectrum Disorder',
   })
   @IsOptional()
@@ -42,15 +44,15 @@ export class CreateChildDto {
   diagnosis?: string;
 
   @ApiPropertyOptional({
-    description: 'Medical history',
-    example: 'Diagnosed at age 3...',
+    description: 'Child medical history',
+    example: 'Previous surgeries, chronic conditions',
   })
   @IsOptional()
   @IsString()
   medicalHistory?: string;
 
   @ApiPropertyOptional({
-    description: 'Known allergies',
+    description: 'Child allergies',
     example: 'Peanuts, dairy',
   })
   @IsOptional()
@@ -59,14 +61,15 @@ export class CreateChildDto {
 
   @ApiPropertyOptional({
     description: 'Current medications',
-    example: 'Risperidone 0.5mg daily',
+    example: 'Medication A, Medication B',
   })
   @IsOptional()
   @IsString()
   medications?: string;
 
   @ApiPropertyOptional({
-    description: 'Additional notes',
+    description: 'Additional notes about the child',
+    example: 'Requires special attention during activities',
   })
   @IsOptional()
   @IsString()
