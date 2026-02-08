@@ -6,16 +6,19 @@ export type OrganizationDocument = Organization & Document;
 @Schema({ timestamps: true })
 export class Organization {
   @Prop({ required: true })
-  name: string;
+  name!: string;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  leaderId: Types.ObjectId;
+  leaderId!: Types.ObjectId;
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })
-  staffIds: Types.ObjectId[];
+  staffIds!: Types.ObjectId[];
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })
-  childIds: Types.ObjectId[];
+  familyIds!: Types.ObjectId[];
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Child' }] })
+  childrenIds!: Types.ObjectId[];
 
   @Prop()
   address?: string;

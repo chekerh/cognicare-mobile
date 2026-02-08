@@ -84,7 +84,11 @@ GitHub Actions at [.github/workflows/ci-cd.yml](workflows/ci-cd.yml):
    }
    ```
 
-2. **User roles**: Enum `['family', 'doctor', 'volunteer', 'admin']` in [user.schema.ts](../backend/src/users/schemas/user.schema.ts). Admin can **only** be created via direct DB insert (security).
+2. **User roles**: Enum `['family', 'doctor', 'volunteer', 'admin', 'organization_leader', 'psychologist', 'speech_therapist', 'occupational_therapist', 'other']` in [user.schema.ts](../backend/src/users/schemas/user.schema.ts). 
+   - **Self-signup roles** (allowed in [signup.dto.ts](../backend/src/auth/dto/signup.dto.ts)): `family`, `doctor`, `volunteer`, `organization_leader`
+   - **Organization-only roles** (only assigned by org leader via staff management): `psychologist`, `speech_therapist`, `occupational_therapist`, `other`
+   - **Special roles**: `admin` can **only** be created via direct DB insert (security)
+   - Organization role descriptions: psychologist (assessments, therapy), speech_therapist (communication), occupational_therapist (motor skills), other (support staff)
 
 3. **Password handling**: bcrypt with 12 salt rounds ([auth.service.ts](../backend/src/auth/auth.service.ts) line 60)
 

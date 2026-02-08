@@ -16,7 +16,7 @@ export class SignupDto {
   })
   @IsNotEmpty()
   @IsString()
-  fullName: string;
+  fullName!: string;
 
   @ApiProperty({
     description: "User's email address",
@@ -25,7 +25,7 @@ export class SignupDto {
   })
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiPropertyOptional({
     description: "User's phone number",
@@ -43,16 +43,17 @@ export class SignupDto {
   @IsNotEmpty()
   @IsString()
   @MinLength(6)
-  password: string;
+  password!: string;
 
   @ApiProperty({
-    description: "User's role in the platform",
+    description:
+      "User's role in the platform. Note: Specialized therapy roles (psychologist, speech_therapist, occupational_therapist, other) can only be assigned by organization leaders via staff management - they cannot self-signup.",
     example: 'family',
     enum: ['family', 'doctor', 'volunteer', 'organization_leader'],
   })
   @IsNotEmpty()
   @IsEnum(['family', 'doctor', 'volunteer', 'organization_leader'])
-  role: 'family' | 'doctor' | 'volunteer' | 'organization_leader';
+  role!: 'family' | 'doctor' | 'volunteer' | 'organization_leader';
 
   @ApiProperty({
     description: '6-digit verification code sent to email',
@@ -60,5 +61,5 @@ export class SignupDto {
   })
   @IsNotEmpty()
   @IsString()
-  verificationCode: string;
+  verificationCode!: string;
 }

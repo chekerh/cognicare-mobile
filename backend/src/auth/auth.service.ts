@@ -117,7 +117,8 @@ export class AuthService {
         name: orgName,
         leaderId: user._id,
         staffIds: [],
-        childIds: [],
+        familyIds: [],
+        childrenIds: [],
       });
       await organization.save();
 
