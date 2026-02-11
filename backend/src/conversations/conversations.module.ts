@@ -5,6 +5,7 @@ import {
   ConversationSchema,
 } from './conversation.schema';
 import { Message, MessageSchema } from './message.schema';
+import { User, UserSchema } from '../users/schemas/user.schema';
 import { ConversationsService } from './conversations.service';
 import { ConversationsController } from './conversations.controller';
 
@@ -13,6 +14,7 @@ import { ConversationsController } from './conversations.controller';
     MongooseModule.forFeature([
       { name: Conversation.name, schema: ConversationSchema },
       { name: Message.name, schema: MessageSchema },
+      { name: User.name, schema: UserSchema },
     ]),
   ],
   controllers: [ConversationsController],

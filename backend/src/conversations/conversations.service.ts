@@ -7,6 +7,7 @@ import {
   ConversationSegment,
 } from './conversation.schema';
 import { Message, MessageDocument } from './message.schema';
+import { User, UserDocument } from '../users/schemas/user.schema';
 
 @Injectable()
 export class ConversationsService {
@@ -15,6 +16,8 @@ export class ConversationsService {
     private readonly conversationModel: Model<ConversationDocument>,
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<UserDocument>,
   ) {}
 
   async findInboxForUser(userId: string) {
@@ -24,16 +27,33 @@ export class ConversationsService {
       .lean()
       .exec();
 
-    return docs.map((c) => ({
-      id: c._id.toString(),
-      name: c.name,
-      subtitle: c.subtitle,
-      lastMessage: c.lastMessage,
-      timeAgo: c.timeAgo,
-      imageUrl: c.imageUrl,
-      unread: c.unread,
-      segment: c.segment as ConversationSegment,
-    }));
+    const otherIdStrs = [...new Set(docs.map((c) => (c as any).otherUserId?.toString()).filter(Boolean))];
+    const otherIds = otherIdStrs.map((id) => new Types.ObjectId(id));
+    const users = otherIds.length
+      ? await this.userModel.find({ _id: { $in: otherIds } }).select('role').lean().exec()
+      : [];
+    const roleById = new Map<string, string>();
+    for (const u of users) {
+      const id = (u as any)._id?.toString();
+      if (id) roleById.set(id, String((u as any).role ?? '').toLowerCase());
+    }
+
+    return docs.map((c) => {
+      const otherId = (c as any).otherUserId?.toString();
+      const otherRole = otherId ? roleById.get(otherId) : null;
+      const segment: ConversationSegment =
+        otherRole === 'volunteer' ? 'benevole' : otherRole === 'family' ? 'families' : (c.segment as ConversationSegment) ?? 'persons';
+      return {
+        id: c._id.toString(),
+        name: c.name,
+        subtitle: c.subtitle,
+        lastMessage: c.lastMessage,
+        timeAgo: c.timeAgo,
+        imageUrl: c.imageUrl,
+        unread: c.unread,
+        segment,
+      };
+    });
   }
 
   /** Get or create a conversation between current user and otherUserId. Returns conversation for current user. */
@@ -67,16 +87,20 @@ export class ConversationsService {
     }
 
     const threadId = new Types.ObjectId();
+    const otherUser = await this.userModel.findById(oid).select('role fullName').lean().exec();
+    const otherRole = (otherUser as any)?.role?.toLowerCase?.();
+    const segmentForCurrentUser: ConversationSegment =
+      otherRole === 'volunteer' ? 'benevole' : otherRole === 'family' ? 'families' : 'persons';
     const [created] = await this.conversationModel.create([
       {
         user: uid,
         otherUserId: oid,
         threadId,
-        name: options?.name ?? 'Conversation',
+        name: options?.name ?? (otherUser as any)?.fullName ?? 'Conversation',
         lastMessage: '',
         timeAgo: '',
         imageUrl: options?.imageUrl ?? '',
-        segment: options?.segment ?? 'persons',
+        segment: options?.segment ?? segmentForCurrentUser,
       },
       {
         user: oid,
