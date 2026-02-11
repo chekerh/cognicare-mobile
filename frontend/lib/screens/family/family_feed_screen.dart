@@ -1207,14 +1207,26 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   ),
                 );
                 if (confirmed == true) {
-                  await feedProvider.deletePost(post.id);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(loc.postDeleted),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+                  try {
+                    await feedProvider.deletePost(post.id);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(loc.postDeleted),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(e is Exception ? e.toString().replaceFirst('Exception: ', '') : loc.errorLoadingProfile),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
                   }
                 }
               }

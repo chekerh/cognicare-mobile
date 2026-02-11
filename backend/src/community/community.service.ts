@@ -86,14 +86,15 @@ export class CommunityService {
     tags: string[];
     likeCount: number;
   }> {
+    const uid = this.normalizeUserId(userId);
     const user = await this.userModel
-      .findById(userId)
+      .findById(uid)
       .select('fullName')
       .exec();
     if (!user) throw new NotFoundException('User not found');
 
     const post = new this.postModel({
-      authorId: new Types.ObjectId(userId),
+      authorId: new Types.ObjectId(uid),
       authorName: user.fullName,
       text: dto.text,
       imageUrl: dto.imageUrl,
@@ -148,6 +149,10 @@ export class CommunityService {
     }));
   }
 
+  private normalizeUserId(userId: string | { toString(): string }): string {
+    return typeof userId === 'string' ? userId : userId.toString();
+  }
+
   async updatePost(
     postId: string,
     userId: string,
@@ -155,7 +160,8 @@ export class CommunityService {
   ): Promise<void> {
     const post = await this.postModel.findById(postId).exec();
     if (!post) throw new NotFoundException('Post not found');
-    if (post.authorId.toString() !== userId) {
+    const uid = this.normalizeUserId(userId);
+    if (post.authorId.toString() !== uid) {
       throw new ForbiddenException('You can only edit your own posts');
     }
     if (dto.text !== undefined) post.text = dto.text;
@@ -167,7 +173,8 @@ export class CommunityService {
   async deletePost(postId: string, userId: string): Promise<void> {
     const post = await this.postModel.findById(postId).exec();
     if (!post) throw new NotFoundException('Post not found');
-    if (post.authorId.toString() !== userId) {
+    const uid = this.normalizeUserId(userId);
+    if (post.authorId.toString() !== uid) {
       throw new ForbiddenException('You can only delete your own posts');
     }
     await this.commentModel
