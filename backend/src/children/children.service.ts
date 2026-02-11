@@ -24,10 +24,11 @@ interface OrgLean {
   _id?: Types.ObjectId;
 }
 
+/** Matches Mongoose lean() result: dateOfBirth is Date in DB. */
 interface ChildLean {
   _id?: Types.ObjectId;
   fullName?: string;
-  dateOfBirth?: string;
+  dateOfBirth?: Date | string;
   gender?: string;
   diagnosis?: string;
   medicalHistory?: string;
@@ -81,7 +82,10 @@ export class ChildrenService {
     return children.map((c) => ({
       id: c._id?.toString() ?? '',
       fullName: c.fullName ?? '',
-      dateOfBirth: c.dateOfBirth ?? '',
+      dateOfBirth:
+        c.dateOfBirth instanceof Date
+          ? c.dateOfBirth.toISOString().slice(0, 10)
+          : (c.dateOfBirth ?? ''),
       gender: c.gender ?? '',
       diagnosis: c.diagnosis,
       medicalHistory: c.medicalHistory,
