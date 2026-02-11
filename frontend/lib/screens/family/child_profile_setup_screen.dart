@@ -14,12 +14,28 @@ const Color _bgLight = Color(0xFFA6D9E7);
 class ChildProfileSetupScreen extends StatefulWidget {
   const ChildProfileSetupScreen({super.key});
 
+  /// Clé de stockage pour vérifier si le profil est complété (dashboard).
+  static const String storageKey = 'child_profile';
+
+  /// Retourne true si le profil enfant a été enregistré avec un prénom renseigné.
+  static Future<bool> isProfileComplete() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(storageKey);
+      if (raw == null) return false;
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      final name = (data['name'] as String? ?? '').trim();
+      return name.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   State<ChildProfileSetupScreen> createState() => _ChildProfileSetupScreenState();
 }
 
 class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
-  static const String _storageKey = 'child_profile';
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController(text: 'Léo');
   final _medicationsController = TextEditingController();
@@ -66,7 +82,7 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_storageKey, jsonEncode(data));
+      await prefs.setString(ChildProfileSetupScreen.storageKey, jsonEncode(data));
     } catch (_) {}
 
     setState(() => _isSaving = false);
@@ -87,16 +103,21 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final padding = MediaQuery.paddingOf(context);
 
     return Scaffold(
       backgroundColor: _bgLight,
       body: SafeArea(
+        top: true,
+        bottom: true,
+        left: true,
+        right: true,
         child: Column(
           children: [
             _buildHeader(loc),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+                padding: EdgeInsets.fromLTRB(24, 0, 24, 32 + padding.bottom),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -115,7 +136,7 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
 
   Widget _buildHeader(AppLocalizations loc) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -126,15 +147,28 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
               backgroundColor: Colors.white.withOpacity(0.2),
             ),
           ),
-          Text(
-            loc.childProfileTitle,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+          Expanded(
+            child: Text(
+              loc.childProfileTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-          const SizedBox(width: 48),
+          TextButton(
+            onPressed: () => context.go(AppConstants.familyDashboardRoute),
+            child: Text(
+              loc.childProfileSkipButton,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -264,7 +298,6 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
         Row(
           children: [
             Expanded(
-              flex: 3,
               child: TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -277,31 +310,48 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
                 validator: (v) => (v == null || v.trim().isEmpty) ? loc.childProfileNameRequired : null,
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Container(
-                height: 56,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: _ageYears > 1 ? () => setState(() => _ageYears--) : null,
-                      icon: const Icon(Icons.remove, color: _primary, size: 20),
+            const SizedBox(width: 8),
+            Container(
+              height: 56,
+              constraints: const BoxConstraints(minWidth: 0),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: _ageYears > 1 ? () => setState(() => _ageYears--) : null,
+                    icon: const Icon(Icons.remove, color: _primary, size: 20),
+                    style: IconButton.styleFrom(
+                      padding: const EdgeInsets.all(8),
+                      minimumSize: const Size(36, 36),
                     ),
-                    Text(
-                      '$_ageYears ${loc.childProfileYears}',
-                      style: const TextStyle(color: _primary, fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Text(
+                          '$_ageYears ${loc.childProfileYears}',
+                          style: const TextStyle(color: _primary, fontWeight: FontWeight.bold, fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ),
-                    IconButton(
-                      onPressed: _ageYears < 18 ? () => setState(() => _ageYears++) : null,
-                      icon: const Icon(Icons.add, color: _primary, size: 20),
+                  ),
+                  IconButton(
+                    onPressed: _ageYears < 18 ? () => setState(() => _ageYears++) : null,
+                    icon: const Icon(Icons.add, color: _primary, size: 20),
+                    style: IconButton.styleFrom(
+                      padding: const EdgeInsets.all(8),
+                      minimumSize: const Size(36, 36),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ],

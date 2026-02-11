@@ -69,6 +69,8 @@ class _SplashScreenState extends State<SplashScreen>
             router.go(AppConstants.familyDashboardRoute);
           } else if (AppConstants.isOrganizationLeaderRole(user.role)) {
             router.go(AppConstants.organizationDashboardRoute);
+          } else if (AppConstants.isVolunteerRole(user.role)) {
+            router.go(AppConstants.volunteerDashboardRoute);
           } else {
             router.go(AppConstants.homeRoute);
           }

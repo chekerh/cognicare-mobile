@@ -850,6 +850,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get childProfileSaved => 'Profil enregistré';
   @override
   String get childProfileAddLabel => 'Ajouter';
+  @override
+  String get childProfileSkipButton => 'Ignorer';
+  @override
+  String get childProfileCompleteLaterLabel => 'Compléter plus tard';
+  @override
+  String get childProfileAlertTitle => 'Profil à compléter';
+  @override
+  String get childProfileAlertMessage => 'Veuillez compléter le profil de l\'enfant pour accéder à toutes les fonctionnalités.';
+  @override
+  String get childProfileAlertCompleteButton => 'Compléter';
+  @override
+  String get childProfileAlertLaterButton => 'Plus tard';
 
   @override
   String get schedulePickup => 'Planifier le retrait';

@@ -65,6 +65,7 @@ class AppConstants {
   static const String familyCheckoutRoute = '/family/checkout';
   static const String familyOrderConfirmationRoute = '/family/order-confirmation';
   static const String familyChildProfileSetupRoute = '/family/child-profile-setup';
+  static const String familyVolunteerProfileRoute = '/family/volunteer-profile';
   static const String familyChildModeRoute = '/family/child-mode';
   static const String familyChildDashboardRoute = '/family/child-dashboard';
   static const String familyChildProgressRoute = '/family/child-progress';
@@ -72,6 +73,34 @@ class AppConstants {
   static const String familyStickerBookRoute = '/family/sticker-book';
   static const String familyGameSuccessRoute = '/family/game-success';
   static const String familyGamesSelectionRoute = '/family/games';
+
+  // Volunteer sector routes (JWT-protected, role: volunteer)
+  static const String volunteerRoute = '/volunteer';
+  static const String volunteerDashboardRoute = '/volunteer/dashboard';
+  static const String volunteerAgendaRoute = '/volunteer/agenda';
+  static const String volunteerMissionsRoute = '/volunteer/missions';
+  static const String volunteerMissionItineraryRoute = '/volunteer/mission-itinerary';
+  static const String volunteerTaskAcceptedRoute = '/volunteer/task-accepted';
+  static const String volunteerNotificationsRoute = '/volunteer/notifications';
+  static const String volunteerMessagesRoute = '/volunteer/messages';
+  static const String volunteerFamilyChatRoute = '/volunteer/family-chat';
+  static const String volunteerProfileRoute = '/volunteer/profile';
+  static const String volunteerMissionReportRoute = '/volunteer/mission-report';
+  static const String volunteerOfferHelpRoute = '/volunteer/offer-help';
+  static const String volunteerNewAvailabilityRoute = '/volunteer/new-availability';
+
+  // Healthcare professional sector routes (JWT-protected, role: healthcare)
+  static const String healthcareRoute = '/healthcare';
+  static const String healthcareDashboardRoute = '/healthcare/dashboard';
+  static const String healthcarePatientsRoute = '/healthcare/patients';
+  static const String healthcareReportsRoute = '/healthcare/reports';
+  static const String healthcareMessagesRoute = '/healthcare/messages';
+  static const String healthcareProfileRoute = '/healthcare/profile';
+  static const String healthcareCareBoardRoute = '/healthcare/care-board';
+  static const String healthcarePlannerRoute = '/healthcare/planner';
+  static const String healthcareComparativeRoute = '/healthcare/comparative';
+  static const String healthcareProtocolEditorRoute = '/healthcare/protocol-editor';
+  static const String healthcareConsultationRoute = '/healthcare/consultation';
 
   // Public routes (no JWT required)
   static const List<String> publicRoutes = [
@@ -85,6 +114,12 @@ class AppConstants {
 
   /// Comparaison insensible à la casse (backend peut renvoyer "family", "Family", "FAMILY").
   static bool isFamilyRole(String? role) => role?.toLowerCase() == 'family';
+  static bool isVolunteerRole(String? role) => role?.toLowerCase() == 'volunteer';
   static bool isOrganizationLeaderRole(String? role) =>
       role?.toLowerCase() == 'organization_leader';
+  static bool isHealthcareRole(String? role) {
+    if (role == null) return false;
+    final r = role.toLowerCase();
+    return r == 'healthcare' || r == 'professional' || r == 'doctor';
+  }
 }

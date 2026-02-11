@@ -850,6 +850,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get childProfileSaved => 'تم حفظ الملف';
   @override
   String get childProfileAddLabel => 'إضافة';
+  @override
+  String get childProfileSkipButton => 'تخطي';
+  @override
+  String get childProfileCompleteLaterLabel => 'أكمل لاحقاً';
+  @override
+  String get childProfileAlertTitle => 'ملف مكتمل';
+  @override
+  String get childProfileAlertMessage => 'يرجى إكمال ملف الطفل للوصول إلى جميع الميزات.';
+  @override
+  String get childProfileAlertCompleteButton => 'إكمال';
+  @override
+  String get childProfileAlertLaterButton => 'لاحقاً';
 
   @override
   String get schedulePickup => 'جدولة الاستلام';

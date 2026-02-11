@@ -39,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final success = await authProvider.login(
         _emailController.text.trim(),
-        _passwordController.text,
+        _passwordController.text.trim(),
       );
 
       if (success && mounted) {
@@ -48,6 +48,8 @@ class _LoginScreenState extends State<LoginScreen> {
           context.go(AppConstants.organizationDashboardRoute);
         } else if (AppConstants.isFamilyRole(role)) {
           context.go(AppConstants.familyDashboardRoute);
+        } else if (AppConstants.isVolunteerRole(role)) {
+          context.go(AppConstants.volunteerDashboardRoute);
         } else {
           context.go(AppConstants.homeRoute);
         }

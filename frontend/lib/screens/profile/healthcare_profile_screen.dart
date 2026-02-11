@@ -309,7 +309,9 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
                       children: [
                         Text(loc.myPatients, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.text)),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            context.go(AppConstants.healthcarePatientsRoute);
+                          },
                           child: Text(loc.seeAll, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _hpPrimary)),
                         ),
                       ],

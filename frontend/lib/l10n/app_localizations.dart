@@ -443,6 +443,12 @@ abstract class AppLocalizations {
   String get childProfileEncryptedNote;
   String get childProfileSaved;
   String get childProfileAddLabel;
+  String get childProfileSkipButton;
+  String get childProfileCompleteLaterLabel;
+  String get childProfileAlertTitle;
+  String get childProfileAlertMessage;
+  String get childProfileAlertCompleteButton;
+  String get childProfileAlertLaterButton;
 
   /// Donation chat
   String get schedulePickup;

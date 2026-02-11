@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 /// Chat privé 1-on-1 — design Private Community Chat.
@@ -44,6 +45,14 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   void initState() {
     super.initState();
     _messages = _defaultMessages();
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.white,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
   }
 
   List<_Msg> _defaultMessages() {
@@ -104,12 +113,16 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(context),
-            Expanded(
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          SafeArea(
+            bottom: false,
+            child: _buildHeader(context),
+          ),
+          Expanded(
+            child: Container(
+              color: const Color(0xFFF8FAFC),
               child: ListView(
                 controller: _scrollController,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -120,9 +133,9 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                 ],
               ),
             ),
-            _buildInputBar(),
-          ],
-        ),
+          ),
+          _buildInputBar(),
+        ],
       ),
     );
   }
@@ -309,9 +322,11 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
 
   Widget _buildInputBar() {
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
-    return Container(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomPadding),
-      color: Colors.white,
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomPadding),
+        color: Colors.white,
       child: Row(
         children: [
           Material(
@@ -364,6 +379,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 }
