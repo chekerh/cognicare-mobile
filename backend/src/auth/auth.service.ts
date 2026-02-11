@@ -23,11 +23,13 @@ import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { MailService } from '../mail/mail.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private cloudinary: CloudinaryService,
     @InjectModel(EmailVerification.name)
     private emailVerificationModel: Model<EmailVerificationDocument>,
     @InjectModel(Organization.name)
@@ -416,15 +418,23 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
-    const path = await import('path');
-    const fs = await import('fs/promises');
-    const uploadsDir = path.join(process.cwd(), 'uploads', 'profiles');
-    await fs.mkdir(uploadsDir, { recursive: true });
-    const ext = file.mimetype === 'image/png' ? 'png' : 'jpg';
-    const filename = `${userId}.${ext}`;
-    const filePath = path.join(uploadsDir, filename);
-    await fs.writeFile(filePath, file.buffer);
-    const profilePicUrl = `/uploads/profiles/${filename}`;
+    let profilePicUrl: string;
+    if (this.cloudinary.isConfigured()) {
+      profilePicUrl = await this.cloudinary.uploadBuffer(file.buffer, {
+        folder: 'cognicare/profiles',
+        publicId: userId,
+      });
+    } else {
+      const path = await import('path');
+      const fs = await import('fs/promises');
+      const uploadsDir = path.join(process.cwd(), 'uploads', 'profiles');
+      await fs.mkdir(uploadsDir, { recursive: true });
+      const ext = file.mimetype === 'image/png' ? 'png' : 'jpg';
+      const filename = `${userId}.${ext}`;
+      const filePath = path.join(uploadsDir, filename);
+      await fs.writeFile(filePath, file.buffer);
+      profilePicUrl = `/uploads/profiles/${filename}`;
+    }
     user.profilePic = profilePicUrl;
     await user.save();
     return this.getProfile(userId);

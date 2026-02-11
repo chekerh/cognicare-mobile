@@ -15,6 +15,7 @@ import { MarketplaceModule } from './marketplace/marketplace.module';
 import { ConversationsModule } from './conversations/conversations.module';
 import { AvailabilitiesModule } from './availabilities/availabilities.module';
 import { ChildrenModule } from './children/children.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { ChildrenModule } from './children/children.module';
     ConversationsModule,
     AvailabilitiesModule,
     ChildrenModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

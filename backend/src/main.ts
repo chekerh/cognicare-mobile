@@ -27,7 +27,8 @@ async function bootstrap() {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   app.use(compression.default());
 
-  // Enable CORS for Flutter app
+  // Enable CORS for Flutter app and web
+  const corsOriginEnv = process.env.CORS_ORIGIN;
   const allowedOrigins = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
@@ -35,7 +36,7 @@ async function bootstrap() {
     'http://localhost:54200', // Flutter web dev server
     'http://localhost:54201',
     'http://localhost:54202',
-    process.env.CORS_ORIGIN,
+    corsOriginEnv,
   ].filter(Boolean);
 
   app.enableCors({
@@ -43,7 +44,7 @@ async function bootstrap() {
       origin: string | undefined,
       callback: (err: Error | null, allow?: boolean) => void,
     ) => {
-      // Allow requests with no origin (like mobile apps or Postman)
+      // Allow requests with no origin (mobile apps, Postman)
       if (!origin) {
         callback(null, true);
         return;
@@ -57,6 +58,15 @@ async function bootstrap() {
       ) {
         callback(null, true);
         return;
+      }
+
+      // Allow multiple origins from CORS_ORIGIN (comma-separated on Render)
+      if (corsOriginEnv) {
+        const list = corsOriginEnv.split(',').map((o) => o.trim()).filter(Boolean);
+        if (list.indexOf(origin) !== -1) {
+          callback(null, true);
+          return;
+        }
       }
 
       // Check against allowed origins list

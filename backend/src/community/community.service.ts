@@ -11,6 +11,7 @@ import { User, UserDocument } from '../users/schemas/user.schema';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 interface PostLean {
   _id: Types.ObjectId;
@@ -36,12 +37,21 @@ export class CommunityService {
     @InjectModel(Post.name) private postModel: Model<PostDocument>,
     @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private cloudinary: CloudinaryService,
   ) {}
 
   async uploadPostImage(file: {
     buffer: Buffer;
     mimetype: string;
   }): Promise<string> {
+    if (this.cloudinary.isConfigured()) {
+      const crypto = await import('crypto');
+      const publicId = `post-${crypto.randomUUID()}`;
+      return this.cloudinary.uploadBuffer(file.buffer, {
+        folder: 'cognicare/posts',
+        publicId,
+      });
+    }
     const path = await import('path');
     const fs = await import('fs/promises');
     const crypto = await import('crypto');

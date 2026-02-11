@@ -33,6 +33,16 @@ class AppConstants {
   // Children (family profile)
   static const String childrenEndpoint = '/api/v1/children';
 
+  /// Returns a full URL for an image from the API (profile pics, post images).
+  /// If [pathOrUrl] is empty, returns ''. If it already starts with 'http', returns as-is.
+  /// Otherwise prefixes with [baseUrl] (e.g. /uploads/profiles/xxx → http://host/uploads/profiles/xxx).
+  static String fullImageUrl(String pathOrUrl) {
+    if (pathOrUrl.isEmpty) return '';
+    if (pathOrUrl.startsWith('http')) return pathOrUrl;
+    final base = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+    return pathOrUrl.startsWith('/') ? '$base$pathOrUrl' : '$base/$pathOrUrl';
+  }
+
   // Storage Keys
   static const String jwtTokenKey = 'jwt_token';
   static const String userDataKey = 'user_data';

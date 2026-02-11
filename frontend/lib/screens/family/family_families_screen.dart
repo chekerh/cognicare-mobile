@@ -359,18 +359,25 @@ class _ConversationTile extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.network(
-                conversation.imageUrl,
-                width: 56,
-                height: 56,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  width: 56,
-                  height: 56,
-                  color: _primary.withOpacity(0.3),
-                  child: const Icon(Icons.person, size: 28),
-                ),
-              ),
+              child: conversation.imageUrl.isEmpty
+                  ? Container(
+                      width: 56,
+                      height: 56,
+                      color: _primary.withOpacity(0.3),
+                      child: const Icon(Icons.person, size: 28),
+                    )
+                  : Image.network(
+                      AppConstants.fullImageUrl(conversation.imageUrl),
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 56,
+                        height: 56,
+                        color: _primary.withOpacity(0.3),
+                        child: const Icon(Icons.person, size: 28),
+                      ),
+                    ),
             ),
             const SizedBox(width: 16),
             Expanded(

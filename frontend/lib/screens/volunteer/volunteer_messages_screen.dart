@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
+import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFF77B5D1);
 const Color _textPrimary = Color(0xFF1E293B);
@@ -19,6 +20,7 @@ class _Conversation {
   final bool isFamily;
   final String? conversationId;
   final String? segment;
+  final String imageUrl;
 
   const _Conversation({
     required this.id,
@@ -30,6 +32,7 @@ class _Conversation {
     this.isFamily = false,
     this.conversationId,
     this.segment,
+    this.imageUrl = '',
   });
 }
 
@@ -69,6 +72,7 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
                   isFamily: e.segment == 'families',
                   conversationId: e.id,
                   segment: e.segment,
+                  imageUrl: e.imageUrl,
                 ))
             .toList();
         _loading = false;
@@ -271,10 +275,25 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
           ),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: _primary.withOpacity(0.2),
-                child: Icon(c.isFamily ? Icons.group : Icons.person, color: _primary, size: 28),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: c.imageUrl.isEmpty
+                    ? CircleAvatar(
+                        radius: 28,
+                        backgroundColor: _primary.withOpacity(0.2),
+                        child: Icon(c.isFamily ? Icons.group : Icons.person, color: _primary, size: 28),
+                      )
+                    : Image.network(
+                        AppConstants.fullImageUrl(c.imageUrl),
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => CircleAvatar(
+                          radius: 28,
+                          backgroundColor: _primary.withOpacity(0.2),
+                          child: Icon(c.isFamily ? Icons.group : Icons.person, color: _primary, size: 28),
+                        ),
+                      ),
               ),
               const SizedBox(width: 16),
               Expanded(
