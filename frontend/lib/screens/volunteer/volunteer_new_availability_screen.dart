@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../services/auth_service.dart';
+import '../../services/availability_service.dart';
 
 const Color _primary = Color(0xFF89CFF0);
 const Color _primaryDark = Color(0xFF5BAED4);
@@ -19,8 +21,9 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
   final Set<DateTime> _selectedDates = {};
   bool _recurrenceOn = true;
   int _recurrenceType = 0; // 0 Hebdomadaire, 1 Toutes les 2 semaines
-  final TimeOfDay _startTime = const TimeOfDay(hour: 14, minute: 0);
-  final TimeOfDay _endTime = const TimeOfDay(hour: 18, minute: 0);
+  TimeOfDay _startTime = const TimeOfDay(hour: 14, minute: 0);
+  TimeOfDay _endTime = const TimeOfDay(hour: 18, minute: 0);
+  bool _saving = false;
 
   static const _daysShort = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'];
 
@@ -68,6 +71,44 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
     final h = t.hour.toString().padLeft(2, '0');
     final m = t.minute.toString().padLeft(2, '0');
     return '$h:$m';
+  }
+
+  Future<void> _saveAvailability() async {
+    if (_selectedDates.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sélectionnez au moins une date'), behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+    setState(() => _saving = true);
+    try {
+      final dates = _selectedDates.map((d) {
+        final y = d.year.toString();
+        final m = d.month.toString().padLeft(2, '0');
+        final day = d.day.toString().padLeft(2, '0');
+        return '$y-$m-$day';
+      }).toList();
+      final service = AvailabilityService(getToken: () => AuthService().getStoredToken());
+      await service.create(
+        dates: dates,
+        startTime: _formatTime(_startTime),
+        endTime: _formatTime(_endTime),
+        recurrence: _recurrenceType == 0 ? 'weekly' : 'biweekly',
+        recurrenceOn: _recurrenceOn,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Disponibilité enregistrée'), behavior: SnackBarBehavior.floating),
+      );
+      context.pop();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), behavior: SnackBarBehavior.floating),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
@@ -277,12 +318,9 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                     ),
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Disponibilité enregistrée'), behavior: SnackBarBehavior.floating));
-                        context.pop();
-                      },
-                      icon: const Icon(Icons.check_circle, size: 22),
-                      label: const Text('Enregistrer ma disponibilité', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      onPressed: _saving ? null : _saveAvailability,
+                      icon: _saving ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.check_circle, size: 22),
+                      label: Text(_saving ? 'Enregistrement...' : 'Enregistrer ma disponibilité', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _primary,
                         foregroundColor: Colors.white,

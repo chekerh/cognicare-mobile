@@ -26,11 +26,14 @@ class VolunteerFamilyChatScreen extends StatefulWidget {
     required this.familyId,
     required this.familyName,
     required this.missionType,
+    this.conversationId,
   });
 
   final String familyId;
   final String familyName;
   final String missionType;
+  /// When set, messages are loaded/sent with this conversation (no getOrCreateConversation).
+  final String? conversationId;
 
   static VolunteerFamilyChatScreen fromState(GoRouterState state) {
     final extra = state.extra as Map<String, dynamic>?;
@@ -38,6 +41,7 @@ class VolunteerFamilyChatScreen extends StatefulWidget {
       familyId: extra?['familyId'] as String? ?? '',
       familyName: extra?['familyName'] as String? ?? 'Famille',
       missionType: extra?['missionType'] as String? ?? 'Mission',
+      conversationId: extra?['conversationId'] as String?,
     );
   }
 
@@ -58,10 +62,55 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
   void initState() {
     super.initState();
     _messages = [];
-    if (widget.familyId.isNotEmpty) {
+    if (widget.conversationId != null && widget.conversationId!.isNotEmpty) {
+      _conversationId = widget.conversationId;
+      _loadMessagesDirect();
+    } else if (widget.familyId.isNotEmpty) {
       _resolveAndLoadMessages();
     } else {
       _messages = _defaultMessages();
+    }
+  }
+
+  Future<void> _loadMessagesDirect() async {
+    final cid = _conversationId;
+    if (cid == null) return;
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final currentUserId = auth.user?.id;
+      if (currentUserId == null) {
+        setState(() {
+          _loading = false;
+          _loadError = 'Non connecté';
+        });
+        return;
+      }
+      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final list = await chatService.getMessages(cid);
+      if (!mounted) return;
+      setState(() {
+        _messages = list.map((m) {
+          final isMe = m.senderId == currentUserId;
+          return _Msg(
+            text: m.text,
+            isMe: isMe,
+            time: _formatTime(m.createdAt),
+            read: false,
+          );
+        }).toList();
+        _loading = false;
+        _loadError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _loadError = e.toString().replaceFirst('Exception: ', '');
+      });
     }
   }
 
@@ -211,7 +260,13 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                                 Text(_loadError!, textAlign: TextAlign.center),
                                 const SizedBox(height: 16),
                                 TextButton(
-                                  onPressed: _resolveAndLoadMessages,
+                                  onPressed: () {
+                                    if (widget.conversationId != null) {
+                                      _loadMessagesDirect();
+                                    } else {
+                                      _resolveAndLoadMessages();
+                                    }
+                                  },
                                   child: const Text('Réessayer'),
                                 ),
                               ],

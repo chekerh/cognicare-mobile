@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/availability_service.dart';
+import '../../services/auth_service.dart';
+import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
 import 'child_profile_setup_screen.dart';
 
@@ -48,10 +51,56 @@ class FamilyMemberDashboardScreen extends StatefulWidget {
 }
 
 class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScreen> {
+  List<_VolunteerCardData>? _volunteerCards;
+  bool _loadingVolunteers = false;
+  String? _volunteerError;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkChildProfileComplete());
+    _loadVolunteerAvailabilities();
+  }
+
+  Future<void> _loadVolunteerAvailabilities() async {
+    setState(() {
+      _loadingVolunteers = true;
+      _volunteerError = null;
+    });
+    try {
+      final service = AvailabilityService(getToken: () => AuthService().getStoredToken());
+      final list = await service.listForFamilies();
+      if (!mounted) return;
+      setState(() {
+        _volunteerCards = list.map((a) {
+          final dateStr = a.dates.isNotEmpty
+              ? a.dates.length == 1
+                  ? a.dates.first
+                  : '${a.dates.first} – ${a.dates.last}'
+              : '';
+          final timeStr = '${a.startTime} – ${a.endTime}';
+          final pic = a.volunteerProfilePic;
+          final avatarUrl = (pic != null && pic.isNotEmpty && !pic.startsWith('http'))
+              ? '${AppConstants.baseUrl}$pic'
+              : (pic ?? '');
+          return _VolunteerCardData(
+            id: a.volunteerId,
+            name: a.volunteerName,
+            avatarUrl: avatarUrl,
+            specialization: dateStr.isNotEmpty ? 'Disponible $dateStr, $timeStr' : 'Disponible $timeStr',
+            location: '',
+          );
+        }).toList();
+        _loadingVolunteers = false;
+        _volunteerError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loadingVolunteers = false;
+        _volunteerError = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
   }
 
   Future<void> _checkChildProfileComplete() async {
@@ -81,6 +130,32 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
         ],
       ),
     );
+  }
+
+  Future<void> _openChatWithVolunteer(BuildContext context, _VolunteerCardData v) async {
+    try {
+      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final conv = await chatService.getOrCreateConversation(v.id);
+      if (!mounted) return;
+      final uri = Uri(
+        path: AppConstants.familyPrivateChatRoute,
+        queryParameters: <String, String>{
+          'id': v.id,
+          'name': v.name,
+          if (v.avatarUrl.isNotEmpty) 'imageUrl': v.avatarUrl,
+          'conversationId': conv.id,
+        },
+      );
+      context.push(uri.toString());
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -432,30 +507,6 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
     );
   }
 
-  static const List<_VolunteerCardData> _volunteers = [
-    _VolunteerCardData(
-      id: 'volunteer-sarah-miller',
-      name: 'Sarah Miller',
-      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDa9YjhzEnl1xZV-16FgNasNLLSPYGAxoAInz2ABP_EQGTu6dOPK6fxj18Gt-Hm_JiJSsJOzRcgAcBwjvylPN1BfzIQmOWS-M46LbrO8cMWDSMabfeBahZShTGVHPACMChjAKL3oZ4Yazo8PdykzrZW_0uJRXKt3FkoB8VE438vXx99CHpuE3HC2DPFidBkfiNAMsUDnhLB0kA7xMHTqdlnLDXLBA_cNyZCz1JsWzGXPQhYR87Yp52kl3p4GcUi_SDfwFb095juyrM',
-      specialization: 'Aide orthophonique & Lecture',
-      location: 'Lyon 3 • 2 km',
-    ),
-    _VolunteerCardData(
-      id: 'volunteer-david-chen',
-      name: 'David Chen',
-      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC9uszXa11CivzMYsbmhCfvx0SASe0AkMaMhe816F5kMf7_q0cUmLvaR3WbAyvMCOEU5Xaj4gTa5SSndyTJh1Lcv2UQf_KwDnTz4qoay7CdXRjQNtlwLX1NAF2XjNEK9lMpdm50PEFU02lVNJDlMEW3QoxQCyvXNRBBieKunWrt1FpK2I5VgY5towJOevNs6El8oqdxbfKsfSoezp7rxVfjUVQy4ZuiopksYJH1DZQpURXMyPhZutJRv6R97VBhwsk24tFNZGkMN9Q',
-      specialization: 'Kinésithérapie & Activités extérieures',
-      location: 'Villeurbanne • 0,5 km',
-    ),
-    _VolunteerCardData(
-      id: 'volunteer-emma-wilson',
-      name: 'Emma Wilson',
-      avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDlV8Lpv4GFaGOxzHKQOVtrEP0kCUl576ef14mnP5FSwPjlR_8o_M0bl3mfSKVJpSM3Y7jiGL-EoHYdpJwZeQDZFbbSpMIl7BWEpLVx8HGIFaCTQIfBFRQp0EKVGjNcu5_j72Oo-mgqR5OULOx1uTHNz7CN4M1WiWd4A0R5UgwDiCzggcMy6tghENrKFZhDAgLbiy2tHsFRCzDFEMDi0vLa3lgZ3bzQUaVX7cFNo_ApWzGg-4FVEW2DOAWzyQuWbOpMMr7dYK2gAIg',
-      specialization: 'Tâches quotidiennes & Arts créatifs',
-      location: 'Lyon 7 • 5 km',
-    ),
-  ];
-
   Widget _buildVolunteersSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -471,10 +522,43 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
             ),
           ),
         ),
-        ..._volunteers.map((v) => Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: _buildVolunteerCard(context, v),
-        )),
+        if (_loadingVolunteers)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (_volunteerError != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Column(
+                children: [
+                  Text(_volunteerError!, textAlign: TextAlign.center, style: const TextStyle(color: _slate500)),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: _loadVolunteerAvailabilities,
+                    child: const Text('Réessayer'),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else if (_volunteerCards == null || _volunteerCards!.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Text(
+                'Aucun bénévole disponible pour le moment.\nLes disponibilités publiées apparaîtront ici.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: _slate500),
+              ),
+            ),
+          )
+        else
+          ..._volunteerCards!.map((v) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildVolunteerCard(context, v),
+              )),
       ],
     );
   }
@@ -559,20 +643,22 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on_outlined, size: 14, color: _slate400),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              v.location,
-                              style: const TextStyle(fontSize: 12, color: _slate500),
-                              overflow: TextOverflow.ellipsis,
+                      if (v.location.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on_outlined, size: 14, color: _slate400),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                v.location,
+                                style: const TextStyle(fontSize: 12, color: _slate500),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -583,14 +669,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Demande envoyée à ${v.name}'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
+                    onPressed: () => _openChatWithVolunteer(context, v),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _primaryDark,
                       foregroundColor: Colors.white,
@@ -603,17 +682,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                 ),
                 const SizedBox(width: 12),
                 OutlinedButton(
-                  onPressed: () {
-                    final uri = Uri(
-                      path: AppConstants.familyPrivateChatRoute,
-                      queryParameters: <String, String>{
-                        'id': v.id,
-                        'name': v.name,
-                        if (v.avatarUrl.isNotEmpty) 'imageUrl': v.avatarUrl,
-                      },
-                    );
-                    context.push(uri.toString());
-                  },
+                  onPressed: () => _openChatWithVolunteer(context, v),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: _slate800,
                     side: const BorderSide(color: _slate300),

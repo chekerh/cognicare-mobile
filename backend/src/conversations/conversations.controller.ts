@@ -24,7 +24,12 @@ export class ConversationsController {
     @Param('otherUserId') otherUserId: string,
   ) {
     const userId = req.user.id as string;
-    return this.conversationsService.getOrCreateConversation(userId, otherUserId);
+    const role = (req.user.role as string)?.toLowerCase?.();
+    const options =
+      role === 'volunteer'
+        ? { otherSegment: 'benevole' as const }
+        : undefined;
+    return this.conversationsService.getOrCreateConversation(userId, otherUserId, options);
   }
 
   @Get(':id/messages')

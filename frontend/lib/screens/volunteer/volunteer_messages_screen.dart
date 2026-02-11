@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../services/auth_service.dart';
+import '../../services/chat_service.dart';
+
 const Color _primary = Color(0xFF77B5D1);
 const Color _textPrimary = Color(0xFF1E293B);
 const Color _textMuted = Color(0xFF64748B);
@@ -14,6 +17,8 @@ class _Conversation {
   final String timeAgo;
   final String? missionType;
   final bool isFamily;
+  final String? conversationId;
+  final String? segment;
 
   const _Conversation({
     required this.id,
@@ -23,6 +28,8 @@ class _Conversation {
     required this.timeAgo,
     this.missionType,
     this.isFamily = false,
+    this.conversationId,
+    this.segment,
   });
 }
 
@@ -37,63 +44,59 @@ class VolunteerMessagesScreen extends StatefulWidget {
 class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
   int _selectedTab = 0; // 0: Personnes, 1: Familles
   String _searchQuery = '';
+  List<_Conversation>? _inboxConversations;
+  bool _loading = false;
+  String? _loadError;
 
-  static const List<_Conversation> _personsList = [
-    _Conversation(
-      id: 'lefebvre',
-      name: 'Mme. Lefebvre',
-      subtitle: 'Famille Lefebvre',
-      lastMessage: 'Votre visite est prévue demain à 14:00.',
-      timeAgo: '10:15',
-      isFamily: false,
-    ),
-    _Conversation(
-      id: 'marie-dubois',
-      name: 'Marie Dubois',
-      subtitle: 'Famille Dubois',
-      lastMessage: 'Merci encore Lucas pour votre aide précieuse aujourd\'hui !',
-      timeAgo: '14:30',
-      isFamily: false,
-    ),
-  ];
+  Future<void> _loadInbox() async {
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
+    try {
+      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final list = await chatService.getInbox();
+      if (!mounted) return;
+      setState(() {
+        _inboxConversations = list
+            .map((e) => _Conversation(
+                  id: e.id,
+                  name: e.name,
+                  subtitle: e.subtitle,
+                  lastMessage: e.lastMessage,
+                  timeAgo: e.timeAgo,
+                  missionType: e.subtitle,
+                  isFamily: e.segment == 'families',
+                  conversationId: e.id,
+                  segment: e.segment,
+                ))
+            .toList();
+        _loading = false;
+        _loadError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _loadError = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  }
 
-  static const List<_Conversation> _familiesList = [
-    _Conversation(
-      id: 'martin',
-      name: 'Famille Martin',
-      subtitle: '4 members',
-      lastMessage: 'C\'est parfait. Je vous laisserai la liste sur la table de l\'entrée.',
-      timeAgo: '10:20',
-      missionType: 'Courses de proximité',
-      isFamily: true,
-    ),
-    _Conversation(
-      id: 'dubois',
-      name: 'Famille Dubois',
-      subtitle: '3 members',
-      lastMessage: 'Merci encore Lucas pour votre aide précieuse aujourd\'hui !',
-      timeAgo: '14:30',
-      missionType: 'Lecture & Compagnie',
-      isFamily: true,
-    ),
-    _Conversation(
-      id: 'lefebvre',
-      name: 'Famille Lefebvre',
-      subtitle: '2 members',
-      lastMessage: 'Session accompagnement extérieur confirmée.',
-      timeAgo: 'Hier',
-      missionType: 'Accompagnement extérieur',
-      isFamily: true,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadInbox();
+  }
 
   void _openChat(BuildContext context, _Conversation c) {
     context.push(
       '/volunteer/family-chat',
       extra: {
-        'familyId': c.id,
+        'familyId': c.conversationId != null ? '' : c.id,
         'familyName': c.name,
         'missionType': c.missionType ?? c.subtitle ?? 'Mission',
+        if (c.conversationId != null) 'conversationId': c.conversationId!,
       },
     );
   }
@@ -204,12 +207,39 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
   }
 
   Widget _buildContent() {
-    final rawList = _selectedTab == 0 ? _personsList : _familiesList;
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_loadError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_loadError!, textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: _loadInbox,
+                child: const Text('Réessayer'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    final all = _inboxConversations ?? [];
+    final rawList = _selectedTab == 0
+        ? all.where((c) => c.segment != 'families').toList()
+        : all.where((c) => c.segment == 'families').toList();
     final list = _filterBySearch(rawList);
     if (list.isEmpty) {
       return Center(
         child: Text(
-          'Aucune conversation',
+          _selectedTab == 0
+              ? 'Aucune conversation avec des personnes.'
+              : 'Aucune conversation avec des familles.',
+          textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
         ),
       );

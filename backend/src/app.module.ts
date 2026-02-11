@@ -13,6 +13,7 @@ import { OrganizationModule } from './organization/organization.module';
 import { CommunityModule } from './community/community.module';
 import { MarketplaceModule } from './marketplace/marketplace.module';
 import { ConversationsModule } from './conversations/conversations.module';
+import { AvailabilitiesModule } from './availabilities/availabilities.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { ConversationsModule } from './conversations/conversations.module';
     CommunityModule,
     MarketplaceModule,
     ConversationsModule,
+    AvailabilitiesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

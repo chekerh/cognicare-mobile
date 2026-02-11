@@ -40,7 +40,7 @@ export class ConversationsService {
   async getOrCreateConversation(
     userId: string,
     otherUserId: string,
-    options?: { name?: string; imageUrl?: string; segment?: ConversationSegment },
+    options?: { name?: string; imageUrl?: string; segment?: ConversationSegment; otherSegment?: ConversationSegment },
   ) {
     const uid = new Types.ObjectId(userId);
     const oid = new Types.ObjectId(otherUserId);
@@ -86,7 +86,7 @@ export class ConversationsService {
         lastMessage: '',
         timeAgo: '',
         imageUrl: options?.imageUrl ?? '',
-        segment: options?.segment ?? 'persons',
+        segment: options?.otherSegment ?? options?.segment ?? 'persons',
       },
     ]);
 

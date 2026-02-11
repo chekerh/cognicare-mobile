@@ -26,6 +26,10 @@ class AppConstants {
   static const String conversationsByParticipantEndpoint = '/api/v1/conversations/by-participant';
   static String conversationsMessagesEndpoint(String id) => '/api/v1/conversations/$id/messages';
 
+  // Availabilities (bénévoles)
+  static const String availabilitiesEndpoint = '/api/v1/availabilities';
+  static const String availabilitiesForFamiliesEndpoint = '/api/v1/availabilities/for-families';
+
   // Storage Keys
   static const String jwtTokenKey = 'jwt_token';
   static const String userDataKey = 'user_data';
