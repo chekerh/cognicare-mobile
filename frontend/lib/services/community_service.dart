@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/community_post.dart';
 import '../models/feed_comment.dart';
@@ -88,7 +89,11 @@ class CommunityService {
     );
     final token = await _getToken();
     if (token != null) request.headers['Authorization'] = 'Bearer $token';
-    request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+    request.files.add(await http.MultipartFile.fromPath(
+      'file',
+      imageFile.path,
+      contentType: MediaType('image', 'jpeg'),
+    ));
     final streamed = await request.send();
     final response = await http.Response.fromStream(streamed);
     if (response.statusCode != 200 && response.statusCode != 201) {

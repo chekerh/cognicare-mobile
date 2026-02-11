@@ -52,7 +52,11 @@ export class CommunityController {
       'image/webp',
       'image/heic', // iOS photos
     ];
-    const mimetype = (file.mimetype ?? '').toLowerCase();
+    let mimetype = (file.mimetype ?? '').toLowerCase();
+    // iOS / some clients send empty or application/octet-stream; treat as jpeg
+    if (!mimetype || mimetype === 'application/octet-stream') {
+      mimetype = 'image/jpeg';
+    }
     if (!allowed.includes(mimetype) && !mimetype.startsWith('image/')) {
       throw new BadRequestException(
         'Invalid file type. Use JPEG, PNG or WebP.',

@@ -260,13 +260,11 @@ class CommunityFeedProvider with ChangeNotifier {
       try {
         String? imageUrl;
         if (imagePath != null && imagePath.isNotEmpty) {
-          try {
-            final file = File(imagePath);
-            if (await file.exists()) {
-              imageUrl = await _api.uploadPostImage(file);
-            }
-          } catch (_) {
-            // Continue without image if upload fails
+          final file = File(imagePath);
+          if (await file.exists()) {
+            imageUrl = await _api.uploadPostImage(file);
+          } else {
+            throw Exception('Image file not found. Try selecting the image again.');
           }
         }
         final post = await _api.createPost(

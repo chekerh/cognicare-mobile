@@ -68,12 +68,25 @@ class _AddPostScreenState extends State<AddPostScreen> {
     final feed = Provider.of<CommunityFeedProvider>(context, listen: false);
     final user = auth.user;
 
-    await feed.addPost(
-      authorName: user?.fullName ?? 'Anonymous',
-      authorId: user?.id ?? '',
-      text: text,
-      imagePath: _selectedImagePath,
-    );
+    try {
+      await feed.addPost(
+        authorName: user?.fullName ?? 'Anonymous',
+        authorId: user?.id ?? '',
+        text: text,
+        imagePath: _selectedImagePath,
+      );
+    } catch (e) {
+      setState(() => _isPosting = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e is Exception ? e.toString().replaceFirst('Exception: ', '') : 'Failed to share post'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     setState(() => _isPosting = false);
     if (!mounted) return;
