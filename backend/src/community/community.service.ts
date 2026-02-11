@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -33,6 +34,8 @@ interface CommentLean {
 
 @Injectable()
 export class CommunityService {
+  private readonly logger = new Logger(CommunityService.name);
+
   constructor(
     @InjectModel(Post.name) private postModel: Model<PostDocument>,
     @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
@@ -147,7 +150,8 @@ export class CommunityService {
   }
 
   private normalizeUserId(userId: string | { toString(): string }): string {
-    return typeof userId === 'string' ? userId : userId.toString();
+    const s = typeof userId === 'string' ? userId : userId.toString();
+    return (s ?? '').trim();
   }
 
   async updatePost(
@@ -158,7 +162,8 @@ export class CommunityService {
     const post = await this.postModel.findById(postId).exec();
     if (!post) throw new NotFoundException('Post not found');
     const uid = this.normalizeUserId(userId);
-    if (post.authorId.toString() !== uid) {
+    const authorIdStr = (post.authorId?.toString() ?? '').trim();
+    if (authorIdStr !== uid) {
       throw new ForbiddenException('You can only edit your own posts');
     }
     if (dto.text !== undefined) post.text = dto.text;
@@ -171,7 +176,11 @@ export class CommunityService {
     const post = await this.postModel.findById(postId).exec();
     if (!post) throw new NotFoundException('Post not found');
     const uid = this.normalizeUserId(userId);
-    if (post.authorId.toString() !== uid) {
+    const authorIdStr = (post.authorId?.toString() ?? '').trim();
+    if (authorIdStr !== uid) {
+      this.logger.warn(
+        `Delete denied: uid=${uid} authorId=${authorIdStr} postId=${postId}`,
+      );
       throw new ForbiddenException('You can only delete your own posts');
     }
     await this.commentModel
