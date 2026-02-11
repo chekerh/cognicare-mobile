@@ -21,6 +21,11 @@ class AppConstants {
   // Marketplace
   static const String marketplaceProductsEndpoint = '/api/v1/marketplace/products';
 
+  // Conversations / Chat
+  static const String conversationsInboxEndpoint = '/api/v1/conversations/inbox';
+  static const String conversationsByParticipantEndpoint = '/api/v1/conversations/by-participant';
+  static String conversationsMessagesEndpoint(String id) => '/api/v1/conversations/$id/messages';
+
   // Storage Keys
   static const String jwtTokenKey = 'jwt_token';
   static const String userDataKey = 'user_data';

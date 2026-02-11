@@ -31,6 +31,14 @@ export class Conversation {
 
   @Prop({ enum: ['persons', 'families', 'benevole'], default: 'persons' })
   segment: ConversationSegment;
+
+  /** Links messages; same for both sides of the thread */
+  @Prop({ type: Types.ObjectId })
+  threadId?: Types.ObjectId;
+
+  /** Other participant (for real messaging) */
+  @Prop({ type: Types.ObjectId, ref: User.name })
+  otherUserId?: Types.ObjectId;
 }
 
 export const ConversationSchema = SchemaFactory.createForClass(Conversation);

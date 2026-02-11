@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../services/auth_service.dart';
+import '../../services/chat_service.dart';
 
 const Color _primary = Color(0xFF77B5D1);
 const Color _bgSoft = Color(0xFFEEF7FB);
@@ -45,11 +49,63 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   late List<_Msg> _messages;
+  String? _conversationId;
+  bool _loading = false;
+  String? _loadError;
+  bool _sending = false;
 
   @override
   void initState() {
     super.initState();
-    _messages = _defaultMessages();
+    _messages = [];
+    if (widget.familyId.isNotEmpty) {
+      _resolveAndLoadMessages();
+    } else {
+      _messages = _defaultMessages();
+    }
+  }
+
+  Future<void> _resolveAndLoadMessages() async {
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final currentUserId = auth.user?.id;
+      if (currentUserId == null) {
+        setState(() {
+          _loading = false;
+          _loadError = 'Non connecté';
+        });
+        return;
+      }
+      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final conv = await chatService.getOrCreateConversation(widget.familyId);
+      if (!mounted) return;
+      _conversationId = conv.id;
+      final list = await chatService.getMessages(conv.id);
+      if (!mounted) return;
+      setState(() {
+        _messages = list.map((m) {
+          final isMe = m.senderId == currentUserId;
+          return _Msg(
+            text: m.text,
+            isMe: isMe,
+            time: _formatTime(m.createdAt),
+            read: false,
+          );
+        }).toList();
+        _loading = false;
+        _loadError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _loadError = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
   }
 
   List<_Msg> _defaultMessages() {
@@ -80,17 +136,44 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     super.dispose();
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-    setState(() {
-      _messages.add(_Msg(
+    final cid = _conversationId;
+    if (cid != null) {
+      setState(() => _sending = true);
+      final optimistic = _Msg(
         text: text,
         isMe: true,
         time: _formatTime(DateTime.now()),
-      ));
-    });
-    _controller.clear();
+      );
+      setState(() => _messages.add(optimistic));
+      _controller.clear();
+      try {
+        final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+        await chatService.sendMessage(cid, text);
+        if (!mounted) return;
+        setState(() => _sending = false);
+      } catch (e) {
+        if (!mounted) return;
+        setState(() {
+          _messages.remove(optimistic);
+          _sending = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
+    } else {
+      setState(() {
+        _messages.add(_Msg(
+          text: text,
+          isMe: true,
+          time: _formatTime(DateTime.now()),
+        ));
+      });
+      _controller.clear();
+    }
   }
 
   String _formatTime(DateTime d) {
@@ -116,20 +199,39 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
           Expanded(
             child: Container(
               color: _bgSoft,
-              child: ListView(
-                controller: _scrollController,
-                padding: EdgeInsets.only(
-                  left: 16 + padding.left,
-                  right: 16 + padding.right,
-                  top: 24,
-                  bottom: 24,
-                ),
-                children: [
-                _buildDateSeparator(),
-                const SizedBox(height: 24),
-                ..._messages.map((m) => _buildBubble(m)),
-                ],
-              ),
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _loadError != null
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(_loadError!, textAlign: TextAlign.center),
+                                const SizedBox(height: 16),
+                                TextButton(
+                                  onPressed: _resolveAndLoadMessages,
+                                  child: const Text('Réessayer'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : ListView(
+                          controller: _scrollController,
+                          padding: EdgeInsets.only(
+                            left: 16 + padding.left,
+                            right: 16 + padding.right,
+                            top: 24,
+                            bottom: 24,
+                          ),
+                          children: [
+                            _buildDateSeparator(),
+                            const SizedBox(height: 24),
+                            ..._messages.map((m) => _buildBubble(m)),
+                          ],
+                        ),
             ),
           ),
           SafeArea(

@@ -77,7 +77,7 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
       isFamily: true,
     ),
     _Conversation(
-      id: 'lefebvre-fam',
+      id: 'lefebvre',
       name: 'Famille Lefebvre',
       subtitle: '2 members',
       lastMessage: 'Session accompagnement extérieur confirmée.',

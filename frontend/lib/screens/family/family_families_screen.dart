@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../services/auth_service.dart';
+import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
 
 /// Écran Chats — trois onglets (Persons, Families, Benevole) comme Suivi.
@@ -17,6 +19,8 @@ class _Conversation {
   final String timeAgo;
   final String imageUrl;
   final bool unread;
+  /// When set, opening this chat uses API (real messages).
+  final String? conversationId;
 
   const _Conversation({
     required this.id,
@@ -26,6 +30,7 @@ class _Conversation {
     required this.timeAgo,
     required this.imageUrl,
     this.unread = false,
+    this.conversationId,
   });
 }
 
@@ -39,6 +44,9 @@ class FamilyFamiliesScreen extends StatefulWidget {
 class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
   int _selectedTab = 0; // 0: Persons, 1: Families, 2: Benevole
   String _searchQuery = '';
+  List<_Conversation>? _inboxConversations;
+  bool _inboxLoading = false;
+  String? _inboxError;
 
   static const List<_Conversation> _personsConversations = [
     _Conversation(
@@ -135,16 +143,58 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
     {'name': 'Chloe', 'url': 'https://lh3.googleusercontent.com/aida-public/AB6AXuDsT0PPkoye8Y2_iqJxZFckG600cq6q4Aeq2o_ikCrCrEuei1XdeNjbRDfBrFNFX7nPKYbg2VnlfmJgVr7qHi41-pCuc7BRzWf9R-lelePkJpX5Gd7_yaLHT7q0N9Qo8c9D-ajGwaTRvukD0pyB6p21oBrTyPT1tmqP7nn4QBM2d3XW2Mop76XQUYcGrwDU1nddeC6PEovpDnsqKsRUu0Ysb7Uxh13mTlUktWqEzOfpC0LEIflhwlipD_NUgVsrs5gMBLRRXqvqmMo'},
   ];
 
+  Future<void> _loadInbox() async {
+    setState(() {
+      _inboxLoading = true;
+      _inboxError = null;
+    });
+    try {
+      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final list = await chatService.getInbox();
+      if (!mounted) return;
+      setState(() {
+        _inboxConversations = list
+            .map((e) => _Conversation(
+                  id: e.id,
+                  name: e.name,
+                  subtitle: e.subtitle,
+                  lastMessage: e.lastMessage,
+                  timeAgo: e.timeAgo,
+                  imageUrl: e.imageUrl,
+                  unread: e.unread,
+                  conversationId: e.id,
+                ))
+            .toList();
+        _inboxLoading = false;
+        _inboxError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _inboxLoading = false;
+        _inboxError = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadInbox();
+  }
+
   void _openChat(BuildContext context, _Conversation c) {
     if (_selectedTab == 0) {
+      final params = <String, String>{
+        'id': c.id,
+        'name': c.name,
+        if (c.imageUrl.isNotEmpty) 'imageUrl': c.imageUrl,
+        if (c.conversationId != null) 'conversationId': c.conversationId!,
+      };
       context.push(
         Uri(
           path: AppConstants.familyPrivateChatRoute,
-          queryParameters: {
-            'id': c.id,
-            'name': c.name,
-            if (c.imageUrl.isNotEmpty) 'imageUrl': c.imageUrl,
-          },
+          queryParameters: params,
         ).toString(),
       );
     } else {
@@ -380,8 +430,28 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
   }
 
   Widget _buildContent() {
+    if (_selectedTab == 0 && _inboxLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_selectedTab == 0 && _inboxError != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_inboxError!, textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              TextButton(onPressed: _loadInbox, child: const Text('Réessayer')),
+            ],
+          ),
+        ),
+      );
+    }
     final rawList = _selectedTab == 0
-        ? _personsConversations
+        ? (_inboxConversations != null && _inboxConversations!.isNotEmpty
+            ? _inboxConversations!
+            : _personsConversations)
         : _selectedTab == 1
             ? _familiesConversations
             : _benevoleConversations;

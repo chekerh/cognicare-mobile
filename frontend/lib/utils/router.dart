@@ -449,10 +449,12 @@ GoRouter createAppRouter(AuthProvider authProvider) {
             final id = state.uri.queryParameters['id'] ?? '';
             final name = state.uri.queryParameters['name'] ?? 'Person';
             final imageUrl = state.uri.queryParameters['imageUrl'];
+            final conversationId = state.uri.queryParameters['conversationId'];
             return FamilyPrivateChatScreen(
               personId: id,
               personName: name,
               personImageUrl: imageUrl?.isEmpty == true ? null : imageUrl,
+              conversationId: conversationId?.isEmpty == true ? null : conversationId,
             );
           },
         ),

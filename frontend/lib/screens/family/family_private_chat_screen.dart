@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../services/auth_service.dart';
+import '../../services/chat_service.dart';
 
 /// Chat privé 1-on-1 — design Private Community Chat.
 /// Header: back, avatar (avec point vert Online), nom, statut, vidéo, info.
@@ -19,17 +23,21 @@ class _Msg {
 }
 
 /// Écran de conversation privée avec une personne.
+/// Si [conversationId] est fourni, charge et envoie les messages via l'API.
 class FamilyPrivateChatScreen extends StatefulWidget {
   const FamilyPrivateChatScreen({
     super.key,
     required this.personId,
     required this.personName,
     this.personImageUrl,
+    this.conversationId,
   });
 
   final String personId;
   final String personName;
   final String? personImageUrl;
+  /// When set, messages are loaded and sent via API.
+  final String? conversationId;
 
   @override
   State<FamilyPrivateChatScreen> createState() => _FamilyPrivateChatScreenState();
@@ -40,11 +48,14 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   final ScrollController _scrollController = ScrollController();
 
   late List<_Msg> _messages;
+  bool _loading = false;
+  String? _loadError;
+  bool _sending = false;
 
   @override
   void initState() {
     super.initState();
-    _messages = _defaultMessages();
+    _messages = [];
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.white,
@@ -53,6 +64,46 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
         systemNavigationBarIconBrightness: Brightness.dark,
       ),
     );
+    if (widget.conversationId != null) {
+      _loadMessages();
+    } else {
+      _messages = _defaultMessages();
+    }
+  }
+
+  Future<void> _loadMessages() async {
+    final cid = widget.conversationId;
+    if (cid == null) return;
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final currentUserId = auth.user?.id;
+      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final list = await chatService.getMessages(cid);
+      if (!mounted) return;
+      setState(() {
+        _messages = list.map((m) {
+          final isMe = currentUserId != null && m.senderId == currentUserId;
+          return _Msg(
+            text: m.text,
+            isMe: isMe,
+            time: _formatTime(m.createdAt),
+            read: false,
+          );
+        }).toList();
+        _loading = false;
+        _loadError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _loadError = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
   }
 
   List<_Msg> _defaultMessages() {
@@ -88,19 +139,46 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     super.dispose();
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-    setState(() {
-      _messages.add(
-        _Msg(
-          text: text,
-          isMe: true,
-          time: _formatTime(DateTime.now()),
-        ),
+    final cid = widget.conversationId;
+    if (cid != null) {
+      setState(() => _sending = true);
+      final optimistic = _Msg(
+        text: text,
+        isMe: true,
+        time: _formatTime(DateTime.now()),
       );
-    });
-    _controller.clear();
+      setState(() => _messages.add(optimistic));
+      _controller.clear();
+      try {
+        final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+        await chatService.sendMessage(cid, text);
+        if (!mounted) return;
+        setState(() => _sending = false);
+      } catch (e) {
+        if (!mounted) return;
+        setState(() {
+          _messages.remove(optimistic);
+          _sending = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
+    } else {
+      setState(() {
+        _messages.add(
+          _Msg(
+            text: text,
+            isMe: true,
+            time: _formatTime(DateTime.now()),
+          ),
+        );
+      });
+      _controller.clear();
+    }
   }
 
   String _formatTime(DateTime d) {
@@ -123,15 +201,34 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
           Expanded(
             child: Container(
               color: const Color(0xFFF8FAFC),
-              child: ListView(
-                controller: _scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                children: [
-                  _buildDateSeparator(),
-                  const SizedBox(height: 24),
-                  ..._messages.map((m) => _buildBubble(m)),
-                ],
-              ),
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _loadError != null
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(_loadError!, textAlign: TextAlign.center),
+                                const SizedBox(height: 16),
+                                TextButton(
+                                  onPressed: _loadMessages,
+                                  child: const Text('Réessayer'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : ListView(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          children: [
+                            _buildDateSeparator(),
+                            const SizedBox(height: 24),
+                            ..._messages.map((m) => _buildBubble(m)),
+                          ],
+                        ),
             ),
           ),
           _buildInputBar(),
