@@ -154,6 +154,15 @@ export class CommunityService {
     return (s ?? '').trim();
   }
 
+  private isSameUser(userId: string, authorId: Types.ObjectId): boolean {
+    const uid = this.normalizeUserId(userId);
+    if (!uid) return false;
+    if (Types.ObjectId.isValid(uid) && String(authorId).length === 24) {
+      return new Types.ObjectId(uid).equals(authorId);
+    }
+    return (authorId?.toString() ?? '').trim() === uid;
+  }
+
   async updatePost(
     postId: string,
     userId: string,
@@ -161,9 +170,7 @@ export class CommunityService {
   ): Promise<void> {
     const post = await this.postModel.findById(postId).exec();
     if (!post) throw new NotFoundException('Post not found');
-    const uid = this.normalizeUserId(userId);
-    const authorIdStr = (post.authorId?.toString() ?? '').trim();
-    if (authorIdStr !== uid) {
+    if (!this.isSameUser(userId, post.authorId)) {
       throw new ForbiddenException('You can only edit your own posts');
     }
     if (dto.text !== undefined) post.text = dto.text;
@@ -175,11 +182,9 @@ export class CommunityService {
   async deletePost(postId: string, userId: string): Promise<void> {
     const post = await this.postModel.findById(postId).exec();
     if (!post) throw new NotFoundException('Post not found');
-    const uid = this.normalizeUserId(userId);
-    const authorIdStr = (post.authorId?.toString() ?? '').trim();
-    if (authorIdStr !== uid) {
+    if (!this.isSameUser(userId, post.authorId)) {
       this.logger.warn(
-        `Delete denied: uid=${uid} authorId=${authorIdStr} postId=${postId}`,
+        `Delete denied: uid=${this.normalizeUserId(userId)} authorId=${post.authorId?.toString()} postId=${postId}`,
       );
       throw new ForbiddenException('You can only delete your own posts');
     }
