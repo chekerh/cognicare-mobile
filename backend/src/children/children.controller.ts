@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -14,11 +22,15 @@ export class ChildrenController {
   @Get()
   @ApiBearerAuth('JWT-auth')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Get children for a family (GET /children?familyId=xxx or own if family)' })
+  @ApiOperation({
+    summary:
+      'Get children for a family (GET /children?familyId=xxx or own if family)',
+  })
   async getChildren(@Request() req: any, @Query('familyId') familyId?: string) {
     const userId = req.user.id as string;
     const role = (req.user.role as string)?.toLowerCase?.();
-    const targetFamilyId = familyId?.trim() || (role === 'family' ? userId : undefined);
+    const targetFamilyId =
+      familyId?.trim() || (role === 'family' ? userId : undefined);
     if (!targetFamilyId) {
       return [];
     }

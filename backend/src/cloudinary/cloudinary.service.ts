@@ -46,7 +46,15 @@ export class CloudinaryService {
         },
         (err, result) => {
           if (err) {
-            reject(err);
+            const error: Error =
+              err instanceof Error
+                ? err
+                : new Error(
+                    typeof (err as { message?: string })?.message === 'string'
+                      ? (err as { message: string }).message
+                      : 'Cloudinary upload failed',
+                  );
+            reject(error);
             return;
           }
           if (!result?.secure_url) {

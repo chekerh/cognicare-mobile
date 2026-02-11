@@ -62,7 +62,10 @@ async function bootstrap() {
 
       // Allow multiple origins from CORS_ORIGIN (comma-separated on Render)
       if (corsOriginEnv) {
-        const list = corsOriginEnv.split(',').map((o) => o.trim()).filter(Boolean);
+        const list = corsOriginEnv
+          .split(',')
+          .map((o) => o.trim())
+          .filter(Boolean);
         if (list.indexOf(origin) !== -1) {
           callback(null, true);
           return;

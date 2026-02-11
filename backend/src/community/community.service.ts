@@ -87,10 +87,7 @@ export class CommunityService {
     likeCount: number;
   }> {
     const uid = this.normalizeUserId(userId);
-    const user = await this.userModel
-      .findById(uid)
-      .select('fullName')
-      .exec();
+    const user = await this.userModel.findById(uid).select('fullName').exec();
     if (!user) throw new NotFoundException('User not found');
 
     const post = new this.postModel({

@@ -14,6 +14,29 @@ import {
 } from '../organization/schemas/organization.schema';
 import { AddChildDto } from './dto/add-child.dto';
 
+interface UserLean {
+  _id?: Types.ObjectId;
+  role?: string;
+  organizationId?: Types.ObjectId;
+}
+
+interface OrgLean {
+  _id?: Types.ObjectId;
+}
+
+interface ChildLean {
+  _id?: Types.ObjectId;
+  fullName?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  diagnosis?: string;
+  medicalHistory?: string;
+  allergies?: string;
+  medications?: string;
+  notes?: string;
+  parentId?: Types.ObjectId;
+}
+
 @Injectable()
 export class ChildrenService {
   constructor(
@@ -27,48 +50,60 @@ export class ChildrenService {
    * Get children for a family. Secured: only the family (parent) or org leader can list.
    */
   async findByFamilyId(familyId: string, requesterId: string) {
-    const family = await this.userModel.findById(familyId).lean().exec();
+    const family = (await this.userModel
+      .findById(familyId)
+      .lean()
+      .exec()) as UserLean | null;
     if (!family) throw new NotFoundException('Family not found');
-    if ((family as any).role !== 'family') {
+    if (family.role !== 'family') {
       throw new BadRequestException('User is not a family');
     }
-    if ((family as any)._id?.toString() !== requesterId) {
-      const org = await this.organizationModel
+    const familyIdStr = family._id?.toString();
+    if (familyIdStr !== requesterId) {
+      const org = (await this.organizationModel
         .findOne({ leaderId: new Types.ObjectId(requesterId) })
         .lean()
-        .exec();
+        .exec()) as OrgLean | null;
       if (!org) {
-        throw new ForbiddenException('Not allowed to list this family children');
+        throw new ForbiddenException(
+          'Not allowed to list this family children',
+        );
       }
-      if ((family as any).organizationId?.toString() !== (org as any)._id?.toString()) {
+      if (family.organizationId?.toString() !== org._id?.toString()) {
         throw new ForbiddenException('Family not in your organization');
       }
     }
-    const children = await this.childModel
+    const children = (await this.childModel
       .find({ parentId: new Types.ObjectId(familyId) })
       .sort({ createdAt: -1 })
       .lean()
-      .exec();
+      .exec()) as ChildLean[];
     return children.map((c) => ({
-      id: (c as any)._id.toString(),
-      fullName: (c as any).fullName,
-      dateOfBirth: (c as any).dateOfBirth,
-      gender: (c as any).gender,
-      diagnosis: (c as any).diagnosis,
-      medicalHistory: (c as any).medicalHistory,
-      allergies: (c as any).allergies,
-      medications: (c as any).medications,
-      notes: (c as any).notes,
-      parentId: (c as any).parentId?.toString(),
+      id: c._id?.toString() ?? '',
+      fullName: c.fullName ?? '',
+      dateOfBirth: c.dateOfBirth ?? '',
+      gender: c.gender ?? '',
+      diagnosis: c.diagnosis,
+      medicalHistory: c.medicalHistory,
+      allergies: c.allergies,
+      medications: c.medications,
+      notes: c.notes,
+      parentId: c.parentId?.toString(),
     }));
   }
 
   /**
    * Add a child for the current family. Secured: only the family (parent) can add.
    */
-  async createForFamily(familyId: string, requesterId: string, dto: AddChildDto) {
+  async createForFamily(
+    familyId: string,
+    requesterId: string,
+    dto: AddChildDto,
+  ) {
     if (requesterId !== familyId) {
-      throw new ForbiddenException('You can only add children to your own profile');
+      throw new ForbiddenException(
+        'You can only add children to your own profile',
+      );
     }
     const family = await this.userModel.findById(familyId).exec();
     if (!family) throw new NotFoundException('User not found');
@@ -90,14 +125,16 @@ export class ChildrenService {
     });
 
     if (!family.childrenIds) family.childrenIds = [];
-    family.childrenIds.push(child._id as Types.ObjectId);
+    family.childrenIds.push(child._id);
     await family.save();
 
     if (family.organizationId) {
-      const org = await this.organizationModel.findById(family.organizationId).exec();
+      const org = await this.organizationModel
+        .findById(family.organizationId)
+        .exec();
       if (org) {
         org.childrenIds = org.childrenIds || [];
-        org.childrenIds.push(child._id as Types.ObjectId);
+        org.childrenIds.push(child._id);
         await org.save();
       }
     }
