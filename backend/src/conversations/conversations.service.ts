@@ -30,12 +30,18 @@ export class ConversationsService {
     const otherIdStrs = [...new Set(docs.map((c) => (c as any).otherUserId?.toString()).filter(Boolean))];
     const otherIds = otherIdStrs.map((id) => new Types.ObjectId(id));
     const users = otherIds.length
-      ? await this.userModel.find({ _id: { $in: otherIds } }).select('role').lean().exec()
+      ? await this.userModel.find({ _id: { $in: otherIds } }).select('role fullName profilePic').lean().exec()
       : [];
     const roleById = new Map<string, string>();
+    const nameById = new Map<string, string>();
+    const profilePicById = new Map<string, string>();
     for (const u of users) {
       const id = (u as any)._id?.toString();
-      if (id) roleById.set(id, String((u as any).role ?? '').toLowerCase());
+      if (id) {
+        roleById.set(id, String((u as any).role ?? '').toLowerCase());
+        if ((u as any).fullName != null) nameById.set(id, (u as any).fullName);
+        if ((u as any).profilePic != null) profilePicById.set(id, (u as any).profilePic);
+      }
     }
 
     return docs.map((c) => {
@@ -43,13 +49,15 @@ export class ConversationsService {
       const otherRole = otherId ? roleById.get(otherId) : null;
       const segment: ConversationSegment =
         otherRole === 'volunteer' ? 'benevole' : otherRole === 'family' ? 'families' : (c.segment as ConversationSegment) ?? 'persons';
+      const displayName = otherId ? (nameById.get(otherId) ?? c.name) : c.name;
+      const displayImageUrl = otherId ? (profilePicById.get(otherId) ?? c.imageUrl) : c.imageUrl;
       return {
         id: c._id.toString(),
-        name: c.name,
+        name: displayName,
         subtitle: c.subtitle,
         lastMessage: c.lastMessage,
         timeAgo: c.timeAgo,
-        imageUrl: c.imageUrl,
+        imageUrl: displayImageUrl,
         unread: c.unread,
         segment,
       };
