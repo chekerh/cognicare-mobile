@@ -1140,7 +1140,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     BuildContext context,
     CommunityFeedProvider feedProvider,
   ) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    // listen: true pour que le menu Modifier/Supprimer s'affiche une fois l'utilisateur chargé
+    final authProvider = Provider.of<AuthProvider>(context, listen: true);
     return feedProvider.posts.map((post) {
       final tagStyles = post.tags.asMap().entries.map((e) {
         final c = _tagColors[e.key % _tagColors.length];
@@ -1150,8 +1151,13 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
       final lastComment = comments.isNotEmpty
           ? '${comments.first.authorName}: ${comments.first.text}'
           : null;
-      final currentUserId = authProvider.user?.id;
-      final canDelete = currentUserId != null && currentUserId == post.authorId;
+      final currentUserId = authProvider.user?.id?.toString().trim() ?? '';
+      final postAuthorId = post.authorId?.toString().trim() ?? '';
+      final sameName = (authProvider.user?.fullName?.trim().toLowerCase() ?? '') ==
+          (post.authorName.trim().toLowerCase());
+      // canDelete: même id, ou même nom si les ids ne matchent pas (ex. posts créés sur téléphone)
+      final canDelete = currentUserId.isNotEmpty &&
+          (currentUserId == postAuthorId || (sameName && postAuthorId.isNotEmpty));
       return _buildPost(
         postId: post.id,
         name: post.authorName,
@@ -1542,47 +1548,50 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     ),
                   ),
                 ),
-              if (canDelete && (onEditTap != null || onDeleteTap != null))
-                PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_horiz,
-                    color: AppTheme.text.withOpacity(0.5),
-                    size: 22,
-                  ),
-                  onSelected: (value) {
-                    if (value == 'edit' && onEditTap != null) {
-                      onEditTap();
-                    } else if (value == 'delete' && onDeleteTap != null) {
-                      onDeleteTap();
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    if (onEditTap != null)
-                      PopupMenuItem<String>(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            const Icon(Icons.edit_outlined, color: AppTheme.primary, size: 20),
-                            const SizedBox(width: 8),
-                            Text(AppLocalizations.of(context)!.editPost),
-                          ],
-                        ),
+              PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.more_horiz,
+                  color: AppTheme.text.withOpacity(0.5),
+                  size: 22,
+                ),
+                onSelected: (value) {
+                  if (value == 'edit' && onEditTap != null) {
+                    onEditTap();
+                  } else if (value == 'delete' && onDeleteTap != null) {
+                    onDeleteTap();
+                  }
+                  // 'info' = fermer le menu (pas d'action)
+                },
+                itemBuilder: (context) => [
+                  if (onEditTap != null)
+                    PopupMenuItem<String>(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.edit_outlined, color: AppTheme.primary, size: 20),
+                          const SizedBox(width: 8),
+                          Text(AppLocalizations.of(context)!.editPost),
+                        ],
                       ),
-                    if (onDeleteTap != null)
-                      PopupMenuItem<String>(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            const Icon(Icons.delete_outline, color: Colors.red),
-                            const SizedBox(width: 8),
-                            Text(AppLocalizations.of(context)!.deletePost),
-                          ],
-                        ),
+                    ),
+                  if (onDeleteTap != null)
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.delete_outline, color: Colors.red),
+                          const SizedBox(width: 8),
+                          Text(AppLocalizations.of(context)!.deletePost),
+                        ],
                       ),
-                  ],
-                )
-              else
-                Icon(Icons.more_horiz, color: AppTheme.text.withOpacity(0.3), size: 22),
+                    ),
+                  if (onEditTap == null && onDeleteTap == null)
+                    const PopupMenuItem<String>(
+                      value: 'info',
+                      child: Text('Vous ne pouvez modifier que vos propres publications'),
+                    ),
+                ],
+              ),
               ],
             ),
           ),

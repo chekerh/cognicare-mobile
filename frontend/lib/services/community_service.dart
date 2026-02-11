@@ -129,9 +129,11 @@ class CommunityService {
       Uri.parse('${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}/$postId'),
       headers: await _headers(),
     );
-    if (response.statusCode == 403) throw Exception('Forbidden');
+    if (response.statusCode == 403) {
+      throw Exception('Vous ne pouvez supprimer que vos propres publications.');
+    }
     if (response.statusCode == 404) throw Exception('Post not found');
-    if (response.statusCode != 200) throw Exception('Failed to delete post');
+    if (response.statusCode != 200) throw Exception('Échec de la suppression.');
   }
 
   /// Like / unlike un post. Retourne { liked, likeCount }.
