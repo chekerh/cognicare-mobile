@@ -1,4 +1,13 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Get, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AvailabilitiesService } from './availabilities.service';
@@ -32,7 +41,9 @@ export class AvailabilitiesController {
   }
 
   @Get('for-families')
-  @ApiOperation({ summary: 'List availabilities for family home (public or auth)' })
+  @ApiOperation({
+    summary: 'List availabilities for family home (public or auth)',
+  })
   async listForFamilies() {
     return this.availabilitiesService.listForFamilies();
   }

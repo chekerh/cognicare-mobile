@@ -32,7 +32,19 @@ export class AvailabilitiesService {
   }
 
   /** List availabilities for families (with volunteer info). */
-  async listForFamilies() {
+  async listForFamilies(): Promise<
+    {
+      id: string;
+      volunteerId: string;
+      volunteerName: string;
+      volunteerProfilePic: string;
+      dates: string[];
+      startTime: string;
+      endTime: string;
+      recurrence: string;
+      recurrenceOn: boolean;
+    }[]
+  > {
     const docs = await this.availabilityModel
       .find()
       .populate('volunteerId', 'fullName profilePic role')
@@ -40,11 +52,25 @@ export class AvailabilitiesService {
       .lean()
       .exec();
 
-    const out: any[] = [];
+    const out: {
+      id: string;
+      volunteerId: string;
+      volunteerName: string;
+      volunteerProfilePic: string;
+      dates: string[];
+      startTime: string;
+      endTime: string;
+      recurrence: string;
+      recurrenceOn: boolean;
+    }[] = [];
     for (const d of docs) {
-      const vol = d.volunteerId as any;
+      const vol = d.volunteerId as {
+        _id: { toString(): string };
+        fullName?: string;
+        profilePic?: string;
+      } | null;
       if (!vol) continue;
-      const dates = (d.dates as string[]) ?? [];
+      const dates = d.dates ?? [];
       if (dates.length === 0) continue;
       out.push({
         id: d._id.toString(),

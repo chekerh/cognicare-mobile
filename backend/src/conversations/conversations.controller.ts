@@ -1,4 +1,13 @@
-import { BadRequestException, Body, Controller, Get, Param, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ConversationsService } from './conversations.service';
@@ -26,10 +35,12 @@ export class ConversationsController {
     const userId = req.user.id as string;
     const role = (req.user.role as string)?.toLowerCase?.();
     const options =
-      role === 'volunteer'
-        ? { otherSegment: 'benevole' as const }
-        : undefined;
-    return this.conversationsService.getOrCreateConversation(userId, otherUserId, options);
+      role === 'volunteer' ? { otherSegment: 'benevole' as const } : undefined;
+    return this.conversationsService.getOrCreateConversation(
+      userId,
+      otherUserId,
+      options,
+    );
   }
 
   @Get(':id/messages')
@@ -53,4 +64,3 @@ export class ConversationsController {
     return this.conversationsService.addMessage(id, userId, body.text.trim());
   }
 }
-

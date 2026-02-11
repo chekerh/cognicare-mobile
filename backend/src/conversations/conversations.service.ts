@@ -1,4 +1,8 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import {
@@ -27,30 +31,66 @@ export class ConversationsService {
       .lean()
       .exec();
 
-    const otherIdStrs = [...new Set(docs.map((c) => (c as any).otherUserId?.toString()).filter(Boolean))];
+    type Doc = {
+      otherUserId?: { toString(): string };
+      _id: { toString(): string };
+      name?: string;
+      segment?: string;
+      subtitle?: string;
+      lastMessage?: string;
+      timeAgo?: string;
+      imageUrl?: string;
+      unread?: boolean;
+    };
+    type UserLean = {
+      _id?: { toString(): string };
+      role?: string;
+      fullName?: string;
+      profilePic?: string;
+    };
+
+    const otherIdStrs = [
+      ...new Set(
+        (docs as Doc[])
+          .map((c) => c.otherUserId?.toString())
+          .filter((s): s is string => Boolean(s)),
+      ),
+    ];
     const otherIds = otherIdStrs.map((id) => new Types.ObjectId(id));
     const users = otherIds.length
-      ? await this.userModel.find({ _id: { $in: otherIds } }).select('role fullName profilePic').lean().exec()
+      ? await this.userModel
+          .find({ _id: { $in: otherIds } })
+          .select('role fullName profilePic')
+          .lean()
+          .exec()
       : [];
     const roleById = new Map<string, string>();
     const nameById = new Map<string, string>();
     const profilePicById = new Map<string, string>();
-    for (const u of users) {
-      const id = (u as any)._id?.toString();
+    for (const u of users as UserLean[]) {
+      const id = u._id?.toString();
       if (id) {
-        roleById.set(id, String((u as any).role ?? '').toLowerCase());
-        if ((u as any).fullName != null) nameById.set(id, (u as any).fullName);
-        if ((u as any).profilePic != null) profilePicById.set(id, (u as any).profilePic);
+        roleById.set(id, String(u.role ?? '').toLowerCase());
+        if (u.fullName != null) nameById.set(id, u.fullName);
+        if (u.profilePic != null) profilePicById.set(id, u.profilePic);
       }
     }
 
-    return docs.map((c) => {
-      const otherId = (c as any).otherUserId?.toString();
-      const otherRole = otherId ? roleById.get(otherId) : null;
+    return (docs as Doc[]).map((c) => {
+      const otherId = c.otherUserId?.toString();
+      const otherRole = otherId ? (roleById.get(otherId) ?? null) : null;
       const segment: ConversationSegment =
-        otherRole === 'volunteer' ? 'benevole' : otherRole === 'family' ? 'families' : (c.segment as ConversationSegment) ?? 'persons';
-      const displayName = otherId ? (nameById.get(otherId) ?? c.name) : c.name;
-      const displayImageUrl = otherId ? (profilePicById.get(otherId) ?? c.imageUrl) : c.imageUrl;
+        otherRole === 'volunteer'
+          ? 'benevole'
+          : otherRole === 'family'
+            ? 'families'
+            : ((c.segment as ConversationSegment) ?? 'persons');
+      const displayName = otherId
+        ? (nameById.get(otherId) ?? c.name ?? '')
+        : (c.name ?? '');
+      const displayImageUrl = otherId
+        ? (profilePicById.get(otherId) ?? c.imageUrl ?? '')
+        : (c.imageUrl ?? '');
       return {
         id: c._id.toString(),
         name: displayName,
@@ -68,11 +108,16 @@ export class ConversationsService {
   async getOrCreateConversation(
     userId: string,
     otherUserId: string,
-    options?: { name?: string; imageUrl?: string; segment?: ConversationSegment; otherSegment?: ConversationSegment },
+    options?: {
+      name?: string;
+      imageUrl?: string;
+      segment?: ConversationSegment;
+      otherSegment?: ConversationSegment;
+    },
   ) {
     const uid = new Types.ObjectId(userId);
     const oid = new Types.ObjectId(otherUserId);
-    let conv = await this.conversationModel
+    const conv = await this.conversationModel
       .findOne({
         user: uid,
         otherUserId: oid,
@@ -95,16 +140,28 @@ export class ConversationsService {
     }
 
     const threadId = new Types.ObjectId();
-    const otherUser = await this.userModel.findById(oid).select('role fullName').lean().exec();
-    const otherRole = (otherUser as any)?.role?.toLowerCase?.();
+    const otherUser = await this.userModel
+      .findById(oid)
+      .select('role fullName')
+      .lean()
+      .exec();
+    const otherUserLean = otherUser as {
+      role?: string;
+      fullName?: string;
+    } | null;
+    const otherRole = otherUserLean?.role?.toLowerCase?.();
     const segmentForCurrentUser: ConversationSegment =
-      otherRole === 'volunteer' ? 'benevole' : otherRole === 'family' ? 'families' : 'persons';
+      otherRole === 'volunteer'
+        ? 'benevole'
+        : otherRole === 'family'
+          ? 'families'
+          : 'persons';
     const [created] = await this.conversationModel.create([
       {
         user: uid,
         otherUserId: oid,
         threadId,
-        name: options?.name ?? (otherUser as any)?.fullName ?? 'Conversation',
+        name: options?.name ?? otherUserLean?.fullName ?? 'Conversation',
         lastMessage: '',
         timeAgo: '',
         imageUrl: options?.imageUrl ?? '',
@@ -199,4 +256,3 @@ function formatTimeAgo(d: Date): string {
   const diffD = Math.floor(diffH / 24);
   return `Il y a ${diffD}j`;
 }
-

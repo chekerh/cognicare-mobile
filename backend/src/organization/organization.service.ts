@@ -236,7 +236,7 @@ export class OrganizationService {
     // Add to organization
     org.staffIds.push(staff._id as any);
     await org.save();
-    
+
     console.log('[CREATE STAFF] Organization updated:', {
       orgId: org._id,
       newStaffCount: org.staffIds.length,
@@ -449,7 +449,6 @@ export class OrganizationService {
     if (child.parentId.toString() !== familyId) {
       throw new BadRequestException('Child does not belong to this family');
     }
-
 
     // Remove from organization's children
     org.childrenIds = org.childrenIds.filter((id) => id.toString() !== childId);

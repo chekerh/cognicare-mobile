@@ -30,7 +30,6 @@ export class OrganizationController {
   @Roles('organization_leader')
   @ApiOperation({ summary: 'Get my organization details' })
   async getMyOrganization(@Request() req: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return await this.organizationService.getMyOrganization(req.user.id);
   }
 
@@ -38,7 +37,6 @@ export class OrganizationController {
   @Roles('organization_leader')
   @ApiOperation({ summary: 'Get all staff in my organization' })
   async getMyStaff(@Request() req: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return await this.organizationService.getMyStaff(req.user.id);
   }
 
@@ -46,7 +44,6 @@ export class OrganizationController {
   @Roles('organization_leader')
   @ApiOperation({ summary: 'Get all families in my organization' })
   async getMyFamilies(@Request() req: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return await this.organizationService.getMyFamilies(req.user.id);
   }
 
@@ -54,7 +51,6 @@ export class OrganizationController {
   @Roles('organization_leader')
   @ApiOperation({ summary: 'Get all children in my organization' })
   async getMyChildren(@Request() req: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return await this.organizationService.getMyChildren(req.user.id);
   }
 
@@ -62,7 +58,6 @@ export class OrganizationController {
   @Roles('organization_leader')
   @ApiOperation({ summary: 'Get my organization statistics' })
   async getMyStats(@Request() req: any) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return await this.organizationService.getMyStats(req.user.id);
   }
 
@@ -73,7 +68,6 @@ export class OrganizationController {
     @Request() req: any,
     @Body() createStaffDto: CreateStaffDto,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return await this.organizationService.createMyStaffMember(
       req.user.id,
       createStaffDto,
@@ -90,7 +84,6 @@ export class OrganizationController {
     @Request() req: any,
     @Body() createFamilyDto: CreateFamilyDto,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return await this.organizationService.createMyFamilyMember(
       req.user.id,
       createFamilyDto,
@@ -105,7 +98,6 @@ export class OrganizationController {
     @Param('familyId') familyId: string,
     @Body() addChildDto: AddChildDto,
   ): Promise<{ fullName: string; dateOfBirth: Date; gender: string }> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return await this.organizationService.addChildToMyFamily(
       req.user.id,
       familyId,
@@ -122,7 +114,6 @@ export class OrganizationController {
     @Param('childId') childId: string,
     @Body() updateChildDto: UpdateChildDto,
   ): Promise<{ fullName: string; dateOfBirth: Date; gender: string }> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return await this.organizationService.updateMyChild(
       req.user.id,
       familyId,
@@ -139,7 +130,6 @@ export class OrganizationController {
     @Param('familyId') familyId: string,
     @Param('childId') childId: string,
   ): Promise<{ message: string }> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return await this.organizationService.deleteMyChild(
       req.user.id,
       familyId,
@@ -252,7 +242,6 @@ export class OrganizationController {
     @Param('familyId') familyId: string,
     @Body() addChildDto: AddChildDto,
   ): Promise<{ fullName: string; dateOfBirth: Date; gender: string }> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return await this.organizationService.addChildToFamily(
       orgId,
       familyId,
@@ -269,7 +258,6 @@ export class OrganizationController {
     @Param('childId') childId: string,
     @Body() updateChildDto: UpdateChildDto,
   ): Promise<{ fullName: string; dateOfBirth: Date; gender: string }> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return await this.organizationService.updateChild(
       orgId,
       familyId,
@@ -286,7 +274,6 @@ export class OrganizationController {
     @Param('familyId') familyId: string,
     @Param('childId') childId: string,
   ): Promise<{ message: string }> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return await this.organizationService.deleteChild(orgId, familyId, childId);
   }
 }
