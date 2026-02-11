@@ -14,6 +14,7 @@ import { CommunityModule } from './community/community.module';
 import { MarketplaceModule } from './marketplace/marketplace.module';
 import { ConversationsModule } from './conversations/conversations.module';
 import { AvailabilitiesModule } from './availabilities/availabilities.module';
+import { ChildrenModule } from './children/children.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { AvailabilitiesModule } from './availabilities/availabilities.module';
     MarketplaceModule,
     ConversationsModule,
     AvailabilitiesModule,
+    ChildrenModule,
   ],
   controllers: [AppController],
   providers: [AppService],

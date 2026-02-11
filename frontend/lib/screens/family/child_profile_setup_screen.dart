@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../services/auth_service.dart';
+import '../../services/children_service.dart';
 import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFF77CCD8);
@@ -42,6 +44,7 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
   final _specialNotesController = TextEditingController();
 
   int _ageYears = 4;
+  String _gender = 'other'; // male | female | other
   final Set<int> _selectedMedicalCare = {0, 2}; // 0: Orthophoniste, 1: Psychomotricien, 2: Ergothérapeute, 3: Pédiatre
   int _sensitivityLoudNoises = 2; // 0: Bas, 1: Moyen, 2: Haut
   int _sensitivityLight = 1; // 0: Bas, 1: Moyen, 2: Haut
@@ -64,22 +67,70 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
     super.dispose();
   }
 
+  /// Builds dateOfBirth as YYYY-MM-DD from age (1st Jan of birth year).
+  static String _dateOfBirthFromAge(int ageYears) {
+    final year = DateTime.now().year - ageYears;
+    return '$year-01-01';
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSaving = true);
 
+    final fullName = _nameController.text.trim();
+    final dateOfBirth = _dateOfBirthFromAge(_ageYears);
+    const sensitivityLabels = ['Bas', 'Moyen', 'Haut'];
+    final sensitivityText = 'Bruit: ${sensitivityLabels[_sensitivityLoudNoises]}, '
+        'Lumière: ${sensitivityLabels[_sensitivityLight]}, '
+        'Texture: ${sensitivityLabels[_sensitivityTexture]}. '
+        'Sommeil: $_sleepHours h.';
+    final diagnosis = _selectedMedicalCare.isEmpty
+        ? null
+        : _selectedMedicalCare.map((i) => _medicalCareOptions[i].label).join(', ');
+    final medications = _medicationsController.text.trim();
+    final medicalHistory = _specialNotesController.text.trim();
+    final notes = sensitivityText;
+
+    final dto = AddChildDto(
+      fullName: fullName,
+      dateOfBirth: dateOfBirth,
+      gender: _gender,
+      diagnosis: diagnosis?.isNotEmpty == true ? diagnosis : null,
+      medicalHistory: medicalHistory.isNotEmpty ? medicalHistory : null,
+      medications: medications.isNotEmpty ? medications : null,
+      notes: notes,
+    );
+
+    final loc = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      final childrenService = ChildrenService(getToken: () => AuthService().getStoredToken());
+      await childrenService.addChild(dto);
+    } catch (e) {
+      setState(() => _isSaving = false);
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(e is Exception ? e.toString().replaceFirst('Exception: ', '') : loc.childProfileSaved),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final data = {
-      'name': _nameController.text.trim(),
+      'name': fullName,
       'age': _ageYears,
       'medicalCare': _selectedMedicalCare.toList(),
-      'medications': _medicationsController.text.trim(),
+      'medications': medications,
       'sensitivityLoudNoises': _sensitivityLoudNoises,
       'sensitivityLight': _sensitivityLight,
       'sensitivityTexture': _sensitivityTexture,
-      'specialNotes': _specialNotesController.text.trim(),
+      'specialNotes': medicalHistory,
       'sleepHours': _sleepHours,
     };
-
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(ChildProfileSetupScreen.storageKey, jsonEncode(data));
@@ -87,9 +138,6 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
 
     setState(() => _isSaving = false);
     if (!mounted) return;
-
-    final loc = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
     context.go(AppConstants.familyDashboardRoute);
     messenger.showSnackBar(
       SnackBar(
@@ -355,6 +403,24 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 12),
+        // Genre (required by API)
+        DropdownButtonFormField<String>(
+          value: _gender,
+          decoration: InputDecoration(
+            labelText: 'Genre',
+            filled: true,
+            fillColor: Colors.grey.shade100,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+          items: const [
+            DropdownMenuItem(value: 'male', child: Text('Garçon')),
+            DropdownMenuItem(value: 'female', child: Text('Fille')),
+            DropdownMenuItem(value: 'other', child: Text('Autre')),
+          ],
+          onChanged: (v) => setState(() => _gender = v ?? 'other'),
         ),
       ],
     );
