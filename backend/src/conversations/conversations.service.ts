@@ -90,6 +90,7 @@ export class ConversationsService {
     type Doc = {
       user?: { toString(): string };
       otherUserId?: { toString(): string };
+      threadId?: { toString(): string };
       _id: { toString(): string };
       name?: string;
       segment?: string;
@@ -99,6 +100,16 @@ export class ConversationsService {
       imageUrl?: string;
       unread?: boolean;
     };
+    // One row per thread: prefer doc where user = current user (so id is theirs)
+    const byThread = new Map<string, Doc>();
+    for (const c of docs as Doc[]) {
+      const tid = (c.threadId ?? c._id)?.toString() ?? c._id.toString();
+      const existing = byThread.get(tid);
+      const isMine = c.user?.toString() === userId;
+      if (!existing || (isMine && existing.user?.toString() !== userId))
+        byThread.set(tid, c);
+    }
+    const uniqueDocs = Array.from(byThread.values());
     type UserLean = {
       _id?: { toString(): string };
       role?: string;
@@ -107,12 +118,10 @@ export class ConversationsService {
     };
 
     const otherIdStrs = [...new Set(
-      (docs as Doc[])
+      uniqueDocs
         .map((c) => {
           const userStr = c.user?.toString();
           const otherStr = c.otherUserId?.toString();
-          // For rows where current user is stored in otherUserId (old data),
-          // we treat `user` as "other" so that we still load the contact.
           if (otherStr === userId && userStr) return userStr;
           return otherStr;
         })
@@ -138,7 +147,7 @@ export class ConversationsService {
       }
     }
 
-    return (docs as Doc[]).map((c) => {
+    return uniqueDocs.map((c) => {
       const userStr = c.user?.toString();
       const otherUserIdStr = c.otherUserId?.toString();
       const isCurrentInUser = userStr === userId;
