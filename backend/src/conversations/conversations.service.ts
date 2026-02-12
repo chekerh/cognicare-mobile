@@ -117,16 +117,18 @@ export class ConversationsService {
       profilePic?: string;
     };
 
-    const otherIdStrs = [...new Set(
-      uniqueDocs
-        .map((c) => {
-          const userStr = c.user?.toString();
-          const otherStr = c.otherUserId?.toString();
-          if (otherStr === userId && userStr) return userStr;
-          return otherStr;
-        })
-        .filter((s): s is string => Boolean(s)),
-    )];
+    const otherIdStrs = [
+      ...new Set(
+        uniqueDocs
+          .map((c) => {
+            const userStr = c.user?.toString();
+            const otherStr = c.otherUserId?.toString();
+            if (otherStr === userId && userStr) return userStr;
+            return otherStr;
+          })
+          .filter((s): s is string => Boolean(s)),
+      ),
+    ];
     const otherIds = otherIdStrs.map((id) => new Types.ObjectId(id));
     const users = otherIds.length
       ? await this.userModel
@@ -327,7 +329,10 @@ export class ConversationsService {
     };
   }
 
-  async deleteConversation(conversationId: string, userId: string): Promise<void> {
+  async deleteConversation(
+    conversationId: string,
+    userId: string,
+  ): Promise<void> {
     const conv = await this.conversationModel.findById(conversationId).exec();
     if (!conv) throw new NotFoundException('Conversation not found');
     const uid = new Types.ObjectId(userId);

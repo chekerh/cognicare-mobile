@@ -27,7 +27,6 @@ export class GamificationController {
   async recordGameSession(
     @Param('childId') childId: string,
     @Body() dto: RecordGameSessionDto,
-    @Request() req: any,
   ) {
     // Verify child belongs to user's family
     // TODO: Add authorization check
@@ -39,8 +38,10 @@ export class GamificationController {
   }
 
   @Get('children/:childId/stats')
-  @ApiOperation({ summary: 'Get child gamification stats (points, badges, progress)' })
-  async getChildStats(@Param('childId') childId: string, @Request() req: any) {
+  @ApiOperation({
+    summary: 'Get child gamification stats (points, badges, progress)',
+  })
+  async getChildStats(@Param('childId') childId: string) {
     // TODO: Add authorization check
     return this.gamificationService.getChildStats(childId);
   }

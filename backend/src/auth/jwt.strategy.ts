@@ -20,10 +20,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: { sub: string | { toString?: () => string }; email: string; role: string }) {
+  async validate(payload: {
+    sub: string | { toString?: () => string };
+    email: string;
+    role: string;
+  }) {
     const sub = payload.sub;
     const userId =
-      typeof sub === 'string' ? sub : sub?.toString?.() ?? String(sub);
+      typeof sub === 'string' ? sub : (sub?.toString?.() ?? String(sub));
     const user = await this.userModel.findById(userId);
 
     if (!user) {

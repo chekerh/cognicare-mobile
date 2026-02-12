@@ -24,6 +24,7 @@ import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { MailService } from '../mail/mail.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { OrganizationService } from '../organization/organization.service';
 
 @Injectable()
 export class AuthService {
@@ -38,6 +39,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private mailService: MailService,
+    private organizationService: OrganizationService,
   ) {}
 
   private generateTokens(user: UserDocument) {
@@ -60,8 +62,14 @@ export class AuthService {
   async signup(
     signupDto: SignupDto,
   ): Promise<{ accessToken: string; refreshToken: string; user: any }> {
-    const { email, password, verificationCode, organizationName, ...userData } =
-      signupDto;
+    const {
+      email,
+      password,
+      verificationCode,
+      organizationName,
+      organizationDescription,
+      ...userData
+    } = signupDto;
 
     // Prevent admin role creation through signup
     // This check is redundant due to DTO validation, but kept as defense in depth
@@ -119,21 +127,16 @@ export class AuthService {
 
     await user.save();
 
-    // If role is organization_leader, create an organization
-    let organization: OrganizationDocument | null = null;
+    // If role is organization_leader, create pending organization request
+    let pendingOrganization: any = null;
     if (userData.role === 'organization_leader') {
-      const orgName = organizationName || `${user.fullName}'s Organization`; // Use provided name or default
-      organization = new this.organizationModel({
-        name: orgName,
-        leaderId: user._id,
-        staffIds: [],
-        familyIds: [],
-        childrenIds: [],
-      });
-      await organization.save();
-
-      user.organizationId = organization._id.toString();
-      await user.save();
+      const orgName = organizationName || `${user.fullName}'s Organization`;
+      pendingOrganization =
+        await this.organizationService.createPendingOrganization(
+          orgName,
+          user._id.toString(),
+          organizationDescription,
+        );
     }
 
     // Generate tokens
@@ -160,17 +163,13 @@ export class AuthService {
       createdAt: user.createdAt,
     };
 
-    // Include organization data for organization leaders
-    if (userData.role === 'organization_leader' && organization) {
-      userResponse.organization = {
-        id: organization._id,
-        name: organization.name,
-        staff: [],
-        families: [],
-        children: [],
-        totalStaff: 0,
-        totalFamilies: 0,
-        totalChildren: 0,
+    // Include pending organization status for organization leaders
+    if (userData.role === 'organization_leader' && pendingOrganization) {
+      userResponse.pendingOrganization = {
+        id: pendingOrganization._id,
+        organizationName: pendingOrganization.organizationName,
+        status: pendingOrganization.status,
+        createdAt: pendingOrganization.createdAt,
       };
     }
 

@@ -7,6 +7,10 @@ import {
   OrganizationSchema,
 } from './schemas/organization.schema';
 import { Invitation, InvitationSchema } from './schemas/invitation.schema';
+import {
+  PendingOrganization,
+  PendingOrganizationSchema,
+} from './schemas/pending-organization.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { Child, ChildSchema } from '../children/schemas/child.schema';
 import { MailModule } from '../mail/mail.module';
@@ -16,6 +20,7 @@ import { MailModule } from '../mail/mail.module';
     MongooseModule.forFeature([
       { name: Organization.name, schema: OrganizationSchema },
       { name: Invitation.name, schema: InvitationSchema },
+      { name: PendingOrganization.name, schema: PendingOrganizationSchema },
       { name: User.name, schema: UserSchema },
       { name: Child.name, schema: ChildSchema },
     ]),
