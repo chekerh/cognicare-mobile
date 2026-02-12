@@ -556,10 +556,10 @@ export class AuthService {
       .sort({ createdAt: 1 })
       .lean()
       .exec();
-    return list.map((m) => ({
-      id: (m as { _id: { toString(): string } })._id.toString(),
-      name: m.name,
-      imageUrl: m.imageUrl,
+    return list.map((m: Record<string, unknown>) => ({
+      id: (m._id as { toString(): string }).toString(),
+      name: (m.name as string) ?? 'Membre',
+      imageUrl: typeof m.imageUrl === 'string' ? m.imageUrl : '',
     }));
   }
 

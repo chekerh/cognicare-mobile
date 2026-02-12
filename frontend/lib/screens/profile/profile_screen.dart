@@ -36,12 +36,19 @@ class _FamilyMemberItem {
   final String? imagePath;
   _FamilyMemberItem({this.id, required this.name, this.imageUrl, this.imagePath});
   Map<String, String?> toJson() => {'id': id, 'name': name, 'imageUrl': imageUrl, 'imagePath': imagePath};
-  static _FamilyMemberItem fromJson(Map<String, dynamic> j) => _FamilyMemberItem(
-    id: j['id'] as String?,
-    name: j['name'] as String? ?? 'Membre',
-    imageUrl: j['imageUrl'] as String?,
-    imagePath: j['imagePath'] as String?,
-  );
+  static _FamilyMemberItem fromJson(Map<String, dynamic> j) {
+    final rawUrl = j['imageUrl'] ?? j['image_url'];
+    String? imageUrl;
+    if (rawUrl is String && rawUrl.trim().isNotEmpty && rawUrl != 'null') {
+      imageUrl = rawUrl.trim();
+    }
+    return _FamilyMemberItem(
+      id: j['id'] as String?,
+      name: j['name'] as String? ?? 'Membre',
+      imageUrl: imageUrl,
+      imagePath: j['imagePath'] as String?,
+    );
+  }
 }
 
 const String _keyFamilyMembers = 'profile_family_members';
@@ -75,11 +82,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final apiList = await AuthService().getFamilyMembers();
       if (apiList.isNotEmpty && mounted) {
         setState(() {
-          _familyMembers = apiList.map((m) => _FamilyMemberItem(
-            id: m['id'],
-            name: m['name'] ?? 'Membre',
-            imageUrl: m['imageUrl'],
-          )).toList();
+          _familyMembers = apiList.map((m) {
+            final imageUrl = (m['imageUrl']?.toString() ?? '').trim();
+            return _FamilyMemberItem(
+              id: m['id'],
+              name: m['name'] ?? 'Membre',
+              imageUrl: imageUrl.isEmpty ? null : imageUrl,
+            );
+          }).toList();
         });
         await _saveFamilyMembers();
         return;
@@ -692,6 +702,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildFamilyMemberImage(_FamilyMemberItem member) {
+    if (member.imagePath != null) {
+      return Image.file(
+        File(member.imagePath!),
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Icon(Icons.person, color: _profilePrimary),
+      );
+    }
+    final url = member.imageUrl != null && member.imageUrl!.trim().isNotEmpty
+        ? (member.imageUrl!.startsWith('http') ? member.imageUrl! : AppConstants.fullImageUrl(member.imageUrl!))
+        : null;
+    if (url != null && url.isNotEmpty) {
+      return Image.network(
+        url,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Icon(Icons.person, color: _profilePrimary),
+      );
+    }
+    return const Icon(Icons.person, color: _profilePrimary);
+  }
+
   Widget _familyMemberChip(_FamilyMemberItem member, Color bgColor, VoidCallback onDelete) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -709,15 +740,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: member.imagePath != null
-                    ? Image.file(File(member.imagePath!), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.person, color: _profilePrimary))
-                    : Image.network(
-                        member.imageUrl != null && member.imageUrl!.isNotEmpty
-                            ? (member.imageUrl!.startsWith('http') ? member.imageUrl! : AppConstants.fullImageUrl(member.imageUrl!))
-                            : '',
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.person, color: _profilePrimary),
-                      ),
+                child: _buildFamilyMemberImage(member),
               ),
             ),
             Positioned(
@@ -783,10 +806,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final added = await AuthService().addFamilyMember(File(file.path), name);
       if (!mounted) return;
+      final imageUrl = (added['imageUrl']?.toString() ?? '').trim();
       setState(() => _familyMembers.add(_FamilyMemberItem(
         id: added['id'],
         name: added['name'] ?? name,
-        imageUrl: added['imageUrl'],
+        imageUrl: imageUrl.isEmpty ? null : imageUrl,
       )));
       await _saveFamilyMembers();
       if (mounted) {

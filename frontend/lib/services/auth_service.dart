@@ -229,10 +229,11 @@ class AuthService {
       if (list == null) return [];
       return list.map((e) {
         final m = e as Map<String, dynamic>;
+        final imageUrl = m['imageUrl']?.toString()?.trim() ?? m['image_url']?.toString()?.trim() ?? '';
         return <String, String>{
           'id': m['id']?.toString() ?? '',
           'name': m['name']?.toString() ?? '',
-          'imageUrl': m['imageUrl']?.toString() ?? '',
+          'imageUrl': imageUrl,
         };
       }).toList();
     } catch (_) {
