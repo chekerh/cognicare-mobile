@@ -51,11 +51,13 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   bool _loading = false;
   String? _loadError;
   bool _sending = false;
+  String? _conversationId;
 
   @override
   void initState() {
     super.initState();
     _messages = [];
+    _conversationId = widget.conversationId;
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.white,
@@ -64,15 +66,44 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
         systemNavigationBarIconBrightness: Brightness.dark,
       ),
     );
-    if (widget.conversationId != null) {
-      _loadMessages();
-    } else {
-      _messages = _defaultMessages();
+    _initConversationAndMessages();
+  }
+
+  Future<void> _initConversationAndMessages() async {
+    // If a conversationId was provided, just load messages from API.
+    if (_conversationId != null) {
+      await _loadMessages();
+      return;
+    }
+
+    // Otherwise, create or fetch a real conversation with the backend
+    // so that it appears in the inbox list (Benevole tab).
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
+    try {
+      final chatService =
+          ChatService(getToken: () => AuthService().getStoredToken());
+      final conv = await chatService.getOrCreateConversation(widget.personId);
+      if (!mounted) return;
+      setState(() {
+        _conversationId = conv.id;
+      });
+      await _loadMessages();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _loadError = e.toString().replaceFirst('Exception: ', '');
+        // Fallback to local demo messages if backend fails.
+        _messages = _defaultMessages();
+      });
     }
   }
 
   Future<void> _loadMessages() async {
-    final cid = widget.conversationId;
+    final cid = _conversationId;
     if (cid == null) return;
     setState(() {
       _loading = true;
@@ -142,7 +173,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   Future<void> _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-    final cid = widget.conversationId;
+    final cid = _conversationId;
     if (cid != null) {
       setState(() => _sending = true);
       final optimistic = _Msg(

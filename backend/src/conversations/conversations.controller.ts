@@ -34,12 +34,10 @@ export class ConversationsController {
   ) {
     const userId = req.user.id as string;
     const role = (req.user.role as string)?.toLowerCase?.();
-    const options =
-      role === 'volunteer' ? { otherSegment: 'benevole' as const } : undefined;
     return this.conversationsService.getOrCreateConversation(
       userId,
       otherUserId,
-      options,
+      role,
     );
   }
 

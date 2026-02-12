@@ -163,12 +163,7 @@ export class ConversationsService {
   async getOrCreateConversation(
     userId: string,
     otherUserId: string,
-    options?: {
-      name?: string;
-      imageUrl?: string;
-      segment?: ConversationSegment;
-      otherSegment?: ConversationSegment;
-    },
+    currentUserRole?: string,
   ) {
     const uid = new Types.ObjectId(userId);
     const oid = new Types.ObjectId(otherUserId);
@@ -205,32 +200,43 @@ export class ConversationsService {
       fullName?: string;
     } | null;
     const otherRole = otherUserLean?.role?.toLowerCase?.();
+    const role = currentUserRole?.toLowerCase?.();
+
+    // Segment for the user making the request (current user)
     const segmentForCurrentUser: ConversationSegment =
       otherRole === 'volunteer'
-        ? 'benevole'
+        ? 'benevole' // current user talks to a volunteer
         : otherRole === 'family'
-          ? 'families'
+          ? 'families' // current user talks to a family
+          : 'persons';
+
+    // Segment for the other side (so that conversations appear correctly in their inbox)
+    const segmentForOtherUser: ConversationSegment =
+      role === 'volunteer' && otherRole === 'family'
+        ? 'benevole' // family sees volunteer under "Benevole"
+        : role === 'family' && otherRole === 'volunteer'
+          ? 'families' // volunteer sees family under "Familles"
           : 'persons';
     const [created] = await this.conversationModel.create([
       {
         user: uid,
         otherUserId: oid,
         threadId,
-        name: options?.name ?? otherUserLean?.fullName ?? 'Conversation',
+        name: otherUserLean?.fullName ?? 'Conversation',
         lastMessage: '',
         timeAgo: '',
-        imageUrl: options?.imageUrl ?? '',
-        segment: options?.segment ?? segmentForCurrentUser,
+        imageUrl: '',
+        segment: segmentForCurrentUser,
       },
       {
         user: oid,
         otherUserId: uid,
         threadId,
-        name: options?.name ?? 'Conversation',
+        name: 'Conversation',
         lastMessage: '',
         timeAgo: '',
-        imageUrl: options?.imageUrl ?? '',
-        segment: options?.otherSegment ?? options?.segment ?? 'persons',
+        imageUrl: '',
+        segment: segmentForOtherUser,
       },
     ]);
 
