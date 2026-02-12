@@ -58,7 +58,10 @@ class GamesSelectionScreen extends StatelessWidget {
                     icon: Icons.grid_view_rounded,
                     iconBg: _cardYellow,
                     title: loc.gameMatchPairs,
-                    onTap: () => context.push(AppConstants.familyMatchingGameRoute),
+                    onTap: () => context.push(
+                      AppConstants.familyMatchingGameRoute,
+                      extra: {'inSequence': true},
+                    ),
                   ),
                   const SizedBox(height: 20),
                   _GameCard(

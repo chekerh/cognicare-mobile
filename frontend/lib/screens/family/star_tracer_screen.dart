@@ -124,7 +124,9 @@ class _ShapePathPainter extends CustomPainter {
 
 /// Jeu Star Tracer — suivre les points de l’étoile dans l’ordre.
 class StarTracerScreen extends StatefulWidget {
-  const StarTracerScreen({super.key});
+  const StarTracerScreen({super.key, this.inSequence = false});
+
+  final bool inSequence;
 
   @override
   State<StarTracerScreen> createState() => _StarTracerScreenState();
@@ -208,11 +210,25 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
               if (!context.mounted) return;
               final provider = Provider.of<StickerBookProvider>(context, listen: false);
               final stickerIndex = provider.unlockedCount - 1;
+              final completed = provider.tasksCompletedCount;
+              final milestoneSteps = [5, 10, 15, 20, 25, 30];
+              final loc = AppLocalizations.of(context);
+              final milestoneMessage = (loc != null && milestoneSteps.contains(completed))
+                  ? loc.milestoneLevelsCompleted(completed)
+                  : null;
               if (!context.mounted) return;
-              context.push(AppConstants.familyGameSuccessRoute, extra: {
-                'stickerIndex': stickerIndex,
-                'gameRoute': AppConstants.familyStarTracerRoute,
-              });
+              if (widget.inSequence) {
+                context.pushReplacement(
+                  AppConstants.familyBasketSortRoute,
+                  extra: {'inSequence': true},
+                );
+              } else {
+                context.push(AppConstants.familyGameSuccessRoute, extra: {
+                  'stickerIndex': stickerIndex,
+                  'gameRoute': AppConstants.familyStarTracerRoute,
+                  if (milestoneMessage != null) 'milestoneMessage': milestoneMessage,
+                });
+              }
             });
           } else {
             final k = StickerBookProvider.levelKeyForStarTracerLevel(_level);

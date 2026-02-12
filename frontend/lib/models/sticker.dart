@@ -1,18 +1,22 @@
 /// One sticker in the sticker book. First 4 are "Animal Friends", rest are "Coming Soon".
+/// Use [imageUrl] for network images, or [imageAsset] for local assets (e.g. assets/stickers/fox.png).
 class StickerDefinition {
   const StickerDefinition({
     required this.id,
     required this.nameKey,
     this.skillKey,
     this.imageUrl,
+    this.imageAsset,
   });
 
   final String id;
   final String nameKey;
   final String? skillKey;
   final String? imageUrl;
+  /// Path to asset image (e.g. 'assets/stickers/sticker_5.png'). Use for Pixabay images you add locally.
+  final String? imageAsset;
 
-  bool get isComingSoon => imageUrl == null;
+  bool get isComingSoon => imageUrl == null && imageAsset == null;
 }
 
 /// Predefined stickers: 4 animal friends + 8 coming soon slots.
@@ -41,12 +45,13 @@ const List<StickerDefinition> kStickerDefinitions = [
     skillKey: 'stickerFocusStar',
     imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDek7H4Rox_sAFCCyLISsBv0qXi71hBiqkMl3HuMPXva99bM_KD74mnfCb30EtPLzBCu4-JMk9Kg6upq3zyUeUVQ7B6v0mciUyY5sJYchbAfM4JZMpeRsBgAqF3Dsrv4L4cxz5RwextPLcT9Q7DmMXTDiMFocUGer2bf4R8efF4gZa74a5sGqY3jDqp1VSp_Ry4IoU_NeAo08BjuEgBpBEZWbVDFEojzPB4v6rJqXsaEPbYkVlmZtj9sl_TqwQorHBBj787boxKjf0',
   ),
-  StickerDefinition(id: 'coming_5', nameKey: 'stickerComingSoon'),
-  StickerDefinition(id: 'coming_6', nameKey: 'stickerComingSoon'),
-  StickerDefinition(id: 'coming_7', nameKey: 'stickerComingSoon'),
-  StickerDefinition(id: 'coming_8', nameKey: 'stickerComingSoon'),
-  StickerDefinition(id: 'coming_9', nameKey: 'stickerComingSoon'),
-  StickerDefinition(id: 'coming_10', nameKey: 'stickerComingSoon'),
+  // Coming Soon: images dans assets/stickers/
+  StickerDefinition(id: 'coming_5', nameKey: 'stickerComingSoon', imageAsset: 'assets/stickers/1.webp'),
+  StickerDefinition(id: 'coming_6', nameKey: 'stickerComingSoon', imageAsset: 'assets/stickers/2.png'),
+  StickerDefinition(id: 'coming_7', nameKey: 'stickerComingSoon', imageAsset: 'assets/stickers/mohamed_hassan-tortoise-8537207_1920.png'),
+  StickerDefinition(id: 'coming_8', nameKey: 'stickerComingSoon', imageAsset: 'assets/stickers/ray_shrewsberry-ai-generated-8733492_1920.png'),
+  StickerDefinition(id: 'coming_9', nameKey: 'stickerComingSoon', imageAsset: 'assets/stickers/ray_shrewsberry-ai-generated-8733492_1920 (1).png'),
+  StickerDefinition(id: 'coming_10', nameKey: 'stickerComingSoon', imageAsset: 'assets/stickers/ridderhof-ai-generated-8379033_1920.png'),
   StickerDefinition(id: 'coming_11', nameKey: 'stickerComingSoon'),
   StickerDefinition(id: 'coming_12', nameKey: 'stickerComingSoon'),
 ];

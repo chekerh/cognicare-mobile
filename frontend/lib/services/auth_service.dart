@@ -215,6 +215,85 @@ class AuthService {
     }
   }
 
+  /// Family members (MongoDB + Cloudinary). Returns list of {id, name, imageUrl}.
+  Future<List<Map<String, String>>> getFamilyMembers() async {
+    final token = await getStoredToken();
+    if (token == null) return [];
+    try {
+      final response = await _client.get(
+        Uri.parse('${AppConstants.baseUrl}${AppConstants.familyMembersEndpoint}'),
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 10));
+      if (response.statusCode != 200) return [];
+      final list = jsonDecode(response.body) as List<dynamic>?;
+      if (list == null) return [];
+      return list.map((e) {
+        final m = e as Map<String, dynamic>;
+        return <String, String>{
+          'id': m['id']?.toString() ?? '',
+          'name': m['name']?.toString() ?? '',
+          'imageUrl': m['imageUrl']?.toString() ?? '',
+        };
+      }).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Add family member with photo (upload to Cloudinary via backend). Returns {id, name, imageUrl}.
+  Future<Map<String, String>> addFamilyMember(File imageFile, String name) async {
+    final token = await getStoredToken();
+    if (token == null) throw Exception('No authentication token found');
+    if (!await imageFile.exists()) throw Exception('Image file does not exist');
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${AppConstants.baseUrl}${AppConstants.familyMembersEndpoint}'),
+    );
+    request.headers['Authorization'] = 'Bearer $token';
+    request.fields['name'] = name;
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        imageFile.path,
+        contentType: MediaType.parse('image/jpeg'),
+      ),
+    );
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to add member');
+      } catch (_) {
+        throw Exception('Failed to add member: ${response.statusCode}');
+      }
+    }
+    final m = jsonDecode(response.body) as Map<String, dynamic>;
+    return {
+      'id': m['id']?.toString() ?? '',
+      'name': m['name']?.toString() ?? name,
+      'imageUrl': m['imageUrl']?.toString() ?? '',
+    };
+  }
+
+  /// Delete family member.
+  Future<void> deleteFamilyMember(String memberId) async {
+    final token = await getStoredToken();
+    if (token == null) throw Exception('No authentication token found');
+    final response = await _client.delete(
+      Uri.parse('${AppConstants.baseUrl}${AppConstants.familyMemberEndpoint(memberId)}'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to delete member');
+      } catch (_) {
+        throw Exception('Failed to delete: ${response.statusCode}');
+      }
+    }
+  }
+
   /// Get another user's online status. Returns true only if they logged in recently (e.g. last 5 min).
   Future<bool> getPresence(String userId) async {
     final token = await getStoredToken();

@@ -33,7 +33,9 @@ class _GameCard {
 
 /// Jeu "Match Pairs!" — grille 2x3, 3 paires à retrouver.
 class MatchingGameScreen extends StatefulWidget {
-  const MatchingGameScreen({super.key});
+  const MatchingGameScreen({super.key, this.inSequence = false});
+
+  final bool inSequence;
 
   @override
   State<MatchingGameScreen> createState() => _MatchingGameScreenState();
@@ -118,11 +120,25 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
 
         final provider = Provider.of<StickerBookProvider>(context, listen: false);
         final stickerIndex = provider.unlockedCount - 1;
+        final completed = provider.tasksCompletedCount;
+        final milestoneSteps = [5, 10, 15, 20, 25, 30];
+        final loc = AppLocalizations.of(context);
+        final milestoneMessage = (loc != null && milestoneSteps.contains(completed))
+            ? loc.milestoneLevelsCompleted(completed)
+            : null;
         if (!context.mounted) return;
-        context.push(AppConstants.familyGameSuccessRoute, extra: {
-          'stickerIndex': stickerIndex,
-          'gameRoute': AppConstants.familyMatchingGameRoute,
-        });
+        if (widget.inSequence) {
+          context.pushReplacement(
+            AppConstants.familyShapeSortingRoute,
+            extra: {'inSequence': true},
+          );
+        } else {
+          context.push(AppConstants.familyGameSuccessRoute, extra: {
+            'stickerIndex': stickerIndex,
+            'gameRoute': AppConstants.familyMatchingGameRoute,
+            if (milestoneMessage != null) 'milestoneMessage': milestoneMessage,
+          });
+        }
       }
       return;
     }

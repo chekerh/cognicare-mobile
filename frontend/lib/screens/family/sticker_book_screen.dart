@@ -340,6 +340,7 @@ class StickerBookScreen extends StatelessWidget {
               name: _stickerName(loc, sticker.nameKey),
               skill: _stickerSkill(loc, sticker.skillKey),
               imageUrl: sticker.imageUrl,
+              imageAsset: sticker.imageAsset,
               isUnlocked: isUnlocked,
             );
           },
@@ -353,56 +354,91 @@ class StickerBookScreen extends StatelessWidget {
     const comingSoonCount = 6;
     const firstComingSoonIndex = 4;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.lock_outline, size: 20, color: Colors.black.withOpacity(0.4)),
-            const SizedBox(width: 8),
-            Text(
-              loc.comingSoon,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: _textDark,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1,
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _appLightBlue,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _primary.withOpacity(0.35), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          itemCount: comingSoonCount,
-          itemBuilder: (context, index) {
-            final globalIndex = firstComingSoonIndex + index;
-            final isUnlocked = provider.isUnlocked(globalIndex);
-            return Container(
-              decoration: BoxDecoration(
-                color: _primary.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: _primary.withOpacity(0.4),
-                  width: 2,
-                  strokeAlign: BorderSide.strokeAlignInside,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock_outline, size: 22, color: _primary),
+              const SizedBox(width: 10),
+              Text(
+                loc.comingSoon,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: _textDark,
                 ),
               ),
-              child: Center(
-                child: isUnlocked
-                    ? const Icon(Icons.auto_awesome, color: _primary, size: 32)
-                    : Icon(Icons.help_outline, color: _primary.withOpacity(0.6), size: 32),
-              ),
-            );
-          },
-        ),
-      ],
+            ],
+          ),
+          const SizedBox(height: 20),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1,
+            ),
+            itemCount: comingSoonCount,
+            itemBuilder: (context, index) {
+              final globalIndex = firstComingSoonIndex + index;
+              final isUnlocked = provider.isUnlocked(globalIndex);
+              final sticker = kStickerDefinitions[globalIndex];
+              final hasImage = sticker.imageUrl != null || sticker.imageAsset != null;
+              return Container(
+                decoration: BoxDecoration(
+                  color: _primary.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: _primary.withOpacity(0.4),
+                    width: 2,
+                    strokeAlign: BorderSide.strokeAlignInside,
+                  ),
+                ),
+                child: Center(
+                  child: (isUnlocked && hasImage)
+                      ? (sticker.imageAsset != null
+                          ? Image.asset(
+                              sticker.imageAsset!,
+                              fit: BoxFit.contain,
+                              width: 56,
+                              height: 56,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.auto_awesome, color: _primary, size: 32),
+                            )
+                          : (sticker.imageUrl != null
+                              ? Image.network(
+                                  sticker.imageUrl!,
+                                  fit: BoxFit.contain,
+                                  width: 56,
+                                  height: 56,
+                                  errorBuilder: (_, __, ___) => const Icon(Icons.auto_awesome, color: _primary, size: 32),
+                                )
+                              : const Icon(Icons.auto_awesome, color: _primary, size: 32)))
+                      : Icon(Icons.help_outline, color: _primary.withOpacity(0.6), size: 32),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -452,16 +488,19 @@ class _StickerCard extends StatelessWidget {
     required this.name,
     this.skill,
     this.imageUrl,
+    this.imageAsset,
     required this.isUnlocked,
   });
 
   final String name;
   final String? skill;
   final String? imageUrl;
+  final String? imageAsset;
   final bool isUnlocked;
 
   @override
   Widget build(BuildContext context) {
+    final hasImage = imageUrl != null || imageAsset != null;
     return AnimatedOpacity(
       opacity: isUnlocked ? 1 : 0.5,
       duration: const Duration(milliseconds: 200),
@@ -484,13 +523,20 @@ class _StickerCard extends StatelessWidget {
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: isUnlocked && imageUrl != null
-                    ? Image.network(
-                        imageUrl!,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        errorBuilder: (_, __, ___) => _placeholderBox(),
-                      )
+                child: isUnlocked && hasImage
+                    ? (imageAsset != null
+                        ? Image.asset(
+                            imageAsset!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            errorBuilder: (_, __, ___) => _placeholderBox(),
+                          )
+                        : Image.network(
+                            imageUrl!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            errorBuilder: (_, __, ___) => _placeholderBox(),
+                          ))
                     : _placeholderBox(),
               ),
             ),

@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -27,20 +29,91 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
+class _FamilyMemberItem {
+  final String? id;
+  final String name;
+  final String? imageUrl;
+  final String? imagePath;
+  _FamilyMemberItem({this.id, required this.name, this.imageUrl, this.imagePath});
+  Map<String, String?> toJson() => {'id': id, 'name': name, 'imageUrl': imageUrl, 'imagePath': imagePath};
+  static _FamilyMemberItem fromJson(Map<String, dynamic> j) => _FamilyMemberItem(
+    id: j['id'] as String?,
+    name: j['name'] as String? ?? 'Membre',
+    imageUrl: j['imageUrl'] as String?,
+    imagePath: j['imagePath'] as String?,
+  );
+}
+
+const String _keyFamilyMembers = 'profile_family_members';
+
+List<_FamilyMemberItem> get _defaultFamilyMembers => [
+  _FamilyMemberItem(name: 'Thomas', imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBKs8HO57e-9ULVYza-1fs4FtkC-okignnf2GSb499MqWdTMv81N-2rrO4D5SFU-GZyYrc7U0Pn33KcnBOkKVu62bYfjzV3Ao9D8MhpJcRlGhCcZfW1VRnxWIfy32E0JSXyoB6S7Zm-ZrWvIaiiN4MKwvEDciofeO3a-dEDBYs3yPT4hkXLzoWba7pVFk4lrNwMVxhqzsgqW-GBXeotGpQ9tQBNd5YIo_q2nNUVKZw8gM1cIofQLTi0ef7lUIeKN0U_2lWFK4h6Z0g'),
+  _FamilyMemberItem(name: 'Julie', imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAcrva4YUunD5KuO3iG3Se8mC3-2ID3qtHH3C3_fiBHYLpLzPobo8wHneQsbziTQeN-_ymLSeBJgxqJRS8uyA8titky5LVR5m1ZU2lvtVo8QhM00DLV21AuTBC_1uo-iu4GTaXC0ygCAtbc1fQc-WV-GgCq9iJN9E9KfXF4rqpRwVIDA5X_oc5hK-Yb_XnE_3TmXLGjfZv6moHo6GrpyX6GnDkPTqgC-Dn6H7AlJRYAUb2NfUtJ-ZKRFPYxJP3SbZ_zernNcaU6t24'),
+];
+
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = false;
   String? _error;
   String? _localProfilePicPath;
   int _profilePicVersion = 0; // force reload image after upload (cache-busting)
-  bool _childMode = true;
+  bool _childMode = false;
   bool _dataSharing = false;
   bool _familyNotifications = true;
+
+  List<_FamilyMemberItem> _familyMembers = [];
 
   @override
   void initState() {
     super.initState();
     _refreshProfile();
     _loadLocalProfilePic();
+    _loadFamilyMembers();
+  }
+
+  Future<void> _loadFamilyMembers() async {
+    try {
+      final apiList = await AuthService().getFamilyMembers();
+      if (apiList.isNotEmpty && mounted) {
+        setState(() {
+          _familyMembers = apiList.map((m) => _FamilyMemberItem(
+            id: m['id'],
+            name: m['name'] ?? 'Membre',
+            imageUrl: m['imageUrl'],
+          )).toList();
+        });
+        await _saveFamilyMembers();
+        return;
+      }
+    } catch (_) {}
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString(_keyFamilyMembers);
+      if (json == null || json.isEmpty) {
+        if (mounted) setState(() => _familyMembers = List.from(_defaultFamilyMembers));
+        return;
+      }
+      final list = jsonDecode(json) as List<dynamic>?;
+      if (list == null || list.isEmpty) {
+        if (mounted) setState(() => _familyMembers = List.from(_defaultFamilyMembers));
+        return;
+      }
+      final loaded = <_FamilyMemberItem>[];
+      for (final e in list) {
+        if (e is! Map<String, dynamic>) continue;
+        loaded.add(_FamilyMemberItem.fromJson(e));
+      }
+      if (mounted) setState(() => _familyMembers = loaded);
+    } catch (_) {
+      if (mounted) setState(() => _familyMembers = List.from(_defaultFamilyMembers));
+    }
+  }
+
+  Future<void> _saveFamilyMembers() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final list = _familyMembers.map((m) => m.toJson()).toList();
+      await prefs.setString(_keyFamilyMembers, jsonEncode(list));
+    } catch (_) {}
   }
 
   Future<void> _loadLocalProfilePic() async {
@@ -147,8 +220,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (!mounted) return;
       setState(() => _localProfilePicPath = dest.path);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final user = authProvider.user;
-      if (user != null) authProvider.updateUser(user.copyWith(profilePic: dest.path));
       try {
         final mimeType = xFile.mimeType ?? 'image/jpeg';
         final updatedUser = await AuthService().uploadProfilePicture(dest, mimeType: mimeType);
@@ -587,10 +658,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 loc.myFamily,
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.text),
               ),
-              Text(
-                loc.seeAll,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _profilePrimary),
-              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -598,9 +665,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _familyMemberChip('Thomas', _profilePrimary.withOpacity(0.2), 'https://lh3.googleusercontent.com/aida-public/AB6AXuBKs8HO57e-9ULVYza-1fs4FtkC-okignnf2GSb499MqWdTMv81N-2rrO4D5SFU-GZyYrc7U0Pn33KcnBOkKVu62bYfjzV3Ao9D8MhpJcRlGhCcZfW1VRnxWIfy32E0JSXyoB6S7Zm-ZrWvIaiiN4MKwvEDciofeO3a-dEDBYs3yPT4hkXLzoWba7pVFk4lrNwMVxhqzsgqW-GBXeotGpQ9tQBNd5YIo_q2nNUVKZw8gM1cIofQLTi0ef7lUIeKN0U_2lWFK4h6Z0g'),
-                const SizedBox(width: 16),
-                _familyMemberChip('Julie', Colors.orange.shade100, 'https://lh3.googleusercontent.com/aida-public/AB6AXuAcrva4YUunD5KuO3iG3Se8mC3-2ID3qtHH3C3_fiBHYLpLzPobo8wHneQsbziTQeN-_ymLSeBJgxqJRS8uyA8titky5LVR5m1ZU2lvtVo8QhM00DLV21AuTBC_1uo-iu4GTaXC0ygCAtbc1fQc-WV-GgCq9iJN9E9KfXF4rqpRwVIDA5X_oc5hK-Yb_XnE_3TmXLGjfZv6moHo6GrpyX6GnDkPTqgC-Dn6H7AlJRYAUb2NfUtJ-ZKRFPYxJP3SbZ_zernNcaU6t24'),
+                ...List.generate(_familyMembers.length, (i) {
+                  final m = _familyMembers[i];
+                  final bgColor = i == 0 ? _profilePrimary.withOpacity(0.2) : Colors.orange.shade100;
+                  return Padding(
+                    padding: EdgeInsets.only(right: i < _familyMembers.length - 1 ? 16 : 0),
+                    child: _familyMemberChip(m, bgColor, () async {
+                      final id = m.id;
+                      setState(() => _familyMembers.removeAt(i));
+                      _saveFamilyMembers();
+                      if (id != null && id.isNotEmpty) {
+                        try {
+                          await AuthService().deleteFamilyMember(id);
+                        } catch (_) {}
+                      }
+                    }),
+                  );
+                }),
                 const SizedBox(width: 16),
                 _addMemberChip(loc),
               ],
@@ -611,43 +692,137 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _familyMemberChip(String name, Color bgColor, String imageUrl) {
+  Widget _familyMemberChip(_FamilyMemberItem member, Color bgColor, VoidCallback onDelete) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: bgColor.withOpacity(0.5)),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.person, color: _profilePrimary)),
-          ),
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: bgColor.withOpacity(0.5)),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: member.imagePath != null
+                    ? Image.file(File(member.imagePath!), fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.person, color: _profilePrimary))
+                    : Image.network(
+                        member.imageUrl != null && member.imageUrl!.isNotEmpty
+                            ? (member.imageUrl!.startsWith('http') ? member.imageUrl! : AppConstants.fullImageUrl(member.imageUrl!))
+                            : '',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.person, color: _profilePrimary),
+                      ),
+              ),
+            ),
+            Positioned(
+              top: -4,
+              right: -4,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onDelete,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade400,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 1)),
+                      ],
+                    ),
+                    child: const Icon(Icons.close, size: 16, color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
-        Text(name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.text)),
+        Text(member.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppTheme.text)),
       ],
     );
   }
 
-  Widget _addMemberChip(AppLocalizations loc) {
-    return Column(
-      children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid, width: 2),
-            borderRadius: BorderRadius.circular(16),
+  Future<void> _showAddFamilyMemberDialog(AppLocalizations loc) async {
+    final picker = ImagePicker();
+    final XFile? file = await picker.pickImage(source: ImageSource.gallery, maxWidth: 512, maxHeight: 512);
+    if (!mounted || file == null) return;
+    final nameController = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(loc.addMember),
+        content: TextField(
+          controller: nameController,
+          decoration: InputDecoration(
+            labelText: loc.fullNameLabel,
+            hintText: 'Thomas',
+            border: const OutlineInputBorder(),
           ),
-          child: Icon(Icons.add, color: Colors.grey.shade400, size: 28),
+          autofocus: true,
+          onSubmitted: (v) => Navigator.of(ctx).pop(v.trim().isEmpty ? 'Membre' : v),
         ),
-        const SizedBox(height: 8),
-        Text(loc.addMember, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey.shade500)),
-      ],
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(loc.cancel)),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(nameController.text.trim().isEmpty ? 'Membre' : nameController.text.trim()),
+            child: Text(loc.confirm),
+          ),
+        ],
+      ),
+    );
+    if (name == null || !mounted) return;
+    try {
+      final added = await AuthService().addFamilyMember(File(file.path), name);
+      if (!mounted) return;
+      setState(() => _familyMembers.add(_FamilyMemberItem(
+        id: added['id'],
+        name: added['name'] ?? name,
+        imageUrl: added['imageUrl'],
+      )));
+      await _saveFamilyMembers();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Membre ajouté'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: ${e.toString().replaceFirst('Exception: ', '')}'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Widget _addMemberChip(AppLocalizations loc) {
+    return InkWell(
+      onTap: () => _showAddFamilyMemberDialog(loc),
+      borderRadius: BorderRadius.circular(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid, width: 2),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(Icons.add, color: Colors.grey.shade400, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(loc.addMember, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey.shade500)),
+        ],
+      ),
     );
   }
 

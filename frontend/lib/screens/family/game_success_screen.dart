@@ -14,12 +14,15 @@ class GameSuccessScreen extends StatelessWidget {
     super.key,
     this.stickerIndex = 0,
     this.gameRoute,
+    this.milestoneMessage,
   });
 
   /// Index (0-based) of the sticker just earned.
   final int stickerIndex;
   /// Route to push for "Rejouer" (e.g. familyMatchingGameRoute).
   final String? gameRoute;
+  /// Optional phrase shown above "Bravo!" in large text (e.g. "You've completed 30 levels!").
+  final String? milestoneMessage;
 
   static String _stickerName(AppLocalizations loc, String nameKey) {
     switch (nameKey) {
@@ -39,7 +42,8 @@ class GameSuccessScreen extends StatelessWidget {
     final idx = stickerIndex.clamp(0, kStickerDefinitions.length - 1);
     final sticker = kStickerDefinitions[idx];
     final stickerName = _stickerName(loc, sticker.nameKey);
-    final hasImage = sticker.imageUrl != null && sticker.imageUrl!.isNotEmpty;
+    final hasImage = (sticker.imageUrl != null && sticker.imageUrl!.isNotEmpty) ||
+        (sticker.imageAsset != null && sticker.imageAsset!.isNotEmpty);
 
     return Scaffold(
       backgroundColor: _brandBlue,
@@ -84,6 +88,26 @@ class GameSuccessScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       const SizedBox(height: 16),
+                      if (milestoneMessage != null && milestoneMessage!.isNotEmpty) ...[
+                        Text(
+                          milestoneMessage!,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            height: 1.2,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withOpacity(0.3),
+                                offset: const Offset(0, 2),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                      ],
                       Text(
                         'Bravo !',
                         style: TextStyle(
@@ -198,40 +222,46 @@ class GameSuccessScreen extends StatelessWidget {
                           width: 120,
                           height: 120,
                           child: hasImage
-                              ? Image.network(
-                                  sticker.imageUrl!,
-                                  fit: BoxFit.contain,
-                                  loadingBuilder: (_, child, progress) {
-                                    if (progress == null) return child;
-                                    return Center(
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          SizedBox(
-                                            width: 40,
-                                            height: 40,
-                                            child: CircularProgressIndicator(
-                                              value: progress.expectedTotalBytes != null
-                                                  ? progress.cumulativeBytesLoaded /
-                                                      progress.expectedTotalBytes!
-                                                  : null,
-                                              color: _primary,
-                                            ),
+                              ? (sticker.imageAsset != null
+                                  ? Image.asset(
+                                      sticker.imageAsset!,
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (_, __, ___) => _fallbackStickerIcon(idx),
+                                    )
+                                  : Image.network(
+                                      sticker.imageUrl!,
+                                      fit: BoxFit.contain,
+                                      loadingBuilder: (_, child, progress) {
+                                        if (progress == null) return child;
+                                        return Center(
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              SizedBox(
+                                                width: 40,
+                                                height: 40,
+                                                child: CircularProgressIndicator(
+                                                  value: progress.expectedTotalBytes != null
+                                                      ? progress.cumulativeBytesLoaded /
+                                                          progress.expectedTotalBytes!
+                                                      : null,
+                                                  color: _primary,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                loc.stickerWon,
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Color(0xFF64748B),
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            loc.stickerWon,
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              color: Color(0xFF64748B),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                  errorBuilder: (_, __, ___) => _fallbackStickerIcon(idx),
-                                )
+                                        );
+                                      },
+                                      errorBuilder: (_, __, ___) => _fallbackStickerIcon(idx),
+                                    ))
                               : _comingSoonSticker(idx),
                         ),
                         const SizedBox(height: 12),

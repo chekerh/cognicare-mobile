@@ -15,31 +15,35 @@ const Color _textMuted = Color(0xFF617589);
 enum _BasketCategory { food, toys }
 
 class _SortItem {
-  final String imageUrl;
+  final String? imageUrl;
+  final String? imageAsset;
   final _BasketCategory category;
 
-  const _SortItem({required this.imageUrl, required this.category});
+  const _SortItem({this.imageUrl, this.imageAsset, required this.category})
+      : assert(imageUrl != null || imageAsset != null);
 }
 
 /// Basket Sort Challenge — glisser l'objet dans le bon panier (Food / Toys).
 class BasketSortScreen extends StatefulWidget {
-  const BasketSortScreen({super.key});
+  const BasketSortScreen({super.key, this.inSequence = false});
+
+  final bool inSequence;
 
   @override
   State<BasketSortScreen> createState() => _BasketSortScreenState();
 }
 
 class _BasketSortScreenState extends State<BasketSortScreen> {
-  /// Images adaptées au jeu : nourriture (Food) et jouets (Toys).
+  /// Images adaptées au jeu : nourriture (Food) et jouets (Toys). Jouets = assets locaux.
   static const List<_SortItem> _items = [
     // 1. Pomme → Food
     _SortItem(
       imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDSzNDFIdXybA63B3hyJlf3_60pXxXpy0pc4oW4bO__FjO3PcbgMI1q59HegYo2OBPmBP6BIRxX407O2iodwQiGh-w1o7juvNqTGtP4L7nbgtGYPKJYYjiPPjl-1oBJGH76EN7exYxdHGDj9qg9g_770p7BfWH2hjwgoaYf_dHtoeSGizCJesYJYKqjoemfVcWHMJcw_o-f70eNlQ45xC7D0h7EpWl77GTJA7Ha2lGqLbijZVG6iAt8CT7uY3WyT0v7ikvgPABbMbU',
       category: _BasketCategory.food,
     ),
-    // 2. Ballon → Toys
+    // 2. Peluche (teddy bear) → Toys (asset)
     _SortItem(
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Football_%28soccer_ball%29.svg/240px-Football_%28soccer_ball%29.svg.png',
+      imageAsset: 'assets/stickers/jazella-teddybear-3988834_1920.png',
       category: _BasketCategory.toys,
     ),
     // 3. Banane → Food
@@ -47,9 +51,9 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
       imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg',
       category: _BasketCategory.food,
     ),
-    // 4. Peluche → Toys
+    // 4. Cheval à bascule (rocking horse) → Toys (asset)
     _SortItem(
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Teddy_bear_holding_heart.jpg/240px-Teddy_bear_holding_heart.jpg',
+      imageAsset: 'assets/stickers/clker-free-vector-images-rocking-horse-33719_1280.png',
       category: _BasketCategory.toys,
     ),
   ];
@@ -86,11 +90,28 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
           if (!context.mounted) return;
           final provider = Provider.of<StickerBookProvider>(context, listen: false);
           final stickerIndex = provider.unlockedCount - 1;
+          final completed = provider.tasksCompletedCount;
+          final milestoneSteps = [5, 10, 15, 20, 25, 30];
+          final loc = AppLocalizations.of(context);
+          final milestoneMessage = (widget.inSequence &&
+                  loc != null &&
+                  milestoneSteps.contains(completed))
+              ? loc.milestoneLevelsCompleted(completed)
+              : null;
           if (!context.mounted) return;
-          context.push(AppConstants.familyGameSuccessRoute, extra: {
-            'stickerIndex': stickerIndex,
-            'gameRoute': AppConstants.familyBasketSortRoute,
-          });
+          if (widget.inSequence) {
+            context.push(AppConstants.familyGameSuccessRoute, extra: {
+              'stickerIndex': stickerIndex,
+              'gameRoute': AppConstants.familyBasketSortRoute,
+              'milestoneMessage': milestoneMessage,
+            });
+          } else {
+            context.push(AppConstants.familyGameSuccessRoute, extra: {
+              'stickerIndex': stickerIndex,
+              'gameRoute': AppConstants.familyBasketSortRoute,
+              if (milestoneMessage != null) 'milestoneMessage': milestoneMessage,
+            });
+          }
         });
       } else {
         _currentIndex++;
@@ -247,11 +268,7 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  item.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 64),
-                ),
+                child: _itemImage(item),
               ),
             ),
           ),
@@ -290,12 +307,23 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: Image.network(
-          item.imageUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 64),
-        ),
+        child: _itemImage(item),
       ),
+    );
+  }
+
+  Widget _itemImage(_SortItem item) {
+    if (item.imageAsset != null) {
+      return Image.asset(
+        item.imageAsset!,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Icon(Icons.toys, size: 64, color: _primary),
+      );
+    }
+    return Image.network(
+      item.imageUrl!,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 64),
     );
   }
 

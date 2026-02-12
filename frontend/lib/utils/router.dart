@@ -350,19 +350,35 @@ GoRouter createAppRouter(AuthProvider authProvider) {
         ),
         GoRoute(
           path: 'matching-game',
-          builder: (context, state) => const MatchingGameScreen(),
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            final inSequence = extra?['inSequence'] as bool? ?? false;
+            return MatchingGameScreen(inSequence: inSequence);
+          },
         ),
         GoRoute(
           path: 'shape-sorting',
-          builder: (context, state) => const ShapeSortingScreen(),
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            final inSequence = extra?['inSequence'] as bool? ?? false;
+            return ShapeSortingScreen(inSequence: inSequence);
+          },
         ),
         GoRoute(
           path: 'star-tracer',
-          builder: (context, state) => const StarTracerScreen(),
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            final inSequence = extra?['inSequence'] as bool? ?? false;
+            return StarTracerScreen(inSequence: inSequence);
+          },
         ),
         GoRoute(
           path: 'basket-sort',
-          builder: (context, state) => const BasketSortScreen(),
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            final inSequence = extra?['inSequence'] as bool? ?? false;
+            return BasketSortScreen(inSequence: inSequence);
+          },
         ),
         GoRoute(
           path: 'donation-detail',
@@ -496,7 +512,12 @@ GoRouter createAppRouter(AuthProvider authProvider) {
             final extra = state.extra as Map<String, dynamic>?;
             final stickerIndex = extra?['stickerIndex'] as int? ?? 0;
             final gameRoute = extra?['gameRoute'] as String?;
-            return GameSuccessScreen(stickerIndex: stickerIndex, gameRoute: gameRoute);
+            final milestoneMessage = extra?['milestoneMessage'] as String?;
+            return GameSuccessScreen(
+              stickerIndex: stickerIndex,
+              gameRoute: gameRoute,
+              milestoneMessage: milestoneMessage,
+            );
           },
         ),
         GoRoute(

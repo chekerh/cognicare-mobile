@@ -1,0 +1,4 @@
+# Stickers pour l'enfant (Pixabay, etc.)
+# 1. Télécharge des images (ex. animaux), renomme-les : sticker_5.png, sticker_6.png, ...
+# 2. Dépose-les dans ce dossier.
+# 3. Dans lib/models/sticker.dart, pour chaque sticker à afficher, ajoute imageAsset: 'assets/stickers/sticker_5.png'

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:math';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/sticker_book_provider.dart';
 import '../../utils/constants.dart';
 import '../../utils/gamification_helper.dart';
@@ -21,7 +22,9 @@ enum _ShapeType { square, circle, triangle }
 
 /// Jeu Shape Sorting — glisser la forme correspondante dans la zone.
 class ShapeSortingScreen extends StatefulWidget {
-  const ShapeSortingScreen({super.key});
+  const ShapeSortingScreen({super.key, this.inSequence = false});
+
+  final bool inSequence;
 
   @override
   State<ShapeSortingScreen> createState() => _ShapeSortingScreenState();
@@ -80,11 +83,25 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
           if (!context.mounted) return;
           final provider = Provider.of<StickerBookProvider>(context, listen: false);
           final stickerIndex = provider.unlockedCount - 1;
+          final completed = provider.tasksCompletedCount;
+          final milestoneSteps = [5, 10, 15, 20, 25, 30];
+          final loc = AppLocalizations.of(context);
+          final milestoneMessage = (loc != null && milestoneSteps.contains(completed))
+              ? loc.milestoneLevelsCompleted(completed)
+              : null;
           if (!context.mounted) return;
-          context.push(AppConstants.familyGameSuccessRoute, extra: {
-            'stickerIndex': stickerIndex,
-            'gameRoute': AppConstants.familyShapeSortingRoute,
-          });
+          if (widget.inSequence) {
+            context.pushReplacement(
+              AppConstants.familyStarTracerRoute,
+              extra: {'inSequence': true},
+            );
+          } else {
+            context.push(AppConstants.familyGameSuccessRoute, extra: {
+              'stickerIndex': stickerIndex,
+              'gameRoute': AppConstants.familyShapeSortingRoute,
+              if (milestoneMessage != null) 'milestoneMessage': milestoneMessage,
+            });
+          }
         });
       }
     });
@@ -123,11 +140,25 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
           if (!context.mounted) return;
           final provider = Provider.of<StickerBookProvider>(context, listen: false);
           final stickerIndex = provider.unlockedCount - 1;
+          final completed = provider.tasksCompletedCount;
+          final milestoneSteps = [5, 10, 15, 20, 25, 30];
+          final loc = AppLocalizations.of(context);
+          final milestoneMessage = (loc != null && milestoneSteps.contains(completed))
+              ? loc.milestoneLevelsCompleted(completed)
+              : null;
           if (!context.mounted) return;
-          context.push(AppConstants.familyGameSuccessRoute, extra: {
-            'stickerIndex': stickerIndex,
-            'gameRoute': AppConstants.familyShapeSortingRoute,
-          });
+          if (widget.inSequence) {
+            context.pushReplacement(
+              AppConstants.familyStarTracerRoute,
+              extra: {'inSequence': true},
+            );
+          } else {
+            context.push(AppConstants.familyGameSuccessRoute, extra: {
+              'stickerIndex': stickerIndex,
+              'gameRoute': AppConstants.familyShapeSortingRoute,
+              if (milestoneMessage != null) 'milestoneMessage': milestoneMessage,
+            });
+          }
         });
         return;
       }
