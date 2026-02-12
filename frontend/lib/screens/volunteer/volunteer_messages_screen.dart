@@ -260,72 +260,140 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
   }
 
   Widget _conversationTile(_Conversation c) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: () => _openChat(context, c),
+    return Dismissible(
+      key: ValueKey(c.id),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        color: Colors.redAccent,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      confirmDismiss: (direction) async {
+        return await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Supprimer la conversation ?'),
+                content: const Text(
+                  'Cette action supprimera la conversation pour les deux participants.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    child: const Text('Annuler'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    child: const Text(
+                      'Supprimer',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
+              ),
+            ) ??
+            false;
+      },
+      onDismissed: (_) async {
+        final id = c.conversationId ?? c.id;
+        final chatService =
+            ChatService(getToken: () => AuthService().getStoredToken());
+        try {
+          await chatService.deleteConversation(id);
+        } catch (_) {
+          // On ignore l'erreur ici, la conversation est déjà retirée visuellement.
+        }
+        setState(() {
+          _inboxConversations =
+              _inboxConversations?.where((e) => e.id != c.id).toList();
+        });
+      },
+      child: Material(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade100),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
-          ),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: c.imageUrl.isEmpty
-                    ? CircleAvatar(
-                        radius: 28,
-                        backgroundColor: _primary.withOpacity(0.2),
-                        child: Icon(c.isFamily ? Icons.group : Icons.person, color: _primary, size: 28),
-                      )
-                    : Image.network(
-                        AppConstants.fullImageUrl(c.imageUrl),
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => CircleAvatar(
+        child: InkWell(
+          onTap: () => _openChat(context, c),
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade100),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2))
+              ],
+            ),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: c.imageUrl.isEmpty
+                      ? CircleAvatar(
                           radius: 28,
                           backgroundColor: _primary.withOpacity(0.2),
-                          child: Icon(c.isFamily ? Icons.group : Icons.person, color: _primary, size: 28),
+                          child: Icon(
+                              c.isFamily ? Icons.group : Icons.person,
+                              color: _primary,
+                              size: 28),
+                        )
+                      : Image.network(
+                          AppConstants.fullImageUrl(c.imageUrl),
+                          width: 56,
+                          height: 56,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => CircleAvatar(
+                            radius: 28,
+                            backgroundColor: _primary.withOpacity(0.2),
+                            child: Icon(
+                                c.isFamily ? Icons.group : Icons.person,
+                                color: _primary,
+                                size: 28),
+                          ),
                         ),
-                      ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      c.name,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _textPrimary),
-                    ),
-                    if (c.subtitle != null) ...[
-                      const SizedBox(height: 2),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        c.subtitle!,
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        c.name,
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _textPrimary),
+                      ),
+                      if (c.subtitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          c.subtitle!,
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey.shade600),
+                        ),
+                      ],
+                      const SizedBox(height: 4),
+                      Text(
+                        c.lastMessage,
+                        style: const TextStyle(
+                            fontSize: 14, color: _textMuted),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                    const SizedBox(height: 4),
-                    Text(
-                      c.lastMessage,
-                      style: const TextStyle(fontSize: 14, color: _textMuted),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              Text(
-                c.timeAgo,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: _primary),
-              ),
-            ],
+                Text(
+                  c.timeAgo,
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: _primary),
+                ),
+              ],
+            ),
           ),
         ),
       ),

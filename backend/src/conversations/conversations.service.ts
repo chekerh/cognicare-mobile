@@ -317,6 +317,18 @@ export class ConversationsService {
       createdAt: (created as any).createdAt,
     };
   }
+
+  async deleteConversation(conversationId: string, userId: string): Promise<void> {
+    const conv = await this.conversationModel.findById(conversationId).exec();
+    if (!conv) throw new NotFoundException('Conversation not found');
+    const uid = new Types.ObjectId(userId);
+    if (!conv.user.equals(uid) && !conv.otherUserId?.equals(uid)) {
+      throw new ForbiddenException('Not a participant');
+    }
+    const threadId = conv.threadId ?? conv._id;
+    // Delete all conversation rows for this thread (both sides) so it disappears for everyone.
+    await this.conversationModel.deleteMany({ threadId }).exec();
+  }
 }
 
 function formatTimeAgo(d: Date): string {

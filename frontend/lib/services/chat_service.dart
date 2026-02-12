@@ -181,4 +181,28 @@ class ChatService {
     final json = jsonDecode(response.body) as Map<String, dynamic>;
     return ChatMessage.fromJson(json);
   }
+
+  Future<void> deleteConversation(String conversationId) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}/api/v1/conversations/$conversationId',
+    );
+    final response = await _client.delete(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to delete conversation');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to delete conversation: ${response.statusCode}');
+      }
+    }
+  }
 }

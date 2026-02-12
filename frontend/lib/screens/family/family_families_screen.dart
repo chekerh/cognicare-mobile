@@ -332,9 +332,58 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
         separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
         itemBuilder: (context, index) {
           final c = list[index];
-          return _ConversationTile(
-            conversation: c,
-            onTap: () => _openChat(context, c),
+          return Dismissible(
+            key: ValueKey(c.id),
+            direction: DismissDirection.endToStart,
+            background: Container(
+              color: Colors.redAccent,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: const Icon(Icons.delete, color: Colors.white),
+            ),
+            confirmDismiss: (direction) async {
+              return await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Supprimer la conversation ?'),
+                      content: const Text(
+                        'Cette action supprimera la conversation pour les deux participants.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(false),
+                          child: const Text('Annuler'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(true),
+                          child: const Text(
+                            'Supprimer',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ) ??
+                  false;
+            },
+            onDismissed: (_) async {
+              final id = c.conversationId ?? c.id;
+              final chatService =
+                  ChatService(getToken: () => AuthService().getStoredToken());
+              try {
+                await chatService.deleteConversation(id);
+              } catch (_) {
+                // On ignore l'erreur ici, la conversation est déjà retirée de la liste.
+              }
+              setState(() {
+                _inboxConversations =
+                    _inboxConversations?.where((e) => e.id != c.id).toList();
+              });
+            },
+            child: _ConversationTile(
+              conversation: c,
+              onTap: () => _openChat(context, c),
+            ),
           );
         },
       ),
