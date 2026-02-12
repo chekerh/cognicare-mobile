@@ -19,6 +19,10 @@ import {
   OrganizationDocument,
 } from '../organization/schemas/organization.schema';
 import { Child, ChildDocument } from '../children/schemas/child.schema';
+import {
+  FamilyMember,
+  FamilyMemberDocument,
+} from './schemas/family-member.schema';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -36,6 +40,8 @@ export class AuthService {
     @InjectModel(Organization.name)
     private organizationModel: Model<OrganizationDocument>,
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
+    @InjectModel(FamilyMember.name)
+    private familyMemberModel: Model<FamilyMemberDocument>,
     private jwtService: JwtService,
     private configService: ConfigService,
     private mailService: MailService,
@@ -451,6 +457,63 @@ export class AuthService {
     user.profilePic = profilePicUrl;
     await user.save();
     return this.getProfile(userId);
+  }
+
+  async getFamilyMembers(userId: string): Promise<{ id: string; name: string; imageUrl: string }[]> {
+    const list = await this.familyMemberModel
+      .find({ userId })
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec();
+    return list.map((m) => ({
+      id: (m as { _id: { toString(): string } })._id.toString(),
+      name: m.name,
+      imageUrl: m.imageUrl,
+    }));
+  }
+
+  async addFamilyMember(
+    userId: string,
+    name: string,
+    file: { buffer: Buffer; mimetype: string },
+  ): Promise<{ id: string; name: string; imageUrl: string }> {
+    let imageUrl: string;
+    if (this.cloudinary.isConfigured()) {
+      const publicId = `family_${userId}_${Date.now()}`;
+      imageUrl = await this.cloudinary.uploadBuffer(file.buffer, {
+        folder: 'cognicare/family',
+        publicId,
+      });
+    } else {
+      const path = await import('path');
+      const fs = await import('fs/promises');
+      const uploadsDir = path.join(process.cwd(), 'uploads', 'family');
+      await fs.mkdir(uploadsDir, { recursive: true });
+      const ext = file.mimetype === 'image/png' ? 'png' : 'jpg';
+      const filename = `${userId}_${Date.now()}.${ext}`;
+      const filePath = path.join(uploadsDir, filename);
+      await fs.writeFile(filePath, file.buffer);
+      imageUrl = `/uploads/family/${filename}`;
+    }
+    const doc = await this.familyMemberModel.create({
+      userId,
+      name,
+      imageUrl,
+    });
+    return {
+      id: doc._id.toString(),
+      name: doc.name,
+      imageUrl: doc.imageUrl,
+    };
+  }
+
+  async deleteFamilyMember(userId: string, memberId: string): Promise<void> {
+    const result = await this.familyMemberModel
+      .findOneAndDelete({ _id: memberId, userId })
+      .exec();
+    if (!result) {
+      throw new BadRequestException('Family member not found or access denied');
+    }
   }
 
   async forgotPassword(email: string): Promise<void> {

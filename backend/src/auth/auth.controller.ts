@@ -4,6 +4,8 @@ import {
   Get,
   Patch,
   Body,
+  Delete,
+  Param,
   UseGuards,
   Request,
   HttpStatus,
@@ -343,6 +345,55 @@ export class AuthController {
       buffer: file.buffer,
       mimetype: file.mimetype,
     });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('family-members')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get family members' })
+  async getFamilyMembers(@Request() req: { user: { id: string } }) {
+    return this.authService.getFamilyMembers(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('family-members')
+  @ApiBearerAuth('JWT-auth')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({
+    summary: 'Add family member with photo',
+    description:
+      'Multipart: file (image), name (string in body or form). Photo stored on Cloudinary.',
+  })
+  async addFamilyMember(
+    @Request() req: { user: { id: string } },
+    @Body('name') name: string,
+    @UploadedFile()
+    file?: { buffer: Buffer; mimetype: string },
+  ) {
+    if (!file?.buffer) {
+      throw new BadRequestException('No file provided');
+    }
+    const n = (name ?? '').trim() || 'Membre';
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.mimetype)) {
+      throw new BadRequestException('Invalid file type. Use JPEG, PNG or WebP.');
+    }
+    return this.authService.addFamilyMember(req.user.id, n, {
+      buffer: file.buffer,
+      mimetype: file.mimetype,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('family-members/:id')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Delete family member' })
+  async deleteFamilyMember(
+    @Request() req: { user: { id: string } },
+    @Param('id') id: string,
+  ) {
+    await this.authService.deleteFamilyMember(req.user.id, id);
+    return { ok: true };
   }
 
   @Post('refresh')

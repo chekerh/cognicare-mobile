@@ -18,6 +18,11 @@ import {
   OrganizationSchema,
 } from '../organization/schemas/organization.schema';
 import { Child, ChildSchema } from '../children/schemas/child.schema';
+import {
+  FamilyMember,
+  FamilyMemberSchema,
+} from './schemas/family-member.schema';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -25,6 +30,7 @@ import { Child, ChildSchema } from '../children/schemas/child.schema';
     PassportModule,
     MailModule,
     OrganizationModule,
+    CloudinaryModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -41,6 +47,7 @@ import { Child, ChildSchema } from '../children/schemas/child.schema';
       { name: EmailVerification.name, schema: EmailVerificationSchema },
       { name: Organization.name, schema: OrganizationSchema },
       { name: Child.name, schema: ChildSchema },
+      { name: FamilyMember.name, schema: FamilyMemberSchema },
     ]),
   ],
   providers: [AuthService, JwtStrategy],
