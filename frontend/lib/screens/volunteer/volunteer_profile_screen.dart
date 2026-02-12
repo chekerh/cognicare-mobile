@@ -402,6 +402,13 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                       ),
                     ),
 
+                    const SizedBox(height: 12),
+                    _buildActionTile(
+                      icon: Icons.description_outlined,
+                      label: 'Candidature bénévole',
+                      onTap: () => context.push(AppConstants.volunteerApplicationRoute),
+                    ),
+
                     const SizedBox(height: 24),
 
                     // Badges & Impact

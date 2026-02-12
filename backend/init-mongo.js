@@ -8,6 +8,20 @@ db.users.createIndex({ "email": 1 }, { unique: true });
 db.users.createIndex({ "role": 1 });
 db.users.createIndex({ "createdAt": 1 });
 
+// Default qualification course for denied volunteers (upsert to avoid duplicate)
+db.courses.updateOne(
+  { slug: "formation-qualifiante-benevole" },
+  { $setOnInsert: {
+    title: "Formation qualifiante bénévole",
+    description: "Parcours pour devenir bénévole CogniCare : sensibilisation, bonnes pratiques, cadre d'intervention.",
+    slug: "formation-qualifiante-benevole",
+    isQualificationCourse: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }},
+  { upsert: true }
+);
+
 // Optional: Create a default admin user for development
 // ⚠️ SECURITY: Admin accounts cannot be created through the signup API
 // They must be created manually in the database for security

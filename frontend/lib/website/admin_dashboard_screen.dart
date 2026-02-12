@@ -257,6 +257,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             const SizedBox(height: 12),
 
             _buildManagementCard(
+              icon: Icons.volunteer_activism,
+              title: 'Volunteer Applications',
+              description: 'Review and approve or deny volunteer applications',
+              onTap: () {
+                Navigator.pushNamed(context, '/admin-volunteers');
+              },
+            ),
+            const SizedBox(height: 12),
+
+            _buildManagementCard(
               icon: Icons.analytics_outlined,
               title: 'Analytics',
               description: 'View platform statistics and reports',

@@ -68,4 +68,50 @@ export class CloudinaryService {
       readStream.pipe(uploadStream);
     });
   }
+
+  /**
+   * Upload raw file (e.g. PDF) from buffer. Returns the public URL (secure_url).
+   * Use for documents: ID, certificates. Throws if Cloudinary is not configured.
+   */
+  async uploadRawBuffer(
+    buffer: Buffer,
+    options: { folder: string; publicId?: string; resourceType?: 'raw' | 'auto' },
+  ): Promise<string> {
+    if (!this.configured) {
+      throw new Error(
+        'Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET.',
+      );
+    }
+    const resourceType = options.resourceType ?? 'raw';
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: options.folder,
+          public_id: options.publicId,
+          resource_type: resourceType,
+        },
+        (err, result) => {
+          if (err) {
+            const error: Error =
+              err instanceof Error
+                ? err
+                : new Error(
+                    typeof (err as { message?: string })?.message === 'string'
+                      ? (err as { message: string }).message
+                      : 'Cloudinary upload failed',
+                  );
+            reject(error);
+            return;
+          }
+          if (!result?.secure_url) {
+            reject(new Error('Cloudinary did not return a URL'));
+            return;
+          }
+          resolve(result.secure_url);
+        },
+      );
+      const readStream = Readable.from(buffer);
+      readStream.pipe(uploadStream);
+    });
+  }
 }

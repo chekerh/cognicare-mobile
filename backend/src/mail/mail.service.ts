@@ -11,6 +11,8 @@ import {
   getOrganizationPendingTemplate,
   getOrganizationApprovedTemplate,
   getOrganizationRejectedTemplate,
+  getVolunteerApprovedTemplate,
+  getVolunteerDeniedTemplate,
 } from './templates/email-templates';
 
 @Injectable()
@@ -281,6 +283,67 @@ export class MailService {
       console.error('Failed to send organization rejected email:', err);
       throw new InternalServerErrorException(
         'Could not send organization rejected email.',
+      );
+    }
+  }
+
+  async sendVolunteerApproved(email: string, userName: string): Promise<void> {
+    if (!this.apiKey || !this.from) {
+      console.warn(
+        'Skipping volunteer approved email: SENDGRID_API_KEY or MAIL_FROM not configured',
+      );
+      return;
+    }
+    const emailContent = getVolunteerApprovedTemplate(userName);
+    const htmlContent = getEmailBaseTemplate(emailContent);
+    const msg = {
+      to: email,
+      from: this.from,
+      subject: 'CogniCare – Your volunteer application has been approved',
+      html: htmlContent,
+    };
+    try {
+      await sgMail.send(msg);
+      console.log(`Volunteer approved email sent to ${email}`);
+    } catch (err: unknown) {
+      console.error('Failed to send volunteer approved email:', err);
+      throw new InternalServerErrorException(
+        'Could not send volunteer approved email.',
+      );
+    }
+  }
+
+  async sendVolunteerDenied(
+    email: string,
+    userName: string,
+    deniedReason?: string,
+    courseUrl?: string,
+  ): Promise<void> {
+    if (!this.apiKey || !this.from) {
+      console.warn(
+        'Skipping volunteer denied email: SENDGRID_API_KEY or MAIL_FROM not configured',
+      );
+      return;
+    }
+    const emailContent = getVolunteerDeniedTemplate(
+      userName,
+      deniedReason,
+      courseUrl,
+    );
+    const htmlContent = getEmailBaseTemplate(emailContent);
+    const msg = {
+      to: email,
+      from: this.from,
+      subject: 'CogniCare – Volunteer application update',
+      html: htmlContent,
+    };
+    try {
+      await sgMail.send(msg);
+      console.log(`Volunteer denied email sent to ${email}`);
+    } catch (err: unknown) {
+      console.error('Failed to send volunteer denied email:', err);
+      throw new InternalServerErrorException(
+        'Could not send volunteer denied email.',
       );
     }
   }

@@ -63,6 +63,8 @@ dependencies:
 
   # Image picker (galerie / appareil photo)
   image_picker: ^1.0.7
+  # File picker (documents: PDF, images)
+  file_picker: ^8.0.0+1
 
   # Path provider (sauvegarder les images)
   path_provider: ^2.1.2

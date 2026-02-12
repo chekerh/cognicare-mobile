@@ -51,6 +51,8 @@ import '../screens/volunteer/volunteer_task_accepted_screen.dart';
 import '../screens/volunteer/volunteer_notifications_screen.dart';
 import '../screens/volunteer/volunteer_family_chat_screen.dart';
 import '../screens/volunteer/volunteer_profile_screen.dart';
+import '../screens/volunteer/volunteer_application_screen.dart';
+import '../screens/volunteer/volunteer_courses_screen.dart';
 import '../screens/volunteer/volunteer_mission_report_screen.dart';
 import '../screens/volunteer/volunteer_offer_help_screen.dart';
 import '../screens/volunteer/volunteer_new_availability_screen.dart';
@@ -191,6 +193,14 @@ GoRouter createAppRouter(AuthProvider authProvider) {
         GoRoute(
           path: 'new-availability',
           builder: (context, state) => const VolunteerNewAvailabilityScreen(),
+        ),
+        GoRoute(
+          path: 'application',
+          builder: (context, state) => const VolunteerApplicationScreen(),
+        ),
+        GoRoute(
+          path: 'courses',
+          builder: (context, state) => const VolunteerCoursesScreen(),
         ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) => VolunteerShellScreen(

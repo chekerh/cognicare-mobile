@@ -376,3 +376,82 @@ export const getOrganizationPendingTemplate = (
     </div>
   `;
 };
+
+export const getVolunteerApprovedTemplate = (userName: string): string => {
+  return `
+    <div style="text-align: center;">
+      <div style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+        <h1 style="color: white; font-size: 32px; margin: 0;">
+          ✓ Volunteer Application Approved
+        </h1>
+      </div>
+      <h2 style="color: #5A5A5A; font-size: 24px; margin-bottom: 20px;">
+        Congratulations, ${userName}!
+      </h2>
+      <p style="color: #5A5A5A; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+        Your volunteer application on CogniCare has been approved. You can now access volunteer features and help families in need.
+      </p>
+      <div style="background-color: #dcfce7; border-left: 4px solid #22c55e; padding: 20px; margin: 30px 0; text-align: left; border-radius: 8px;">
+        <p style="color: #166534; font-size: 15px; margin: 0; line-height: 1.6;">
+          <strong>Next steps:</strong> Open the app and go to your volunteer dashboard to view available missions and set your availability.
+        </p>
+      </div>
+      <p style="color: #5A5A5A; font-size: 14px; line-height: 1.6; margin-top: 30px;">
+        Thank you for joining the CogniCare volunteer community!
+      </p>
+      <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #e0e0e0;">
+        <p style="color: #888; font-size: 13px; line-height: 1.6;">
+          Questions? Contact us at <a href="mailto:support@cognicare.com" style="color: #22c55e; text-decoration: none;">support@cognicare.com</a>
+        </p>
+      </div>
+    </div>
+  `;
+};
+
+export const getVolunteerDeniedTemplate = (
+  userName: string,
+  deniedReason?: string,
+  courseUrl?: string,
+): string => {
+  return `
+    <div style="text-align: center;">
+      <div style="background: linear-gradient(135deg, #f87171 0%, #ef4444 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+        <h1 style="color: white; font-size: 32px; margin: 0;">
+          Volunteer Application Update
+        </h1>
+      </div>
+      <h2 style="color: #5A5A5A; font-size: 24px; margin-bottom: 20px;">
+        Dear ${userName},
+      </h2>
+      <p style="color: #5A5A5A; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+        Thank you for your interest in volunteering with CogniCare. After review, we are unable to approve your application at this time.
+      </p>
+      ${
+        deniedReason
+          ? `
+      <div style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 20px; margin: 30px 0; text-align: left; border-radius: 8px;">
+        <p style="color: #991b1b; font-size: 15px; margin: 0; line-height: 1.6;">${deniedReason}</p>
+      </div>
+      `
+          : ''
+      }
+      ${
+        courseUrl
+          ? `
+      <div style="background-color: #e0e7ff; border-left: 4px solid #6366f1; padding: 20px; margin: 30px 0; text-align: left; border-radius: 8px;">
+        <p style="color: #3730a3; font-size: 15px; margin: 0; line-height: 1.6;">
+          <strong>Qualify for future opportunities:</strong> You can take our qualification course to become eligible for volunteer missions.
+        </p>
+        <p style="margin: 15px 0 0 0;">
+          <a href="${courseUrl}" style="display: inline-block; background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">View qualification courses →</a>
+        </p>
+      </div>
+      `
+          : ''
+      }
+      <p style="color: #5A5A5A; font-size: 14px; line-height: 1.6; margin-top: 30px;">
+        If you have questions, contact us at <a href="mailto:support@cognicare.com" style="color: #ef4444; text-decoration: none;">support@cognicare.com</a>
+      </p>
+    </div>
+  `;
+};

@@ -127,6 +127,104 @@ class AdminService {
     }
   }
 
+  /// List volunteer applications (admin). Optional [status]: pending, approved, denied.
+  Future<List<Map<String, dynamic>>> getVolunteerApplications({String? status}) async {
+    try {
+      final token = await _getToken();
+      if (token == null) throw Exception('No authentication token found');
+      var url = '${AppConstants.baseUrl}${AppConstants.volunteerApplicationsAdminEndpoint}';
+      if (status != null && status.isNotEmpty) {
+        url += '?status=$status';
+      }
+      final response = await _client.get(
+        Uri.parse(url),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode != 200) {
+        final err = jsonDecode(response.body) as Map<String, dynamic>?;
+        throw Exception(err?['message'] ?? 'Failed to fetch applications');
+      }
+      final list = jsonDecode(response.body) as List<dynamic>?;
+      return (list ?? []).map((e) => e as Map<String, dynamic>).toList();
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  /// Get one volunteer application by id (admin).
+  Future<Map<String, dynamic>> getVolunteerApplication(String id) async {
+    try {
+      final token = await _getToken();
+      if (token == null) throw Exception('No authentication token found');
+      final response = await _client.get(
+        Uri.parse('${AppConstants.baseUrl}${AppConstants.volunteerApplicationAdminEndpoint(id)}'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode != 200) {
+        final err = jsonDecode(response.body) as Map<String, dynamic>?;
+        throw Exception(err?['message'] ?? 'Failed to fetch application');
+      }
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  /// List course enrollments (admin). Optional [userId] to filter by volunteer.
+  Future<List<Map<String, dynamic>>> getVolunteerCourseEnrollments({String? userId}) async {
+    try {
+      final token = await _getToken();
+      if (token == null) throw Exception('No authentication token found');
+      var url = '${AppConstants.baseUrl}${AppConstants.coursesAdminEnrollmentsEndpoint}';
+      if (userId != null && userId.isNotEmpty) {
+        url += '?userId=$userId';
+      }
+      final response = await _client.get(
+        Uri.parse(url),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode != 200) {
+        final err = jsonDecode(response.body) as Map<String, dynamic>?;
+        throw Exception(err?['message'] ?? 'Failed to fetch enrollments');
+      }
+      final list = jsonDecode(response.body) as List<dynamic>?;
+      return (list ?? []).map((e) => e as Map<String, dynamic>).toList();
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  /// Review volunteer: approve or deny (admin). [deniedReason] required when denying.
+  Future<Map<String, dynamic>> reviewVolunteerApplication(
+    String applicationId, {
+    required String decision,
+    String? deniedReason,
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null) throw Exception('No authentication token found');
+      final body = <String, dynamic>{'decision': decision};
+      if (deniedReason != null && deniedReason.isNotEmpty) {
+        body['deniedReason'] = deniedReason;
+      }
+      final response = await _client.patch(
+        Uri.parse('${AppConstants.baseUrl}${AppConstants.volunteerApplicationReviewEndpoint(applicationId)}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+      if (response.statusCode != 200) {
+        final err = jsonDecode(response.body) as Map<String, dynamic>?;
+        throw Exception(err?['message'] ?? 'Review failed');
+      }
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
   void dispose() {
     _client.close();
   }

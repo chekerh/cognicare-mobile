@@ -3,6 +3,7 @@ import 'landing_page.dart';
 import 'admin_login_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'user_management_screen.dart';
+import 'admin_volunteer_applications_screen.dart';
 import '../utils/theme.dart';
 
 void main() {
@@ -24,6 +25,7 @@ class CogniCareWebsite extends StatelessWidget {
         '/admin-login': (context) => const AdminLoginScreen(),
         '/admin-dashboard': (context) => const AdminDashboardScreen(),
         '/admin-users': (context) => const UserManagementScreen(),
+        '/admin-volunteers': (context) => const AdminVolunteerApplicationsScreen(),
       },
     );
   }

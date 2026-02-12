@@ -39,6 +39,26 @@ class AppConstants {
   // Children (family profile)
   static const String childrenEndpoint = '/api/v1/children';
 
+  // Volunteers (application + documents)
+  static const String volunteerApplicationEndpoint = '/api/v1/volunteers/application/me';
+  static const String volunteerDocumentsEndpoint = '/api/v1/volunteers/application/documents';
+  static String volunteerDocumentDeleteEndpoint(int index) =>
+      '/api/v1/volunteers/application/documents/$index';
+  static const String volunteerApplicationsAdminEndpoint = '/api/v1/volunteers/applications';
+  static String volunteerApplicationAdminEndpoint(String id) =>
+      '/api/v1/volunteers/applications/$id';
+  static String volunteerApplicationReviewEndpoint(String id) =>
+      '/api/v1/volunteers/applications/$id/review';
+
+  // Courses (for denied volunteers)
+  static const String coursesEndpoint = '/api/v1/courses';
+  static String courseEnrollEndpoint(String id) => '/api/v1/courses/$id/enroll';
+  static const String coursesMyEnrollmentsEndpoint = '/api/v1/courses/my-enrollments';
+  static String courseEnrollmentProgressEndpoint(String id) =>
+      '/api/v1/courses/enrollments/$id/progress';
+  /// Admin: list course enrollments (optional userId filter).
+  static const String coursesAdminEnrollmentsEndpoint = '/api/v1/courses/admin/enrollments';
+
   /// Returns a full URL for an image from the API (profile pics, post images).
   /// If [pathOrUrl] is empty, returns ''. If it already starts with 'http', returns as-is.
   /// Otherwise prefixes with [baseUrl] (e.g. /uploads/profiles/xxx → http://host/uploads/profiles/xxx).
@@ -116,6 +136,8 @@ class AppConstants {
   static const String volunteerMissionReportRoute = '/volunteer/mission-report';
   static const String volunteerOfferHelpRoute = '/volunteer/offer-help';
   static const String volunteerNewAvailabilityRoute = '/volunteer/new-availability';
+  static const String volunteerApplicationRoute = '/volunteer/application';
+  static const String coursesRoute = '/volunteer/courses';
 
   // Healthcare professional sector routes (JWT-protected, role: healthcare)
   static const String healthcareRoute = '/healthcare';
