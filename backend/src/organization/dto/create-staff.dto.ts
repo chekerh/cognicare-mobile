@@ -52,6 +52,7 @@ export class CreateStaffDto {
       'psychologist',
       'speech_therapist',
       'occupational_therapist',
+      'other',
     ],
     example: 'doctor',
   })
@@ -62,6 +63,7 @@ export class CreateStaffDto {
     'psychologist',
     'speech_therapist',
     'occupational_therapist',
+    'other',
   ])
   role!: string;
 }

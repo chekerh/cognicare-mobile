@@ -7,23 +7,36 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
+import * as crypto from 'crypto';
 import {
   Organization,
   OrganizationDocument,
 } from './schemas/organization.schema';
+import { Invitation, InvitationDocument } from './schemas/invitation.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { Child, ChildDocument } from '../children/schemas/child.schema';
-import { CreateStaffDto, CreateFamilyDto } from './dto';
+import {
+  CreateStaffDto,
+  CreateFamilyDto,
+  UpdateStaffDto,
+  UpdateFamilyDto,
+} from './dto';
 import { AddChildDto } from '../children/dto/add-child.dto';
 import { UpdateChildDto } from '../children/dto/update-child.dto';
+import { MailService } from '../mail/mail.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class OrganizationService {
   constructor(
     @InjectModel(Organization.name)
     private organizationModel: Model<OrganizationDocument>,
+    @InjectModel(Invitation.name)
+    private invitationModel: Model<InvitationDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
+    private mailService: MailService,
+    private configService: ConfigService,
   ) {}
 
   async createOrganization(
@@ -46,6 +59,14 @@ export class OrganizationService {
 
     const staff = await this.userModel.findOne({ email: staffEmail });
     if (!staff) throw new NotFoundException('User not found');
+
+    // Validate staff role
+    const staffRoles = ['doctor', 'volunteer', 'psychologist', 'speech_therapist', 'occupational_therapist', 'other'];
+    if (!staffRoles.includes(staff.role)) {
+      throw new BadRequestException(
+        `Cannot add this user as staff. User role is '${staff.role}'. Staff members must have one of these roles: doctor, volunteer, psychologist, speech_therapist, occupational_therapist, or other.`
+      );
+    }
 
     if (!org.staffIds.some((id) => id.toString() === staff._id.toString())) {
       org.staffIds.push(staff._id as any);
@@ -86,6 +107,13 @@ export class OrganizationService {
 
     const family = await this.userModel.findOne({ email: familyEmail });
     if (!family) throw new NotFoundException('Family user not found');
+
+    // Validate family role
+    if (family.role !== 'family') {
+      throw new BadRequestException(
+        `Cannot add this user as family. User role is '${family.role}'. Only users with 'family' role can be added as family members.`
+      );
+    }
 
     if (!org.familyIds.some((id) => id.toString() === family._id.toString())) {
       org.familyIds.push(family._id as any);
@@ -246,6 +274,62 @@ export class OrganizationService {
     return staff;
   }
 
+  async updateStaff(
+    orgId: string,
+    staffId: string,
+    updateStaffDto: UpdateStaffDto,
+  ): Promise<User> {
+    const org = await this.organizationModel.findById(orgId);
+    if (!org) throw new NotFoundException('Organization not found');
+
+    // Verify staff belongs to organization
+    if (!org.staffIds.some((id) => id.toString() === staffId)) {
+      throw new BadRequestException(
+        'Staff member does not belong to this organization',
+      );
+    }
+
+    const staff = await this.userModel.findById(staffId);
+    if (!staff) throw new NotFoundException('Staff member not found');
+
+    // Check if email is being changed and if it's already taken
+    if (updateStaffDto.email && updateStaffDto.email !== staff.email) {
+      const existingUser = await this.userModel.findOne({
+        email: updateStaffDto.email,
+      });
+      if (existingUser) {
+        throw new ConflictException('Email is already in use');
+      }
+      staff.email = updateStaffDto.email;
+    }
+
+    // Update fields
+    if (updateStaffDto.fullName !== undefined) {
+      staff.fullName = updateStaffDto.fullName;
+    }
+    if (updateStaffDto.phone !== undefined) {
+      staff.phone = updateStaffDto.phone;
+    }
+    if (updateStaffDto.role !== undefined) {
+      // Validate role is appropriate for staff
+      const allowedRoles = [
+        'doctor',
+        'volunteer',
+        'psychologist',
+        'speech_therapist',
+        'occupational_therapist',
+        'other',
+      ];
+      if (!allowedRoles.includes(updateStaffDto.role)) {
+        throw new BadRequestException('Invalid staff role');
+      }
+      staff.role = updateStaffDto.role as any;
+    }
+
+    await staff.save();
+    return staff;
+  }
+
   async createFamilyMember(
     orgId: string,
     createFamilyDto: CreateFamilyDto,
@@ -313,6 +397,51 @@ export class OrganizationService {
     await org.save();
 
     return { family, children };
+  }
+
+  async updateFamily(
+    orgId: string,
+    familyId: string,
+    updateFamilyDto: UpdateFamilyDto,
+  ): Promise<User> {
+    const org = await this.organizationModel.findById(orgId);
+    if (!org) throw new NotFoundException('Organization not found');
+
+    // Verify family belongs to organization
+    if (!org.familyIds.some((id) => id.toString() === familyId)) {
+      throw new BadRequestException(
+        'Family does not belong to this organization',
+      );
+    }
+
+    const family = await this.userModel.findById(familyId);
+    if (!family) throw new NotFoundException('Family not found');
+
+    if (family.role !== 'family') {
+      throw new BadRequestException('User is not a family member');
+    }
+
+    // Check if email is being changed and if it's already taken
+    if (updateFamilyDto.email && updateFamilyDto.email !== family.email) {
+      const existingUser = await this.userModel.findOne({
+        email: updateFamilyDto.email,
+      });
+      if (existingUser) {
+        throw new ConflictException('Email is already in use');
+      }
+      family.email = updateFamilyDto.email;
+    }
+
+    // Update fields
+    if (updateFamilyDto.fullName !== undefined) {
+      family.fullName = updateFamilyDto.fullName;
+    }
+    if (updateFamilyDto.phone !== undefined) {
+      family.phone = updateFamilyDto.phone;
+    }
+
+    await family.save();
+    return family;
   }
 
   async addChildToFamily(
@@ -594,5 +723,303 @@ export class OrganizationService {
       throw new NotFoundException('Organization not found');
     }
     return this.deleteChild(org._id.toString(), familyId, childId);
+  }
+
+  // Update staff in leader's organization
+  async updateMyStaff(
+    leaderId: string,
+    staffId: string,
+    updateStaffDto: UpdateStaffDto,
+  ): Promise<User> {
+    const org = await this.getOrganizationByLeader(leaderId);
+    if (!org) {
+      throw new NotFoundException('Organization not found');
+    }
+    return this.updateStaff(org._id.toString(), staffId, updateStaffDto);
+  }
+
+  // Remove staff from leader's organization
+  async removeMyStaff(
+    leaderId: string,
+    staffId: string,
+  ): Promise<{ message: string }> {
+    const org = await this.getOrganizationByLeader(leaderId);
+    if (!org) {
+      throw new NotFoundException('Organization not found');
+    }
+    await this.removeStaff(org._id.toString(), staffId);
+    return { message: 'Staff member successfully removed' };
+  }
+
+  // Update family in leader's organization
+  async updateMyFamily(
+    leaderId: string,
+    familyId: string,
+    updateFamilyDto: UpdateFamilyDto,
+  ): Promise<User> {
+    const org = await this.getOrganizationByLeader(leaderId);
+    if (!org) {
+      throw new NotFoundException('Organization not found');
+    }
+    return this.updateFamily(org._id.toString(), familyId, updateFamilyDto);
+  }
+
+  // Remove family from leader's organization
+  async removeMyFamily(
+    leaderId: string,
+    familyId: string,
+  ): Promise<{ message: string }> {
+    const org = await this.getOrganizationByLeader(leaderId);
+    if (!org) {
+      throw new NotFoundException('Organization not found');
+    }
+    await this.removeFamily(org._id.toString(), familyId);
+    return { message: 'Family successfully removed' };
+  }
+
+  // Invitation system methods
+  async inviteUserToOrganization(
+    orgId: string,
+    userEmail: string,
+    invitationType: 'staff' | 'family',
+  ): Promise<{ message: string }> {
+    console.log('[INVITE] Starting invitation process:', {
+      orgId,
+      userEmail,
+      invitationType,
+    });
+
+    const org = await this.organizationModel.findById(orgId);
+    if (!org) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    // Check if user exists
+    const user = await this.userModel.findOne({ email: userEmail });
+    if (!user) {
+      throw new NotFoundException('User with this email does not exist');
+    }
+
+    console.log('[INVITE] User found:', {
+      userId: user._id,
+      email: user.email,
+      role: user.role,
+      hasChildren: user.childrenIds?.length || 0,
+    });
+
+    // Validate user role matches invitation type
+    const staffRoles = ['doctor', 'volunteer', 'psychologist', 'speech_therapist', 'occupational_therapist', 'other'];
+    
+    if (invitationType === 'staff' && !staffRoles.includes(user.role)) {
+      throw new BadRequestException(
+        `Cannot invite this user as staff. User role is '${user.role}'. Staff members must have one of these roles: doctor, volunteer, psychologist, speech_therapist, occupational_therapist, or other.`
+      );
+    }
+
+    if (invitationType === 'family' && user.role !== 'family') {
+      throw new BadRequestException(
+        `Cannot invite this user as family. User role is '${user.role}'. Only users with 'family' role can be invited as family members.`
+      );
+    }
+
+    // Check if user is already in the organization
+    const isStaff = org.staffIds.some(
+      (id) => id.toString() === user._id.toString(),
+    );
+    const isFamily = org.familyIds.some(
+      (id) => id.toString() === user._id.toString(),
+    );
+
+    if (isStaff || isFamily) {
+      throw new ConflictException('User is already a member of this organization');
+    }
+
+    // Check for existing pending invitation
+    const existingInvitation = await this.invitationModel.findOne({
+      organizationId: orgId,
+      userId: user._id,
+      status: 'pending',
+    });
+
+    if (existingInvitation) {
+      throw new ConflictException('A pending invitation already exists for this user');
+    }
+
+    // Generate unique token
+    const token = crypto.randomBytes(32).toString('hex');
+
+    // Create invitation
+    const invitation = new this.invitationModel({
+      organizationId: orgId,
+      userId: user._id,
+      userEmail: userEmail,
+      organizationName: org.name,
+      invitationType,
+      status: 'pending',
+      token,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    });
+
+    await invitation.save();
+
+    console.log('[INVITE] Invitation created:', {
+      invitationId: invitation._id,
+      token: token.substring(0, 8) + '...',
+      expiresAt: invitation.expiresAt,
+    });
+
+    // Send email - ensure proper URL formatting
+    let baseUrl =
+      this.configService.get<string>('CORS_ORIGIN') || 'http://localhost:3000';
+    
+    // Remove trailing slash if present
+    baseUrl = baseUrl.replace(/\/$/, '');
+    
+    // Build full URLs (global prefix 'api/v1' is already applied by NestJS)
+    const acceptUrl = `${baseUrl}/api/v1/organization/invitations/${token}/accept`;
+    const rejectUrl = `${baseUrl}/api/v1/organization/invitations/${token}/reject`;
+
+    console.log('[INVITE] Sending email to:', userEmail);
+
+    await this.mailService.sendOrganizationInvitation(
+      userEmail,
+      org.name,
+      invitationType,
+      acceptUrl,
+      rejectUrl,
+    );
+
+    console.log('[INVITE] Email sent successfully');
+
+    return { message: 'Invitation sent successfully' };
+  }
+
+  async acceptInvitation(token: string): Promise<{ message: string; organizationName: string }> {
+    const invitation = await this.invitationModel.findOne({
+      token,
+      status: 'pending',
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found or already processed');
+    }
+
+    if (invitation.expiresAt < new Date()) {
+      throw new BadRequestException('Invitation has expired');
+    }
+
+    // Add user to organization
+    const org = await this.organizationModel.findById(invitation.organizationId);
+    if (!org) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    const user = await this.userModel.findById(invitation.userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Validate user role still matches invitation type
+    const staffRoles = ['doctor', 'volunteer', 'psychologist', 'speech_therapist', 'occupational_therapist', 'other'];
+    
+    if (invitation.invitationType === 'staff' && !staffRoles.includes(user.role)) {
+      throw new BadRequestException(
+        `Cannot accept staff invitation. Your current role is '${user.role}', but staff members must have one of these roles: doctor, volunteer, psychologist, speech_therapist, occupational_therapist, or other.`
+      );
+    }
+
+    if (invitation.invitationType === 'family' && user.role !== 'family') {
+      throw new BadRequestException(
+        `Cannot accept family invitation. Your current role is '${user.role}', but only users with 'family' role can be added as family members.`
+      );
+    }
+
+    // Add to appropriate list
+    if (invitation.invitationType === 'staff') {
+      if (!org.staffIds.some((id) => id.toString() === user._id.toString())) {
+        org.staffIds.push(user._id as any);
+      }
+    } else {
+      if (!org.familyIds.some((id) => id.toString() === user._id.toString())) {
+        org.familyIds.push(user._id as any);
+      }
+
+      // Link family's children to organization
+      if (user.childrenIds && user.childrenIds.length > 0) {
+        await this.childModel.updateMany(
+          { _id: { $in: user.childrenIds } },
+          { organizationId: invitation.organizationId },
+        );
+
+        // Add children to org's childrenIds
+        for (const childId of user.childrenIds) {
+          if (!org.childrenIds.some((id) => id.toString() === childId.toString())) {
+            org.childrenIds.push(childId as any);
+          }
+        }
+      }
+    }
+
+    await org.save();
+
+    // Link user to organization
+    user.organizationId = invitation.organizationId.toString();
+    await user.save();
+
+    // Update invitation status
+    invitation.status = 'accepted';
+    await invitation.save();
+
+    return {
+      message: 'Invitation accepted successfully',
+      organizationName: org.name,
+    };
+  }
+
+  async rejectInvitation(token: string): Promise<{ message: string }> {
+    const invitation = await this.invitationModel.findOne({
+      token,
+      status: 'pending',
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found or already processed');
+    }
+
+    invitation.status = 'rejected';
+    await invitation.save();
+
+    return { message: 'Invitation rejected' };
+  }
+
+  async getPendingInvitations(orgId: string): Promise<Invitation[]> {
+    return this.invitationModel.find({
+      organizationId: orgId,
+      status: 'pending',
+    });
+  }
+
+  async inviteMyUser(
+    leaderId: string,
+    userEmail: string,
+    invitationType: 'staff' | 'family',
+  ): Promise<{ message: string }> {
+    const org = await this.getOrganizationByLeader(leaderId);
+    if (!org) {
+      throw new NotFoundException('Organization not found');
+    }
+    return this.inviteUserToOrganization(
+      org._id.toString(),
+      userEmail,
+      invitationType,
+    );
+  }
+
+  async getMyPendingInvitations(leaderId: string): Promise<Invitation[]> {
+    const org = await this.getOrganizationByLeader(leaderId);
+    if (!org) {
+      throw new NotFoundException('Organization not found');
+    }
+    return this.getPendingInvitations(org._id.toString());
   }
 }

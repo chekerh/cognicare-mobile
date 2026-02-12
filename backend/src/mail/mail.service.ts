@@ -7,6 +7,7 @@ import {
   getVerificationCodeTemplate,
   getPasswordResetTemplate,
   getWelcomeTemplate,
+  getOrganizationInvitationTemplate,
 } from './templates/email-templates';
 
 @Injectable()
@@ -128,6 +129,46 @@ export class MailService {
     } catch (err: unknown) {
       console.error('Failed to send welcome email:', err);
       // Don't throw error for welcome emails - it's not critical
+    }
+  }
+
+  async sendOrganizationInvitation(
+    email: string,
+    organizationName: string,
+    invitationType: 'staff' | 'family',
+    acceptUrl: string,
+    rejectUrl: string,
+  ): Promise<void> {
+    if (!this.apiKey || !this.from) {
+      console.warn(
+        'Skipping invitation email: SENDGRID_API_KEY or MAIL_FROM not configured',
+      );
+      return;
+    }
+
+    const emailContent = getOrganizationInvitationTemplate(
+      organizationName,
+      invitationType,
+      acceptUrl,
+      rejectUrl,
+    );
+    const htmlContent = getEmailBaseTemplate(emailContent);
+
+    const msg = {
+      to: email,
+      from: this.from,
+      subject: `You're Invited to Join ${organizationName} on CogniCare`,
+      html: htmlContent,
+    };
+
+    try {
+      await sgMail.send(msg);
+      console.log(`Organization invitation email sent to ${email}`);
+    } catch (err: unknown) {
+      console.error('Failed to send invitation email:', err);
+      throw new InternalServerErrorException(
+        'Could not send invitation email. Please try again later.',
+      );
     }
   }
 }

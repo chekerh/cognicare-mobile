@@ -21,8 +21,8 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
   final Set<DateTime> _selectedDates = {};
   bool _recurrenceOn = true;
   int _recurrenceType = 0; // 0 Hebdomadaire, 1 Toutes les 2 semaines
-  TimeOfDay _startTime = const TimeOfDay(hour: 14, minute: 0);
-  TimeOfDay _endTime = const TimeOfDay(hour: 18, minute: 0);
+  final TimeOfDay _startTime = const TimeOfDay(hour: 14, minute: 0);
+  final TimeOfDay _endTime = const TimeOfDay(hour: 18, minute: 0);
   bool _saving = false;
 
   static const _daysShort = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'];

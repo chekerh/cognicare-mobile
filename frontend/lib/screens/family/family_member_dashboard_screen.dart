@@ -80,7 +80,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
               : '';
           final timeStr = '${a.startTime} – ${a.endTime}';
           final pic = a.volunteerProfilePic;
-          final avatarUrl = (pic != null && pic.isNotEmpty && !pic.startsWith('http'))
+          final avatarUrl = (pic.isNotEmpty && !pic.startsWith('http'))
               ? '${AppConstants.baseUrl}$pic'
               : (pic ?? '');
           return _VolunteerCardData(
@@ -544,8 +544,8 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
             ),
           )
         else if (_volunteerCards == null || _volunteerCards!.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(
               child: Text(
                 'Aucun bénévole disponible pour le moment.\nLes disponibilités publiées apparaîtront ici.',

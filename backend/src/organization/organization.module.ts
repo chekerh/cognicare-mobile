@@ -6,16 +6,20 @@ import {
   Organization,
   OrganizationSchema,
 } from './schemas/organization.schema';
+import { Invitation, InvitationSchema } from './schemas/invitation.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { Child, ChildSchema } from '../children/schemas/child.schema';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Organization.name, schema: OrganizationSchema },
+      { name: Invitation.name, schema: InvitationSchema },
       { name: User.name, schema: UserSchema },
       { name: Child.name, schema: ChildSchema },
     ]),
+    MailModule,
   ],
   controllers: [OrganizationController],
   providers: [OrganizationService],

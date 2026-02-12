@@ -1151,9 +1151,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
       final lastComment = comments.isNotEmpty
           ? '${comments.first.authorName}: ${comments.first.text}'
           : null;
-      final currentUserId = authProvider.user?.id?.toString().trim() ?? '';
-      final postAuthorId = post.authorId?.toString().trim() ?? '';
-      final sameName = (authProvider.user?.fullName?.trim().toLowerCase() ?? '') ==
+      final currentUserId = authProvider.user?.id.toString().trim() ?? '';
+      final postAuthorId = post.authorId.toString().trim() ?? '';
+      final sameName = (authProvider.user?.fullName.trim().toLowerCase() ?? '') ==
           (post.authorName.trim().toLowerCase());
       // canDelete: même id, ou même nom si les ids ne matchent pas (ex. posts créés sur téléphone)
       final canDelete = currentUserId.isNotEmpty &&
