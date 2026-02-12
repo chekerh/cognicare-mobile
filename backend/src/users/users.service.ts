@@ -93,6 +93,16 @@ export class UsersService {
     return this.userModel.find({ role }).select('-passwordHash').exec();
   }
 
+  /** Consider user "online" if lastSeenAt is within the last 5 minutes. */
+  async getPresence(userId: string): Promise<{ online: boolean }> {
+    const user = await this.userModel.findById(userId).select('lastSeenAt').lean().exec();
+    if (!user || !user.lastSeenAt) {
+      return { online: false };
+    }
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    return { online: new Date(user.lastSeenAt) >= fiveMinutesAgo };
+  }
+
   async updatePassword(
     userId: string,
     currentPassword: string,

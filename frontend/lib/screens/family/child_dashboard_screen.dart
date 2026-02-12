@@ -3,9 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/child_security_code_provider.dart';
 import '../../utils/constants.dart';
-import '../../widgets/parent_code_input_dialog.dart';
+import '../../widgets/child_mode_exit_button.dart';
 
 // Child Mode Dashboard — design from HTML (Jouer, Mes Progrès, Mes Cadeaux)
 const Color _primary = Color(0xFFA2D9E7);
@@ -60,7 +59,7 @@ class ChildDashboardScreen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    _buildLongPressLogout(context),
+                    const ChildModeExitButton(),
                   ],
                 ),
               ),
@@ -162,51 +161,6 @@ class ChildDashboardScreen extends StatelessWidget {
   String _getGreetingWithName(AppLocalizations loc, String firstName) {
     final base = _getGreeting(loc);
     return base.replaceAll('{name}', firstName);
-  }
-
-  Widget _buildLongPressLogout(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
-    final codeProvider = Provider.of<ChildSecurityCodeProvider>(context, listen: false);
-    Future<void> handleLogout() async {
-      if (codeProvider.hasCode) {
-        await ParentCodeInputDialog.show(context);
-      } else {
-        if (context.mounted) context.go(AppConstants.familyProfileRoute);
-      }
-    }
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => handleLogout(),
-      onLongPress: () => handleLogout(),
-      child: Opacity(
-        opacity: 0.4,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.logout_rounded, color: Colors.white, size: 28),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              loc.childDashboardLongPress,
-              style: const TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Widget _build3dButton(

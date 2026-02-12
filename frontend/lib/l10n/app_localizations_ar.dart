@@ -207,6 +207,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get retry => 'إعادة المحاولة';
+  @override
+  String get sessionExpiredReconnect => 'انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى.';
 
   @override
   String get selectLanguage => 'اختر اللغة';
@@ -770,6 +772,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addToMyCollection => 'أضف إلى مجموعتي';
   @override
   String get playAgain => 'العب مرة أخرى';
+
+  @override
+  String get greatJobLevelComplete => 'أحسنت! أكملت هذا المستوى!';
+  @override
+  String get keepGoingAlmostThere => 'تابع، أنت قريب من النهاية!';
+  @override
+  String milestoneLevelsCompleted(int count) => 'أكملت $count مستويات!';
+  @override
+  String get myBadges => 'شاراتي';
+  @override
+  String get totalPointsLabel => 'مجموع النقاط';
 
   @override
   String get myPatients => 'مرضاي';

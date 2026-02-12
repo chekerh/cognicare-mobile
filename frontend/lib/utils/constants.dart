@@ -12,6 +12,10 @@ class AppConstants {
   static const String profileEndpoint = '/api/v1/auth/profile';
   static const String updateProfileEndpoint = '/api/v1/auth/profile';
   static const String uploadProfilePictureEndpoint = '/api/v1/auth/upload-profile-picture';
+  static const String authPresenceEndpoint = '/api/v1/auth/presence';
+
+  /// Presence of another user (GET). Requires JWT.
+  static String userPresenceEndpoint(String userId) => '/api/v1/users/$userId/presence';
 
   // Community (feed) endpoints
   static const String communityPostsEndpoint = '/api/v1/community/posts';

@@ -52,12 +52,15 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   String? _loadError;
   bool _sending = false;
   String? _conversationId;
+  /// null = loading, true/false = from API (volunteer online only if logged in recently).
+  bool? _isOnline;
 
   @override
   void initState() {
     super.initState();
     _messages = [];
     _conversationId = widget.conversationId;
+    _loadPresence();
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.white,
@@ -67,6 +70,17 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       ),
     );
     _initConversationAndMessages();
+  }
+
+  Future<void> _loadPresence() async {
+    try {
+      final online = await AuthService().getPresence(widget.personId);
+      if (!mounted) return;
+      setState(() => _isOnline = online);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isOnline = false);
+    }
   }
 
   Future<void> _initConversationAndMessages() async {
@@ -298,19 +312,20 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                     ? const Icon(Icons.person, color: _textMuted, size: 28)
                     : null,
               ),
-              Positioned(
-                bottom: 2,
-                right: 2,
-                child: Container(
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+              if (_isOnline == true)
+                Positioned(
+                  bottom: 2,
+                  right: 2,
+                  child: Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
           const SizedBox(width: 12),
@@ -328,10 +343,10 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Online',
+                  _isOnline == true ? 'Online' : 'Offline',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.green.shade700,
+                    color: _isOnline == true ? Colors.green.shade700 : _textMuted,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

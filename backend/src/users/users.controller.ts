@@ -78,6 +78,14 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get(':id/presence')
+  @ApiOperation({ summary: 'Get user online presence (any authenticated user)' })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiResponse({ status: 200, description: 'Presence: { online: boolean }' })
+  async getPresence(@Param('id') id: string) {
+    return this.usersService.getPresence(id);
+  }
+
   @Get(':id')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Get user by ID (Admin only)' })

@@ -207,6 +207,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retry => 'Retry';
+  @override
+  String get sessionExpiredReconnect => 'Your session has expired. Please sign in again.';
 
   @override
   String get selectLanguage => 'Select Language';
@@ -770,6 +772,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addToMyCollection => 'Add to my collection';
   @override
   String get playAgain => 'Play again';
+
+  @override
+  String get greatJobLevelComplete => 'Great job! You\'ve completed this level!';
+  @override
+  String get keepGoingAlmostThere => 'Keep going, you\'re almost there!';
+  @override
+  String milestoneLevelsCompleted(int count) => 'You\'ve completed $count levels!';
+  @override
+  String get myBadges => 'My Badges';
+  @override
+  String get totalPointsLabel => 'Total points';
 
   @override
   String get myPatients => 'My Patients';

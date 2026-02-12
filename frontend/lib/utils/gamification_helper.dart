@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/sticker_book_provider.dart';
 import '../providers/gamification_provider.dart';
 import '../services/gamification_service.dart';
@@ -60,6 +61,8 @@ Future<void> recordGameCompletion({
 
     // Show points earned feedback
     if (result != null && result.pointsEarned > 0) {
+      final total = result.totalPoints;
+      final loc = AppLocalizations.of(context);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -68,11 +71,50 @@ Future<void> recordGameCompletion({
                 children: [
                   const Icon(Icons.star, color: Colors.amber),
                   const SizedBox(width: 8),
-                  Text('+${result.pointsEarned} points! Total: ${result.totalPoints}'),
+                  Expanded(
+                    child: Text(
+                      loc != null
+                          ? '+${result.pointsEarned} ${loc.totalPointsLabel}! Total: $total'
+                          : '+${result.pointsEarned} points! Total: $total',
+                    ),
+                  ),
                 ],
               ),
               backgroundColor: Colors.blue,
               duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      });
+    }
+
+    // Milestone celebration (5, 10, 15, 20... levels completed) using sticker task count
+    final completed = stickerProvider.tasksCompletedCount;
+    final milestoneSteps = [5, 10, 15, 20, 25, 30];
+    if (milestoneSteps.contains(completed)) {
+      final loc = AppLocalizations.of(context);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted && loc != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.emoji_events, color: Colors.amber, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      loc.milestoneLevelsCompleted(completed),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: const Color(0xFF2E7D32),
+              duration: const Duration(seconds: 3),
               behavior: SnackBarBehavior.floating,
             ),
           );

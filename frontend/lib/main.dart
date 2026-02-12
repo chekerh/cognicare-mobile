@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/auth_provider.dart';
+import 'services/auth_service.dart';
 import 'providers/cart_provider.dart';
 import 'providers/community_feed_provider.dart';
 import 'providers/language_provider.dart';
@@ -79,17 +81,82 @@ class _CogniCareAppState extends State<CogniCareApp> {
           },
         ),
       ],
-      child: Consumer<LanguageProvider>(
-        builder: (context, languageProvider, child) => MaterialApp.router(
-          title: 'CogniCare',
-          theme: AppTheme.lightTheme,
-          routerConfig: _router,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: languageProvider.locale,
-          debugShowCheckedModeBanner: false,
+      child: Consumer<AuthProvider>(
+        builder: (_, auth, __) => Consumer<LanguageProvider>(
+          builder: (context, languageProvider, child) => PresencePinger(
+            isAuthenticated: auth.isAuthenticated,
+            child: MaterialApp.router(
+              title: 'CogniCare',
+              theme: AppTheme.lightTheme,
+              routerConfig: _router,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: languageProvider.locale,
+              debugShowCheckedModeBanner: false,
+            ),
+          ),
         ),
       ),
     );
   }
+}
+
+/// Calls [AuthService.updatePresence] periodically while the user is logged in
+/// so they appear "online" in chat. Stops when logged out or disposed.
+class PresencePinger extends StatefulWidget {
+  const PresencePinger({
+    super.key,
+    required this.isAuthenticated,
+    required this.child,
+  });
+
+  final bool isAuthenticated;
+  final Widget child;
+
+  @override
+  State<PresencePinger> createState() => _PresencePingerState();
+}
+
+class _PresencePingerState extends State<PresencePinger> {
+  Timer? _timer;
+
+  void _startTimer() {
+    _timer?.cancel();
+    AuthService().updatePresence(); // Ping once so we're online right after login
+    _timer = Timer.periodic(const Duration(minutes: 2), (_) async {
+      await AuthService().updatePresence();
+    });
+  }
+
+  void _cancelTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isAuthenticated) _startTimer();
+  }
+
+  @override
+  void didUpdateWidget(PresencePinger oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isAuthenticated != widget.isAuthenticated) {
+      if (widget.isAuthenticated) {
+        _startTimer();
+      } else {
+        _cancelTimer();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _cancelTimer();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

@@ -6,6 +6,7 @@ import '../../providers/sticker_book_provider.dart';
 import '../../utils/constants.dart';
 import '../../utils/gamification_helper.dart';
 import '../../services/gamification_service.dart';
+import '../../widgets/child_mode_exit_button.dart';
 
 // Shape Sorting Challenge — couleurs du HTML
 const Color _primary = Color(0xFFA5DCE7);
@@ -238,10 +239,7 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
               ),
             ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.help_outline_rounded, color: _textDark, size: 28),
-          ),
+          ChildModeExitButton(iconColor: _textDark, textColor: _textDark, opacity: 0.9),
         ],
       ),
     );

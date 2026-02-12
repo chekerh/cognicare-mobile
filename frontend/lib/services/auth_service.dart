@@ -95,13 +95,15 @@ class AuthService {
         throw Exception('No authentication token found');
       }
 
-      final response = await _client.get(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.profileEndpoint}'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
+      final response = await _client
+          .get(
+            Uri.parse('${AppConstants.baseUrl}${AppConstants.profileEndpoint}'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         return User.fromJson(jsonDecode(response.body));
@@ -194,6 +196,40 @@ class AuthService {
       }
     }
     return User.fromJson(jsonDecode(response.body));
+  }
+
+  /// Update own presence (lastSeenAt). Call periodically so user appears "online".
+  Future<void> updatePresence() async {
+    final token = await getStoredToken();
+    if (token == null) return;
+    try {
+      await _client.post(
+        Uri.parse('${AppConstants.baseUrl}${AppConstants.authPresenceEndpoint}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // Best-effort; ignore errors.
+    }
+  }
+
+  /// Get another user's online status. Returns true only if they logged in recently (e.g. last 5 min).
+  Future<bool> getPresence(String userId) async {
+    final token = await getStoredToken();
+    if (token == null) return false;
+    final response = await _client.get(
+      Uri.parse('${AppConstants.baseUrl}${AppConstants.userPresenceEndpoint(userId)}'),
+      headers: {'Authorization': 'Bearer $token'},
+    ).timeout(const Duration(seconds: 5));
+    if (response.statusCode != 200) return false;
+    try {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return data['online'] == true;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<String?> getStoredToken() async {

@@ -5,6 +5,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/sticker.dart';
 import '../../providers/sticker_book_provider.dart';
 import '../../utils/constants.dart';
+import '../../widgets/child_mode_exit_button.dart';
 
 const Color _primary = Color(0xFF3994EF);
 const Color _appLightBlue = Color(0xFFA5DBE7);
@@ -107,12 +108,7 @@ class StickerBookScreen extends StatelessWidget {
               ),
             ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.settings),
-            color: _primary,
-            iconSize: 32,
-          ),
+          ChildModeExitButton(iconColor: _primary, textColor: _primary, opacity: 0.9),
         ],
       ),
     );

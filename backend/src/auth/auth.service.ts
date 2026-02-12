@@ -201,9 +201,10 @@ export class AuthService {
     // Generate tokens
     const { accessToken, refreshToken } = this.generateTokens(user);
 
-    // Hash and store refresh token
+    // Hash and store refresh token; update presence (online)
     const hashedRefreshToken = await this.hashRefreshToken(refreshToken);
     user.refreshToken = hashedRefreshToken;
+    user.lastSeenAt = new Date();
     await user.save();
 
     const userResponse: any = {
@@ -356,6 +357,13 @@ export class AuthService {
   async invalidateRefreshToken(userId: string): Promise<void> {
     // Called when email or password changes
     await this.userModel.findByIdAndUpdate(userId, { refreshToken: undefined });
+  }
+
+  /** Update lastSeenAt so the user appears "online" for presence checks. */
+  async updatePresence(userId: string): Promise<void> {
+    await this.userModel
+      .findByIdAndUpdate(userId, { lastSeenAt: new Date() })
+      .exec();
   }
 
   async getProfile(userId: string): Promise<{

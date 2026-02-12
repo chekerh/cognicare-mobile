@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
+import '../../widgets/child_mode_exit_button.dart';
 
 const Color _primary = Color(0xFFA2D9E7);
 const Color _cardYellow = Color(0xFFFFD56B);
@@ -44,7 +45,7 @@ class GamesSelectionScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 48),
+                const ChildModeExitButton(),
               ],
             ),
           ),

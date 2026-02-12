@@ -6,6 +6,8 @@ import '../../providers/sticker_book_provider.dart';
 import '../../utils/constants.dart';
 import '../../utils/gamification_helper.dart';
 import '../../services/gamification_service.dart';
+import '../../l10n/app_localizations.dart';
+import '../../widgets/child_mode_exit_button.dart';
 
 // Cognitive Matching Game — couleurs du HTML
 const Color _primary = Color(0xFFA0DCE8);
@@ -212,19 +214,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
               letterSpacing: 1.2,
             ),
           ),
-          Material(
-            color: Colors.white.withOpacity(0.4),
-            borderRadius: BorderRadius.circular(24),
-            child: InkWell(
-              onTap: () {},
-              borderRadius: BorderRadius.circular(24),
-              child: const SizedBox(
-                width: 48,
-                height: 48,
-                child: Icon(Icons.volume_up_rounded, color: _primaryDark, size: 24),
-              ),
-            ),
-          ),
+          ChildModeExitButton(iconColor: _primaryDark, textColor: _primaryDark, opacity: 0.9),
         ],
       ),
     );
@@ -299,6 +289,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
   }
 
   Widget _buildFooter(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -311,7 +302,9 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
             borderRadius: BorderRadius.circular(999),
           ),
           child: Text(
-            _pairsFound == 3 ? 'Bravo, Léo !' : 'Keep going, Leo!',
+            _pairsFound == 3
+                ? (loc?.bravo ?? 'Bravo, Léo !')
+                : (loc?.keepGoingAlmostThere ?? 'Keep going, Leo!'),
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,

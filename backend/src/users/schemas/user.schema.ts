@@ -69,6 +69,10 @@ export class User {
   @Prop()
   pendingEmail?: string;
 
+  /** Last time the user was active (login or presence ping). Used for "online" status. */
+  @Prop()
+  lastSeenAt?: Date;
+
   createdAt?: Date;
   updatedAt?: Date;
 }

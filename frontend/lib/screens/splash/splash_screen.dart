@@ -51,20 +51,38 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
-    // Try to load stored authentication data
+    final router = GoRouter.of(context);
+
+    try {
+      // Safety: if anything takes too long, go to login
+      await _checkAuthAndNavigateImpl(authProvider, router)
+          .timeout(const Duration(seconds: 15));
+    } catch (e) {
+      // Timeout or error: ensure we never stay stuck on splash
+      if (mounted) {
+        try {
+          await authProvider.logout();
+        } catch (_) {}
+        if (mounted) router.go(AppConstants.loginRoute);
+      }
+    }
+  }
+
+  Future<void> _checkAuthAndNavigateImpl(
+    AuthProvider authProvider,
+    GoRouter router,
+  ) async {
+    if (!mounted) return;
+
     final hasStoredAuth = await authProvider.loadStoredAuth();
 
     if (hasStoredAuth) {
-      // Token exists, validate it by fetching profile
       try {
         final authService = AuthService();
         final user = await authService.getProfile();
-        
-        // Token is valid, update user data and navigate by role
+
         if (mounted) {
           authProvider.updateUser(user);
-          final router = GoRouter.of(context);
           if (AppConstants.isFamilyRole(user.role)) {
             router.go(AppConstants.familyDashboardRoute);
           } else if (AppConstants.isOrganizationLeaderRole(user.role)) {
@@ -76,22 +94,16 @@ class _SplashScreenState extends State<SplashScreen>
           }
         }
       } catch (e) {
-        // Token is invalid or expired, clear storage and go to login
         if (mounted) {
-          final router = GoRouter.of(context);
           await authProvider.logout();
           router.go(AppConstants.loginRoute);
         }
       }
     } else {
-      // No stored auth
       if (mounted) {
-        // Check if onboarding was completed
         final prefs = await SharedPreferences.getInstance();
         if (!mounted) return;
-        final router = GoRouter.of(context);
         final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
-
         if (!onboardingComplete) {
           router.go(AppConstants.onboardingRoute);
         } else {

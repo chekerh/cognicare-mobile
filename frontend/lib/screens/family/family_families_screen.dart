@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
@@ -256,15 +259,36 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     if (_inboxError != null) {
+      final isUnauthorized = _inboxError!.toLowerCase().contains('unauthorized') ||
+          _inboxError!.toLowerCase().contains('not authenticated');
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(_inboxError!, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-              TextButton(onPressed: _loadInbox, child: const Text('Réessayer')),
+              Text(
+                isUnauthorized
+                    ? (AppLocalizations.of(context)?.sessionExpiredReconnect ?? 'Votre session a expiré. Veuillez vous reconnecter.')
+                    : _inboxError!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16, color: _textMuted),
+              ),
+              const SizedBox(height: 20),
+              if (isUnauthorized)
+                FilledButton.icon(
+                  onPressed: () async {
+                    await Provider.of<AuthProvider>(context, listen: false).logout();
+                    if (context.mounted) context.go(AppConstants.loginRoute);
+                  },
+                  icon: const Icon(Icons.login_rounded, size: 20),
+                  label: Text(AppLocalizations.of(context)?.loginButton ?? 'Se connecter'),
+                )
+              else
+                TextButton(
+                  onPressed: _loadInbox,
+                  child: Text(AppLocalizations.of(context)?.retry ?? 'Réessayer'),
+                ),
             ],
           ),
         ),

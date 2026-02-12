@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/sticker_book_provider.dart';
+import '../../providers/gamification_provider.dart';
 
 // Mes Progrès (Mode Enfant) — design from HTML
 const Color _primary = Color(0xFFA2D9E7);
@@ -12,8 +13,15 @@ const Color _accentShadow = Color(0xFFE08C78);
 const Color _sun = Color(0xFFFFD56B);
 const Color _star = Color(0xFFFFD700);
 
-class ChildProgressScreen extends StatelessWidget {
+class ChildProgressScreen extends StatefulWidget {
   const ChildProgressScreen({super.key});
+
+  @override
+  State<ChildProgressScreen> createState() => _ChildProgressScreenState();
+}
+
+class _ChildProgressScreenState extends State<ChildProgressScreen> {
+  bool _gamificationLoaded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -48,16 +56,23 @@ class ChildProgressScreen extends StatelessWidget {
                         child: ConstrainedBox(
                           constraints: BoxConstraints(minHeight: constraints.maxHeight - 40),
                           child: Center(
-                            child: _buildStarPath(
-                      star1Filled: star1Filled,
-                      star2Filled: star2Filled,
-                      star3Filled: star3Filled,
-                      loc: loc,
-                      hasReached: hasReached,
-                      progressPercent: progressPercent,
-                      progress: progress,
-                      target: target,
-                    ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildStarPath(
+                                  star1Filled: star1Filled,
+                                  star2Filled: star2Filled,
+                                  star3Filled: star3Filled,
+                                  loc: loc,
+                                  hasReached: hasReached,
+                                  progressPercent: progressPercent,
+                                  progress: progress,
+                                  target: target,
+                                ),
+                                const SizedBox(height: 24),
+                                _buildBadgesSection(context, loc),
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -87,6 +102,104 @@ class ChildProgressScreen extends StatelessWidget {
         ],
       ),
     ));
+  }
+
+  Widget _buildBadgesSection(BuildContext context, AppLocalizations loc) {
+    if (!_gamificationLoaded) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<GamificationProvider>().loadStats();
+          setState(() => _gamificationLoaded = true);
+        }
+      });
+    }
+
+    return Consumer<GamificationProvider>(
+      builder: (context, gamification, _) {
+        final stats = gamification.stats;
+        if (stats == null || (stats.badges.isEmpty && stats.totalPoints == 0)) {
+          return const SizedBox.shrink();
+        }
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white, width: 3),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.emoji_events, color: _accent, size: 28),
+                  const SizedBox(width: 8),
+                  Text(
+                    loc.myBadges,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF334155),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${loc.totalPointsLabel}: ${stats.totalPoints}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+              if (stats.badges.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: stats.badges.map((b) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _accent.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: _accent.withOpacity(0.5)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star, color: _accent, size: 18),
+                          const SizedBox(width: 6),
+                          Text(
+                            b.name,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF334155),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildHeader(AppLocalizations loc) {

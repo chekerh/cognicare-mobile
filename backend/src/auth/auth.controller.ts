@@ -252,6 +252,19 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('presence')
+  @ApiBearerAuth('JWT-auth')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Update presence (keeps user "online")',
+    description: 'Call periodically while app is in use. Updates lastSeenAt.',
+  })
+  async updatePresence(@Request() req: { user: { id: string } }) {
+    await this.authService.updatePresence(req.user.id);
+    return { ok: true };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch('profile')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({

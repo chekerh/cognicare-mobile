@@ -7,6 +7,7 @@ import '../../providers/sticker_book_provider.dart';
 import '../../utils/constants.dart';
 import '../../utils/gamification_helper.dart';
 import '../../services/gamification_service.dart';
+import '../../widgets/child_mode_exit_button.dart';
 
 // Star Tracer — couleurs du HTML
 const Color _primary = Color(0xFF2b8cee);
@@ -342,10 +343,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
               ),
             ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.settings_rounded, color: _primary, size: 26),
-          ),
+          ChildModeExitButton(iconColor: _primary, textColor: _primary, opacity: 0.9),
         ],
       ),
     );

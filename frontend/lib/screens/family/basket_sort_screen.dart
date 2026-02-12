@@ -6,6 +6,7 @@ import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 import '../../utils/gamification_helper.dart';
 import '../../services/gamification_service.dart';
+import '../../widgets/child_mode_exit_button.dart';
 
 const Color _primary = Color(0xFF2B8CEE);
 const Color _textDark = Color(0xFF111418);
@@ -192,10 +193,7 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
               ),
             ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.help_outline, color: _textDark, size: 28),
-          ),
+          ChildModeExitButton(iconColor: _textDark, textColor: _textDark, opacity: 0.9),
         ],
       ),
     );

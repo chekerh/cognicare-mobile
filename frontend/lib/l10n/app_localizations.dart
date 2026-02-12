@@ -173,6 +173,7 @@ abstract class AppLocalizations {
   String get delete;
   String get errorLoadingProfile;
   String get retry;
+  String get sessionExpiredReconnect;
   String get selectLanguage;
   String get languageChanged;
   String get welcomeToApp;
@@ -400,6 +401,13 @@ abstract class AppLocalizations {
   String get stickerWon;
   String get addToMyCollection;
   String get playAgain;
+
+  /// Gamification feedback & milestones
+  String get greatJobLevelComplete;
+  String get keepGoingAlmostThere;
+  String milestoneLevelsCompleted(int count);
+  String get myBadges;
+  String get totalPointsLabel;
 
   /// Healthcare professional profile
   String get myPatients;

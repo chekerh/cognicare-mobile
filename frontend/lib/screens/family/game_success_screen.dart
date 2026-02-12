@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/sticker.dart';
 import '../../utils/constants.dart';
+import '../../widgets/child_mode_exit_button.dart';
 
 const Color _primary = Color(0xFF3994EF);
 const Color _brandBlue = Color(0xFFA5DAE8);
@@ -64,6 +65,19 @@ class GameSuccessScreen extends StatelessWidget {
           Column(
             children: [
               SizedBox(height: padding.top),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ChildModeExitButton(
+                      iconColor: _darkBlue,
+                      textColor: _darkBlue,
+                      opacity: 0.9,
+                    ),
+                  ],
+                ),
+              ),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -187,9 +201,38 @@ class GameSuccessScreen extends StatelessWidget {
                               ? Image.network(
                                   sticker.imageUrl!,
                                   fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => _placeholderSticker(),
+                                  loadingBuilder: (_, child, progress) {
+                                    if (progress == null) return child;
+                                    return Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            width: 40,
+                                            height: 40,
+                                            child: CircularProgressIndicator(
+                                              value: progress.expectedTotalBytes != null
+                                                  ? progress.cumulativeBytesLoaded /
+                                                      progress.expectedTotalBytes!
+                                                  : null,
+                                              color: _primary,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            loc.stickerWon,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Color(0xFF64748B),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (_, __, ___) => _fallbackStickerIcon(idx),
                                 )
-                              : _placeholderSticker(),
+                              : _comingSoonSticker(idx),
                         ),
                         const SizedBox(height: 12),
                         Text(
@@ -278,10 +321,44 @@ class GameSuccessScreen extends StatelessWidget {
     );
   }
 
-  Widget _placeholderSticker() {
+  Widget _fallbackStickerIcon(int index) {
+    final icons = [
+      Icons.pets_rounded,
+      Icons.face_rounded,
+      Icons.nature_rounded,
+      Icons.auto_awesome_rounded,
+    ];
+    final icon = index < icons.length ? icons[index] : Icons.star_rounded;
     return Container(
-      color: Colors.grey.shade200,
-      child: const Icon(Icons.pets_rounded, size: 64, color: Colors.grey),
+      decoration: BoxDecoration(
+        color: _primary.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Icon(icon, size: 72, color: _primary),
+    );
+  }
+
+  Widget _comingSoonSticker(int index) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _primary.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.lock_open_rounded, size: 56, color: _primary.withOpacity(0.8)),
+          const SizedBox(height: 6),
+          Text(
+            '${index + 1}',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: _primary.withOpacity(0.9),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
