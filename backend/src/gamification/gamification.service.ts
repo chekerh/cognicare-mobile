@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Points, PointsDocument } from './schemas/points.schema';
@@ -91,10 +87,17 @@ export class GamificationService {
       : null;
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const lastPlayedDate = lastPlayed
-      ? new Date(lastPlayed.getFullYear(), lastPlayed.getMonth(), lastPlayed.getDate())
+      ? new Date(
+          lastPlayed.getFullYear(),
+          lastPlayed.getMonth(),
+          lastPlayed.getDate(),
+        )
       : null;
 
-    if (!lastPlayedDate || lastPlayedDate.getTime() < today.getTime() - 86400000) {
+    if (
+      !lastPlayedDate ||
+      lastPlayedDate.getTime() < today.getTime() - 86400000
+    ) {
       // Reset streak if more than 1 day gap
       points.currentStreak = 1;
     } else if (lastPlayedDate.getTime() === today.getTime() - 86400000) {
@@ -182,9 +185,10 @@ export class GamificationService {
       // Check requirements (badge from lean() may be plain object, not Map)
       let qualifies = true;
       const requirements = badge.requirements ?? {};
-      const requirementEntries = requirements instanceof Map
-        ? Array.from(requirements.entries())
-        : Object.entries(requirements);
+      const requirementEntries =
+        requirements instanceof Map
+          ? Array.from(requirements.entries())
+          : Object.entries(requirements);
       for (const [key, requiredValue] of requirementEntries) {
         let actualValue = 0;
         switch (key) {
@@ -200,12 +204,13 @@ export class GamificationService {
           case 'gamesPlayed':
             actualValue = points.gamesPlayed.length;
             break;
-          default:
+          default: {
             // Check pointsByGame
-            const gamePoints = points.pointsByGame.get(key);
+            const gamePoints = points.pointsByGame.get(key as string);
             if (gamePoints !== undefined) {
               actualValue = gamePoints;
             }
+          }
         }
 
         if (actualValue < requiredValue) {
@@ -232,7 +237,7 @@ export class GamificationService {
         });
 
         this.logger.log(
-          `Badge awarded: ${badge.badgeId} to child ${childId}`,
+          `Badge awarded: ${badge.badgeId} to child ${childId.toString()}`,
         );
       }
     }
@@ -248,7 +253,10 @@ export class GamificationService {
     const child = await this.childModel.findById(childId).exec();
     if (!child) throw new NotFoundException('Child not found');
 
-    const points = await this.pointsModel.findOne({ childId: cid }).lean().exec();
+    const points = await this.pointsModel
+      .findOne({ childId: cid })
+      .lean()
+      .exec();
     const badges = await this.childBadgeModel
       .find({ childId: cid })
       .populate('badgeId')
@@ -269,7 +277,7 @@ export class GamificationService {
         ? {}
         : rawPointsByGame instanceof Map
           ? Object.fromEntries(Array.from(rawPointsByGame.entries()))
-          : (rawPointsByGame as Record<string, number>);
+          : rawPointsByGame;
 
     return {
       totalPoints: points?.totalPoints || 0,

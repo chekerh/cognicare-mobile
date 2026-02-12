@@ -20,7 +20,11 @@ export class Invitation {
   @Prop({ required: true, enum: ['staff', 'family'] })
   invitationType!: 'staff' | 'family';
 
-  @Prop({ required: true, enum: ['pending', 'accepted', 'rejected'], default: 'pending' })
+  @Prop({
+    required: true,
+    enum: ['pending', 'accepted', 'rejected'],
+    default: 'pending',
+  })
   status!: 'pending' | 'accepted' | 'rejected';
 
   @Prop({ required: true })

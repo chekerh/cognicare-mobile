@@ -13,6 +13,10 @@ import {
   OrganizationDocument,
 } from './schemas/organization.schema';
 import { Invitation, InvitationDocument } from './schemas/invitation.schema';
+import {
+  PendingOrganization,
+  PendingOrganizationDocument,
+} from './schemas/pending-organization.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { Child, ChildDocument } from '../children/schemas/child.schema';
 import {
@@ -33,6 +37,8 @@ export class OrganizationService {
     private organizationModel: Model<OrganizationDocument>,
     @InjectModel(Invitation.name)
     private invitationModel: Model<InvitationDocument>,
+    @InjectModel(PendingOrganization.name)
+    private pendingOrganizationModel: Model<PendingOrganizationDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     private mailService: MailService,
@@ -42,7 +48,7 @@ export class OrganizationService {
   async createOrganization(
     name: string,
     leaderId: string,
-  ): Promise<Organization> {
+  ): Promise<OrganizationDocument> {
     const newOrg = new this.organizationModel({
       name,
       leaderId: new Types.ObjectId(leaderId),
@@ -61,15 +67,22 @@ export class OrganizationService {
     if (!staff) throw new NotFoundException('User not found');
 
     // Validate staff role
-    const staffRoles = ['doctor', 'volunteer', 'psychologist', 'speech_therapist', 'occupational_therapist', 'other'];
+    const staffRoles = [
+      'doctor',
+      'volunteer',
+      'psychologist',
+      'speech_therapist',
+      'occupational_therapist',
+      'other',
+    ];
     if (!staffRoles.includes(staff.role)) {
       throw new BadRequestException(
-        `Cannot add this user as staff. User role is '${staff.role}'. Staff members must have one of these roles: doctor, volunteer, psychologist, speech_therapist, occupational_therapist, or other.`
+        `Cannot add this user as staff. User role is '${staff.role}'. Staff members must have one of these roles: doctor, volunteer, psychologist, speech_therapist, occupational_therapist, or other.`,
       );
     }
 
     if (!org.staffIds.some((id) => id.toString() === staff._id.toString())) {
-      org.staffIds.push(staff._id as any);
+      org.staffIds.push(staff._id);
       await org.save();
     }
 
@@ -111,12 +124,12 @@ export class OrganizationService {
     // Validate family role
     if (family.role !== 'family') {
       throw new BadRequestException(
-        `Cannot add this user as family. User role is '${family.role}'. Only users with 'family' role can be added as family members.`
+        `Cannot add this user as family. User role is '${family.role}'. Only users with 'family' role can be added as family members.`,
       );
     }
 
     if (!org.familyIds.some((id) => id.toString() === family._id.toString())) {
-      org.familyIds.push(family._id as any);
+      org.familyIds.push(family._id);
       await org.save();
     }
 
@@ -136,7 +149,7 @@ export class OrganizationService {
         if (
           !org.childrenIds.some((id) => id.toString() === childId.toString())
         ) {
-          org.childrenIds.push(childId as any);
+          org.childrenIds.push(childId);
         }
       }
       await org.save();
@@ -262,7 +275,7 @@ export class OrganizationService {
     });
 
     // Add to organization
-    org.staffIds.push(staff._id as any);
+    org.staffIds.push(staff._id);
     await org.save();
 
     console.log('[CREATE STAFF] Organization updated:', {
@@ -362,7 +375,7 @@ export class OrganizationService {
     await family.save();
 
     // Add to organization
-    org.familyIds.push(family._id as any);
+    org.familyIds.push(family._id);
 
     // Create children if provided
     const children: Child[] = [];
@@ -385,10 +398,10 @@ export class OrganizationService {
         children.push(child);
 
         // Add to family's children
-        family.childrenIds!.push(child._id as any);
+        family.childrenIds!.push(child._id);
 
         // Add to organization's children
-        org.childrenIds.push(child._id as any);
+        org.childrenIds.push(child._id);
       }
 
       await family.save();
@@ -482,11 +495,11 @@ export class OrganizationService {
     await child.save();
 
     // Add to family's children
-    family.childrenIds!.push(child._id as any);
+    family.childrenIds!.push(child._id);
     await family.save();
 
     // Add to organization's children
-    org.childrenIds.push(child._id as any);
+    org.childrenIds.push(child._id);
     await org.save();
 
     return child;
@@ -808,17 +821,24 @@ export class OrganizationService {
     });
 
     // Validate user role matches invitation type
-    const staffRoles = ['doctor', 'volunteer', 'psychologist', 'speech_therapist', 'occupational_therapist', 'other'];
-    
+    const staffRoles = [
+      'doctor',
+      'volunteer',
+      'psychologist',
+      'speech_therapist',
+      'occupational_therapist',
+      'other',
+    ];
+
     if (invitationType === 'staff' && !staffRoles.includes(user.role)) {
       throw new BadRequestException(
-        `Cannot invite this user as staff. User role is '${user.role}'. Staff members must have one of these roles: doctor, volunteer, psychologist, speech_therapist, occupational_therapist, or other.`
+        `Cannot invite this user as staff. User role is '${user.role}'. Staff members must have one of these roles: doctor, volunteer, psychologist, speech_therapist, occupational_therapist, or other.`,
       );
     }
 
     if (invitationType === 'family' && user.role !== 'family') {
       throw new BadRequestException(
-        `Cannot invite this user as family. User role is '${user.role}'. Only users with 'family' role can be invited as family members.`
+        `Cannot invite this user as family. User role is '${user.role}'. Only users with 'family' role can be invited as family members.`,
       );
     }
 
@@ -831,7 +851,9 @@ export class OrganizationService {
     );
 
     if (isStaff || isFamily) {
-      throw new ConflictException('User is already a member of this organization');
+      throw new ConflictException(
+        'User is already a member of this organization',
+      );
     }
 
     // Check for existing pending invitation
@@ -842,7 +864,9 @@ export class OrganizationService {
     });
 
     if (existingInvitation) {
-      throw new ConflictException('A pending invitation already exists for this user');
+      throw new ConflictException(
+        'A pending invitation already exists for this user',
+      );
     }
 
     // Generate unique token
@@ -871,10 +895,10 @@ export class OrganizationService {
     // Send email - ensure proper URL formatting
     let baseUrl =
       this.configService.get<string>('CORS_ORIGIN') || 'http://localhost:3000';
-    
+
     // Remove trailing slash if present
     baseUrl = baseUrl.replace(/\/$/, '');
-    
+
     // Build full URLs (global prefix 'api/v1' is already applied by NestJS)
     const acceptUrl = `${baseUrl}/api/v1/organization/invitations/${token}/accept`;
     const rejectUrl = `${baseUrl}/api/v1/organization/invitations/${token}/reject`;
@@ -894,7 +918,9 @@ export class OrganizationService {
     return { message: 'Invitation sent successfully' };
   }
 
-  async acceptInvitation(token: string): Promise<{ message: string; organizationName: string }> {
+  async acceptInvitation(
+    token: string,
+  ): Promise<{ message: string; organizationName: string }> {
     const invitation = await this.invitationModel.findOne({
       token,
       status: 'pending',
@@ -909,7 +935,9 @@ export class OrganizationService {
     }
 
     // Add user to organization
-    const org = await this.organizationModel.findById(invitation.organizationId);
+    const org = await this.organizationModel.findById(
+      invitation.organizationId,
+    );
     if (!org) {
       throw new NotFoundException('Organization not found');
     }
@@ -920,28 +948,38 @@ export class OrganizationService {
     }
 
     // Validate user role still matches invitation type
-    const staffRoles = ['doctor', 'volunteer', 'psychologist', 'speech_therapist', 'occupational_therapist', 'other'];
-    
-    if (invitation.invitationType === 'staff' && !staffRoles.includes(user.role)) {
+    const staffRoles = [
+      'doctor',
+      'volunteer',
+      'psychologist',
+      'speech_therapist',
+      'occupational_therapist',
+      'other',
+    ];
+
+    if (
+      invitation.invitationType === 'staff' &&
+      !staffRoles.includes(user.role)
+    ) {
       throw new BadRequestException(
-        `Cannot accept staff invitation. Your current role is '${user.role}', but staff members must have one of these roles: doctor, volunteer, psychologist, speech_therapist, occupational_therapist, or other.`
+        `Cannot accept staff invitation. Your current role is '${user.role}', but staff members must have one of these roles: doctor, volunteer, psychologist, speech_therapist, occupational_therapist, or other.`,
       );
     }
 
     if (invitation.invitationType === 'family' && user.role !== 'family') {
       throw new BadRequestException(
-        `Cannot accept family invitation. Your current role is '${user.role}', but only users with 'family' role can be added as family members.`
+        `Cannot accept family invitation. Your current role is '${user.role}', but only users with 'family' role can be added as family members.`,
       );
     }
 
     // Add to appropriate list
     if (invitation.invitationType === 'staff') {
       if (!org.staffIds.some((id) => id.toString() === user._id.toString())) {
-        org.staffIds.push(user._id as any);
+        org.staffIds.push(user._id);
       }
     } else {
       if (!org.familyIds.some((id) => id.toString() === user._id.toString())) {
-        org.familyIds.push(user._id as any);
+        org.familyIds.push(user._id);
       }
 
       // Link family's children to organization
@@ -953,8 +991,10 @@ export class OrganizationService {
 
         // Add children to org's childrenIds
         for (const childId of user.childrenIds) {
-          if (!org.childrenIds.some((id) => id.toString() === childId.toString())) {
-            org.childrenIds.push(childId as any);
+          if (
+            !org.childrenIds.some((id) => id.toString() === childId.toString())
+          ) {
+            org.childrenIds.push(childId);
           }
         }
       }
@@ -1021,5 +1061,162 @@ export class OrganizationService {
       throw new NotFoundException('Organization not found');
     }
     return this.getPendingInvitations(org._id.toString());
+  }
+
+  // Pending Organization Methods
+  async createPendingOrganization(
+    organizationName: string,
+    leaderId: string,
+    description?: string,
+  ): Promise<PendingOrganization> {
+    const user = await this.userModel.findById(leaderId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Check if user already has a pending request
+    const existingRequest = await this.pendingOrganizationModel.findOne({
+      requestedBy: leaderId,
+      status: 'pending',
+    });
+
+    if (existingRequest) {
+      throw new ConflictException(
+        'You already have a pending organization request',
+      );
+    }
+
+    // Check if user already has an organization
+    const existingOrg = await this.organizationModel.findOne({
+      leaderId: new Types.ObjectId(leaderId),
+    });
+
+    if (existingOrg) {
+      throw new ConflictException('You already have an organization');
+    }
+
+    // Create pending request
+    const pendingOrg = new this.pendingOrganizationModel({
+      organizationName,
+      requestedBy: leaderId,
+      leaderEmail: user.email,
+      leaderFullName: user.fullName,
+      description,
+      status: 'pending',
+    });
+
+    await pendingOrg.save();
+
+    // Send confirmation email to leader
+    try {
+      await this.mailService.sendOrganizationPending(
+        user.email,
+        organizationName,
+        user.fullName,
+      );
+    } catch (error) {
+      console.error('Failed to send pending organization email:', error);
+      // Don't throw error - organization request was created successfully
+    }
+
+    return pendingOrg;
+  }
+
+  async getAllPendingOrganizations(): Promise<PendingOrganization[]> {
+    return this.pendingOrganizationModel
+      .find({ status: 'pending' })
+      .populate('requestedBy', 'fullName email')
+      .sort({ createdAt: -1 });
+  }
+
+  async reviewOrganization(
+    requestId: string,
+    adminId: string,
+    decision: 'approved' | 'rejected',
+    rejectionReason?: string,
+  ): Promise<{ message: string; organization?: Organization }> {
+    const pendingOrg = await this.pendingOrganizationModel.findById(requestId);
+
+    if (!pendingOrg) {
+      throw new NotFoundException('Pending organization request not found');
+    }
+
+    if (pendingOrg.status !== 'pending') {
+      throw new BadRequestException(
+        `This request has already been ${pendingOrg.status}`,
+      );
+    }
+
+    const user = await this.userModel.findById(pendingOrg.requestedBy);
+    if (!user) {
+      throw new NotFoundException('Requesting user not found');
+    }
+
+    if (decision === 'approved') {
+      // Create the organization
+      const newOrg = await this.createOrganization(
+        pendingOrg.organizationName,
+        pendingOrg.requestedBy.toString(),
+      );
+
+      // Update user's organizationId
+      user.organizationId = newOrg._id.toString();
+      await user.save();
+
+      // Update pending request
+      pendingOrg.status = 'approved';
+      pendingOrg.reviewedBy = new Types.ObjectId(adminId);
+      pendingOrg.reviewedAt = new Date();
+      pendingOrg.organizationId = newOrg._id;
+      await pendingOrg.save();
+
+      // Send approval email
+      try {
+        await this.mailService.sendOrganizationApproved(
+          user.email,
+          pendingOrg.organizationName,
+          user.fullName,
+        );
+      } catch (error) {
+        console.error('Failed to send organization approved email:', error);
+      }
+
+      return {
+        message: 'Organization approved and created successfully',
+        organization: newOrg,
+      };
+    } else {
+      // Reject the request
+      pendingOrg.status = 'rejected';
+      pendingOrg.reviewedBy = new Types.ObjectId(adminId);
+      pendingOrg.reviewedAt = new Date();
+      pendingOrg.rejectionReason = rejectionReason;
+      await pendingOrg.save();
+
+      // Send rejection email
+      try {
+        await this.mailService.sendOrganizationRejected(
+          user.email,
+          pendingOrg.organizationName,
+          user.fullName,
+          rejectionReason,
+        );
+      } catch (error) {
+        console.error('Failed to send organization rejected email:', error);
+      }
+
+      return {
+        message: 'Organization request rejected',
+      };
+    }
+  }
+
+  async getUserPendingOrganization(
+    userId: string,
+  ): Promise<PendingOrganization | null> {
+    return this.pendingOrganizationModel.findOne({
+      requestedBy: userId,
+      status: 'pending',
+    });
   }
 }

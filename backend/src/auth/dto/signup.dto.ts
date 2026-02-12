@@ -64,6 +64,15 @@ export class SignupDto {
   @IsString()
   organizationName?: string;
 
+  @ApiPropertyOptional({
+    description:
+      'Brief description of the organization (optional for organization_leader)',
+    example: 'A community center focused on cognitive health support',
+  })
+  @IsOptional()
+  @IsString()
+  organizationDescription?: string;
+
   @ApiProperty({
     description: '6-digit verification code sent to email',
     example: '123456',

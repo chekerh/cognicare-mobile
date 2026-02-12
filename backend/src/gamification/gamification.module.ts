@@ -5,10 +5,7 @@ import { GamificationService } from './gamification.service';
 import { Points, PointsSchema } from './schemas/points.schema';
 import { Badge, BadgeSchema } from './schemas/badge.schema';
 import { ChildBadge, ChildBadgeSchema } from './schemas/child-badge.schema';
-import {
-  GameSession,
-  GameSessionSchema,
-} from './schemas/game-session.schema';
+import { GameSession, GameSessionSchema } from './schemas/game-session.schema';
 import { Child, ChildSchema } from '../children/schemas/child.schema';
 
 @Module({

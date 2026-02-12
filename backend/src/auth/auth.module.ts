@@ -12,6 +12,7 @@ import {
   EmailVerificationSchema,
 } from './schemas/email-verification.schema';
 import { MailModule } from '../mail/mail.module';
+import { OrganizationModule } from '../organization/organization.module';
 import {
   Organization,
   OrganizationSchema,
@@ -23,6 +24,7 @@ import { Child, ChildSchema } from '../children/schemas/child.schema';
     ConfigModule,
     PassportModule,
     MailModule,
+    OrganizationModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({

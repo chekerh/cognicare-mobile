@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { GameType } from '../schemas/game-session.schema';
 
@@ -28,7 +28,10 @@ export class RecordGameSessionDto {
   @Min(0)
   timeSpentSeconds?: number;
 
-  @ApiProperty({ required: false, description: 'Additional metrics (matches, errors, etc.)' })
+  @ApiProperty({
+    required: false,
+    description: 'Additional metrics (matches, errors, etc.)',
+  })
   @IsOptional()
   metrics?: Record<string, number>;
 }

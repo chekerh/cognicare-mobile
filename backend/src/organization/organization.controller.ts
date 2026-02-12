@@ -23,6 +23,7 @@ import {
   UpdateStaffDto,
   UpdateFamilyDto,
   InviteUserDto,
+  ReviewOrganizationDto,
 } from './dto';
 import { AddChildDto } from '../children/dto/add-child.dto';
 import { UpdateChildDto } from '../children/dto/update-child.dto';
@@ -39,35 +40,37 @@ export class OrganizationController {
   @Roles('organization_leader')
   @ApiOperation({ summary: 'Get my organization details' })
   async getMyOrganization(@Request() req: any) {
-    return await this.organizationService.getMyOrganization(req.user.id);
+    return await this.organizationService.getMyOrganization(
+      req.user.id as string,
+    );
   }
 
   @Get('my-organization/staff')
   @Roles('organization_leader')
   @ApiOperation({ summary: 'Get all staff in my organization' })
   async getMyStaff(@Request() req: any) {
-    return await this.organizationService.getMyStaff(req.user.id);
+    return await this.organizationService.getMyStaff(req.user.id as string);
   }
 
   @Get('my-organization/families')
   @Roles('organization_leader')
   @ApiOperation({ summary: 'Get all families in my organization' })
   async getMyFamilies(@Request() req: any) {
-    return await this.organizationService.getMyFamilies(req.user.id);
+    return await this.organizationService.getMyFamilies(req.user.id as string);
   }
 
   @Get('my-organization/children')
   @Roles('organization_leader')
   @ApiOperation({ summary: 'Get all children in my organization' })
   async getMyChildren(@Request() req: any) {
-    return await this.organizationService.getMyChildren(req.user.id);
+    return await this.organizationService.getMyChildren(req.user.id as string);
   }
 
   @Get('my-organization/stats')
   @Roles('organization_leader')
   @ApiOperation({ summary: 'Get my organization statistics' })
   async getMyStats(@Request() req: any) {
-    return await this.organizationService.getMyStats(req.user.id);
+    return await this.organizationService.getMyStats(req.user.id as string);
   }
 
   @Post('my-organization/staff/create')
@@ -78,7 +81,7 @@ export class OrganizationController {
     @Body() createStaffDto: CreateStaffDto,
   ) {
     return await this.organizationService.createMyStaffMember(
-      req.user.id,
+      req.user.id as string,
       createStaffDto,
     );
   }
@@ -92,7 +95,7 @@ export class OrganizationController {
     @Body() updateStaffDto: UpdateStaffDto,
   ) {
     return await this.organizationService.updateMyStaff(
-      req.user.id,
+      req.user.id as string,
       staffId,
       updateStaffDto,
     );
@@ -102,7 +105,10 @@ export class OrganizationController {
   @Roles('organization_leader')
   @ApiOperation({ summary: 'Remove a staff member from my organization' })
   async removeMyStaff(@Request() req: any, @Param('staffId') staffId: string) {
-    return await this.organizationService.removeMyStaff(req.user.id, staffId);
+    return await this.organizationService.removeMyStaff(
+      req.user.id as string,
+      staffId,
+    );
   }
 
   @Post('my-organization/families/create')
@@ -116,7 +122,7 @@ export class OrganizationController {
     @Body() createFamilyDto: CreateFamilyDto,
   ) {
     return await this.organizationService.createMyFamilyMember(
-      req.user.id,
+      req.user.id as string,
       createFamilyDto,
     );
   }
@@ -130,7 +136,7 @@ export class OrganizationController {
     @Body() updateFamilyDto: UpdateFamilyDto,
   ) {
     return await this.organizationService.updateMyFamily(
-      req.user.id,
+      req.user.id as string,
       familyId,
       updateFamilyDto,
     );
@@ -144,7 +150,7 @@ export class OrganizationController {
     @Param('familyId') familyId: string,
   ) {
     return await this.organizationService.removeMyFamily(
-      req.user.id,
+      req.user.id as string,
       familyId,
     );
   }
@@ -158,7 +164,7 @@ export class OrganizationController {
     @Body() addChildDto: AddChildDto,
   ): Promise<{ fullName: string; dateOfBirth: Date; gender: string }> {
     return await this.organizationService.addChildToMyFamily(
-      req.user.id,
+      req.user.id as string,
       familyId,
       addChildDto,
     );
@@ -174,7 +180,7 @@ export class OrganizationController {
     @Body() updateChildDto: UpdateChildDto,
   ): Promise<{ fullName: string; dateOfBirth: Date; gender: string }> {
     return await this.organizationService.updateMyChild(
-      req.user.id,
+      req.user.id as string,
       familyId,
       childId,
       updateChildDto,
@@ -190,7 +196,7 @@ export class OrganizationController {
     @Param('childId') childId: string,
   ): Promise<{ message: string }> {
     return await this.organizationService.deleteMyChild(
-      req.user.id,
+      req.user.id as string,
       familyId,
       childId,
     );
@@ -339,13 +345,15 @@ export class OrganizationController {
   // Invitation endpoints
   @Post('my-organization/staff/invite')
   @Roles('organization_leader')
-  @ApiOperation({ summary: 'Invite an existing user to join as staff (pending approval)' })
+  @ApiOperation({
+    summary: 'Invite an existing user to join as staff (pending approval)',
+  })
   async inviteStaff(
     @Request() req: any,
     @Body() inviteUserDto: InviteUserDto,
   ): Promise<{ message: string }> {
     return await this.organizationService.inviteMyUser(
-      req.user.id,
+      req.user.id as string,
       inviteUserDto.email,
       'staff',
     );
@@ -353,13 +361,15 @@ export class OrganizationController {
 
   @Post('my-organization/families/invite')
   @Roles('organization_leader')
-  @ApiOperation({ summary: 'Invite an existing user to join as family (pending approval)' })
+  @ApiOperation({
+    summary: 'Invite an existing user to join as family (pending approval)',
+  })
   async inviteFamily(
     @Request() req: any,
     @Body() inviteUserDto: InviteUserDto,
   ): Promise<{ message: string }> {
     return await this.organizationService.inviteMyUser(
-      req.user.id,
+      req.user.id as string,
       inviteUserDto.email,
       'family',
     );
@@ -369,19 +379,18 @@ export class OrganizationController {
   @Roles('organization_leader')
   @ApiOperation({ summary: 'Get all pending invitations for my organization' })
   async getMyInvitations(@Request() req: any) {
-    return await this.organizationService.getMyPendingInvitations(req.user.id);
+    return await this.organizationService.getMyPendingInvitations(
+      req.user.id as string,
+    );
   }
 
   @Get('invitations/:token/accept')
   @Public()
   @ApiOperation({ summary: 'Accept an organization invitation' })
-  async acceptInvitation(
-    @Param('token') token: string,
-    @Res() res: Response,
-  ) {
+  async acceptInvitation(@Param('token') token: string, @Res() res: Response) {
     try {
       const result = await this.organizationService.acceptInvitation(token);
-      
+
       // Return HTML page with success message
       return res.send(`
         <!DOCTYPE html>
@@ -466,13 +475,10 @@ export class OrganizationController {
   @Get('invitations/:token/reject')
   @Public()
   @ApiOperation({ summary: 'Reject an organization invitation' })
-  async rejectInvitation(
-    @Param('token') token: string,
-    @Res() res: Response,
-  ) {
+  async rejectInvitation(@Param('token') token: string, @Res() res: Response) {
     try {
       await this.organizationService.rejectInvitation(token);
-      
+
       return res.send(`
         <!DOCTYPE html>
         <html>
@@ -550,5 +556,41 @@ export class OrganizationController {
         </html>
       `);
     }
+  }
+
+  // Admin endpoints for pending organizations
+  @Get('admin/pending-requests')
+  @Roles('admin')
+  @ApiOperation({
+    summary: 'Get all pending organization requests (Admin only)',
+  })
+  async getPendingOrganizationRequests() {
+    return await this.organizationService.getAllPendingOrganizations();
+  }
+
+  @Post('admin/review/:requestId')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Review pending organization request (Admin only)' })
+  async reviewOrganizationRequest(
+    @Param('requestId') requestId: string,
+    @Body() reviewDto: ReviewOrganizationDto,
+    @Request() req: any,
+  ) {
+    return await this.organizationService.reviewOrganization(
+      requestId,
+      req.user.id as string,
+      reviewDto.decision,
+      reviewDto.rejectionReason,
+    );
+  }
+
+  // User endpoint to check pending organization status
+  @Get('my-pending-request')
+  @Roles('organization_leader')
+  @ApiOperation({ summary: 'Get my pending organization request status' })
+  async getMyPendingRequest(@Request() req: any) {
+    return await this.organizationService.getUserPendingOrganization(
+      req.user.id as string,
+    );
   }
 }

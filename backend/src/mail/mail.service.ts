@@ -8,6 +8,9 @@ import {
   getPasswordResetTemplate,
   getWelcomeTemplate,
   getOrganizationInvitationTemplate,
+  getOrganizationPendingTemplate,
+  getOrganizationApprovedTemplate,
+  getOrganizationRejectedTemplate,
 } from './templates/email-templates';
 
 @Injectable()
@@ -168,6 +171,116 @@ export class MailService {
       console.error('Failed to send invitation email:', err);
       throw new InternalServerErrorException(
         'Could not send invitation email. Please try again later.',
+      );
+    }
+  }
+
+  async sendOrganizationPending(
+    email: string,
+    organizationName: string,
+    leaderName: string,
+  ): Promise<void> {
+    if (!this.apiKey || !this.from) {
+      console.warn(
+        'Skipping organization pending email: SENDGRID_API_KEY or MAIL_FROM not configured',
+      );
+      return;
+    }
+
+    const emailContent = getOrganizationPendingTemplate(
+      organizationName,
+      leaderName,
+    );
+    const htmlContent = getEmailBaseTemplate(emailContent);
+
+    const msg = {
+      to: email,
+      from: this.from,
+      subject: `Organization Application Received - ${organizationName}`,
+      html: htmlContent,
+    };
+
+    try {
+      await sgMail.send(msg);
+      console.log(`Organization pending email sent to ${email}`);
+    } catch (err: unknown) {
+      console.error('Failed to send organization pending email:', err);
+      throw new InternalServerErrorException(
+        'Could not send organization pending email.',
+      );
+    }
+  }
+
+  async sendOrganizationApproved(
+    email: string,
+    organizationName: string,
+    leaderName: string,
+  ): Promise<void> {
+    if (!this.apiKey || !this.from) {
+      console.warn(
+        'Skipping organization approved email: SENDGRID_API_KEY or MAIL_FROM not configured',
+      );
+      return;
+    }
+
+    const emailContent = getOrganizationApprovedTemplate(
+      organizationName,
+      leaderName,
+    );
+    const htmlContent = getEmailBaseTemplate(emailContent);
+
+    const msg = {
+      to: email,
+      from: this.from,
+      subject: `🎉 Your Organization "${organizationName}" Has Been Approved!`,
+      html: htmlContent,
+    };
+
+    try {
+      await sgMail.send(msg);
+      console.log(`Organization approved email sent to ${email}`);
+    } catch (err: unknown) {
+      console.error('Failed to send organization approved email:', err);
+      throw new InternalServerErrorException(
+        'Could not send organization approved email.',
+      );
+    }
+  }
+
+  async sendOrganizationRejected(
+    email: string,
+    organizationName: string,
+    leaderName: string,
+    rejectionReason?: string,
+  ): Promise<void> {
+    if (!this.apiKey || !this.from) {
+      console.warn(
+        'Skipping organization rejected email: SENDGRID_API_KEY or MAIL_FROM not configured',
+      );
+      return;
+    }
+
+    const emailContent = getOrganizationRejectedTemplate(
+      organizationName,
+      leaderName,
+      rejectionReason,
+    );
+    const htmlContent = getEmailBaseTemplate(emailContent);
+
+    const msg = {
+      to: email,
+      from: this.from,
+      subject: `Organization Application Update - ${organizationName}`,
+      html: htmlContent,
+    };
+
+    try {
+      await sgMail.send(msg);
+      console.log(`Organization rejected email sent to ${email}`);
+    } catch (err: unknown) {
+      console.error('Failed to send organization rejected email:', err);
+      throw new InternalServerErrorException(
+        'Could not send organization rejected email.',
       );
     }
   }

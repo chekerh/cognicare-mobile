@@ -212,3 +212,167 @@ export const getOrganizationInvitationTemplate = (
   `;
 };
 
+export const getOrganizationApprovedTemplate = (
+  organizationName: string,
+  leaderName: string,
+): string => {
+  return `
+    <div style="text-align: center;">
+      <div style="background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+        <h1 style="color: white; font-size: 32px; margin: 0;">
+          🎉 Congratulations!
+        </h1>
+      </div>
+
+      <h2 style="color: #5A5A5A; font-size: 24px; margin-bottom: 20px;">
+        Your Organization Has Been Approved
+      </h2>
+
+      <p style="color: #5A5A5A; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+        Dear ${leaderName},
+      </p>
+
+      <p style="color: #5A5A5A; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+        We're excited to inform you that your organization <strong>${organizationName}</strong> has been approved by our admin team!
+      </p>
+
+      <div style="background-color: #dcfce7; border-left: 4px solid #22c55e; padding: 20px; margin: 30px 0; text-align: left; border-radius: 8px;">
+        <p style="color: #166534; font-size: 15px; margin: 0; line-height: 1.6;">
+          <strong>✅ What's Next?</strong><br><br>
+          You can now log in to your organization leader dashboard and start:
+        </p>
+        <ul style="color: #166534; font-size: 14px; margin: 15px 0; padding-left: 20px; text-align: left;">
+          <li>Adding staff members (doctors, volunteers, therapists)</li>
+          <li>Inviting families to join your organization</li>
+          <li>Managing children's profiles and progress</li>
+          <li>Accessing organization analytics and reports</li>
+        </ul>
+      </div>
+
+      <p style="color: #5A5A5A; font-size: 14px; line-height: 1.6; margin-top: 30px;">
+        Thank you for joining CogniCare. Together, we're making a difference in cognitive health support!
+      </p>
+
+      <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #e0e0e0;">
+        <p style="color: #888; font-size: 13px; line-height: 1.6;">
+          Need help getting started? Contact us at 
+          <a href="mailto:support@cognicare.com" style="color: #22c55e; text-decoration: none;">support@cognicare.com</a>
+        </p>
+      </div>
+    </div>
+  `;
+};
+
+export const getOrganizationRejectedTemplate = (
+  organizationName: string,
+  leaderName: string,
+  rejectionReason?: string,
+): string => {
+  return `
+    <div style="text-align: center;">
+      <div style="background: linear-gradient(135deg, #f87171 0%, #ef4444 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+        <h1 style="color: white; font-size: 32px; margin: 0;">
+          ℹ️ Application Update
+        </h1>
+      </div>
+
+      <h2 style="color: #5A5A5A; font-size: 24px; margin-bottom: 20px;">
+        Organization Application Status
+      </h2>
+
+      <p style="color: #5A5A5A; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+        Dear ${leaderName},
+      </p>
+
+      <p style="color: #5A5A5A; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+        Thank you for your interest in creating <strong>${organizationName}</strong> on CogniCare. After careful review, we regret to inform you that your organization application was not approved at this time.
+      </p>
+
+      ${
+        rejectionReason
+          ? `
+      <div style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 20px; margin: 30px 0; text-align: left; border-radius: 8px;">
+        <p style="color: #991b1b; font-size: 15px; margin: 0; line-height: 1.6;">
+          <strong>📋 Reason:</strong><br><br>
+          ${rejectionReason}
+        </p>
+      </div>
+      `
+          : ''
+      }
+
+      <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 30px 0; text-align: left; border-radius: 8px;">
+        <p style="color: #78350f; font-size: 15px; margin: 0; line-height: 1.6;">
+          <strong>💡 What You Can Do:</strong><br><br>
+          • Review our organization eligibility criteria<br>
+          • Address any concerns mentioned above<br>
+          • Reapply at a later time<br>
+          • Contact our support team for clarification
+        </p>
+      </div>
+
+      <p style="color: #5A5A5A; font-size: 14px; line-height: 1.6; margin-top: 30px;">
+        We appreciate your understanding and encourage you to reach out if you have any questions about the decision.
+      </p>
+
+      <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #e0e0e0;">
+        <p style="color: #888; font-size: 13px; line-height: 1.6;">
+          Have questions? Contact us at 
+          <a href="mailto:support@cognicare.com" style="color: #ef4444; text-decoration: none;">support@cognicare.com</a>
+        </p>
+      </div>
+    </div>
+  `;
+};
+
+export const getOrganizationPendingTemplate = (
+  organizationName: string,
+  leaderName: string,
+): string => {
+  return `
+    <div style="text-align: center;">
+      <div style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
+        <h1 style="color: white; font-size: 32px; margin: 0;">
+          ⏳ Application Received
+        </h1>
+      </div>
+
+      <h2 style="color: #5A5A5A; font-size: 24px; margin-bottom: 20px;">
+        Organization Application Submitted
+      </h2>
+
+      <p style="color: #5A5A5A; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+        Dear ${leaderName},
+      </p>
+
+      <p style="color: #5A5A5A; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+        Thank you for submitting your request to create <strong>${organizationName}</strong> on CogniCare!
+      </p>
+
+      <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 30px 0; text-align: left; border-radius: 8px;">
+        <p style="color: #78350f; font-size: 15px; margin: 0; line-height: 1.6;">
+          <strong>🔍 What Happens Next?</strong><br><br>
+          Your organization application is now under review by our admin team. We carefully review each application to ensure quality and compliance with our platform standards.
+        </p>
+      </div>
+
+      <div style="background-color: #e0e7ff; border-left: 4px solid #6366f1; padding: 20px; margin: 30px 0; text-align: left; border-radius: 8px;">
+        <p style="color: #3730a3; font-size: 14px; margin: 0; line-height: 1.6;">
+          <strong>⏱️ Review Timeline:</strong> Most applications are reviewed within 24-48 hours.<br><br>
+          <strong>📧 Notification:</strong> You'll receive an email once your application is approved or if we need additional information.
+        </p>
+      </div>
+
+      <p style="color: #5A5A5A; font-size: 14px; line-height: 1.6; margin-top: 30px;">
+        Thank you for your patience. We're excited about the possibility of having you join the CogniCare community!
+      </p>
+
+      <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #e0e0e0;">
+        <p style="color: #888; font-size: 13px; line-height: 1.6;">
+          Questions about your application? Contact us at 
+          <a href="mailto:support@cognicare.com" style="color: #f59e0b; text-decoration: none;">support@cognicare.com</a>
+        </p>
+      </div>
+    </div>
+  `;
+};
