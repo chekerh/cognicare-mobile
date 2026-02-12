@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -15,6 +16,17 @@ class AuthService {
     FlutterSecureStorage? storage,
   })  : _client = client ?? http.Client(),
         _storage = storage ?? const FlutterSecureStorage();
+
+  /// Lightweight ping to warm up the backend (useful on cold starts).
+  Future<void> pingBackend() async {
+    try {
+      await _client
+          .get(Uri.parse('${AppConstants.baseUrl}/health'))
+          .timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // Ignore errors – this is best-effort only.
+    }
+  }
 
   Future<AuthResponse> signup({
     required String fullName,

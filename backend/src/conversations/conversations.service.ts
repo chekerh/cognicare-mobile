@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { ConfigService } from '@nestjs/config';
 import { Model, Types } from 'mongoose';
 import {
   Conversation,
@@ -12,6 +13,7 @@ import {
 } from './conversation.schema';
 import { Message, MessageDocument } from './message.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class ConversationsService {
@@ -22,7 +24,58 @@ export class ConversationsService {
     private readonly messageModel: Model<MessageDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
+    private readonly configService: ConfigService,
   ) {}
+
+  /** Derive a 32-byte AES key from env (MESSAGES_ENCRYPTION_KEY) or a fallback string. */
+  private getEncryptionKey(): Buffer {
+    const secret =
+      this.configService.get<string>('MESSAGES_ENCRYPTION_KEY') ||
+      'cognicare-dev-fallback-message-key';
+    return crypto.createHash('sha256').update(secret).digest();
+  }
+
+  /** Encrypt plaintext using AES-256-GCM. Returns base64(iv + tag + ciphertext). */
+  private encryptMessage(plaintext: string): string {
+    const key = this.getEncryptionKey();
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+    const encrypted = Buffer.concat([
+      cipher.update(plaintext, 'utf8'),
+      cipher.final(),
+    ]);
+    const tag = cipher.getAuthTag();
+    return Buffer.concat([iv, tag, encrypted]).toString('base64');
+  }
+
+  /**
+   * Decrypt message text.
+   * For backward compatibility, if decryption fails, returns the original text.
+   */
+  private decryptMessage(possiblyEncrypted: string): string {
+    if (!possiblyEncrypted) return '';
+    try {
+      const key = this.getEncryptionKey();
+      const buf = Buffer.from(possiblyEncrypted, 'base64');
+      if (buf.length < 16 + 12) {
+        // Too short to contain iv + tag + ciphertext -> assume plaintext
+        return possiblyEncrypted;
+      }
+      const iv = buf.subarray(0, 12);
+      const tag = buf.subarray(12, 28);
+      const ciphertext = buf.subarray(28);
+      const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
+      decipher.setAuthTag(tag);
+      const decrypted = Buffer.concat([
+        decipher.update(ciphertext),
+        decipher.final(),
+      ]);
+      return decrypted.toString('utf8');
+    } catch {
+      // Old messages stored in plaintext or invalid data: just return as-is
+      return possiblyEncrypted;
+    }
+  }
 
   async findInboxForUser(userId: string) {
     const docs = await this.conversationModel
@@ -95,7 +148,9 @@ export class ConversationsService {
         id: c._id.toString(),
         name: displayName,
         subtitle: c.subtitle,
-        lastMessage: c.lastMessage,
+        lastMessage: c.lastMessage
+          ? this.decryptMessage(c.lastMessage)
+          : undefined,
         timeAgo: c.timeAgo,
         imageUrl: displayImageUrl,
         unread: c.unread,
@@ -211,7 +266,7 @@ export class ConversationsService {
     return messages.map((m) => ({
       id: m._id.toString(),
       senderId: m.senderId.toString(),
-      text: m.text,
+      text: this.decryptMessage(m.text),
       createdAt: (m as any).createdAt,
     }));
   }
@@ -224,22 +279,23 @@ export class ConversationsService {
       throw new ForbiddenException('Not a participant');
     }
     const threadId = conv.threadId ?? conv._id;
+    const encryptedText = this.encryptMessage(text);
     const created = await this.messageModel.create({
       threadId,
       senderId: uid,
-      text,
+      text: encryptedText,
     });
     const timeAgo = formatTimeAgo(new Date());
     await this.conversationModel
       .updateMany(
         { $or: [{ _id: conv._id }, { threadId }] },
-        { lastMessage: text, timeAgo, updatedAt: new Date() },
+        { lastMessage: encryptedText, timeAgo, updatedAt: new Date() },
       )
       .exec();
     return {
       id: created._id.toString(),
       senderId: created.senderId.toString(),
-      text: created.text,
+      text,
       createdAt: (created as any).createdAt,
     };
   }

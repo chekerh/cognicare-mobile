@@ -41,8 +41,8 @@ class _SplashScreenState extends State<SplashScreen>
 
     _animationController.forward();
 
-    // Navigate after animation and check auth status
-    _navigationTimer = Timer(const Duration(seconds: 3), () {
+    // Navigate after a 2 second splash and check auth status
+    _navigationTimer = Timer(const Duration(seconds: 2), () {
       _checkAuthAndNavigate();
     });
   }

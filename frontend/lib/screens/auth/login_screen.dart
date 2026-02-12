@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 
@@ -22,6 +23,13 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Warm up backend while user is on the login screen
+    AuthService().pingBackend().catchError((_) {});
+  }
 
   @override
   void dispose() {
