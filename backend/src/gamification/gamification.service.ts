@@ -16,7 +16,7 @@ import {
 import { Child, ChildDocument } from '../children/schemas/child.schema';
 import { RecordGameSessionDto } from './dto/record-game-session.dto';
 
-interface BadgeEarned {
+export interface BadgeEarned {
   badgeId: string;
   name: string;
   description?: string;
@@ -179,9 +179,13 @@ export class GamificationService {
         .exec();
       if (alreadyEarned) continue;
 
-      // Check requirements
+      // Check requirements (badge from lean() may be plain object, not Map)
       let qualifies = true;
-      for (const [key, requiredValue] of badge.requirements.entries()) {
+      const requirements = badge.requirements ?? {};
+      const requirementEntries = requirements instanceof Map
+        ? Array.from(requirements.entries())
+        : Object.entries(requirements);
+      for (const [key, requiredValue] of requirementEntries) {
         let actualValue = 0;
         switch (key) {
           case 'gamesCompleted':
@@ -259,9 +263,13 @@ export class GamificationService {
       .lean()
       .exec();
 
-    const pointsByGameMap = points?.pointsByGame
-      ? Object.fromEntries(points.pointsByGame)
-      : {};
+    const rawPointsByGame = points?.pointsByGame;
+    const pointsByGameMap =
+      rawPointsByGame == null
+        ? {}
+        : rawPointsByGame instanceof Map
+          ? Object.fromEntries(Array.from(rawPointsByGame.entries()))
+          : (rawPointsByGame as Record<string, number>);
 
     return {
       totalPoints: points?.totalPoints || 0,
