@@ -92,5 +92,6 @@ class AuthProvider with ChangeNotifier {
   void updateUser(User user) {
     _user = user;
     notifyListeners();
+    _authService.saveUser(user); // persist so stored user stays in sync
   }
 }

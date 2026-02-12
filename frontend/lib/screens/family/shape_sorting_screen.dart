@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:provider/provider.dart';
 import '../../providers/sticker_book_provider.dart';
 import '../../utils/constants.dart';
+import '../../utils/gamification_helper.dart';
+import '../../services/gamification_service.dart';
 
 // Shape Sorting Challenge — couleurs du HTML
 const Color _primary = Color(0xFFA5DCE7);
@@ -35,6 +37,13 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
   final Random _rnd = Random();
   bool _blocked = false;
   bool _gameFinished = false;
+  DateTime? _gameStartTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _gameStartTime = DateTime.now();
+  }
 
   void _nextShape() {
     if (_gameFinished) return;
@@ -54,10 +63,21 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
       } else if (_level == _maxLevel && _levelProgress >= 1.0) {
         final k = StickerBookProvider.levelKeyForShapeSortingLevel(_maxLevel);
         _gameFinished = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!mounted) return;
+          final timeSpent = _gameStartTime != null
+              ? DateTime.now().difference(_gameStartTime!).inSeconds
+              : null;
+          await recordGameCompletion(
+            context: context,
+            levelKey: k,
+            gameType: GameType.shape_sorting,
+            level: _maxLevel,
+            timeSpentSeconds: timeSpent,
+            metrics: {'score': _score},
+          );
+          if (!context.mounted) return;
           final provider = Provider.of<StickerBookProvider>(context, listen: false);
-          provider.recordLevelCompleted(k);
           final stickerIndex = provider.unlockedCount - 1;
           if (!context.mounted) return;
           context.push(AppConstants.familyGameSuccessRoute, extra: {
@@ -86,10 +106,21 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
       } else if (_level == _maxLevel && _levelProgress >= 1.0) {
         final k = StickerBookProvider.levelKeyForShapeSortingLevel(_maxLevel);
         _gameFinished = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!mounted) return;
+          final timeSpent = _gameStartTime != null
+              ? DateTime.now().difference(_gameStartTime!).inSeconds
+              : null;
+          await recordGameCompletion(
+            context: context,
+            levelKey: k,
+            gameType: GameType.shape_sorting,
+            level: _maxLevel,
+            timeSpentSeconds: timeSpent,
+            metrics: {'score': _score},
+          );
+          if (!context.mounted) return;
           final provider = Provider.of<StickerBookProvider>(context, listen: false);
-          provider.recordLevelCompleted(k);
           final stickerIndex = provider.unlockedCount - 1;
           if (!context.mounted) return;
           context.push(AppConstants.familyGameSuccessRoute, extra: {

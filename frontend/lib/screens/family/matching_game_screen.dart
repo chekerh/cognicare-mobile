@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/sticker_book_provider.dart';
 import '../../utils/constants.dart';
+import '../../utils/gamification_helper.dart';
+import '../../services/gamification_service.dart';
 
 // Cognitive Matching Game — couleurs du HTML
 const Color _primary = Color(0xFFA0DCE8);
@@ -46,10 +48,12 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
   int? _firstSelectedIndex;
   bool _canTap = true;
   int _pairsFound = 0;
+  DateTime? _gameStartTime;
 
   @override
   void initState() {
     super.initState();
+    _gameStartTime = DateTime.now();
     _resetGame();
   }
 
@@ -67,6 +71,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
       _firstSelectedIndex = null;
       _canTap = true;
       _pairsFound = 0;
+      _gameStartTime = DateTime.now();
     });
   }
 
@@ -94,8 +99,22 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
       if (newPairs == 3) {
         await Future.delayed(const Duration(milliseconds: 400));
         if (!mounted) return;
+        
+        // Calculate time spent
+        final timeSpent = _gameStartTime != null
+            ? DateTime.now().difference(_gameStartTime!).inSeconds
+            : null;
+
+        // Record game completion (local + backend)
+        await recordGameCompletion(
+          context: context,
+          levelKey: StickerBookProvider.levelKeyForMatching(),
+          gameType: GameType.matching,
+          timeSpentSeconds: timeSpent,
+          metrics: {'pairsFound': 3},
+        );
+
         final provider = Provider.of<StickerBookProvider>(context, listen: false);
-        provider.recordLevelCompleted(StickerBookProvider.levelKeyForMatching());
         final stickerIndex = provider.unlockedCount - 1;
         if (!context.mounted) return;
         context.push(AppConstants.familyGameSuccessRoute, extra: {
