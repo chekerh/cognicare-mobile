@@ -406,8 +406,7 @@ class _ConversationTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+            ClipOval(
               child: conversation.imageUrl.isEmpty
                   ? Container(
                       width: 56,
@@ -420,6 +419,21 @@ class _ConversationTile extends StatelessWidget {
                       width: 56,
                       height: 56,
                       fit: BoxFit.cover,
+                      loadingBuilder: (_, child, progress) =>
+                          progress == null
+                              ? child
+                              : SizedBox(
+                                  width: 56,
+                                  height: 56,
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      value: progress.expectedTotalBytes != null
+                                          ? progress.cumulativeBytesLoaded /
+                                              progress.expectedTotalBytes!
+                                          : null,
+                                    ),
+                                  ),
+                                ),
                       errorBuilder: (_, __, ___) => Container(
                         width: 56,
                         height: 56,

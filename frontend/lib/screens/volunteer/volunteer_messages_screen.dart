@@ -328,8 +328,7 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
             ),
             child: Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(28),
+                ClipOval(
                   child: c.imageUrl.isEmpty
                       ? CircleAvatar(
                           radius: 28,
@@ -344,6 +343,19 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
                           width: 56,
                           height: 56,
                           fit: BoxFit.cover,
+                          loadingBuilder: (_, child, progress) =>
+                              progress == null
+                                  ? child
+                                  : SizedBox(
+                                      width: 56,
+                                      height: 56,
+                                      child: Center(
+                                          child: CircularProgressIndicator(
+                                              value: progress.expectedTotalBytes != null
+                                                  ? progress.cumulativeBytesLoaded /
+                                                      progress.expectedTotalBytes!
+                                                  : null)),
+                                    ),
                           errorBuilder: (_, __, ___) => CircleAvatar(
                             radius: 28,
                             backgroundColor: _primary.withOpacity(0.2),
