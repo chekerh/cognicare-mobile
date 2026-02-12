@@ -78,13 +78,17 @@ export class ConversationsService {
   }
 
   async findInboxForUser(userId: string) {
+    const uid = new Types.ObjectId(userId);
     const docs = await this.conversationModel
-      .find({ user: userId })
+      .find({
+        $or: [{ user: uid }, { otherUserId: uid }],
+      })
       .sort({ updatedAt: -1 })
       .lean()
       .exec();
 
     type Doc = {
+      user?: { toString(): string };
       otherUserId?: { toString(): string };
       _id: { toString(): string };
       name?: string;
@@ -102,13 +106,18 @@ export class ConversationsService {
       profilePic?: string;
     };
 
-    const otherIdStrs = [
-      ...new Set(
-        (docs as Doc[])
-          .map((c) => c.otherUserId?.toString())
-          .filter((s): s is string => Boolean(s)),
-      ),
-    ];
+    const otherIdStrs = [...new Set(
+      (docs as Doc[])
+        .map((c) => {
+          const userStr = c.user?.toString();
+          const otherStr = c.otherUserId?.toString();
+          // For rows where current user is stored in otherUserId (old data),
+          // we treat `user` as "other" so that we still load the contact.
+          if (otherStr === userId && userStr) return userStr;
+          return otherStr;
+        })
+        .filter((s): s is string => Boolean(s)),
+    )];
     const otherIds = otherIdStrs.map((id) => new Types.ObjectId(id));
     const users = otherIds.length
       ? await this.userModel
@@ -130,7 +139,10 @@ export class ConversationsService {
     }
 
     return (docs as Doc[]).map((c) => {
-      const otherId = c.otherUserId?.toString();
+      const userStr = c.user?.toString();
+      const otherUserIdStr = c.otherUserId?.toString();
+      const isCurrentInUser = userStr === userId;
+      const otherId = isCurrentInUser ? otherUserIdStr : userStr;
       const otherRole = otherId ? (roleById.get(otherId) ?? null) : null;
       const segment: ConversationSegment =
         otherRole === 'volunteer'
