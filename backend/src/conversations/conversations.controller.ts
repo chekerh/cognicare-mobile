@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -60,5 +61,13 @@ export class ConversationsController {
       throw new BadRequestException('text is required');
     }
     return this.conversationsService.addMessage(id, userId, body.text.trim());
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a conversation (both sides)' })
+  async deleteConversation(@Request() req: any, @Param('id') id: string) {
+    const userId = req.user.id as string;
+    await this.conversationsService.deleteConversation(id, userId);
+    return { success: true };
   }
 }

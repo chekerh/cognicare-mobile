@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../providers/sticker_book_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
+import '../../utils/gamification_helper.dart';
+import '../../services/gamification_service.dart';
 
 const Color _primary = Color(0xFF2B8CEE);
 const Color _textDark = Color(0xFF111418);
@@ -54,6 +56,13 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
   int _currentIndex = 0;
   int _completedCount = 0;
   bool _gameFinished = false;
+  DateTime? _gameStartTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _gameStartTime = DateTime.now();
+  }
 
   void _onDroppedCorrect() {
     if (_gameFinished) return;
@@ -61,10 +70,20 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
       _completedCount++;
       if (_currentIndex + 1 >= _items.length) {
         _gameFinished = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!mounted) return;
+          final timeSpent = _gameStartTime != null
+              ? DateTime.now().difference(_gameStartTime!).inSeconds
+              : null;
+          await recordGameCompletion(
+            context: context,
+            levelKey: 'basket_sort',
+            gameType: GameType.basket_sort,
+            timeSpentSeconds: timeSpent,
+            metrics: {'itemsSorted': _items.length},
+          );
+          if (!context.mounted) return;
           final provider = Provider.of<StickerBookProvider>(context, listen: false);
-          provider.recordLevelCompleted('basket_sort');
           final stickerIndex = provider.unlockedCount - 1;
           if (!context.mounted) return;
           context.push(AppConstants.familyGameSuccessRoute, extra: {

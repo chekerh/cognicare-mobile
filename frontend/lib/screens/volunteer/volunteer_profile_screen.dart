@@ -31,6 +31,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
   bool _isLoading = false;
   String? _error;
   String? _localProfilePicPath;
+  int _profilePicVersion = 0;
   bool _availabilityActive = true;
 
   static const List<Widget> _aboutSkills = [
@@ -138,13 +139,23 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
       final user = authProvider.user;
       if (user != null) authProvider.updateUser(user.copyWith(profilePic: dest.path));
       try {
-        final updatedUser = await AuthService().uploadProfilePicture(dest);
-        if (mounted) Provider.of<AuthProvider>(context, listen: false).updateUser(updatedUser);
-      } catch (_) {}
-      if (mounted) {
+        final mimeType = xFile.mimeType ?? 'image/jpeg';
+        final updatedUser = await AuthService().uploadProfilePicture(dest, mimeType: mimeType);
+        if (!mounted) return;
+        Provider.of<AuthProvider>(context, listen: false).updateUser(updatedUser);
+        setState(() {
+          _localProfilePicPath = null;
+          _profilePicVersion = DateTime.now().millisecondsSinceEpoch;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Photo de profil mise à jour'), backgroundColor: Colors.green),
         );
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erreur: ${e.toString().replaceFirst('Exception: ', '')}'), backgroundColor: Colors.red),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -554,8 +565,9 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
       return Image.file(File(_localProfilePicPath!), fit: BoxFit.cover, errorBuilder: (_, __, ___) => _profilePlaceholder());
     }
     if (user?.profilePic != null && user!.profilePic!.isNotEmpty) {
-      final url = user.profilePic!.startsWith('http') ? user.profilePic! : '${AppConstants.baseUrl}${user.profilePic}';
-      return Image.network(url, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _profilePlaceholder());
+      final base = user.profilePic!.startsWith('http') ? user.profilePic! : '${AppConstants.baseUrl}${user.profilePic}';
+      final url = '$base${base.contains('?') ? '&' : '?'}v=$_profilePicVersion';
+      return Image.network(url, key: ValueKey(url), fit: BoxFit.cover, errorBuilder: (_, __, ___) => _profilePlaceholder());
     }
     return _profilePlaceholder();
   }

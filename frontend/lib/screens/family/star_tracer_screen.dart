@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/sticker_book_provider.dart';
 import '../../utils/constants.dart';
+import '../../utils/gamification_helper.dart';
+import '../../services/gamification_service.dart';
 
 // Star Tracer — couleurs du HTML
 const Color _primary = Color(0xFF2b8cee);
@@ -133,6 +135,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
   int _segmentsTraced = 0;
   bool _gameFinished = false;
   Size _canvasSize = Size.zero;
+  DateTime? _gameStartTime;
 
   List<Offset> get _currentPoints => _levelConfigs[(_level - 1).clamp(0, _levelConfigs.length - 1)].points;
   int get _totalSegments => _currentPoints.length;
@@ -147,6 +150,12 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
     final center = Offset(_canvasSize.width / 2, _canvasSize.height / 2);
     final origin = center - Offset(50 * scale, 50 * scale);
     return _currentPoints.map((p) => origin + Offset(p.dx * scale, p.dy * scale)).toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _gameStartTime = DateTime.now();
   }
 
   /// Distance from point P to segment A-B.
@@ -182,10 +191,21 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
           if (_level >= _maxLevel) {
             final k = StickerBookProvider.levelKeyForStarTracerLevel(_maxLevel);
             _gameFinished = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
+            WidgetsBinding.instance.addPostFrameCallback((_) async {
               if (!mounted) return;
+              final timeSpent = _gameStartTime != null
+                  ? DateTime.now().difference(_gameStartTime!).inSeconds
+                  : null;
+              await recordGameCompletion(
+                context: context,
+                levelKey: k,
+                gameType: GameType.star_tracer,
+                level: _maxLevel,
+                timeSpentSeconds: timeSpent,
+                metrics: {'segmentsTraced': _totalSegments},
+              );
+              if (!context.mounted) return;
               final provider = Provider.of<StickerBookProvider>(context, listen: false);
-              provider.recordLevelCompleted(k);
               final stickerIndex = provider.unlockedCount - 1;
               if (!context.mounted) return;
               context.push(AppConstants.familyGameSuccessRoute, extra: {

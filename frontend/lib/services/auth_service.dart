@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/auth_response.dart';
 import '../models/user.dart';
@@ -163,15 +164,25 @@ class AuthService {
   }
 
   /// Upload profile picture (multipart). Returns updated user with profilePic URL.
-  Future<User> uploadProfilePicture(File imageFile) async {
+  Future<User> uploadProfilePicture(File imageFile, {String? mimeType}) async {
     final token = await getStoredToken();
     if (token == null) throw Exception('No authentication token found');
+    if (!await imageFile.exists()) {
+      throw Exception('Image file does not exist');
+    }
     final request = http.MultipartRequest(
       'POST',
       Uri.parse('${AppConstants.baseUrl}${AppConstants.uploadProfilePictureEndpoint}'),
     );
     request.headers['Authorization'] = 'Bearer $token';
-    request.files.add(await http.MultipartFile.fromPath('file', imageFile.path));
+    final contentType = mimeType ?? 'image/jpeg';
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        imageFile.path,
+        contentType: MediaType.parse(contentType),
+      ),
+    );
     final streamed = await request.send();
     final response = await http.Response.fromStream(streamed);
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -195,6 +206,14 @@ class AuthService {
       return User.fromJson(jsonDecode(userData));
     }
     return null;
+  }
+
+  /// Persist updated user (e.g. after profile picture upload) so the app sees the new data.
+  Future<void> saveUser(User user) async {
+    await _storage.write(
+      key: AppConstants.userDataKey,
+      value: jsonEncode(user.toJson()),
+    );
   }
 
   Future<void> clearStoredData() async {

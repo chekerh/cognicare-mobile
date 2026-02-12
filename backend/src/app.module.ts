@@ -16,6 +16,7 @@ import { ConversationsModule } from './conversations/conversations.module';
 import { AvailabilitiesModule } from './availabilities/availabilities.module';
 import { ChildrenModule } from './children/children.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { GamificationModule } from './gamification/gamification.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     AvailabilitiesModule,
     ChildrenModule,
     CloudinaryModule,
+    GamificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

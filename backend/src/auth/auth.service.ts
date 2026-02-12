@@ -424,9 +424,10 @@ export class AuthService {
     }
     let profilePicUrl: string;
     if (this.cloudinary.isConfigured()) {
+      // Chaque utilisateur a sa propre photo : publicId = userId (unique par user)
       profilePicUrl = await this.cloudinary.uploadBuffer(file.buffer, {
         folder: 'cognicare/profiles',
-        publicId: userId,
+        publicId: userId, // Unique par utilisateur - chaque user a sa propre photo
       });
     } else {
       const path = await import('path');
@@ -434,11 +435,12 @@ export class AuthService {
       const uploadsDir = path.join(process.cwd(), 'uploads', 'profiles');
       await fs.mkdir(uploadsDir, { recursive: true });
       const ext = file.mimetype === 'image/png' ? 'png' : 'jpg';
-      const filename = `${userId}.${ext}`;
+      const filename = `${userId}.${ext}`; // Unique par utilisateur
       const filePath = path.join(uploadsDir, filename);
       await fs.writeFile(filePath, file.buffer);
       profilePicUrl = `/uploads/profiles/${filename}`;
     }
+    // Sauvegarder l'URL de la photo dans le document user de cet utilisateur spécifique
     user.profilePic = profilePicUrl;
     await user.save();
     return this.getProfile(userId);
