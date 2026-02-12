@@ -17,6 +17,10 @@ import {
   Organization,
   OrganizationSchema,
 } from '../organization/schemas/organization.schema';
+import {
+  PendingOrganization,
+  PendingOrganizationSchema,
+} from '../organization/schemas/pending-organization.schema';
 import { Child, ChildSchema } from '../children/schemas/child.schema';
 import {
   FamilyMember,
@@ -46,6 +50,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
       { name: User.name, schema: UserSchema },
       { name: EmailVerification.name, schema: EmailVerificationSchema },
       { name: Organization.name, schema: OrganizationSchema },
+      { name: PendingOrganization.name, schema: PendingOrganizationSchema },
       { name: Child.name, schema: ChildSchema },
       { name: FamilyMember.name, schema: FamilyMemberSchema },
     ]),

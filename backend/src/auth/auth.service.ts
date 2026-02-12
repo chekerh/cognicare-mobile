@@ -18,6 +18,10 @@ import {
   Organization,
   OrganizationDocument,
 } from '../organization/schemas/organization.schema';
+import {
+  PendingOrganization,
+  PendingOrganizationDocument,
+} from '../organization/schemas/pending-organization.schema';
 import { Child, ChildDocument } from '../children/schemas/child.schema';
 import {
   FamilyMember,
@@ -39,6 +43,8 @@ export class AuthService {
     private emailVerificationModel: Model<EmailVerificationDocument>,
     @InjectModel(Organization.name)
     private organizationModel: Model<OrganizationDocument>,
+    @InjectModel(PendingOrganization.name)
+    private pendingOrganizationModel: Model<PendingOrganizationDocument>,
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     @InjectModel(FamilyMember.name)
     private familyMemberModel: Model<FamilyMemberDocument>,
@@ -65,9 +71,15 @@ export class AuthService {
     return bcrypt.hash(refreshToken, saltRounds);
   }
 
-  async signup(
-    signupDto: SignupDto,
-  ): Promise<{ accessToken: string; refreshToken: string; user: any }> {
+  async signup(signupDto: SignupDto): Promise<
+    | { accessToken: string; refreshToken: string; user: any }
+    | {
+        requiresApproval: true;
+        message: string;
+        user: any;
+        pendingOrganization: any;
+      }
+  > {
     const {
       email,
       password,
@@ -143,9 +155,34 @@ export class AuthService {
           user._id.toString(),
           organizationDescription,
         );
+
+      console.log(
+        '[SIGNUP] Organization leader signup - NOT generating tokens',
+      );
+      console.log('[SIGNUP] Pending organization ID:', pendingOrganization._id);
+
+      // For organization leaders, do NOT log them in until admin approves
+      // Return a special response indicating they need to wait for approval
+      return {
+        requiresApproval: true,
+        message:
+          'Your organization request has been submitted successfully. Please wait for admin approval. You will receive an email notification once your request is reviewed.',
+        user: {
+          id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+          role: user.role,
+        },
+        pendingOrganization: {
+          id: pendingOrganization._id,
+          organizationName: pendingOrganization.organizationName,
+          status: pendingOrganization.status,
+          createdAt: pendingOrganization.createdAt,
+        },
+      };
     }
 
-    // Generate tokens
+    // Generate tokens for non-organization_leader roles
     const { accessToken, refreshToken } = this.generateTokens(user);
 
     // Hash and store refresh token
@@ -169,16 +206,6 @@ export class AuthService {
       createdAt: user.createdAt,
     };
 
-    // Include pending organization status for organization leaders
-    if (userData.role === 'organization_leader' && pendingOrganization) {
-      userResponse.pendingOrganization = {
-        id: pendingOrganization._id,
-        organizationName: pendingOrganization.organizationName,
-        status: pendingOrganization.status,
-        createdAt: pendingOrganization.createdAt,
-      };
-    }
-
     return {
       accessToken,
       refreshToken,
@@ -201,6 +228,70 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Check if organization leader has pending approval
+    if (user.role === 'organization_leader') {
+      console.log('[LOGIN] Organization leader attempting login:', user.email);
+
+      // Check if user has an approved organization
+      const organization = await this.organizationModel.findOne({
+        leaderId: user._id,
+      });
+
+      console.log(
+        '[LOGIN] Approved organization found:',
+        organization ? 'YES' : 'NO',
+      );
+
+      if (!organization) {
+        // Check if they have a pending request
+        const pendingOrg = await this.pendingOrganizationModel.findOne({
+          requestedBy: user._id,
+          status: 'pending',
+        });
+
+        console.log(
+          '[LOGIN] Pending organization found:',
+          pendingOrg ? 'YES' : 'NO',
+        );
+
+        if (pendingOrg) {
+          throw new UnauthorizedException(
+            'Your organization request is pending approval. You will receive an email notification once your request is reviewed.',
+          );
+        }
+
+        // Check if they had a rejected request
+        const rejectedOrg = await this.pendingOrganizationModel
+          .findOne({
+            requestedBy: user._id,
+            status: 'rejected',
+          })
+          .sort({ createdAt: -1 });
+
+        console.log(
+          '[LOGIN] Rejected organization found:',
+          rejectedOrg ? 'YES' : 'NO',
+        );
+
+        if (rejectedOrg) {
+          throw new UnauthorizedException(
+            `Your organization request was rejected. Reason: ${rejectedOrg.rejectionReason || 'Not specified'}`,
+          );
+        }
+
+        // No organization and no pending/rejected request
+        // This could happen if the pending request was deleted or never created
+        console.log(
+          '[LOGIN] No organization/pending/rejected found - edge case',
+        );
+        throw new UnauthorizedException(
+          'Your organization request is under review. You will receive an email notification once your request is reviewed. If you continue to experience issues, please contact support.',
+        );
+      }
+
+      console.log('[LOGIN] Organization leader has approved organization');
     }
 
     // Generate tokens
