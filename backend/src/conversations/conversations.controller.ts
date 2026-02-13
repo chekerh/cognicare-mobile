@@ -68,7 +68,7 @@ export class ConversationsController {
   @ApiOperation({ summary: 'Upload chat attachment (image or voice)' })
   async uploadAttachment(
     @Request() req: any,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: { buffer: Buffer; mimetype: string },
     @Body() body: { type: string },
   ) {
     const userId = req.user.id as string;
