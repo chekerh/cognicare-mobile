@@ -1908,7 +1908,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   static const List<String> _fallbackImageUrls = [
     'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400', // weighted blanket
     'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', // headphones
-    'https://images.unsplash.com/photo-1560869713-72d2c8364444?w=400',   // timer
+    'https://images.unsplash.com/photo-1501139083538-0139583c060f?w=400',   // timer
   ];
 
   /// Produits affichés quand l'API est indisponible ou renvoie une liste vide.

@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.cognicare.app"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35  // Required by audioplayers_android, flutter_plugin_android_lifecycle
     ndkVersion = "27.0.12077973"
 
     compileOptions {
