@@ -92,9 +92,18 @@ jobs:
 
       - name: Fix record_android compileSdk for AGP
         run: |
-          RECORD_ANDROID_BUILD=$(find ~/.pub-cache -path "*record_android*android/build.gradle" 2>/dev/null | head -1)
-          if [ -n "$RECORD_ANDROID_BUILD" ] && [ -f "$RECORD_ANDROID_BUILD" ]; then
-            sed -i.bak 's/compileSdk = flutter.compileSdkVersion/compileSdk = 34/' "$RECORD_ANDROID_BUILD"
+          RECORD_ANDROID_BUILD=$(find "$HOME/.pub-cache" -path "*record_android*android/build.gradle" 2>/dev/null | head -1)
+          if [ -z "$RECORD_ANDROID_BUILD" ] || [ ! -f "$RECORD_ANDROID_BUILD" ]; then
+            echo "record_android build.gradle not found in pub-cache"
+            exit 0
+          fi
+          echo "Patching $RECORD_ANDROID_BUILD"
+          # Replace any reference to flutter.compileSdkVersion (can be null in CI)
+          sed -i.bak 's/compileSdk = flutter.compileSdkVersion/compileSdk = 35/g' "$RECORD_ANDROID_BUILD"
+          sed -i.bak 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 35/g' "$RECORD_ANDROID_BUILD"
+          # If still no compileSdk, add it after "android {"
+          if ! grep -q "compileSdk" "$RECORD_ANDROID_BUILD"; then
+            sed -i.bak '/android {/a\    compileSdkVersion 35' "$RECORD_ANDROID_BUILD"
           fi
 
       - name: Build Android APK
