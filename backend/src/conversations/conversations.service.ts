@@ -316,7 +316,10 @@ export class ConversationsService {
       const ok = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'].some((a) => m === a || m.startsWith(a + ';'));
       if (!ok) throw new BadRequestException('Invalid image type. Use JPEG, PNG or WebP.');
     } else {
-      if (!m.startsWith('audio/')) {
+      // Voice: accept audio/* or empty/octet-stream (Flutter record sends .m4a often without mimetype)
+      const isAudio = m.startsWith('audio/');
+      const isUnknown = !m || m === 'application/octet-stream';
+      if (!isAudio && !isUnknown) {
         throw new BadRequestException('Invalid audio type. Use MP3, M4A or AAC.');
       }
     }
