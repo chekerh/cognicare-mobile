@@ -420,7 +420,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         _headerButton(
                           Icons.settings,
-                          onTap: () => context.push(AppConstants.familySettingsRoute),
+                          onTap: _showAccountSettingsDrawer,
                         ),
                         Column(
                           children: [
@@ -534,49 +534,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     const SizedBox(height: 24),
 
-                    // Account Settings
-                    Text(
-                      loc.accountSettings,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.text),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildActionTile(icon: Icons.lock_outline, label: loc.changePassword, onTap: () async {
-                      final messenger = ScaffoldMessenger.of(context);
-                      final result = await showDialog<bool>(context: context, builder: (_) => const ChangePasswordDialog());
-                      if (result != true) return;
-                      messenger.showSnackBar(
-                        const SnackBar(content: Text('Mot de passe mis à jour. Veuillez vous reconnecter.'), backgroundColor: Colors.green),
-                      );
-                      await _handleLogout();
-                    }),
-                    const SizedBox(height: 8),
-                    _buildActionTile(icon: Icons.email_outlined, label: loc.changeEmail, onTap: () async {
-                      final messenger = ScaffoldMessenger.of(context);
-                      final result = await showDialog<bool>(context: context, builder: (_) => const ChangeEmailDialog());
-                      if (result != true) return;
-                      messenger.showSnackBar(
-                        const SnackBar(content: Text('Email mis à jour. Veuillez vous reconnecter.'), backgroundColor: Colors.green),
-                      );
-                      await _handleLogout();
-                    }),
-                    const SizedBox(height: 8),
-                    _buildActionTile(icon: Icons.language_outlined, label: loc.changeLanguage, onTap: _showLanguageDialog),
-                    const SizedBox(height: 8),
-                    _buildActionTile(icon: Icons.phone_outlined, label: loc.changePhone, onTap: () async {
-                      final messenger = ScaffoldMessenger.of(context);
-                      final result = await showDialog<bool>(
-                        context: context,
-                        builder: (_) => ChangePhoneDialog(currentPhone: user?.phone),
-                      );
-                      if (result != true) return;
-                      _refreshProfile();
-                      messenger.showSnackBar(
-                        const SnackBar(content: Text('Téléphone mis à jour'), backgroundColor: Colors.green),
-                      );
-                    }),
-
-                    const SizedBox(height: 24),
-
                     // Logout
                     SizedBox(
                       width: double.infinity,
@@ -646,6 +603,191 @@ class _ProfileScreenState extends State<ProfileScreen> {
           height: 40,
           child: Icon(icon, color: Colors.white, size: 22),
         ),
+      ),
+    );
+  }
+
+  void _showAccountSettingsDrawer() {
+    final loc = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Title
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Account Settings',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Color(0xFF64748B)),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  children: [
+                    _buildSettingsOption(
+                      icon: Icons.lock_outline,
+                      iconColor: const Color(0xFFA3D9E5),
+                      title: 'Change Password',
+                      onTap: () async {
+                        Navigator.of(context).pop(); // Close drawer
+                        final messenger = ScaffoldMessenger.of(context);
+                        final result = await showDialog<bool>(
+                          context: context,
+                          builder: (_) => const ChangePasswordDialog(),
+                        );
+                        if (result != true) return;
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Mot de passe mis à jour. Veuillez vous reconnecter.'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                        await _handleLogout();
+                      },
+                    ),
+                    _buildSettingsOption(
+                      icon: Icons.email_outlined,
+                      iconColor: const Color(0xFFA3D9E5),
+                      title: 'Change Email',
+                      onTap: () async {
+                        Navigator.of(context).pop(); // Close drawer
+                        final messenger = ScaffoldMessenger.of(context);
+                        final result = await showDialog<bool>(
+                          context: context,
+                          builder: (_) => const ChangeEmailDialog(),
+                        );
+                        if (result != true) return;
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Email mis à jour. Veuillez vous reconnecter.'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                        await _handleLogout();
+                      },
+                    ),
+                    _buildSettingsOption(
+                      icon: Icons.language_outlined,
+                      iconColor: const Color(0xFFA3D9E5),
+                      title: 'Change Language',
+                      onTap: () {
+                        Navigator.of(context).pop(); // Close drawer
+                        _showLanguageDialog();
+                      },
+                    ),
+                    _buildSettingsOption(
+                      icon: Icons.phone_outlined,
+                      iconColor: const Color(0xFFA3D9E5),
+                      title: 'Change Phone',
+                      onTap: () async {
+                        Navigator.of(context).pop(); // Close drawer
+                        final messenger = ScaffoldMessenger.of(context);
+                        final user = Provider.of<AuthProvider>(context, listen: false).user;
+                        final result = await showDialog<bool>(
+                          context: context,
+                          builder: (_) => ChangePhoneDialog(currentPhone: user?.phone),
+                        );
+                        if (result != true) return;
+                        _refreshProfile();
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Téléphone mis à jour'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingsOption({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.15),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: iconColor, size: 24),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF475569),
+          ),
+        ),
+        trailing: const Icon(
+          Icons.arrow_forward_ios,
+          size: 18,
+          color: Color(0xFF94A3B8),
+        ),
+        onTap: onTap,
       ),
     );
   }

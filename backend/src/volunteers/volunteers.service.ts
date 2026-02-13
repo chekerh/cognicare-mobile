@@ -47,14 +47,17 @@ export class VolunteersService {
     type: DocumentType,
     file: { buffer: Buffer; mimetype: string; originalname?: string },
   ) {
+    const fileSizeMB = (file.buffer.length / (1024 * 1024)).toFixed(2);
+    const maxSizeMB = MAX_FILE_SIZE_BYTES / (1024 * 1024);
+    
     if (file.buffer.length > MAX_FILE_SIZE_BYTES) {
       throw new BadRequestException(
-        `File size must not exceed ${MAX_FILE_SIZE_BYTES / 1024 / 1024}MB`,
+        `La taille du fichier (${fileSizeMB} Mo) dépasse la limite de ${maxSizeMB} Mo. Veuillez compresser votre fichier ou choisir un fichier plus petit.`,
       );
     }
     if (!ALLOWED_MIMES.includes(file.mimetype)) {
       throw new BadRequestException(
-        `Allowed types: images (JPEG, PNG, WebP) and PDF`,
+        `Type de fichier invalide (${file.mimetype}). Formats acceptés : JPG, JPEG, PNG, WebP, PDF uniquement.`,
       );
     }
 

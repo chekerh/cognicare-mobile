@@ -23,6 +23,7 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
   bool _loading = true;
   bool _uploading = false;
   String? _error;
+  String _lastUploadType = 'id';
 
   @override
   void initState() {
@@ -48,6 +49,7 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
   }
 
   Future<void> _pickAndUpload(String type) async {
+    _lastUploadType = type; // Store for retry button
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
@@ -58,33 +60,62 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
     final path = file.path;
     if (path == null || path.isEmpty) {
       if (!mounted) return;
-      final messenger = ScaffoldMessenger.maybeOf(context);
-      if (mounted && messenger != null) {
-        messenger.showSnackBar(const SnackBar(content: Text('Fichier non accessible')));
-      }
+      _showErrorDialog(
+        title: 'Fichier non accessible',
+        message: 'Le fichier sélectionné n\'est pas accessible sur cet appareil.',
+        suggestions: [
+          'Vérifiez les permissions de l\'application',
+          'Essayez de copier le fichier dans un autre dossier',
+          'Redémarrez l\'application et réessayez',
+        ],
+      );
       return;
     }
     final f = File(path);
     if (!await f.exists()) {
       if (!mounted) return;
-      final messenger = ScaffoldMessenger.maybeOf(context);
-      if (mounted && messenger != null) {
-        messenger.showSnackBar(const SnackBar(content: Text('Fichier introuvable')));
-      }
+      _showErrorDialog(
+        title: 'Fichier introuvable',
+        message: 'Le fichier n\'existe plus ou a été déplacé.',
+        suggestions: [
+          'Vérifiez que le fichier existe toujours',
+          'Sélectionnez un autre fichier',
+        ],
+      );
       return;
     }
+    
+    // Check file extension
+    final extension = path.split('.').last.toLowerCase();
+    final allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'pdf'];
+    if (!allowedExtensions.contains(extension)) {
+      if (!mounted) return;
+      _showErrorDialog(
+        title: 'Type de fichier invalide',
+        message: 'Le format .$extension n\'est pas accepté.',
+        suggestions: [
+          'Formats acceptés : JPG, JPEG, PNG, WebP, PDF',
+          'Convertissez votre fichier en un format accepté',
+          'Pour les documents : utilisez un scanner d\'application pour créer un PDF',
+        ],
+      );
+      return;
+    }
+    
     final length = await f.length();
     if (length > _maxFileSizeBytes) {
       if (!mounted) return;
-      final messenger = ScaffoldMessenger.maybeOf(context);
-      if (mounted && messenger != null) {
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Taille max 5 Mo'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      final fileSizeMB = (length / (1024 * 1024)).toStringAsFixed(2);
+      _showErrorDialog(
+        title: 'Fichier trop volumineux',
+        message: 'La taille du fichier ($fileSizeMB Mo) dépasse la limite de 5 Mo.',
+        suggestions: [
+          'Compressez votre image en ligne (ex: tinypng.com, compressjpeg.com)',
+          'Réduisez la résolution de l\'image avant de l\'uploader',
+          'Pour les PDF : utilisez un compresseur PDF en ligne',
+          'Prenez une nouvelle photo avec une qualité réduite',
+        ],
+      );
       return;
     }
     setState(() => _uploading = true);
@@ -94,26 +125,146 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
         final messenger = ScaffoldMessenger.maybeOf(context);
         if (mounted && messenger != null) {
           messenger.showSnackBar(
-            const SnackBar(content: Text('Document ajouté'), backgroundColor: Colors.green),
+            const SnackBar(content: Text('✅ Document ajouté avec succès'), backgroundColor: Colors.green),
           );
         }
         _load();
       }
     } catch (e) {
       if (mounted) {
-        final messenger = ScaffoldMessenger.maybeOf(context);
-        if (mounted && messenger != null) {
-          messenger.showSnackBar(
-            SnackBar(
-              content: Text(e.toString().replaceFirst('Exception: ', '')),
-              backgroundColor: Colors.red,
-            ),
+        final errorMessage = e.toString().replaceFirst('Exception: ', '');
+        
+        // Parse backend errors to provide better messages
+        if (errorMessage.toLowerCase().contains('file size') || 
+            errorMessage.toLowerCase().contains('taille')) {
+          _showErrorDialog(
+            title: 'Fichier trop volumineux',
+            message: errorMessage,
+            suggestions: [
+              'Compressez votre fichier en ligne',
+              'Réduisez la résolution de l\'image',
+              'Utilisez un compresseur PDF pour les documents',
+            ],
+          );
+        } else if (errorMessage.toLowerCase().contains('type') || 
+                   errorMessage.toLowerCase().contains('format') ||
+                   errorMessage.toLowerCase().contains('allowed')) {
+          _showErrorDialog(
+            title: 'Format de fichier invalide',
+            message: errorMessage,
+            suggestions: [
+              'Formats acceptés : JPG, JPEG, PNG, WebP, PDF',
+              'Convertissez votre fichier dans un format compatible',
+            ],
+          );
+        } else if (errorMessage.toLowerCase().contains('network') || 
+                   errorMessage.toLowerCase().contains('connexion')) {
+          _showErrorDialog(
+            title: 'Erreur de connexion',
+            message: 'Impossible de se connecter au serveur.',
+            suggestions: [
+              'Vérifiez votre connexion internet',
+              'Réessayez dans quelques instants',
+              'Contactez le support si le problème persiste',
+            ],
+          );
+        } else {
+          _showErrorDialog(
+            title: 'Erreur d\'upload',
+            message: errorMessage,
+            suggestions: [
+              'Vérifiez votre connexion internet',
+              'Réessayez avec un autre fichier',
+              'Contactez le support si le problème persiste',
+            ],
           );
         }
       }
     } finally {
       if (mounted) setState(() => _uploading = false);
     }
+  }
+
+  void _showErrorDialog({
+    required String title,
+    required String message,
+    required List<String> suggestions,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                message,
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Solutions possibles :',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...suggestions.map((suggestion) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('• ', style: TextStyle(fontSize: 16, color: _primary, fontWeight: FontWeight.bold)),
+                    Expanded(
+                      child: Text(
+                        suggestion,
+                        style: const TextStyle(fontSize: 14, color: Colors.black87),
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Fermer'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _pickAndUpload(_lastUploadType);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Réessayer'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _removeDocument(int index) async {
