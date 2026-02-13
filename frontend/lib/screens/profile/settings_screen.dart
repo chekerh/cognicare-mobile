@@ -65,13 +65,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       });
 
       final authService = AuthService();
-      final newImageUrl = await authService.uploadProfilePicture(image.path);
+      final imageFile = File(image.path);
+      final updatedUser = await authService.uploadProfilePicture(imageFile);
 
       if (!mounted) return;
 
       // Mettre à jour le provider
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.updateProfilePicture(newImageUrl);
+      authProvider.updateUser(updatedUser);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -112,12 +113,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       });
 
       final authService = AuthService();
-      final newImageUrl = await authService.uploadProfilePicture(image.path);
+      final imageFile = File(image.path);
+      final updatedUser = await authService.uploadProfilePicture(imageFile);
 
       if (!mounted) return;
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.updateProfilePicture(newImageUrl);
+      authProvider.updateUser(updatedUser);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -310,12 +312,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         CircleAvatar(
                           radius: 60,
                           backgroundColor: _primary.withOpacity(0.2),
-                          backgroundImage: user?.profilePicture != null && user!.profilePicture!.isNotEmpty
-                              ? NetworkImage(AppConstants.fullImageUrl(user.profilePicture!))
+                          backgroundImage: user?.profilePic != null && user!.profilePic!.isNotEmpty
+                              ? NetworkImage(AppConstants.fullImageUrl(user.profilePic!))
                               : null,
-                          child: user?.profilePicture == null || user!.profilePicture!.isEmpty
+                          child: user?.profilePic == null || user!.profilePic!.isEmpty
                               ? Text(
-                                  user?.name?.substring(0, 1).toUpperCase() ?? 'U',
+                                  user?.fullName?.substring(0, 1).toUpperCase() ?? 'U',
                                   style: const TextStyle(
                                     fontSize: 40,
                                     fontWeight: FontWeight.bold,
@@ -327,7 +329,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         if (_isUploading)
                           Positioned.fill(
                             child: Container(
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: Colors.black54,
                                 shape: BoxShape.circle,
                               ),
@@ -365,7 +367,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      user?.name ?? 'Utilisateur',
+                      user?.fullName ?? 'Utilisateur',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
@@ -446,7 +448,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       obscureText: _obscureConfirmPassword,
                       decoration: InputDecoration(
                         labelText: 'Confirmer le nouveau mot de passe',
-                        prefixIcon: const Icon(Icons.lock_check),
+                        prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
                           onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),

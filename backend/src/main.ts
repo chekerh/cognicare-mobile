@@ -25,7 +25,10 @@ async function bootstrap() {
     '/uploads',
     express.default.static(uploadsPath, {
       index: false,
-      setHeaders: (res: { setHeader: (name: string, value: string) => void }, path: string) => {
+      setHeaders: (
+        res: { setHeader: (name: string, value: string) => void },
+        path: string,
+      ) => {
         if (path.endsWith('.m4a')) res.setHeader('Content-Type', 'audio/mp4');
       },
     }),

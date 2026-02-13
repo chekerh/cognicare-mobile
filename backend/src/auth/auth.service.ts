@@ -759,7 +759,10 @@ export class AuthService {
     }
 
     // Verify current password
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password as string,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Current password is incorrect');
     }
@@ -770,7 +773,9 @@ export class AuthService {
     await user.save();
 
     // Optionally: Invalidate all refresh tokens for security
-    await this.refreshTokenModel.deleteMany({ userId: user._id });
+    const userId = user._id.toString();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    await this.refreshTokenModel.deleteMany({ userId }).exec();
   }
 
   async changeEmail(userId: string, newEmail: string): Promise<void> {
@@ -786,14 +791,15 @@ export class AuthService {
     }
 
     // Generate verification code for new email
-    const code = this.generateRandomCode(6);
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedCode = await bcrypt.hash(code, 10);
-    
+
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
     // Delete any existing verification for this email
-    await this.emailVerificationModel.deleteMany({ email: newEmail });
+
+    await this.emailVerificationModel.deleteMany({ email: newEmail }).exec();
 
     // Create new verification record
     const verification = new this.emailVerificationModel({
@@ -805,6 +811,7 @@ export class AuthService {
     await verification.save();
 
     // Send verification email to new address
+
     await this.mailService.sendVerificationCode(newEmail, code);
 
     // Note: Email is not updated yet. User must verify the code first.

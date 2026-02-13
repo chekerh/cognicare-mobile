@@ -49,7 +49,7 @@ export class VolunteersService {
   ) {
     const fileSizeMB = (file.buffer.length / (1024 * 1024)).toFixed(2);
     const maxSizeMB = MAX_FILE_SIZE_BYTES / (1024 * 1024);
-    
+
     if (file.buffer.length > MAX_FILE_SIZE_BYTES) {
       throw new BadRequestException(
         `La taille du fichier (${fileSizeMB} Mo) dépasse la limite de ${maxSizeMB} Mo. Veuillez compresser votre fichier ou choisir un fichier plus petit.`,

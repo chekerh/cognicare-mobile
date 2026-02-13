@@ -9,7 +9,10 @@ import {
   Min,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { ReminderType, ReminderFrequency } from '../schemas/task-reminder.schema';
+import {
+  ReminderType,
+  ReminderFrequency,
+} from '../schemas/task-reminder.schema';
 
 export class CreateTaskReminderDto {
   @ApiProperty({

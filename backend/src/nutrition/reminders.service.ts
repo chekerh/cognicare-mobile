@@ -10,6 +10,7 @@ import * as path from 'path';
 import {
   TaskReminder,
   TaskReminderDocument,
+  ReminderFrequency,
 } from './schemas/task-reminder.schema';
 import { Child, ChildDocument } from '../children/schemas/child.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
@@ -110,9 +111,9 @@ export class RemindersService {
       })
       .filter((r) => {
         // Filter based on frequency
-        if (r.frequency === 'daily') return true;
-        if (r.frequency === 'interval') return true;
-        if (r.frequency === 'weekly') {
+        if (r.frequency === ReminderFrequency.DAILY) return true;
+        if (r.frequency === ReminderFrequency.INTERVAL) return true;
+        if (r.frequency === ReminderFrequency.WEEKLY) {
           const dayName = today
             .toLocaleDateString('en-US', { weekday: 'long' })
             .toLowerCase();
@@ -164,14 +165,14 @@ export class RemindersService {
     // Save proof image if provided
     if (proofImage && dto.completed) {
       const uploadsDir = path.join(process.cwd(), 'uploads', 'proof-images');
-      
+
       // Create directory if it doesn't exist
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
 
       const timestamp = Date.now();
-      const filename = `${reminder._id}_${timestamp}_${proofImage.originalname}`;
+      const filename = `${reminder._id.toString()}_${timestamp}_${proofImage.originalname}`;
       const filepath = path.join(uploadsDir, filename);
 
       // Save file
@@ -194,7 +195,7 @@ export class RemindersService {
         completed: dto.completed,
         completedAt: dto.completed ? new Date() : undefined,
         proofImageUrl: proofImagePath,
-      } as any;
+      };
     } else {
       // Add new
       if (!reminder.completionHistory) {
@@ -205,7 +206,7 @@ export class RemindersService {
         completed: dto.completed,
         completedAt: dto.completed ? new Date() : undefined,
         proofImageUrl: proofImagePath,
-      } as any);
+      });
     }
 
     await reminder.save();
@@ -321,7 +322,12 @@ export class RemindersService {
     }
 
     const isParent = child.parentId.toString() === userId;
-    const isHealthcare = ['doctor', 'psychologist', 'speech_therapist', 'occupational_therapist'].includes(user.role);
+    const isHealthcare = [
+      'doctor',
+      'psychologist',
+      'speech_therapist',
+      'occupational_therapist',
+    ].includes(user.role);
 
     if (!isParent && !isHealthcare) {
       throw new ForbiddenException('Not authorized to access child reminders');

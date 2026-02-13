@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -42,10 +41,17 @@ export class NutritionService {
     }
 
     const isParent = child.parentId.toString() === userId;
-    const isHealthcare = ['doctor', 'psychologist', 'speech_therapist', 'occupational_therapist'].includes(user.role);
+    const isHealthcare = [
+      'doctor',
+      'psychologist',
+      'speech_therapist',
+      'occupational_therapist',
+    ].includes(user.role);
 
     if (!isParent && !isHealthcare) {
-      throw new ForbiddenException('Not authorized to create nutrition plan for this child');
+      throw new ForbiddenException(
+        'Not authorized to create nutrition plan for this child',
+      );
     }
 
     // Create nutrition plan
@@ -78,7 +84,9 @@ export class NutritionService {
       .exec();
 
     if (!plan) {
-      throw new NotFoundException('No active nutrition plan found for this child');
+      throw new NotFoundException(
+        'No active nutrition plan found for this child',
+      );
     }
 
     return this.formatNutritionPlan(plan);
@@ -135,10 +143,17 @@ export class NutritionService {
     }
 
     const isParent = child.parentId.toString() === userId;
-    const isHealthcare = ['doctor', 'psychologist', 'speech_therapist', 'occupational_therapist'].includes(user.role);
+    const isHealthcare = [
+      'doctor',
+      'psychologist',
+      'speech_therapist',
+      'occupational_therapist',
+    ].includes(user.role);
 
     if (!isParent && !isHealthcare) {
-      throw new ForbiddenException('Not authorized to access this nutrition plan');
+      throw new ForbiddenException(
+        'Not authorized to access this nutrition plan',
+      );
     }
   }
 

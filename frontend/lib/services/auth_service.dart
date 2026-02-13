@@ -337,47 +337,6 @@ class AuthService {
     await _storage.delete(key: AppConstants.userDataKey);
   }
 
-  /// Upload profile picture and return the new image URL
-  Future<String> uploadProfilePicture(String imagePath) async {
-    try {
-      final token = await getStoredToken();
-      if (token == null) throw Exception('Not authenticated');
-
-      final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.uploadProfilePictureEndpoint}');
-      final request = http.MultipartRequest('POST', uri);
-      
-      request.headers['Authorization'] = 'Bearer $token';
-      
-      // Add the image file
-      final file = File(imagePath);
-      final stream = http.ByteStream(file.openRead());
-      final length = await file.length();
-      
-      final multipartFile = http.MultipartFile(
-        'file',
-        stream,
-        length,
-        filename: imagePath.split('/').last,
-        contentType: MediaType('image', 'jpeg'),
-      );
-      
-      request.files.add(multipartFile);
-
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
-        return data['profilePicture'] as String;
-      } else {
-        final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? 'Failed to upload profile picture');
-      }
-    } catch (e) {
-      throw Exception('Error uploading profile picture: $e');
-    }
-  }
-
   /// Change user password
   Future<void> changePassword({
     required String currentPassword,

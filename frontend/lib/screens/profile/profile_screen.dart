@@ -418,10 +418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _headerButton(
-                          Icons.settings,
-                          onTap: _showAccountSettingsDrawer,
-                        ),
+                        const SizedBox(width: 40), // Espace vide à gauche
                         Column(
                           children: [
                             Text(
@@ -435,7 +432,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ],
                         ),
-                        _headerButton(Icons.edit),
+                        _headerButton(
+                          Icons.edit,
+                          onTap: _showAccountSettingsDrawer,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),

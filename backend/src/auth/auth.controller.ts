@@ -574,7 +574,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Change password for authenticated user',
-    description: 'Change password by providing current password and new password',
+    description:
+      'Change password by providing current password and new password',
   })
   @ApiBody({
     schema: {

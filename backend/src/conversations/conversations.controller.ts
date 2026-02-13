@@ -12,7 +12,13 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ConversationsService } from './conversations.service';
 
@@ -82,7 +88,7 @@ export class ConversationsController {
     const url = await this.conversationsService.uploadAttachment(
       userId,
       { buffer: file.buffer, mimetype: file.mimetype ?? '' },
-      type as 'image' | 'voice',
+      type,
     );
     return { url };
   }
@@ -92,7 +98,12 @@ export class ConversationsController {
   async sendMessage(
     @Request() req: any,
     @Param('id') id: string,
-    @Body() body: { text: string; attachmentUrl?: string; attachmentType?: 'image' | 'voice' },
+    @Body()
+    body: {
+      text: string;
+      attachmentUrl?: string;
+      attachmentType?: 'image' | 'voice';
+    },
   ) {
     const userId = req.user.id as string;
     const text = typeof body?.text === 'string' ? body.text.trim() : '';

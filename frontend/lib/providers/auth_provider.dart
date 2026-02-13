@@ -99,13 +99,12 @@ class AuthProvider with ChangeNotifier {
     if (_user != null) {
       final updatedUser = User(
         id: _user!.id,
-        name: _user!.name,
+        fullName: _user!.fullName,
         email: _user!.email,
         role: _user!.role,
-        profilePicture: newImageUrl,
+        profilePic: newImageUrl,
         phone: _user!.phone,
         createdAt: _user!.createdAt,
-        lastLogin: _user!.lastLogin,
       );
       updateUser(updatedUser);
     }

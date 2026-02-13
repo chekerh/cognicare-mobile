@@ -25,43 +25,68 @@ export class NutritionController {
   constructor(private readonly nutritionService: NutritionService) {}
 
   @Post('plans')
-  @Roles('family', 'doctor', 'psychologist', 'speech_therapist', 'occupational_therapist')
+  @Roles(
+    'family',
+    'doctor',
+    'psychologist',
+    'speech_therapist',
+    'occupational_therapist',
+  )
   @ApiOperation({ summary: 'Create nutrition plan for a child' })
-  async createPlan(
-    @Body() dto: CreateNutritionPlanDto,
-    @Request() req: any,
-  ) {
+  async createPlan(@Body() dto: CreateNutritionPlanDto, @Request() req: any) {
     return await this.nutritionService.create(dto, req.user.id as string);
   }
 
   @Get('plans/child/:childId')
-  @Roles('family', 'doctor', 'psychologist', 'speech_therapist', 'occupational_therapist')
+  @Roles(
+    'family',
+    'doctor',
+    'psychologist',
+    'speech_therapist',
+    'occupational_therapist',
+  )
   @ApiOperation({ summary: 'Get active nutrition plan for a child' })
   async getPlanByChildId(
     @Param('childId') childId: string,
     @Request() req: any,
   ) {
-    return await this.nutritionService.findByChildId(childId, req.user.id as string);
+    return await this.nutritionService.findByChildId(
+      childId,
+      req.user.id as string,
+    );
   }
 
   @Patch('plans/:planId')
-  @Roles('family', 'doctor', 'psychologist', 'speech_therapist', 'occupational_therapist')
+  @Roles(
+    'family',
+    'doctor',
+    'psychologist',
+    'speech_therapist',
+    'occupational_therapist',
+  )
   @ApiOperation({ summary: 'Update nutrition plan' })
   async updatePlan(
     @Param('planId') planId: string,
     @Body() dto: UpdateNutritionPlanDto,
     @Request() req: any,
   ) {
-    return await this.nutritionService.update(planId, dto, req.user.id as string);
+    return await this.nutritionService.update(
+      planId,
+      dto,
+      req.user.id as string,
+    );
   }
 
   @Delete('plans/:planId')
-  @Roles('family', 'doctor', 'psychologist', 'speech_therapist', 'occupational_therapist')
+  @Roles(
+    'family',
+    'doctor',
+    'psychologist',
+    'speech_therapist',
+    'occupational_therapist',
+  )
   @ApiOperation({ summary: 'Deactivate nutrition plan' })
-  async deletePlan(
-    @Param('planId') planId: string,
-    @Request() req: any,
-  ) {
+  async deletePlan(@Param('planId') planId: string, @Request() req: any) {
     return await this.nutritionService.delete(planId, req.user.id as string);
   }
 }
