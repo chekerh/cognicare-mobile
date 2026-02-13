@@ -14,6 +14,12 @@ export class Message {
 
   @Prop({ required: true })
   text: string;
+
+  @Prop()
+  attachmentUrl?: string;
+
+  @Prop({ enum: ['image', 'voice'] })
+  attachmentType?: 'image' | 'voice';
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

@@ -1,9 +1,15 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:record/record.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
+import '../../utils/constants.dart';
 import '../../widgets/chat_message_bar.dart';
 
 const Color _primary = Color(0xFF77B5D1);
@@ -16,8 +22,17 @@ class _Msg {
   final bool isMe;
   final String time;
   final bool read;
+  final String? attachmentUrl;
+  final String? attachmentType;
 
-  const _Msg({required this.text, required this.isMe, required this.time, this.read = false});
+  const _Msg({
+    required this.text,
+    required this.isMe,
+    required this.time,
+    this.read = false,
+    this.attachmentUrl,
+    this.attachmentType,
+  });
 }
 
 /// Conversation bénévole avec une famille — header (famille + mission), bulles, barre de saisie.
@@ -53,11 +68,17 @@ class VolunteerFamilyChatScreen extends StatefulWidget {
 class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final AudioRecorder _recorder = AudioRecorder();
+  final ImagePicker _imagePicker = ImagePicker();
   late List<_Msg> _messages;
   String? _conversationId;
   bool _loading = false;
   String? _loadError;
   bool _sending = false;
+  bool _isRecording = false;
+  Duration _recordingDuration = Duration.zero;
+  Timer? _recordingTimer;
+  String? _currentRecordPath;
 
   @override
   void initState() {
@@ -90,7 +111,9 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
         });
         return;
       }
-      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final chatService = ChatService(
+        getToken: () async => auth.accessToken ?? await AuthService().getStoredToken(),
+      );
       final list = await chatService.getMessages(cid);
       if (!mounted) return;
       setState(() {
@@ -101,6 +124,8 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
             isMe: isMe,
             time: _formatTime(m.createdAt),
             read: false,
+            attachmentUrl: m.attachmentUrl,
+            attachmentType: m.attachmentType,
           );
         }).toList();
         _loading = false;
@@ -130,7 +155,9 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
         });
         return;
       }
-      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final chatService = ChatService(
+        getToken: () async => auth.accessToken ?? await AuthService().getStoredToken(),
+      );
       final conv = await chatService.getOrCreateConversation(widget.familyId);
       if (!mounted) return;
       _conversationId = conv.id;
@@ -144,6 +171,8 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
             isMe: isMe,
             time: _formatTime(m.createdAt),
             read: false,
+            attachmentUrl: m.attachmentUrl,
+            attachmentType: m.attachmentType,
           );
         }).toList();
         _loading = false;
@@ -181,9 +210,114 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
 
   @override
   void dispose() {
+    _recordingTimer?.cancel();
+    if (_isRecording) _recorder.stop().ignore();
+    _recorder.dispose();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _onVoiceTap() async {
+    if (_conversationId == null) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Conversation non chargée')));
+      return;
+    }
+    if (_isRecording) {
+      await _stopRecordingAndSend();
+      return;
+    }
+    final hasPermission = await _recorder.hasPermission();
+    if (!hasPermission) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Autorisez l\'accès au micro.')));
+      return;
+    }
+    try {
+      final dir = await getTemporaryDirectory();
+      _currentRecordPath = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: _currentRecordPath!);
+      if (!mounted) return;
+      setState(() {
+        _isRecording = true;
+        _recordingDuration = Duration.zero;
+      });
+      _recordingTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (!mounted) return;
+        setState(() => _recordingDuration += const Duration(seconds: 1));
+      });
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+    }
+  }
+
+  Future<void> _stopRecordingAndSend() async {
+    _recordingTimer?.cancel();
+    _recordingTimer = null;
+    try {
+      final path = await _recorder.stop();
+      final voicePath = path ?? _currentRecordPath;
+      if (!mounted) return;
+      setState(() {
+        _isRecording = false;
+        _recordingDuration = Duration.zero;
+        _currentRecordPath = null;
+      });
+      if (voicePath != null && File(voicePath).existsSync()) {
+        final auth = Provider.of<AuthProvider>(context, listen: false);
+        final chatService = ChatService(
+          getToken: () async => auth.accessToken ?? await AuthService().getStoredToken(),
+        );
+        setState(() => _sending = true);
+        try {
+          final url = await chatService.uploadAttachment(File(voicePath), 'voice');
+          await chatService.sendMessage(_conversationId!, 'Message vocal', attachmentUrl: url, attachmentType: 'voice');
+          if (!mounted) return;
+          setState(() {
+            _messages.add(_Msg(text: 'Message vocal', isMe: true, time: _formatTime(DateTime.now()), attachmentType: 'voice', attachmentUrl: url));
+            _sending = false;
+          });
+        } catch (e) {
+          if (mounted) {
+            setState(() => _sending = false);
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isRecording = false);
+    }
+  }
+
+  Future<void> _onPhotoTap() async {
+    if (_conversationId == null) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Conversation non chargée')));
+      return;
+    }
+    try {
+      final XFile? picked = await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (picked == null || !mounted) return;
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final chatService = ChatService(
+        getToken: () async => auth.accessToken ?? await AuthService().getStoredToken(),
+      );
+      setState(() => _sending = true);
+      try {
+        final url = await chatService.uploadAttachment(File(picked.path), 'image');
+        await chatService.sendMessage(_conversationId!, 'Photo', attachmentUrl: url, attachmentType: 'image');
+        if (!mounted) return;
+        setState(() {
+          _messages.add(_Msg(text: 'Photo', isMe: true, time: _formatTime(DateTime.now()), attachmentType: 'image', attachmentUrl: url));
+          _sending = false;
+        });
+      } catch (e) {
+        if (mounted) {
+          setState(() => _sending = false);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+        }
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+    }
   }
 
   Future<void> _sendMessage() async {
@@ -200,7 +334,10 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       setState(() => _messages.add(optimistic));
       _controller.clear();
       try {
-        final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+        final auth = Provider.of<AuthProvider>(context, listen: false);
+        final chatService = ChatService(
+          getToken: () async => auth.accessToken ?? await AuthService().getStoredToken(),
+        );
         await chatService.sendMessage(cid, text);
         if (!mounted) return;
         setState(() => _sending = false);
@@ -295,16 +432,10 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
             onSend: _sendMessage,
             hintText: 'Votre message...',
             sending: _sending,
-            onVoiceTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Message vocal — bientôt disponible')),
-              );
-            },
-            onPhotoTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Envoi de photo — bientôt disponible')),
-              );
-            },
+            onVoiceTap: _onVoiceTap,
+            onPhotoTap: _onPhotoTap,
+            isRecording: _isRecording,
+            recordingDuration: _recordingDuration,
           ),
         ],
       ),
@@ -426,14 +557,30 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                       ),
                     ],
                   ),
-                  child: Text(
-                    msg.text,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: msg.isMe ? Colors.white : _textPrimary,
-                      height: 1.4,
-                    ),
-                  ),
+                  child: msg.attachmentType == 'image' && msg.attachmentUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            AppConstants.fullImageUrl(msg.attachmentUrl!),
+                            width: 200,
+                            height: 200,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Icon(Icons.image_not_supported, color: msg.isMe ? Colors.white70 : _textMuted),
+                          ),
+                        )
+                      : msg.attachmentType == 'voice'
+                          ? Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.mic, color: msg.isMe ? Colors.white70 : _textMuted, size: 24),
+                                const SizedBox(width: 8),
+                                Text('Message vocal', style: TextStyle(fontSize: 14, color: msg.isMe ? Colors.white : _textPrimary)),
+                              ],
+                            )
+                          : Text(
+                              msg.text,
+                              style: TextStyle(fontSize: 14, color: msg.isMe ? Colors.white : _textPrimary, height: 1.4),
+                            ),
                 ),
                 const SizedBox(height: 4),
                 Row(

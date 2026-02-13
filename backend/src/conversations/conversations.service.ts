@@ -2,10 +2,14 @@ import {
   Injectable,
   ForbiddenException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { Model, Types } from 'mongoose';
+import * as path from 'path';
+import * as fs from 'fs/promises';
+import * as crypto from 'crypto';
 import {
   Conversation,
   ConversationDocument,
@@ -13,7 +17,6 @@ import {
 } from './conversation.schema';
 import { Message, MessageDocument } from './message.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
-import * as crypto from 'crypto';
 
 @Injectable()
 export class ConversationsService {
@@ -297,10 +300,49 @@ export class ConversationsService {
       senderId: m.senderId.toString(),
       text: this.decryptMessage(m.text),
       createdAt: (m as any).createdAt,
+      attachmentUrl: (m as any).attachmentUrl,
+      attachmentType: (m as any).attachmentType,
     }));
   }
 
-  async addMessage(conversationId: string, userId: string, text: string) {
+  /** Upload chat attachment (image or voice). Returns public URL path. */
+  async uploadAttachment(
+    userId: string,
+    file: { buffer: Buffer; mimetype: string },
+    type: 'image' | 'voice',
+  ): Promise<string> {
+    const m = (file.mimetype ?? '').toLowerCase();
+    if (type === 'image') {
+      const ok = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'].some((a) => m === a || m.startsWith(a + ';'));
+      if (!ok) throw new BadRequestException('Invalid image type. Use JPEG, PNG or WebP.');
+    } else {
+      if (!m.startsWith('audio/')) {
+        throw new BadRequestException('Invalid audio type. Use MP3, M4A or AAC.');
+      }
+    }
+    const ext =
+      type === 'voice'
+        ? 'm4a'
+        : m === 'image/png'
+          ? 'png'
+          : m === 'image/webp'
+            ? 'webp'
+            : 'jpg';
+    const dir = path.join(process.cwd(), 'uploads', 'chat');
+    await fs.mkdir(dir, { recursive: true });
+    const name = `${type}-${userId}-${crypto.randomUUID()}.${ext}`;
+    const filePath = path.join(dir, name);
+    await fs.writeFile(filePath, file.buffer);
+    return `/uploads/chat/${name}`;
+  }
+
+  async addMessage(
+    conversationId: string,
+    userId: string,
+    text: string,
+    attachmentUrl?: string,
+    attachmentType?: 'image' | 'voice',
+  ) {
     const conv = await this.conversationModel.findById(conversationId).exec();
     if (!conv) throw new NotFoundException('Conversation not found');
     const uid = new Types.ObjectId(userId);
@@ -313,6 +355,8 @@ export class ConversationsService {
       threadId,
       senderId: uid,
       text: encryptedText,
+      ...(attachmentUrl && { attachmentUrl }),
+      ...(attachmentType && { attachmentType }),
     });
     const timeAgo = formatTimeAgo(new Date());
     await this.conversationModel

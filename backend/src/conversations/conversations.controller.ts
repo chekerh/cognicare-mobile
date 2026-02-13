@@ -8,8 +8,11 @@ import {
   Post,
   Request,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ConversationsService } from './conversations.service';
 
@@ -49,18 +52,60 @@ export class ConversationsController {
     return this.conversationsService.getMessages(id, userId);
   }
 
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+        type: { type: 'string', enum: ['image', 'voice'] },
+      },
+      required: ['file', 'type'],
+    },
+  })
+  @ApiOperation({ summary: 'Upload chat attachment (image or voice)' })
+  async uploadAttachment(
+    @Request() req: any,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: { type: string },
+  ) {
+    const userId = req.user.id as string;
+    const type = (body?.type ?? '').toLowerCase();
+    if (type !== 'image' && type !== 'voice') {
+      throw new BadRequestException('type must be image or voice');
+    }
+    if (!file?.buffer) {
+      throw new BadRequestException('No file provided');
+    }
+    const url = await this.conversationsService.uploadAttachment(
+      userId,
+      { buffer: file.buffer, mimetype: file.mimetype ?? '' },
+      type as 'image' | 'voice',
+    );
+    return { url };
+  }
+
   @Post(':id/messages')
   @ApiOperation({ summary: 'Send a message in a conversation' })
   async sendMessage(
     @Request() req: any,
     @Param('id') id: string,
-    @Body() body: { text: string },
+    @Body() body: { text: string; attachmentUrl?: string; attachmentType?: 'image' | 'voice' },
   ) {
     const userId = req.user.id as string;
-    if (!body?.text || typeof body.text !== 'string' || !body.text.trim()) {
-      throw new BadRequestException('text is required');
+    const text = typeof body?.text === 'string' ? body.text.trim() : '';
+    if (!text && !body?.attachmentUrl) {
+      throw new BadRequestException('text or attachmentUrl is required');
     }
-    return this.conversationsService.addMessage(id, userId, body.text.trim());
+    return this.conversationsService.addMessage(
+      id,
+      userId,
+      text || (body.attachmentType === 'voice' ? 'Message vocal' : 'Photo'),
+      body.attachmentUrl,
+      body.attachmentType,
+    );
   }
 
   @Delete(':id')

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../utils/constants.dart';
 
@@ -7,12 +8,16 @@ class ChatMessage {
   final String senderId;
   final String text;
   final DateTime createdAt;
+  final String? attachmentUrl;
+  final String? attachmentType;
 
   ChatMessage({
     required this.id,
     required this.senderId,
     required this.text,
     required this.createdAt,
+    this.attachmentUrl,
+    this.attachmentType,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -23,6 +28,8 @@ class ChatMessage {
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
+      attachmentUrl: json['attachmentUrl'] as String?,
+      attachmentType: json['attachmentType'] as String?,
     );
   }
 }
@@ -154,19 +161,55 @@ class ChatService {
         .toList();
   }
 
-  Future<ChatMessage> sendMessage(String conversationId, String text) async {
+  /// Upload attachment (image or voice). Returns the URL to use in sendMessage.
+  Future<String> uploadAttachment(File file, String type) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}${AppConstants.conversationsUploadEndpoint}',
+    );
+    final request = http.MultipartRequest('POST', uri);
+    request.headers['Authorization'] = 'Bearer $token';
+    request.files.add(await http.MultipartFile.fromPath('file', file.path));
+    request.fields['type'] = type;
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Upload failed');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Upload failed: ${response.statusCode}');
+      }
+    }
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
+    final url = json['url'] as String?;
+    if (url == null || url.isEmpty) throw Exception('No URL returned');
+    return url;
+  }
+
+  Future<ChatMessage> sendMessage(
+    String conversationId,
+    String text, {
+    String? attachmentUrl,
+    String? attachmentType,
+  }) async {
     final token = await getToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
       '${AppConstants.baseUrl}${AppConstants.conversationsMessagesEndpoint(conversationId)}',
     );
+    final body = <String, dynamic>{'text': text};
+    if (attachmentUrl != null) body['attachmentUrl'] = attachmentUrl;
+    if (attachmentType != null) body['attachmentType'] = attachmentType;
     final response = await _client.post(
       uri,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode({'text': text}),
+      body: jsonEncode(body),
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
       try {
