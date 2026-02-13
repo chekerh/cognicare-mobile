@@ -41,6 +41,8 @@ import '../screens/family/child_profile_setup_screen.dart';
 import '../screens/family/community_member_profile_screen.dart';
 import '../screens/family/engagement_dashboard_screen.dart';
 import '../screens/family/family_volunteer_profile_screen.dart';
+import '../screens/family/child_daily_routine_screen.dart';
+import '../screens/family/reminder_notification_screen.dart';
 import '../screens/volunteer/volunteer_dashboard_screen.dart';
 import '../screens/volunteer/volunteer_shell_screen.dart';
 import '../screens/volunteer/volunteer_agenda_screen.dart';
@@ -542,6 +544,34 @@ GoRouter createAppRouter(AuthProvider authProvider) {
         GoRoute(
           path: 'create-security-code',
           builder: (context, state) => const CreateSecurityCodeScreen(),
+        ),
+        GoRoute(
+          path: 'child-daily-routine',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            final childId = extra?['childId'] as String? ?? '';
+            final routineType = extra?['routineType'] as String?;
+            return ChildDailyRoutineScreen(
+              childId: childId,
+              routineType: routineType,
+            );
+          },
+        ),
+        GoRoute(
+          path: 'reminder-notification',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            final taskTitle = extra?['taskTitle'] as String? ?? 'Reminder';
+            final taskDescription = extra?['taskDescription'] as String?;
+            final icon = extra?['icon'] as String? ?? '💧';
+            final time = extra?['time'] as String?;
+            return ReminderNotificationScreen(
+              taskTitle: taskTitle,
+              taskDescription: taskDescription,
+              icon: icon,
+              time: time,
+            );
+          },
         ),
         GoRoute(
           path: 'order-confirmation',

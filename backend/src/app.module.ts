@@ -19,6 +19,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { GamificationModule } from './gamification/gamification.module';
 import { VolunteersModule } from './volunteers/volunteers.module';
 import { CoursesModule } from './courses/courses.module';
+import { NutritionModule } from './nutrition/nutrition.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { CoursesModule } from './courses/courses.module';
     GamificationModule,
     VolunteersModule,
     CoursesModule,
+    NutritionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

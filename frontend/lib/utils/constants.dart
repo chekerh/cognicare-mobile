@@ -64,6 +64,23 @@ class AppConstants {
   /// Admin: list course enrollments (optional userId filter).
   static const String coursesAdminEnrollmentsEndpoint = '/api/v1/courses/admin/enrollments';
 
+  // Nutrition & Reminders
+  static const String nutritionPlansEndpoint = '/api/v1/nutrition/plans';
+  static String nutritionPlansByChildEndpoint(String childId) =>
+      '/api/v1/nutrition/plans/child/$childId';
+  static String nutritionPlanEndpoint(String planId) =>
+      '/api/v1/nutrition/plans/$planId';
+  static const String remindersEndpoint = '/api/v1/reminders';
+  static String remindersByChildEndpoint(String childId) =>
+      '/api/v1/reminders/child/$childId';
+  static String todayRemindersByChildEndpoint(String childId) =>
+      '/api/v1/reminders/child/$childId/today';
+  static String reminderEndpoint(String reminderId) =>
+      '/api/v1/reminders/$reminderId';
+  static const String completeTaskEndpoint = '/api/v1/reminders/complete';
+  static String reminderStatsEndpoint(String childId, {int days = 7}) =>
+      '/api/v1/reminders/child/$childId/stats?days=$days';
+
   /// Returns a full URL for an image from the API (profile pics, post images).
   /// If [pathOrUrl] is empty, returns ''. If it already starts with 'http', returns as-is.
   /// Otherwise prefixes with [baseUrl] (e.g. /uploads/profiles/xxx → http://host/uploads/profiles/xxx).
@@ -126,6 +143,8 @@ class AppConstants {
   static const String familyStickerBookRoute = '/family/sticker-book';
   static const String familyGameSuccessRoute = '/family/game-success';
   static const String familyGamesSelectionRoute = '/family/games';
+  static const String familyChildDailyRoutineRoute = '/family/child-daily-routine';
+  static const String familyReminderNotificationRoute = '/family/reminder-notification';
 
   // Volunteer sector routes (JWT-protected, role: volunteer)
   static const String volunteerRoute = '/volunteer';

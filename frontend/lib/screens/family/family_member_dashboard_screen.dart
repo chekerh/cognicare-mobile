@@ -425,86 +425,144 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
   }
 
   Widget _buildTwoColumnCards(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _Card(
-            child: InkWell(
-              onTap: () => context.go(AppConstants.familyFamiliesRoute),
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: const BoxDecoration(
-                        color: _green100,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.forum_rounded, color: _green600, size: 22),
+        Row(
+          children: [
+            Expanded(
+              child: _Card(
+                child: InkWell(
+                  onTap: () => context.go(AppConstants.familyFamiliesRoute),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: const BoxDecoration(
+                            color: _green100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.forum_rounded, color: _green600, size: 22),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Chat Famille',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _slate800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          '2 nouveaux messages',
+                          style: TextStyle(fontSize: 12, color: _slate500),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Chat Famille',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: _slate800,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      '2 nouveaux messages',
-                      style: TextStyle(fontSize: 12, color: _slate500),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _Card(
+                child: InkWell(
+                  onTap: () => context.push(AppConstants.familyPatientRecordRoute),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: const BoxDecoration(
+                            color: _blue100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.medical_services_rounded, color: _blue600, size: 22),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Suivi Médical',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _slate800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'RDV demain 10h',
+                          style: TextStyle(fontSize: 12, color: _slate500),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _Card(
-            child: InkWell(
-              onTap: () => context.push(AppConstants.familyPatientRecordRoute),
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: const BoxDecoration(
-                        color: _blue100,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.medical_services_rounded, color: _blue600, size: 22),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _Card(
+                child: InkWell(
+                  onTap: () {
+                    // Navigate directly with empty childId
+                    // The screen will handle the empty state
+                    context.push(
+                      AppConstants.familyChildDailyRoutineRoute,
+                      extra: {'childId': ''},
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: _primary.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.calendar_today_rounded, color: _primary, size: 22),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Routine Quotidienne',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _slate800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Gérer les tâches',
+                          style: TextStyle(fontSize: 12, color: _slate500),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Suivi Médical',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: _slate800,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'RDV demain 10h',
-                      style: TextStyle(fontSize: 12, color: _slate500),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+            const SizedBox(width: 16),
+            // Empty space for symmetry, or add another card later
+            Expanded(child: Container()),
+          ],
         ),
       ],
     );
