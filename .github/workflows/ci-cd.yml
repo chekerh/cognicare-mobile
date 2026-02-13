@@ -98,13 +98,17 @@ jobs:
             exit 0
           fi
           echo "Patching $RECORD_ANDROID_BUILD"
-          # Replace any reference to flutter.compileSdkVersion (can be null in CI)
-          sed -i.bak 's/compileSdk = flutter.compileSdkVersion/compileSdk = 35/g' "$RECORD_ANDROID_BUILD"
-          sed -i.bak 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 35/g' "$RECORD_ANDROID_BUILD"
-          # If still no compileSdk, add it after "android {"
-          if ! grep -q "compileSdk" "$RECORD_ANDROID_BUILD"; then
+          # Replace ALL flutter.* refs (plugin has no 'flutter' extension in CI)
+          sed -i.bak 's/flutter\.compileSdkVersion/35/g' "$RECORD_ANDROID_BUILD"
+          sed -i.bak 's/flutter\.minSdkVersion/23/g' "$RECORD_ANDROID_BUILD"
+          sed -i.bak 's/flutter\.targetSdkVersion/35/g' "$RECORD_ANDROID_BUILD"
+          sed -i.bak 's/flutter\.ndkVersion/"27.0.12077973"/g' "$RECORD_ANDROID_BUILD"
+          # Fallback: add compileSdkVersion if still missing
+          if ! grep -qE "compileSdk|compileSdkVersion" "$RECORD_ANDROID_BUILD"; then
             sed -i.bak '/android {/a\    compileSdkVersion 35' "$RECORD_ANDROID_BUILD"
           fi
+          echo "Patched content (android block):"
+          sed -n '/^android {/,/^}/p' "$RECORD_ANDROID_BUILD" | head -25
 
       - name: Build Android APK
         run: flutter build apk --debug
