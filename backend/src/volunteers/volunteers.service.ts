@@ -2,7 +2,6 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -143,7 +142,7 @@ export class VolunteersService {
     return list.map((a) => this.toResponse(a as Record<string, unknown>, true));
   }
 
-  async getByIdForAdmin(applicationId: string, adminId: string) {
+  async getByIdForAdmin(applicationId: string, _adminId: string) {
     const app = await this.applicationModel
       .findById(applicationId)
       .populate('userId', 'fullName email phone')

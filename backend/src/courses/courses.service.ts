@@ -15,13 +15,18 @@ export class CoursesService {
   async findAll(qualificationOnly?: boolean) {
     const query: Record<string, unknown> = {};
     if (qualificationOnly === true) query.isQualificationCourse = true;
-    const list = await this.courseModel.find(query).sort({ createdAt: 1 }).lean().exec();
+    const list = await this.courseModel
+      .find(query)
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec();
     return list.map((c) => ({
       id: (c as Record<string, unknown>)._id?.toString?.(),
       title: (c as Record<string, unknown>).title,
       description: (c as Record<string, unknown>).description,
       slug: (c as Record<string, unknown>).slug,
-      isQualificationCourse: (c as Record<string, unknown>).isQualificationCourse,
+      isQualificationCourse: (c as Record<string, unknown>)
+        .isQualificationCourse,
     }));
   }
 
@@ -97,9 +102,7 @@ export class CoursesService {
         status: o.status,
         progressPercent: o.progressPercent,
         completedAt: o.completedAt,
-        user: user
-          ? { fullName: user.fullName, email: user.email }
-          : null,
+        user: user ? { fullName: user.fullName, email: user.email } : null,
         course: course
           ? {
               title: course.title,

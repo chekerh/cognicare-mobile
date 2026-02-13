@@ -531,13 +531,13 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
             color: _primary,
             borderRadius: BorderRadius.circular(999),
             child: InkWell(
-              onTap: _sendMessage,
+              onTap: _sending ? null : _sendMessage,
               borderRadius: BorderRadius.circular(999),
               child: Container(
                 width: 40,
                 height: 40,
                 alignment: Alignment.center,
-                child: const Icon(Icons.send, color: Colors.white, size: 20),
+                child: Icon(Icons.send, color: _sending ? Colors.white70 : Colors.white, size: 20),
               ),
             ),
           ),

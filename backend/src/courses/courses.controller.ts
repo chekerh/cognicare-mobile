@@ -9,7 +9,12 @@ import {
   Query,
   Request,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminGuard } from '../auth/admin.guard';
 import { CoursesService } from './courses.service';
@@ -30,8 +35,13 @@ export class CoursesController {
   @Get('admin/enrollments')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'List course enrollments (Admin). Optional userId filter.' })
-  @ApiResponse({ status: 200, description: 'List of enrollments with user and course' })
+  @ApiOperation({
+    summary: 'List course enrollments (Admin). Optional userId filter.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of enrollments with user and course',
+  })
   async listEnrollmentsForAdmin(@Query('userId') userId?: string) {
     return this.coursesService.listEnrollmentsForAdmin(userId);
   }
@@ -67,7 +77,10 @@ export class CoursesController {
     @Param('id') enrollmentId: string,
     @Body('progressPercent') progressPercent: number,
   ) {
-    const value = typeof progressPercent === 'number' ? progressPercent : parseInt(String(progressPercent), 10) || 0;
+    const value =
+      typeof progressPercent === 'number'
+        ? progressPercent
+        : parseInt(String(progressPercent), 10) || 0;
     return this.coursesService.updateProgress(req.user.id, enrollmentId, value);
   }
 }

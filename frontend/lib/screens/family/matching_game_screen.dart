@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -230,7 +231,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
               letterSpacing: 1.2,
             ),
           ),
-          ChildModeExitButton(iconColor: _primaryDark, textColor: _primaryDark, opacity: 0.9),
+          const ChildModeExitButton(iconColor: _primaryDark, textColor: _primaryDark, opacity: 0.9),
         ],
       ),
     );

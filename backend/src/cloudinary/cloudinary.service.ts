@@ -75,7 +75,11 @@ export class CloudinaryService {
    */
   async uploadRawBuffer(
     buffer: Buffer,
-    options: { folder: string; publicId?: string; resourceType?: 'raw' | 'auto' },
+    options: {
+      folder: string;
+      publicId?: string;
+      resourceType?: 'raw' | 'auto';
+    },
   ): Promise<string> {
     if (!this.configured) {
       throw new Error(

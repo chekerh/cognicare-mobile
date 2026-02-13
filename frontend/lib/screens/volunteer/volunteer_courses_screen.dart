@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../utils/constants.dart';
 import '../../services/courses_service.dart';
 
 const Color _primary = Color(0xFFA4D9E5);

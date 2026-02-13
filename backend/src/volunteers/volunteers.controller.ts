@@ -65,13 +65,16 @@ export class VolunteersController {
   @ApiResponse({ status: 400, description: 'Invalid file or size' })
   async uploadDocument(
     @Request() req: { user: { id: string } },
-    @UploadedFile() file: { buffer: Buffer; mimetype: string; originalname?: string },
+    @UploadedFile()
+    file: { buffer: Buffer; mimetype: string; originalname?: string },
     @Body('type') type: string,
   ) {
     if (!file?.buffer) {
       throw new BadRequestException('No file provided');
     }
-    const docType = (type === 'id' || type === 'certificate' ? type : 'other') as DocumentType;
+    const docType = (
+      type === 'id' || type === 'certificate' ? type : 'other'
+    ) as DocumentType;
     return this.volunteersService.addDocument(req.user.id, docType, {
       buffer: file.buffer,
       mimetype: file.mimetype,
@@ -81,7 +84,9 @@ export class VolunteersController {
 
   @Delete('application/documents/:index')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Remove a document by index (volunteer, pending only)' })
+  @ApiOperation({
+    summary: 'Remove a document by index (volunteer, pending only)',
+  })
   @ApiResponse({ status: 200, description: 'Updated application' })
   async removeDocument(
     @Request() req: { user: { id: string } },
@@ -101,14 +106,14 @@ export class VolunteersController {
   async listApplications(
     @Query('status') status?: 'pending' | 'approved' | 'denied',
   ) {
-    return this.volunteersService.listForAdmin(
-      status ? { status } : undefined,
-    );
+    return this.volunteersService.listForAdmin(status ? { status } : undefined);
   }
 
   @Get('applications/:id')
   @UseGuards(JwtAuthGuard, AdminGuard)
-  @ApiOperation({ summary: 'Get one application with user details (Admin only)' })
+  @ApiOperation({
+    summary: 'Get one application with user details (Admin only)',
+  })
   @ApiResponse({ status: 200, description: 'Application details' })
   async getApplication(
     @Request() req: { user: { id: string } },

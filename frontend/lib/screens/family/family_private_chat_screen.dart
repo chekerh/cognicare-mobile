@@ -510,13 +510,13 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
             color: _primary,
             borderRadius: BorderRadius.circular(999),
             child: InkWell(
-              onTap: _sendMessage,
+              onTap: _sending ? null : _sendMessage,
               borderRadius: BorderRadius.circular(999),
               child: Container(
                 width: 44,
                 height: 44,
                 alignment: Alignment.center,
-                child: const Icon(Icons.send_rounded, color: Colors.white, size: 22),
+                child: Icon(Icons.send_rounded, color: _sending ? Colors.white70 : Colors.white, size: 22),
               ),
             ),
           ),

@@ -1,13 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../services/gamification_service.dart';
-import '../services/auth_service.dart';
 import '../services/children_service.dart';
-import '../providers/auth_provider.dart';
 
 class GamificationProvider with ChangeNotifier {
   final GamificationService _gamificationService;
   final ChildrenService _childrenService;
-  final AuthProvider _authProvider;
 
   String? _currentChildId;
   ChildStats? _stats;
@@ -17,10 +14,8 @@ class GamificationProvider with ChangeNotifier {
   GamificationProvider({
     required GamificationService gamificationService,
     required ChildrenService childrenService,
-    required AuthProvider authProvider,
   })  : _gamificationService = gamificationService,
-        _childrenService = childrenService,
-        _authProvider = authProvider;
+        _childrenService = childrenService;
 
   String? get currentChildId => _currentChildId;
   ChildStats? get stats => _stats;

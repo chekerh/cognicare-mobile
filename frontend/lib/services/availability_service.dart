@@ -47,9 +47,8 @@ class AvailabilityService {
 
   AvailabilityService({
     http.Client? client,
-    required Future<String?> Function() getToken,
-  })  : _client = client ?? http.Client(),
-        getToken = getToken;
+    required this.getToken,
+  }) : _client = client ?? http.Client();
 
   /// List availabilities for family home (no auth required for GET for-families).
   Future<List<VolunteerAvailability>> listForFamilies() async {

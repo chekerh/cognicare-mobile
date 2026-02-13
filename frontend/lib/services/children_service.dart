@@ -86,9 +86,8 @@ class ChildrenService {
 
   ChildrenService({
     http.Client? client,
-    required Future<String?> Function() getToken,
-  })  : _client = client ?? http.Client(),
-        getToken = getToken;
+    required this.getToken,
+  }) : _client = client ?? http.Client();
 
   /// GET /children or GET /children?familyId=xxx
   Future<List<ChildModel>> getChildren({String? familyId}) async {

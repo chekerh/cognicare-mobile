@@ -550,7 +550,9 @@ export class AuthService {
     return this.getProfile(userId);
   }
 
-  async getFamilyMembers(userId: string): Promise<{ id: string; name: string; imageUrl: string }[]> {
+  async getFamilyMembers(
+    userId: string,
+  ): Promise<{ id: string; name: string; imageUrl: string }[]> {
     const list = await this.familyMemberModel
       .find({ userId })
       .sort({ createdAt: 1 })

@@ -13,7 +13,11 @@ export class VolunteerApplication {
   userId: Types.ObjectId;
 
   /** pending | approved | denied */
-  @Prop({ required: true, default: 'pending', enum: ['pending', 'approved', 'denied'] })
+  @Prop({
+    required: true,
+    default: 'pending',
+    enum: ['pending', 'approved', 'denied'],
+  })
   status: 'pending' | 'approved' | 'denied';
 
   @Prop({ type: [VolunteerDocumentSchema], default: [] })
@@ -35,8 +39,7 @@ export class VolunteerApplication {
   updatedAt?: Date;
 }
 
-export const VolunteerApplicationSchema = SchemaFactory.createForClass(
-  VolunteerApplication,
-);
+export const VolunteerApplicationSchema =
+  SchemaFactory.createForClass(VolunteerApplication);
 VolunteerApplicationSchema.index({ userId: 1 });
 VolunteerApplicationSchema.index({ status: 1 });

@@ -69,8 +69,8 @@ class GameSuccessScreen extends StatelessWidget {
           Column(
             children: [
               SizedBox(height: padding.top),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [

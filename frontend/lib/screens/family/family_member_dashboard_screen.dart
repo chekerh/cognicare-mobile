@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -82,7 +83,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
           final pic = a.volunteerProfilePic;
           final avatarUrl = (pic.isNotEmpty && !pic.startsWith('http'))
               ? '${AppConstants.baseUrl}$pic'
-              : (pic ?? '');
+              : pic;
           return _VolunteerCardData(
             id: a.volunteerId,
             name: a.volunteerName,
@@ -105,24 +106,25 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
 
   Future<void> _checkChildProfileComplete() async {
     final complete = await ChildProfileSetupScreen.isProfileComplete();
-    if (complete || !mounted) return;
-    final loc = AppLocalizations.of(context)!;
+    if (complete) return;
+    if (!mounted) return;
+    final ctx = context;
+    final loc = AppLocalizations.of(ctx)!;
     showDialog<void>(
-      context: context,
+      context: ctx,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(loc.childProfileAlertTitle),
         content: Text(loc.childProfileAlertMessage),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-            },
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: Text(loc.childProfileAlertLaterButton),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.of(ctx).pop();
+              Navigator.of(dialogContext).pop();
+              if (!mounted) return;
               context.push(AppConstants.familyChildProfileSetupRoute);
             },
             child: Text(loc.childProfileAlertCompleteButton),
@@ -146,10 +148,11 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
           'conversationId': conv.id,
         },
       );
+      if (!mounted) return;
       context.push(uri.toString());
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
         SnackBar(
           content: Text(e.toString().replaceFirst('Exception: ', '')),
           behavior: SnackBarBehavior.floating,

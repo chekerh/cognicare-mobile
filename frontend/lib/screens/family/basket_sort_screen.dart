@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -83,30 +84,31 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
           await recordGameCompletion(
             context: context,
             levelKey: 'basket_sort',
-            gameType: GameType.basket_sort,
+            gameType: GameType.basketSort,
             timeSpentSeconds: timeSpent,
             metrics: {'itemsSorted': _items.length},
           );
-          if (!context.mounted) return;
-          final provider = Provider.of<StickerBookProvider>(context, listen: false);
+          if (!mounted) return;
+          final ctx = context;
+          final provider = Provider.of<StickerBookProvider>(ctx, listen: false);
           final stickerIndex = provider.unlockedCount - 1;
           final completed = provider.tasksCompletedCount;
           final milestoneSteps = [5, 10, 15, 20, 25, 30];
-          final loc = AppLocalizations.of(context);
+          final loc = AppLocalizations.of(ctx);
           final milestoneMessage = (widget.inSequence &&
                   loc != null &&
                   milestoneSteps.contains(completed))
               ? loc.milestoneLevelsCompleted(completed)
               : null;
-          if (!context.mounted) return;
+          if (!mounted) return;
           if (widget.inSequence) {
-            context.push(AppConstants.familyGameSuccessRoute, extra: {
+            ctx.push(AppConstants.familyGameSuccessRoute, extra: {
               'stickerIndex': stickerIndex,
               'gameRoute': AppConstants.familyBasketSortRoute,
               'milestoneMessage': milestoneMessage,
             });
           } else {
-            context.push(AppConstants.familyGameSuccessRoute, extra: {
+            ctx.push(AppConstants.familyGameSuccessRoute, extra: {
               'stickerIndex': stickerIndex,
               'gameRoute': AppConstants.familyBasketSortRoute,
               if (milestoneMessage != null) 'milestoneMessage': milestoneMessage,
@@ -214,7 +216,7 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
               ),
             ),
           ),
-          ChildModeExitButton(iconColor: _textDark, textColor: _textDark, opacity: 0.9),
+          const ChildModeExitButton(iconColor: _textDark, textColor: _textDark, opacity: 0.9),
         ],
       ),
     );

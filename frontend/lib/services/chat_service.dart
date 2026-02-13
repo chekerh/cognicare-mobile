@@ -68,9 +68,8 @@ class ChatService {
 
   ChatService({
     http.Client? client,
-    required Future<String?> Function() getToken,
-  })  : _client = client ?? http.Client(),
-        getToken = getToken;
+    required this.getToken,
+  }) : _client = client ?? http.Client();
 
   Future<List<InboxConversation>> getInbox() async {
     final token = await getToken();

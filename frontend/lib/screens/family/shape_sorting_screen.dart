@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:math';
@@ -75,7 +76,7 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
           await recordGameCompletion(
             context: context,
             levelKey: k,
-            gameType: GameType.shape_sorting,
+            gameType: GameType.shapeSorting,
             level: _maxLevel,
             timeSpentSeconds: timeSpent,
             metrics: {'score': _score},
@@ -132,7 +133,7 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
           await recordGameCompletion(
             context: context,
             levelKey: k,
-            gameType: GameType.shape_sorting,
+            gameType: GameType.shapeSorting,
             level: _maxLevel,
             timeSpentSeconds: timeSpent,
             metrics: {'score': _score},
@@ -270,7 +271,7 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
               ),
             ),
           ),
-          ChildModeExitButton(iconColor: _textDark, textColor: _textDark, opacity: 0.9),
+          const ChildModeExitButton(iconColor: _textDark, textColor: _textDark, opacity: 0.9),
         ],
       ),
     );

@@ -60,7 +60,6 @@ class _CogniCareAppState extends State<CogniCareApp> {
             return GamificationProvider(
               gamificationService: gamificationService,
               childrenService: childrenService,
-              authProvider: authProvider,
             );
           },
           update: (context, authProvider, previous) {
@@ -74,7 +73,6 @@ class _CogniCareAppState extends State<CogniCareApp> {
               return GamificationProvider(
                 gamificationService: gamificationService,
                 childrenService: childrenService,
-                authProvider: authProvider,
               );
             }
             return previous;

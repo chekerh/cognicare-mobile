@@ -376,7 +376,9 @@ export class AuthController {
     const n = (name ?? '').trim() || 'Membre';
     const allowed = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowed.includes(file.mimetype)) {
-      throw new BadRequestException('Invalid file type. Use JPEG, PNG or WebP.');
+      throw new BadRequestException(
+        'Invalid file type. Use JPEG, PNG or WebP.',
+      );
     }
     return this.authService.addFamilyMember(req.user.id, n, {
       buffer: file.buffer,

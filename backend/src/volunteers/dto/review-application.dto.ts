@@ -10,7 +10,8 @@ export class ReviewApplicationDto {
   decision!: 'approved' | 'denied';
 
   @ApiPropertyOptional({
-    description: 'Reason for denial (required when decision is denied). Shown to volunteer and can include link to qualification course.',
+    description:
+      'Reason for denial (required when decision is denied). Shown to volunteer and can include link to qualification course.',
   })
   @IsOptional()
   @IsString()

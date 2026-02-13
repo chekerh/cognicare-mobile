@@ -79,7 +79,9 @@ export class UsersController {
   }
 
   @Get(':id/presence')
-  @ApiOperation({ summary: 'Get user online presence (any authenticated user)' })
+  @ApiOperation({
+    summary: 'Get user online presence (any authenticated user)',
+  })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({ status: 200, description: 'Presence: { online: boolean }' })
   async getPresence(@Param('id') id: string) {

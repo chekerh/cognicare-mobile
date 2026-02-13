@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -202,7 +203,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
               await recordGameCompletion(
                 context: context,
                 levelKey: k,
-                gameType: GameType.star_tracer,
+                gameType: GameType.starTracer,
                 level: _maxLevel,
                 timeSpentSeconds: timeSpent,
                 metrics: {'segmentsTraced': _totalSegments},
@@ -359,7 +360,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
               ),
             ),
           ),
-          ChildModeExitButton(iconColor: _primary, textColor: _primary, opacity: 0.9),
+          const ChildModeExitButton(iconColor: _primary, textColor: _primary, opacity: 0.9),
         ],
       ),
     );

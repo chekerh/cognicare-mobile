@@ -4,9 +4,9 @@ import '../utils/constants.dart';
 
 enum GameType {
   matching,
-  shape_sorting,
-  star_tracer,
-  basket_sort,
+  shapeSorting,
+  starTracer,
+  basketSort,
 }
 
 class GameSessionResult {
@@ -139,19 +139,18 @@ class GamificationService {
 
   GamificationService({
     http.Client? client,
-    required Future<String?> Function() getToken,
-  })  : _client = client ?? http.Client(),
-        getToken = getToken;
+    required this.getToken,
+  }) : _client = client ?? http.Client();
 
   String _gameTypeToString(GameType type) {
     switch (type) {
       case GameType.matching:
         return 'matching';
-      case GameType.shape_sorting:
+      case GameType.shapeSorting:
         return 'shape_sorting';
-      case GameType.star_tracer:
+      case GameType.starTracer:
         return 'star_tracer';
-      case GameType.basket_sort:
+      case GameType.basketSort:
         return 'basket_sort';
     }
   }

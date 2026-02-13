@@ -95,7 +95,11 @@ export class UsersService {
 
   /** Consider user "online" if lastSeenAt is within the last 5 minutes. */
   async getPresence(userId: string): Promise<{ online: boolean }> {
-    const user = await this.userModel.findById(userId).select('lastSeenAt').lean().exec();
+    const user = await this.userModel
+      .findById(userId)
+      .select('lastSeenAt')
+      .lean()
+      .exec();
     if (!user || !user.lastSeenAt) {
       return { online: false };
     }

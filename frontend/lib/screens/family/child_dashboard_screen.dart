@@ -54,12 +54,12 @@ class ChildDashboardScreen extends StatelessWidget {
           Column(
             children: [
               SizedBox(height: padding.top + 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    const ChildModeExitButton(),
+                    ChildModeExitButton(),
                   ],
                 ),
               ),

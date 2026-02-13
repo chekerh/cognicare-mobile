@@ -108,7 +108,7 @@ class StickerBookScreen extends StatelessWidget {
               ),
             ),
           ),
-          ChildModeExitButton(iconColor: _primary, textColor: _primary, opacity: 0.9),
+          const ChildModeExitButton(iconColor: _primary, textColor: _primary, opacity: 0.9),
         ],
       ),
     );
@@ -375,7 +375,7 @@ class StickerBookScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.lock_outline, size: 22, color: _primary),
+              const Icon(Icons.lock_outline, size: 22, color: _primary),
               const SizedBox(width: 10),
               Text(
                 loc.comingSoon,

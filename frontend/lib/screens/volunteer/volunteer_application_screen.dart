@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
-import '../../utils/theme.dart';
 import '../../utils/constants.dart';
 import '../../services/volunteer_service.dart';
 
@@ -58,45 +57,59 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
     final file = result.files.single;
     final path = file.path;
     if (path == null || path.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fichier non accessible')),
-      );
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      if (mounted && messenger != null) {
+        messenger.showSnackBar(const SnackBar(content: Text('Fichier non accessible')));
+      }
       return;
     }
     final f = File(path);
     if (!await f.exists()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fichier introuvable')),
-      );
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      if (mounted && messenger != null) {
+        messenger.showSnackBar(const SnackBar(content: Text('Fichier introuvable')));
+      }
       return;
     }
     final length = await f.length();
     if (length > _maxFileSizeBytes) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Taille max 5 Mo'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      if (mounted && messenger != null) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Taille max 5 Mo'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
       return;
     }
     setState(() => _uploading = true);
     try {
       await _volunteerService.uploadDocument(file: f, type: type);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Document ajouté'), backgroundColor: Colors.green),
-        );
+        final messenger = ScaffoldMessenger.maybeOf(context);
+        if (mounted && messenger != null) {
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Document ajouté'), backgroundColor: Colors.green),
+          );
+        }
         _load();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
-            backgroundColor: Colors.red,
-          ),
-        );
+        final messenger = ScaffoldMessenger.maybeOf(context);
+        if (mounted && messenger != null) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceFirst('Exception: ', '')),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => _uploading = false);
@@ -109,9 +122,12 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
       if (mounted) _load();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
-        );
+        final messenger = ScaffoldMessenger.maybeOf(context);
+        if (mounted && messenger != null) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+          );
+        }
       }
     }
   }
