@@ -147,7 +147,7 @@ export class RemindersService {
   async completeTask(
     dto: CompleteTaskDto,
     userId: string,
-    proofImage?: Express.Multer.File,
+    proofImage?: { buffer: Buffer; originalname: string },
   ) {
     const reminder = await this.taskReminderModel.findById(dto.reminderId);
     if (!reminder) {

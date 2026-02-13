@@ -126,7 +126,7 @@ export class RemindersController {
   @ApiConsumes('multipart/form-data')
   async completeTask(
     @Body() dto: CompleteTaskDto,
-    @UploadedFile() proofImage: Express.Multer.File | undefined,
+    @UploadedFile() proofImage: { buffer: Buffer; originalname: string } | undefined,
     @Request() req: any,
   ) {
     return await this.remindersService.completeTask(
