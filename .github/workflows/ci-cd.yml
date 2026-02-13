@@ -92,23 +92,30 @@ jobs:
 
       - name: Fix record_android compileSdk for AGP
         run: |
+          set -e
           RECORD_ANDROID_BUILD=$(find "$HOME/.pub-cache" -path "*record_android*android/build.gradle" 2>/dev/null | head -1)
           if [ -z "$RECORD_ANDROID_BUILD" ] || [ ! -f "$RECORD_ANDROID_BUILD" ]; then
-            echo "record_android build.gradle not found in pub-cache"
-            exit 0
+            echo "::error::record_android build.gradle not found"
+            exit 1
           fi
           echo "Patching $RECORD_ANDROID_BUILD"
-          # Replace ALL flutter.* refs (plugin has no 'flutter' extension in CI)
-          sed -i.bak 's/flutter\.compileSdkVersion/35/g' "$RECORD_ANDROID_BUILD"
-          sed -i.bak 's/flutter\.minSdkVersion/23/g' "$RECORD_ANDROID_BUILD"
-          sed -i.bak 's/flutter\.targetSdkVersion/35/g' "$RECORD_ANDROID_BUILD"
-          sed -i.bak 's/flutter\.ndkVersion/"27.0.12077973"/g' "$RECORD_ANDROID_BUILD"
-          # Fallback: add compileSdkVersion if still missing
-          if ! grep -qE "compileSdk|compileSdkVersion" "$RECORD_ANDROID_BUILD"; then
-            sed -i.bak '/android {/a\    compileSdkVersion 35' "$RECORD_ANDROID_BUILD"
+          cp "$RECORD_ANDROID_BUILD" "$RECORD_ANDROID_BUILD.bak"
+          # Replace every flutter.* so no 'flutter' property is needed
+          sed -i 's/flutter\.compileSdkVersion/35/g' "$RECORD_ANDROID_BUILD"
+          sed -i 's/flutter\.minSdkVersion/23/g' "$RECORD_ANDROID_BUILD"
+          sed -i 's/flutter\.targetSdkVersion/35/g' "$RECORD_ANDROID_BUILD"
+          sed -i 's/flutter\.ndkVersion/"27.0.12077973"/g' "$RECORD_ANDROID_BUILD"
+          # Remove any remaining flutter.xxx (fallback to 35)
+          sed -i 's/flutter\.[a-zA-Z]*/35/g' "$RECORD_ANDROID_BUILD"
+          if grep -q "flutter\." "$RECORD_ANDROID_BUILD"; then
+            echo "::warning::Some flutter. refs remain, re-patching"
+            sed -i 's/flutter\.[a-zA-Z0-9.]*/35/g' "$RECORD_ANDROID_BUILD"
           fi
-          echo "Patched content (android block):"
-          sed -n '/^android {/,/^}/p' "$RECORD_ANDROID_BUILD" | head -25
+          if ! grep -qE "compileSdk|compileSdkVersion" "$RECORD_ANDROID_BUILD"; then
+            sed -i '/android {/a\    compileSdkVersion 35' "$RECORD_ANDROID_BUILD"
+          fi
+          echo "Patched android block:"
+          sed -n '/^android {/,/^}/p' "$RECORD_ANDROID_BUILD" || true
 
       - name: Build Android APK
         run: flutter build apk --debug

@@ -1,3 +1,10 @@
+// So that record_android (and other plugins) can resolve flutter.* in CI/local when Flutter extension is not set
+rootProject.extra["flutter"] = mapOf(
+    "compileSdkVersion" to 35,
+    "minSdkVersion" to 23,
+    "targetSdkVersion" to 35,
+)
+
 allprojects {
     repositories {
         google()
