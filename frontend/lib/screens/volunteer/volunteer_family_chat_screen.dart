@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -70,6 +71,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final AudioRecorder _recorder = AudioRecorder();
   final ImagePicker _imagePicker = ImagePicker();
+  final AudioPlayer _audioPlayer = AudioPlayer();
   late List<_Msg> _messages;
   String? _conversationId;
   bool _loading = false;
@@ -79,10 +81,14 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
   Duration _recordingDuration = Duration.zero;
   Timer? _recordingTimer;
   String? _currentRecordPath;
+  String? _playingVoiceUrl;
 
   @override
   void initState() {
     super.initState();
+    _audioPlayer.onPlayerComplete.listen((_) {
+      if (mounted) setState(() => _playingVoiceUrl = null);
+    });
     _messages = [];
     if (widget.conversationId != null && widget.conversationId!.isNotEmpty) {
       _conversationId = widget.conversationId;
@@ -213,9 +219,30 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     _recordingTimer?.cancel();
     if (_isRecording) _recorder.stop().ignore();
     _recorder.dispose();
+    _audioPlayer.dispose();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _playVoiceMessage(_Msg msg) async {
+    if (msg.attachmentUrl == null) return;
+    final url = AppConstants.fullImageUrl(msg.attachmentUrl!);
+    if (_playingVoiceUrl == msg.attachmentUrl) {
+      await _audioPlayer.pause();
+      if (mounted) setState(() => _playingVoiceUrl = null);
+      return;
+    }
+    try {
+      await _audioPlayer.play(UrlSource(url));
+      if (mounted) setState(() => _playingVoiceUrl = msg.attachmentUrl);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Impossible de lire le message vocal')),
+        );
+      }
+    }
   }
 
   Future<void> _onVoiceTap() async {
@@ -569,13 +596,34 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                           ),
                         )
                       : msg.attachmentType == 'voice'
-                          ? Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.mic, color: msg.isMe ? Colors.white70 : _textMuted, size: 24),
-                                const SizedBox(width: 8),
-                                Text('Message vocal', style: TextStyle(fontSize: 14, color: msg.isMe ? Colors.white : _textPrimary)),
-                              ],
+                          ? Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: msg.attachmentUrl != null ? () => _playVoiceMessage(msg) : null,
+                                borderRadius: BorderRadius.circular(8),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        _playingVoiceUrl == msg.attachmentUrl
+                                            ? Icons.pause_circle_filled
+                                            : Icons.play_circle_filled,
+                                        color: msg.isMe ? Colors.white : _primary,
+                                        size: 32,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Icon(Icons.mic, color: msg.isMe ? Colors.white70 : _textMuted, size: 22),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Message vocal',
+                                        style: TextStyle(fontSize: 14, color: msg.isMe ? Colors.white : _textPrimary),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             )
                           : Text(
                               msg.text,

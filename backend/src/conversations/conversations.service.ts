@@ -313,8 +313,12 @@ export class ConversationsService {
   ): Promise<string> {
     const m = (file.mimetype ?? '').toLowerCase();
     if (type === 'image') {
-      const ok = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'].some((a) => m === a || m.startsWith(a + ';'));
-      if (!ok) throw new BadRequestException('Invalid image type. Use JPEG, PNG or WebP.');
+      // Accept image/* or empty/octet-stream (Flutter image_picker may not send mimetype)
+      const isImage = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'].some((a) => m === a || m.startsWith(a + ';'));
+      const isUnknown = !m || m === 'application/octet-stream';
+      if (!isImage && !isUnknown) {
+        throw new BadRequestException('Invalid image type. Use JPEG, PNG or WebP.');
+      }
     } else {
       // Voice: accept audio/* or empty/octet-stream (Flutter record sends .m4a often without mimetype)
       const isAudio = m.startsWith('audio/');
@@ -326,11 +330,13 @@ export class ConversationsService {
     const ext =
       type === 'voice'
         ? 'm4a'
-        : m === 'image/png'
+        : m.includes('png')
           ? 'png'
-          : m === 'image/webp'
+          : m.includes('webp')
             ? 'webp'
-            : 'jpg';
+            : m.includes('heic')
+              ? 'heic'
+              : 'jpg';
     const dir = path.join(process.cwd(), 'uploads', 'chat');
     await fs.mkdir(dir, { recursive: true });
     const name = `${type}-${userId}-${crypto.randomUUID()}.${ext}`;
