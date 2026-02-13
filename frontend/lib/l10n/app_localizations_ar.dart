@@ -427,6 +427,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get experts => 'الخبراء';
 
   @override
+  String get healthcare => 'Healthcare';
+
+  @override
   String get leCercleDuDon => 'Le Cercle du Don';
 
   @override

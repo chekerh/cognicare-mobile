@@ -93,6 +93,24 @@ export class UsersService {
     return this.userModel.find({ role }).select('-passwordHash').exec();
   }
 
+  /** List healthcare professionals (any authenticated user, e.g. family can contact them). */
+  async findHealthcareProfessionals(): Promise<User[]> {
+    return this.userModel
+      .find({
+        role: {
+          $in: [
+            'doctor',
+            'psychologist',
+            'speech_therapist',
+            'occupational_therapist',
+          ],
+        },
+      })
+      .select('-passwordHash')
+      .sort({ fullName: 1 })
+      .exec();
+  }
+
   /** Consider user "online" if lastSeenAt is within the last 5 minutes. */
   async getPresence(userId: string): Promise<{ online: boolean }> {
     const user = await this.userModel

@@ -9,6 +9,8 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/community_feed_provider.dart';
 import '../../models/marketplace_product.dart';
+import '../../models/user.dart' as app_user;
+import '../../services/healthcare_service.dart';
 import '../../services/marketplace_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
@@ -40,7 +42,7 @@ class FamilyFeedScreen extends StatefulWidget {
 }
 
 class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
-  int _selectedTab = 0; // 0: Community, 1: Donations, 2: Experts
+  int _selectedTab = 0; // 0: Community, 1: Donations, 2: Healthcare
   int _donationsToggleIndex = 0; // 0: Je donne, 1: Je recherche
   int _donationsCategoryIndex = 0; // 0: Tout, 1: Mobilité, 2: Éveil, 3: Vêtements
   late final Future<List<MarketplaceProduct>> _marketplaceProductsFuture;
@@ -48,10 +50,39 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   final FocusNode _donationSearchFocusNode = FocusNode();
   String _donationSearchQuery = '';
 
+  List<app_user.User>? _healthcareUsers;
+  bool _healthcareLoading = false;
+  String? _healthcareError;
+  String _healthcareSearchQuery = '';
+
   @override
   void initState() {
     super.initState();
     _marketplaceProductsFuture = MarketplaceService().getProducts(limit: 6);
+    _loadHealthcareUsers();
+  }
+
+  Future<void> _loadHealthcareUsers() async {
+    setState(() {
+      _healthcareLoading = true;
+      _healthcareError = null;
+    });
+    try {
+      final list = await HealthcareService().getHealthcareProfessionals();
+      if (!mounted) return;
+      setState(() {
+        _healthcareUsers = list;
+        _healthcareLoading = false;
+        _healthcareError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _healthcareUsers = null;
+        _healthcareLoading = false;
+        _healthcareError = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
   }
 
   @override
@@ -90,7 +121,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     ? _buildCommunityScrollContent(context, feedProvider, bottomPadding)
                     : _selectedTab == 1
                         ? _buildDonationsContent(bottomPadding)
-                        : _buildExpertsContent(bottomPadding),
+                        : _buildHealthcareContent(bottomPadding),
               ),
             ],
           );
@@ -182,7 +213,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         children: [
           _tab(loc.community, 0),
           _tab(loc.donations, 1),
-          _tab(loc.experts, 2),
+          _tab(loc.healthcare, 2),
         ],
       ),
     );
@@ -780,25 +811,52 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     );
   }
 
-  /// Contenu onglet Experts — design HTML (search, filtres, cartes experts).
-  Widget _buildExpertsContent(double bottomPadding) {
+  /// Contenu onglet Healthcare — vrais professionnels (API), recherche, filtres, Message → chat.
+  Widget _buildHealthcareContent(double bottomPadding) {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildExpertsSearchBar(),
+          _buildHealthcareSearchBar(),
           const SizedBox(height: 16),
-          _buildExpertsFilterChips(),
+          _buildHealthcareFilterChips(),
           const SizedBox(height: 16),
-          ..._buildExpertCards(),
+          if (_healthcareLoading)
+            const Padding(
+              padding: EdgeInsets.all(24),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_healthcareError != null)
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _healthcareError!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                    ),
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: _loadHealthcareUsers,
+                      child: const Text('Réessayer'),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ..._buildHealthcareCards(),
           SizedBox(height: bottomPadding),
         ],
       ),
     );
   }
 
-  Widget _buildExpertsSearchBar() {
+  Widget _buildHealthcareSearchBar() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -812,8 +870,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         ],
       ),
       child: TextField(
+        onChanged: (value) => setState(() => _healthcareSearchQuery = value.trim()),
         decoration: InputDecoration(
-          hintText: 'Search specialists...',
+          hintText: 'Rechercher un professionnel...',
           hintStyle: TextStyle(
             color: AppTheme.text.withOpacity(0.5),
             fontSize: 14,
@@ -828,22 +887,22 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     );
   }
 
-  int _expertsFilterIndex = 0;
-  static const List<String> _expertsFilterLabels = [
-    'All Experts',
-    'Speech Therapists',
-    'Pedopsychiatrists',
-    'Occupational Therapists',
+  int _healthcareFilterIndex = 0;
+  static const List<String> _healthcareFilterLabels = [
+    'Tous',
+    'Orthophonistes',
+    'Pédopsychiatres',
+    'Ergothérapeutes',
   ];
 
-  Widget _buildExpertsFilterChips() {
+  Widget _buildHealthcareFilterChips() {
     return SizedBox(
       height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: _expertsFilterLabels.length,
+        itemCount: _healthcareFilterLabels.length,
         itemBuilder: (context, index) {
-          final selected = _expertsFilterIndex == index;
+          final selected = _healthcareFilterIndex == index;
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: Material(
@@ -852,7 +911,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   : Colors.white.withOpacity(0.3),
               borderRadius: BorderRadius.circular(999),
               child: InkWell(
-                onTap: () => setState(() => _expertsFilterIndex = index),
+                onTap: () => setState(() => _healthcareFilterIndex = index),
                 borderRadius: BorderRadius.circular(999),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -874,7 +933,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    _expertsFilterLabels[index],
+                    _healthcareFilterLabels[index],
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -890,46 +949,83 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     );
   }
 
-  static const List<Map<String, String>> _expertsData = [
-    {
-      'name': 'Dr. Sarah Williams',
-      'specialization': 'Pedopsychiatrist',
-      'location': 'Downtown Medical Center',
-      'imageUrl': 'https://lh3.googleusercontent.com/aida-public/AB6AXuAyc6PUxSagO2rMYKXsNcJDu6NXpeHs13KLV13ahZr1uQPb2mPvFr_HmwHJE5faOUJFgHpgO9d3RE2H7ospP4boMlCyquBP3RtDmfvVFewUAG_EV1PNvuwqWHSeZmyH_xFHkeqWmjEoBmjCkf52CLAI9LJd1xncqycz-kc-dQ0dq2P-3fWe0gI7sn--O83AJ8LonfL8sggUNVVB-Yb64YSlpZrskgEXrO3LxG2AnImH9uOkDEg2A7WCyaqL70LV_QGzD6s0lWQ88-s',
-    },
-    {
-      'name': 'Dr. Marcus Chen',
-      'specialization': 'Speech Therapist',
-      'location': 'East Side Therapy Hub',
-      'imageUrl': 'https://lh3.googleusercontent.com/aida-public/AB6AXuBxrvw_y9g6_4zvk26bEdXvU4m_fnybfNySQQv-GrIMe6MAr4woU_wfoCMKurthkGAcTl9Y8frUrc67ujVTSZxFGje0LTnixHKsAmVDPgJwop6Lf0MLIPGmR1Pdv1xBjI21HbalyhGIExACf8ud364M6k5ejyLRncSCmckfjt9uX-Zcr9KhuFX2hq-6VXSRL9ifjrIvQ4TS_Vdn6Ny9Y0d9n5O_J6Hc-JJ5iQJLmbmuexMXI7WN2AAbxp_iFY4XpxzNQEx52uBiOL4',
-    },
-    {
-      'name': 'Elena Rodriguez',
-      'specialization': 'Occupational Therapist',
-      'location': 'North Wellness Clinic',
-      'imageUrl': 'https://lh3.googleusercontent.com/aida-public/AB6AXuAYCjMCXkZrBAaDQzFN45VLLIi6JfdNuaqJonMmdKQzEoOS-5PP8ZpKHlO6MWTv0RXVpjX_-otwRGE7C5Geejw_-89rhbENRNPZ3u_R969qpYkPbL89_OihdurHYm4cSkn8ddk2Zmsub7WNj8XCGvnCyCvl4b9tC7rV96o24Oyj6B-0I0tVzya8yGutePqBRLSuPTklFAgO0VpG-05aXR7Wyq4mscmAy5aXS_aoIni0uwPtmkzOv7P-QoqJujhYwihsq9PXQJz5pzE',
-    },
-  ];
+  static String _roleToSpecializationLabel(String role) {
+    switch (role) {
+      case 'doctor':
+        return 'Médecin';
+      case 'psychologist':
+        return 'Pédopsychiatre / Psychologue';
+      case 'speech_therapist':
+        return 'Orthophoniste';
+      case 'occupational_therapist':
+        return 'Ergothérapeute';
+      default:
+        return role;
+    }
+  }
 
-  List<Widget> _buildExpertCards() {
-    return _expertsData.map((e) {
+  List<Widget> _buildHealthcareCards() {
+    final list = _healthcareUsers ?? [];
+    List<app_user.User> filtered = list;
+    if (_healthcareFilterIndex == 1) {
+      filtered = list.where((u) => u.role == 'speech_therapist').toList();
+    } else if (_healthcareFilterIndex == 2) {
+      filtered = list.where((u) => u.role == 'psychologist' || u.role == 'doctor').toList();
+    } else if (_healthcareFilterIndex == 3) {
+      filtered = list.where((u) => u.role == 'occupational_therapist').toList();
+    }
+    if (_healthcareSearchQuery.isNotEmpty) {
+      final q = _healthcareSearchQuery.toLowerCase();
+      filtered = filtered.where((u) =>
+          u.fullName.toLowerCase().contains(q) ||
+          _roleToSpecializationLabel(u.role).toLowerCase().contains(q)).toList();
+    }
+    if (filtered.isEmpty) {
+      return [
+        Padding(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: Text(
+              'Aucun professionnel pour le moment.',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            ),
+          ),
+        ),
+      ];
+    }
+    return filtered.map((user) {
+      final imageUrl = (user.profilePic != null && user.profilePic!.isNotEmpty)
+          ? _fullImageUrl(user.profilePic!)
+          : '';
+      final userId = user.id;
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: _ExpertCard(
-          name: e['name']!,
-          specialization: e['specialization']!,
-          location: e['location']!,
-          imageUrl: e['imageUrl']!,
+          name: user.fullName,
+          specialization: _roleToSpecializationLabel(user.role),
+          location: 'CogniCare',
+          imageUrl: imageUrl,
           primaryColor: _feedSecondary,
           onBookConsultation: () {
             context.push(AppConstants.familyExpertBookingRoute, extra: {
-              'name': e['name'],
-              'specialization': e['specialization'],
-              'location': e['location'],
-              'imageUrl': e['imageUrl'],
+              'name': user.fullName,
+              'specialization': _roleToSpecializationLabel(user.role),
+              'location': 'CogniCare',
+              'imageUrl': imageUrl,
             });
           },
-          onMessage: () {},
+          onMessage: () {
+            context.push(
+              Uri(
+                path: AppConstants.familyPrivateChatRoute,
+                queryParameters: {
+                  'id': userId,
+                  'name': user.fullName,
+                  if (imageUrl.isNotEmpty) 'imageUrl': imageUrl,
+                },
+              ).toString(),
+            );
+          },
         ),
       );
     }).toList();

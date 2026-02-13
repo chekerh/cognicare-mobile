@@ -78,6 +78,17 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('healthcare')
+  @ApiOperation({
+    summary: 'List healthcare professionals',
+    description:
+      'Returns doctors, psychologists, speech therapists, occupational therapists. Any authenticated user (e.g. family) can call this to contact them.',
+  })
+  @ApiResponse({ status: 200, description: 'List of healthcare professionals' })
+  async getHealthcare() {
+    return this.usersService.findHealthcareProfessionals();
+  }
+
   @Get(':id/presence')
   @ApiOperation({
     summary: 'Get user online presence (any authenticated user)',

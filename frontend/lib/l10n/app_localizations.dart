@@ -254,6 +254,7 @@ abstract class AppLocalizations {
   String get community;
   String get donations;
   String get experts;
+  String get healthcare;
   String get leCercleDuDon;
   String get jeDonne;
   String get jeRecherche;
