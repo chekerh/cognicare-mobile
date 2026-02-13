@@ -753,7 +753,7 @@ export class AuthService {
     currentPassword: string,
     newPassword: string,
   ): Promise<void> {
-    const user = await this.userModel.findById(userId).select('+password');
+    const user = await this.userModel.findById(userId).select('+passwordHash');
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
@@ -761,21 +761,17 @@ export class AuthService {
     // Verify current password
     const isPasswordValid = await bcrypt.compare(
       currentPassword,
-      user.password as string,
+      user.passwordHash,
     );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Current password is incorrect');
     }
 
-    // Hash and save new password
+    // Hash and save new password; invalidate refresh token for security
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
+    user.passwordHash = hashedPassword;
+    user.refreshToken = undefined;
     await user.save();
-
-    // Optionally: Invalidate all refresh tokens for security
-    const userId = user._id.toString();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    await this.refreshTokenModel.deleteMany({ userId }).exec();
   }
 
   async changeEmail(userId: string, newEmail: string): Promise<void> {
