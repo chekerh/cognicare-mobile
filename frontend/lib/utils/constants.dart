@@ -1,10 +1,14 @@
 class AppConstants {
   // API Configuration
   // Sur simulateur: défaut 127.0.0.1. Sur appareil réel: flutter run --dart-define=BASE_URL=http://VOTRE_IP:3000
-  static const String baseUrl = String.fromEnvironment(
-    'BASE_URL',
-    defaultValue: 'http://127.0.0.1:3000',
-  );
+  // Sans slash final pour éviter //api/... (404) quand BASE_URL est donné avec / à la fin.
+  static String get baseUrl {
+    const raw = String.fromEnvironment(
+      'BASE_URL',
+      defaultValue: 'http://127.0.0.1:3000',
+    );
+    return raw.endsWith('/') ? raw.substring(0, raw.length - 1) : raw;
+  }
 
   // API Endpoints
   static const String signupEndpoint = '/api/v1/auth/signup';
