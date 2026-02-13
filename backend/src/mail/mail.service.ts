@@ -347,4 +347,84 @@ export class MailService {
       );
     }
   }
+
+  async sendOrgLeaderInvitation(
+    email: string,
+    leaderName: string,
+    organizationName: string,
+    acceptUrl: string,
+    rejectUrl: string,
+  ): Promise<void> {
+    if (!this.apiKey || !this.from) {
+      console.warn(
+        'Skipping org leader invitation email: SENDGRID_API_KEY or MAIL_FROM not configured',
+      );
+      return;
+    }
+
+    const emailContent = `
+      <h2 style="color: #2c3e50; margin-bottom: 20px;">You've Been Invited to Lead an Organization!</h2>
+      <p style="color: #555; font-size: 16px; line-height: 1.6;">
+        Hello <strong>${leaderName}</strong>,
+      </p>
+      <p style="color: #555; font-size: 16px; line-height: 1.6;">
+        You have been invited to become the <strong>Organization Leader</strong> for 
+        <strong style="color: #6a5acd;">${organizationName}</strong> on the CogniCare platform.
+      </p>
+      <p style="color: #555; font-size: 16px; line-height: 1.6;">
+        As an Organization Leader, you will be able to:
+      </p>
+      <ul style="color: #555; font-size: 16px; line-height: 1.8;">
+        <li>Manage staff members (doctors, therapists, volunteers)</li>
+        <li>Oversee families and children in your care</li>
+        <li>Access organization analytics and reports</li>
+      </ul>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${acceptUrl}" 
+           style="background: linear-gradient(135deg, #6a5acd 0%, #836fff 100%); 
+                  color: white; 
+                  padding: 14px 28px; 
+                  text-decoration: none; 
+                  border-radius: 8px; 
+                  font-weight: bold; 
+                  display: inline-block;
+                  margin-right: 10px;">
+          Accept Invitation
+        </a>
+        <a href="${rejectUrl}" 
+           style="background: #e74c3c; 
+                  color: white; 
+                  padding: 14px 28px; 
+                  text-decoration: none; 
+                  border-radius: 8px; 
+                  font-weight: bold; 
+                  display: inline-block;">
+          Decline
+        </a>
+      </div>
+      <p style="color: #888; font-size: 14px; margin-top: 20px;">
+        This invitation will expire in 7 days. If you did not expect this invitation, 
+        you can safely ignore this email.
+      </p>
+    `;
+
+    const htmlContent = getEmailBaseTemplate(emailContent);
+
+    const msg = {
+      to: email,
+      from: this.from,
+      subject: `CogniCare – You're Invited to Lead ${organizationName}`,
+      html: htmlContent,
+    };
+
+    try {
+      await sgMail.send(msg);
+      console.log(`Org leader invitation email sent to ${email}`);
+    } catch (err: unknown) {
+      console.error('Failed to send org leader invitation email:', err);
+      throw new InternalServerErrorException(
+        'Could not send organization leader invitation email.',
+      );
+    }
+  }
 }

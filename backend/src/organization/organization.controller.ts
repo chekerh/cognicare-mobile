@@ -24,6 +24,7 @@ import {
   UpdateFamilyDto,
   InviteUserDto,
   ReviewOrganizationDto,
+  InviteOrganizationLeaderDto,
 } from './dto';
 import { AddChildDto } from '../children/dto/add-child.dto';
 import { UpdateChildDto } from '../children/dto/update-child.dto';
@@ -582,6 +583,249 @@ export class OrganizationController {
       reviewDto.decision,
       reviewDto.rejectionReason,
     );
+  }
+
+  // Admin: Invite organization leader
+  @Post('admin/invite-leader')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Invite a new organization leader (Admin only)' })
+  async inviteOrganizationLeader(
+    @Body() inviteDto: InviteOrganizationLeaderDto,
+  ) {
+    return await this.organizationService.inviteOrganizationLeader(
+      inviteDto.organizationName,
+      inviteDto.leaderFullName,
+      inviteDto.leaderEmail,
+      inviteDto.leaderPhone,
+      inviteDto.leaderPassword,
+    );
+  }
+
+  // Admin: Get pending org leader invitations
+  @Get('admin/pending-invitations')
+  @Roles('admin')
+  @ApiOperation({
+    summary: 'Get pending organization leader invitations (Admin only)',
+  })
+  async getPendingOrgLeaderInvitations() {
+    return await this.organizationService.getPendingOrgLeaderInvitations();
+  }
+
+  // Admin: Cancel org leader invitation
+  @Delete('admin/invitations/:invitationId')
+  @Roles('admin')
+  @ApiOperation({
+    summary: 'Cancel organization leader invitation (Admin only)',
+  })
+  async cancelOrgLeaderInvitation(@Param('invitationId') invitationId: string) {
+    await this.organizationService.cancelOrgLeaderInvitation(invitationId);
+    return { message: 'Invitation cancelled successfully' };
+  }
+
+  // Admin: Get all organizations
+  @Get('all')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get all organizations (Admin only)' })
+  async getAllOrganizations() {
+    return await this.organizationService.getAllOrganizations();
+  }
+
+  // Admin: Delete organization
+  @Delete(':id')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Delete an organization (Admin only)' })
+  async deleteOrganization(@Param('id') id: string) {
+    await this.organizationService.deleteOrganization(id);
+    return { message: 'Organization deleted successfully' };
+  }
+
+  // Admin: Update organization
+  @Patch(':id')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Update an organization (Admin only)' })
+  async updateOrganization(
+    @Param('id') id: string,
+    @Body() updateDto: { organizationName?: string },
+  ) {
+    return await this.organizationService.updateOrganization(id, updateDto);
+  }
+
+  // Public: Accept org leader invitation (from email link)
+  @Public()
+  @Get('admin/invitations/:token/accept')
+  @ApiOperation({ summary: 'Accept organization leader invitation' })
+  async acceptOrgLeaderInvitation(
+    @Param('token') token: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const result =
+        await this.organizationService.acceptOrgLeaderInvitation(token);
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Invitation Accepted</title>
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                background: linear-gradient(135deg, #6a5acd 0%, #836fff 100%);
+              }
+              .container {
+                background: white;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                text-align: center;
+                max-width: 500px;
+              }
+              h1 { color: #2c3e50; margin-bottom: 20px; }
+              p { color: #555; line-height: 1.6; }
+              .success-icon { font-size: 64px; margin-bottom: 20px; color: #27ae60; }
+              .org-name { color: #6a5acd; font-weight: bold; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="success-icon">✓</div>
+              <h1>Welcome to CogniCare!</h1>
+              <p>You have successfully accepted the invitation to lead <span class="org-name">${result.organization.name}</span>.</p>
+              <p>You can now log in to the CogniCare platform with your email and password.</p>
+            </div>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      return res.status(400).send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Error</title>
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+              }
+              .container {
+                background: white;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                text-align: center;
+                max-width: 500px;
+              }
+              h1 { color: #e74c3c; margin-bottom: 20px; }
+              p { color: #555; line-height: 1.6; }
+              .error-icon { font-size: 64px; margin-bottom: 20px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="error-icon">✗</div>
+              <h1>Invitation Error</h1>
+              <p>${error instanceof Error ? error.message : 'Unable to process invitation. It may have expired or already been used.'}</p>
+            </div>
+          </body>
+        </html>
+      `);
+    }
+  }
+
+  // Public: Reject org leader invitation (from email link)
+  @Public()
+  @Get('admin/invitations/:token/reject')
+  @ApiOperation({ summary: 'Reject organization leader invitation' })
+  async rejectOrgLeaderInvitation(
+    @Param('token') token: string,
+    @Res() res: Response,
+  ) {
+    try {
+      await this.organizationService.rejectOrgLeaderInvitation(token);
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Invitation Declined</title>
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+              }
+              .container {
+                background: white;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                text-align: center;
+                max-width: 500px;
+              }
+              h1 { color: #5A5A5A; margin-bottom: 20px; }
+              p { color: #555; line-height: 1.6; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>Invitation Declined</h1>
+              <p>You have declined the invitation to become an Organization Leader on CogniCare.</p>
+              <p>If this was a mistake, please contact the administrator to receive a new invitation.</p>
+            </div>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      return res.status(400).send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Error</title>
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+              }
+              .container {
+                background: white;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                text-align: center;
+                max-width: 500px;
+              }
+              h1 { color: #e74c3c; margin-bottom: 20px; }
+              p { color: #555; line-height: 1.6; }
+              .error-icon { font-size: 64px; margin-bottom: 20px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="error-icon">✗</div>
+              <h1>Error</h1>
+              <p>${error instanceof Error ? error.message : 'Unable to process request.'}</p>
+            </div>
+          </body>
+        </html>
+      `);
+    }
   }
 
   // User endpoint to check pending organization status

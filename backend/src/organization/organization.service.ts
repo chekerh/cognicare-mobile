@@ -1003,7 +1003,9 @@ export class OrganizationService {
     await org.save();
 
     // Link user to organization
-    user.organizationId = invitation.organizationId.toString();
+    if (invitation.organizationId) {
+      user.organizationId = invitation.organizationId.toString();
+    }
     await user.save();
 
     // Update invitation status
@@ -1218,5 +1220,221 @@ export class OrganizationService {
       requestedBy: userId,
       status: 'pending',
     });
+  }
+
+  // Admin: Get all organizations
+  async getAllOrganizations(): Promise<OrganizationDocument[]> {
+    return this.organizationModel
+      .find()
+      .populate('leaderId', 'fullName email phone')
+      .sort({ createdAt: -1 });
+  }
+
+  // Admin: Delete organization
+  async deleteOrganization(organizationId: string): Promise<void> {
+    const organization = await this.organizationModel.findById(organizationId);
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    // Remove organizationId from all staff members
+    if (organization.staffIds && organization.staffIds.length > 0) {
+      await this.userModel.updateMany(
+        { _id: { $in: organization.staffIds } },
+        { $unset: { organizationId: '' } },
+      );
+    }
+
+    // Remove organizationId from the leader
+    if (organization.leaderId) {
+      await this.userModel.findByIdAndUpdate(organization.leaderId, {
+        $unset: { organizationId: '' },
+      });
+    }
+
+    // Delete the organization
+    await this.organizationModel.findByIdAndDelete(organizationId);
+  }
+
+  // Admin: Update organization
+  async updateOrganization(
+    organizationId: string,
+    updateDto: { organizationName?: string },
+  ): Promise<OrganizationDocument> {
+    const organization = await this.organizationModel.findById(organizationId);
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    if (updateDto.organizationName) {
+      organization.name = updateDto.organizationName;
+    }
+
+    await organization.save();
+    return organization;
+  }
+
+  // Admin: Get pending organization leader invitations
+  async getPendingOrgLeaderInvitations(): Promise<InvitationDocument[]> {
+    return this.invitationModel
+      .find({
+        type: 'org_leader_invite',
+        status: 'pending',
+      })
+      .sort({ createdAt: -1 });
+  }
+
+  // Admin: Invite organization leader (creates pending invitation with email)
+  async inviteOrganizationLeader(
+    organizationName: string,
+    leaderFullName: string,
+    leaderEmail: string,
+    leaderPhone: string | undefined,
+    leaderPassword: string,
+  ): Promise<{ message: string; invitation: InvitationDocument }> {
+    // Check if email already exists
+    const existingUser = await this.userModel.findOne({ email: leaderEmail });
+    if (existingUser) {
+      throw new ConflictException('A user with this email already exists');
+    }
+
+    // Check if there's already a pending invitation for this email
+    const existingInvitation = await this.invitationModel.findOne({
+      email: leaderEmail,
+      type: 'org_leader_invite',
+      status: 'pending',
+    });
+    if (existingInvitation) {
+      throw new ConflictException(
+        'An invitation is already pending for this email',
+      );
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(leaderPassword, 12);
+
+    // Generate invitation token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+
+    // Create invitation record
+    const invitation = await this.invitationModel.create({
+      email: leaderEmail,
+      type: 'org_leader_invite',
+      token,
+      expiresAt,
+      status: 'pending',
+      organizationName,
+      leaderFullName,
+      leaderPhone,
+      leaderPassword: hashedPassword,
+      createdAt: new Date(),
+    });
+
+    // Generate accept/reject URLs
+    const baseUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+    const acceptUrl = `${baseUrl}/api/v1/organization/admin/invitations/${token}/accept`;
+    const rejectUrl = `${baseUrl}/api/v1/organization/admin/invitations/${token}/reject`;
+
+    // Send invitation email
+    try {
+      await this.mailService.sendOrgLeaderInvitation(
+        leaderEmail,
+        leaderFullName,
+        organizationName,
+        acceptUrl,
+        rejectUrl,
+      );
+    } catch (error) {
+      console.error('Failed to send org leader invitation email:', error);
+      // Still return success - invitation is created, email can be resent
+    }
+
+    return {
+      message: 'Organization leader invitation sent successfully',
+      invitation,
+    };
+  }
+
+  // Handle org leader invitation acceptance
+  async acceptOrgLeaderInvitation(
+    token: string,
+  ): Promise<{ organization: OrganizationDocument; user: UserDocument }> {
+    const invitation = await this.invitationModel.findOne({
+      token,
+      type: 'org_leader_invite',
+      status: 'pending',
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found or already processed');
+    }
+
+    if (new Date() > invitation.expiresAt) {
+      invitation.status = 'expired';
+      await invitation.save();
+      throw new BadRequestException('Invitation has expired');
+    }
+
+    // Create the user
+    const user = await this.userModel.create({
+      email: invitation.email,
+      fullName: invitation.leaderFullName,
+      phone: invitation.leaderPhone,
+      password: invitation.leaderPassword, // Already hashed
+      role: 'organization_leader',
+      isVerified: true,
+    });
+
+    // Create the organization
+    const organization = await this.organizationModel.create({
+      name: invitation.organizationName,
+      leaderId: user._id,
+      staffIds: [],
+      childIds: [],
+    });
+
+    // Link user to organization
+    user.organizationId = organization._id.toString();
+    await user.save();
+
+    // Mark invitation as accepted
+    invitation.status = 'accepted';
+    await invitation.save();
+
+    return { organization, user };
+  }
+
+  // Handle org leader invitation rejection
+  async rejectOrgLeaderInvitation(token: string): Promise<void> {
+    const invitation = await this.invitationModel.findOne({
+      token,
+      type: 'org_leader_invite',
+      status: 'pending',
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found or already processed');
+    }
+
+    invitation.status = 'rejected';
+    await invitation.save();
+  }
+
+  // Cancel org leader invitation (admin)
+  async cancelOrgLeaderInvitation(invitationId: string): Promise<void> {
+    const invitation = await this.invitationModel.findById(invitationId);
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    if (invitation.type !== 'org_leader_invite') {
+      throw new BadRequestException('Invalid invitation type');
+    }
+
+    await this.invitationModel.findByIdAndDelete(invitationId);
   }
 }

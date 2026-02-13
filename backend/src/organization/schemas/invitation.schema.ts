@@ -5,33 +5,49 @@ export type InvitationDocument = Invitation & Document;
 
 @Schema({ timestamps: true })
 export class Invitation {
-  @Prop({ type: Types.ObjectId, ref: 'Organization', required: true })
-  organizationId!: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Organization', required: false })
+  organizationId?: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  userId!: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: false })
+  userId?: Types.ObjectId;
 
-  @Prop({ required: true })
-  userEmail!: string;
+  @Prop({ required: false })
+  userEmail?: string;
 
-  @Prop({ required: true })
-  organizationName!: string;
+  @Prop({ required: false })
+  email?: string; // For org leader invitations
 
-  @Prop({ required: true, enum: ['staff', 'family'] })
-  invitationType!: 'staff' | 'family';
+  @Prop({ required: false })
+  organizationName?: string;
+
+  @Prop({ required: false, enum: ['staff', 'family', 'org_leader_invite'] })
+  invitationType?: 'staff' | 'family' | 'org_leader_invite';
+
+  @Prop({ required: false, enum: ['staff', 'family', 'org_leader_invite'] })
+  type?: 'staff' | 'family' | 'org_leader_invite';
 
   @Prop({
     required: true,
-    enum: ['pending', 'accepted', 'rejected'],
+    enum: ['pending', 'accepted', 'rejected', 'expired'],
     default: 'pending',
   })
-  status!: 'pending' | 'accepted' | 'rejected';
+  status!: 'pending' | 'accepted' | 'rejected' | 'expired';
 
   @Prop({ required: true })
   token!: string;
 
   @Prop()
   expiresAt!: Date;
+
+  // Fields for org leader invitation
+  @Prop({ required: false })
+  leaderFullName?: string;
+
+  @Prop({ required: false })
+  leaderPhone?: string;
+
+  @Prop({ required: false })
+  leaderPassword?: string; // Hashed password
 
   createdAt?: Date;
   updatedAt?: Date;

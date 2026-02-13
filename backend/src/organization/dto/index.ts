@@ -5,3 +5,4 @@ export * from './update-staff.dto';
 export * from './invite-user.dto';
 export * from './create-organization-request.dto';
 export * from './review-organization.dto';
+export * from './invite-organization-leader.dto';
