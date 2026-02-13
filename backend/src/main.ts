@@ -18,10 +18,18 @@ async function bootstrap() {
     }),
   );
 
-  // Serve uploaded files (e.g. profile pictures, post images) at /uploads
+  // Serve uploaded files (e.g. profile pictures, post images, voice .m4a) at /uploads
   const uploadsPath = join(process.cwd(), 'uploads');
   const express = await import('express');
-  app.use('/uploads', express.default.static(uploadsPath, { index: false }));
+  app.use(
+    '/uploads',
+    express.default.static(uploadsPath, {
+      index: false,
+      setHeaders: (res: { setHeader: (name: string, value: string) => void }, path: string) => {
+        if (path.endsWith('.m4a')) res.setHeader('Content-Type', 'audio/mp4');
+      },
+    }),
+  );
 
   // Enable compression
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call

@@ -89,6 +89,14 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     _audioPlayer.onPlayerComplete.listen((_) {
       if (mounted) setState(() => _playingVoiceUrl = null);
     });
+    _audioPlayer.onPlayerError.listen((msg, stack) {
+      if (mounted) {
+        setState(() => _playingVoiceUrl = null);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Impossible de lire le message vocal')),
+        );
+      }
+    });
     _messages = [];
     if (widget.conversationId != null && widget.conversationId!.isNotEmpty) {
       _conversationId = widget.conversationId;
@@ -234,10 +242,11 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       return;
     }
     try {
-      await _audioPlayer.play(UrlSource(url));
+      await _audioPlayer.play(UrlSource(url, mimeType: 'audio/mp4'));
       if (mounted) setState(() => _playingVoiceUrl = msg.attachmentUrl);
     } catch (e) {
       if (mounted) {
+        setState(() => _playingVoiceUrl = null);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Impossible de lire le message vocal')),
         );

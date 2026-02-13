@@ -97,6 +97,14 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     _audioPlayer.onPlayerComplete.listen((_) {
       if (mounted) setState(() => _playingVoiceUrl = null);
     });
+    _audioPlayer.onPlayerError.listen((msg, stack) {
+      if (mounted) {
+        setState(() => _playingVoiceUrl = null);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Impossible de lire le message vocal')),
+        );
+      }
+    });
   }
 
   Future<void> _loadPresence() async {
@@ -226,12 +234,13 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       return;
     }
     try {
-      await _audioPlayer.play(UrlSource(url));
+      await _audioPlayer.play(UrlSource(url, mimeType: 'audio/mp4'));
       if (mounted) setState(() => _playingVoiceUrl = msg.attachmentUrl);
     } catch (e) {
       if (mounted) {
+        setState(() => _playingVoiceUrl = null);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Impossible de lire le message vocal')),
+          const SnackBar(content: Text('Impossible de lire le message vocal')),
         );
       }
     }
