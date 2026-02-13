@@ -351,6 +351,18 @@ GoRouter createAppRouter(AuthProvider authProvider) {
             ),
           ],
         ),
+        GoRoute(
+          path: 'chat',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, String?>?;
+            return FamilyPrivateChatScreen(
+              personId: extra?['id'] ?? '',
+              personName: extra?['name'] ?? 'Conversation',
+              personImageUrl: extra?['imageUrl'],
+              conversationId: extra?['conversationId'],
+            );
+          },
+        ),
       ],
     ),
     // Secteur Famille : shell avec bottom nav (Feed, Families, +, Market, Profile)

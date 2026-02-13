@@ -45,7 +45,7 @@ class VolunteerMessagesScreen extends StatefulWidget {
 }
 
 class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
-  int _selectedTab = 0; // 0: Personnes, 1: Familles
+  int _selectedTab = 0; // 0: Personnes, 1: Familles, 2: Healthcare
   String _searchQuery = '';
   List<_Conversation>? _inboxConversations;
   bool _loading = false;
@@ -170,6 +170,7 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
         children: [
           _tab('Personnes', 0),
           _tab('Familles', 1),
+          _tab('Healthcare', 2),
         ],
       ),
     );
@@ -233,16 +234,23 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
       );
     }
     final all = _inboxConversations ?? [];
-    final rawList = _selectedTab == 0
-        ? all.where((c) => c.segment != 'families').toList()
-        : all.where((c) => c.segment == 'families').toList();
+    List<_Conversation> rawList;
+    if (_selectedTab == 0) {
+      rawList = all.where((c) => c.segment != 'families' && c.segment != 'healthcare').toList();
+    } else if (_selectedTab == 1) {
+      rawList = all.where((c) => c.segment == 'families').toList();
+    } else {
+      rawList = all.where((c) => c.segment == 'healthcare').toList();
+    }
     final list = _filterBySearch(rawList);
     if (list.isEmpty) {
       return Center(
         child: Text(
           _selectedTab == 0
               ? 'Aucune conversation avec des personnes.'
-              : 'Aucune conversation avec des familles.',
+              : _selectedTab == 1
+                  ? 'Aucune conversation avec des familles.'
+                  : 'Aucune conversation avec des professionnels de santé.',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
         ),

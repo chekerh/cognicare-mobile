@@ -163,7 +163,9 @@ export class ConversationsService {
           ? 'benevole'
           : otherRole === 'family'
             ? 'families'
-            : ((c.segment as ConversationSegment) ?? 'persons');
+            : otherRole === 'healthcare'
+              ? 'healthcare'
+              : ((c.segment as ConversationSegment) ?? 'persons');
       const displayName = otherId
         ? (nameById.get(otherId) ?? c.name ?? '')
         : (c.name ?? '');
@@ -234,7 +236,9 @@ export class ConversationsService {
         ? 'benevole' // current user talks to a volunteer
         : otherRole === 'family'
           ? 'families' // current user talks to a family
-          : 'persons';
+          : otherRole === 'healthcare'
+            ? 'healthcare' // current user talks to healthcare
+            : 'persons';
 
     // Segment for the other side (so that conversations appear correctly in their inbox)
     const segmentForOtherUser: ConversationSegment =
@@ -242,7 +246,13 @@ export class ConversationsService {
         ? 'benevole' // family sees volunteer under "Benevole"
         : role === 'family' && otherRole === 'volunteer'
           ? 'families' // volunteer sees family under "Familles"
-          : 'persons';
+          : role === 'volunteer'
+            ? 'benevole'
+            : role === 'family'
+              ? 'families'
+              : role === 'healthcare'
+                ? 'healthcare' // other user sees healthcare under "Healthcare"
+                : 'persons';
     const [created] = await this.conversationModel.create([
       {
         user: uid,

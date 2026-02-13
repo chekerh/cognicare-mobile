@@ -49,7 +49,7 @@ class FamilyFamiliesScreen extends StatefulWidget {
 }
 
 class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
-  int _selectedTab = 0; // 0: Persons, 1: Families, 2: Benevole
+  int _selectedTab = 0; // 0: Persons, 1: Families, 2: Benevole, 3: Healthcare
   String _searchQuery = '';
   List<_Conversation>? _inboxConversations;
   bool _inboxLoading = false;
@@ -97,8 +97,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
   }
 
   void _openChat(BuildContext context, _Conversation c) {
-    // Persons (0) et Benevole (2) → chat privé 1-à-1 (avec conversationId si API).
-    if (_selectedTab == 0 || _selectedTab == 2) {
+    // Persons (0), Benevole (2), Healthcare (3) → chat privé 1-à-1 (avec conversationId si API).
+    if (_selectedTab == 0 || _selectedTab == 2 || _selectedTab == 3) {
       final params = <String, String>{
         'id': c.id,
         'name': c.name,
@@ -214,6 +214,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
           _tab('Persons', 0),
           _tab('Families', 1),
           _tab('Benevole', 2),
+          _tab('Healthcare', 3),
         ],
       ),
     );
@@ -299,15 +300,22 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
     if (_inboxConversations != null && _inboxConversations!.isNotEmpty) {
       if (_selectedTab == 0) {
         rawList = _inboxConversations!
-            .where((c) => c.segment != 'families' && c.segment != 'benevole')
+            .where((c) =>
+                c.segment != 'families' &&
+                c.segment != 'benevole' &&
+                c.segment != 'healthcare')
             .toList();
       } else if (_selectedTab == 1) {
         rawList = _inboxConversations!
             .where((c) => c.segment == 'families')
             .toList();
-      } else {
+      } else if (_selectedTab == 2) {
         rawList = _inboxConversations!
             .where((c) => c.segment == 'benevole')
+            .toList();
+      } else {
+        rawList = _inboxConversations!
+            .where((c) => c.segment == 'healthcare')
             .toList();
       }
     } else {
@@ -328,7 +336,9 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
                     ? 'Aucune conversation pour le moment.\nVos échanges apparaîtront ici.'
                     : _selectedTab == 1
                         ? 'Aucune conversation avec des familles.'
-                        : 'Aucune conversation avec des bénévoles.',
+                        : _selectedTab == 2
+                            ? 'Aucune conversation avec des bénévoles.'
+                            : 'Aucune conversation avec les professionnels de santé.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
               ),

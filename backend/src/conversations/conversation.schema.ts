@@ -4,7 +4,7 @@ import { User } from '../users/schemas/user.schema';
 
 export type ConversationDocument = Conversation & Document;
 
-export type ConversationSegment = 'persons' | 'families' | 'benevole';
+export type ConversationSegment = 'persons' | 'families' | 'benevole' | 'healthcare';
 
 @Schema({ timestamps: true })
 export class Conversation {
@@ -29,7 +29,7 @@ export class Conversation {
   @Prop({ default: false })
   unread: boolean;
 
-  @Prop({ enum: ['persons', 'families', 'benevole'], default: 'persons' })
+  @Prop({ enum: ['persons', 'families', 'benevole', 'healthcare'], default: 'persons' })
   segment: ConversationSegment;
 
   /** Links messages; same for both sides of the thread */

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/auth_response.dart';
@@ -335,6 +336,12 @@ class AuthService {
   Future<void> clearStoredData() async {
     await _storage.delete(key: AppConstants.jwtTokenKey);
     await _storage.delete(key: AppConstants.userDataKey);
+    // Remove shared local profile pic so next user doesn't see previous user's photo
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/profile_pic.jpg');
+      if (await file.exists()) await file.delete();
+    } catch (_) {}
   }
 
   /// Change user password

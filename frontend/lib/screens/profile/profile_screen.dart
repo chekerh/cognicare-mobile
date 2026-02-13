@@ -127,10 +127,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadLocalProfilePic() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userId = authProvider.user?.id;
+    if (userId == null) return;
     try {
       final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/profile_pic.jpg');
-      if (await file.exists()) {
+      final file = File('${dir.path}/profile_pic_$userId.jpg');
+      if (await file.exists() && mounted) {
         setState(() => _localProfilePicPath = file.path);
       }
     } catch (_) {}
@@ -225,11 +228,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (!mounted) return;
       final dir = await getApplicationDocumentsDirectory();
       if (!mounted) return;
-      final dest = File('${dir.path}/profile_pic.jpg');
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final userId = authProvider.user?.id ?? 'local';
+      final dest = File('${dir.path}/profile_pic_$userId.jpg');
       await File(xFile.path).copy(dest.path);
       if (!mounted) return;
       setState(() => _localProfilePicPath = dest.path);
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       try {
         final mimeType = xFile.mimeType ?? 'image/jpeg';
         final updatedUser = await AuthService().uploadProfilePicture(dest, mimeType: mimeType);
@@ -568,15 +572,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildProfileImage(dynamic user) {
+    // Only use local path if it was set this session (e.g. after pick, before upload)
     if (_localProfilePicPath != null) {
-      return Image.file(File(_localProfilePicPath!), fit: BoxFit.cover, errorBuilder: (_, __, ___) => _profilePlaceholder());
+      return Image.file(File(_localProfilePicPath!), key: const ValueKey('local_profile'), fit: BoxFit.cover, errorBuilder: (_, __, ___) => _profilePlaceholder());
     }
     if (user?.profilePic != null && user!.profilePic!.isNotEmpty) {
       final base = user.profilePic!.startsWith('http') ? user.profilePic! : '${AppConstants.baseUrl}${user.profilePic}';
       final url = '$base${base.contains('?') ? '&' : '?'}v=$_profilePicVersion';
+      // Key by user id so each user has their own image; avoids showing previous user's cached photo
       return Image.network(
         url,
-        key: ValueKey(url),
+        key: ValueKey('profile_${user!.id}_$url'),
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => _profilePlaceholder(),
       );
