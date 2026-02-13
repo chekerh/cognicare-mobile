@@ -95,6 +95,10 @@ class ChildrenService {
     if (token == null) throw Exception('Not authenticated');
     final query = familyId != null && familyId.isNotEmpty ? '?familyId=$familyId' : '';
     final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.childrenEndpoint}$query');
+    
+    print('🔍 ChildrenService - Requesting: $uri');
+    print('🔍 ChildrenService - Token présent: ${token != null ? "Oui (${token.substring(0, 20)}...)" : "Non"}');
+    
     final response = await _client.get(
       uri,
       headers: {
@@ -102,6 +106,10 @@ class ChildrenService {
         'Authorization': 'Bearer $token',
       },
     );
+    
+    print('🔍 ChildrenService - Status: ${response.statusCode}');
+    print('🔍 ChildrenService - Body: ${response.body}');
+    
     if (response.statusCode != 200) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;
@@ -112,6 +120,8 @@ class ChildrenService {
       }
     }
     final list = jsonDecode(response.body) as List<dynamic>? ?? [];
+    print('🔍 ChildrenService - Nombre d\'enfants reçus: ${list.length}');
+    
     return list.map((e) => ChildModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 

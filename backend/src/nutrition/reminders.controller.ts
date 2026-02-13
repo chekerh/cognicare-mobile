@@ -9,8 +9,11 @@ import {
   Query,
   Request,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiConsumes } from '@nestjs/swagger';
 import { RemindersService } from './reminders.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -69,12 +72,19 @@ export class RemindersController {
 
   @Post('complete')
   @Roles('family', 'doctor', 'psychologist', 'speech_therapist', 'occupational_therapist')
-  @ApiOperation({ summary: 'Mark a task as completed or incomplete' })
+  @UseInterceptors(FileInterceptor('proofImage'))
+  @ApiOperation({ summary: 'Mark a task as completed or incomplete, optionally with proof image' })
+  @ApiConsumes('multipart/form-data')
   async completeTask(
     @Body() dto: CompleteTaskDto,
+    @UploadedFile() proofImage: Express.Multer.File | undefined,
     @Request() req: any,
   ) {
-    return await this.remindersService.completeTask(dto, req.user.id as string);
+    return await this.remindersService.completeTask(
+      dto,
+      req.user.id as string,
+      proofImage,
+    );
   }
 
   @Delete(':reminderId')

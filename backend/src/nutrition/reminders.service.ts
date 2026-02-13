@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import * as fs from 'fs';
+import * as path from 'path';
 import {
   TaskReminder,
   TaskReminderDocument,
@@ -141,7 +143,11 @@ export class RemindersService {
   /**
    * Mark task as completed or incomplete
    */
-  async completeTask(dto: CompleteTaskDto, userId: string) {
+  async completeTask(
+    dto: CompleteTaskDto,
+    userId: string,
+    proofImage?: Express.Multer.File,
+  ) {
     const reminder = await this.taskReminderModel.findById(dto.reminderId);
     if (!reminder) {
       throw new NotFoundException('Reminder not found');
@@ -152,6 +158,28 @@ export class RemindersService {
 
     const completionDate = new Date(dto.date);
     const dateStr = completionDate.toISOString().split('T')[0];
+
+    let proofImagePath: string | undefined;
+
+    // Save proof image if provided
+    if (proofImage && dto.completed) {
+      const uploadsDir = path.join(process.cwd(), 'uploads', 'proof-images');
+      
+      // Create directory if it doesn't exist
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const timestamp = Date.now();
+      const filename = `${reminder._id}_${timestamp}_${proofImage.originalname}`;
+      const filepath = path.join(uploadsDir, filename);
+
+      // Save file
+      fs.writeFileSync(filepath, proofImage.buffer);
+
+      // Store relative path
+      proofImagePath = `/uploads/proof-images/${filename}`;
+    }
 
     // Find existing completion for this date
     const existingIndex =
@@ -165,7 +193,8 @@ export class RemindersService {
         date: completionDate,
         completed: dto.completed,
         completedAt: dto.completed ? new Date() : undefined,
-      };
+        proofImageUrl: proofImagePath,
+      } as any;
     } else {
       // Add new
       if (!reminder.completionHistory) {
@@ -175,16 +204,18 @@ export class RemindersService {
         date: completionDate,
         completed: dto.completed,
         completedAt: dto.completed ? new Date() : undefined,
-      });
+        proofImageUrl: proofImagePath,
+      } as any);
     }
 
     await reminder.save();
 
     return {
       message: dto.completed
-        ? 'Task marked as completed'
+        ? 'Task marked as completed with proof'
         : 'Task marked as incomplete',
       reminder: this.formatReminder(reminder),
+      proofImageUrl: proofImagePath,
     };
   }
 

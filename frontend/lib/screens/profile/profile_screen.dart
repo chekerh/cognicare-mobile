@@ -418,7 +418,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _headerButton(Icons.settings),
+                        _headerButton(
+                          Icons.settings,
+                          onTap: () => context.push(AppConstants.familySettingsRoute),
+                        ),
                         Column(
                           children: [
                             Text(
@@ -631,12 +634,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _headerButton(IconData icon) {
+  Widget _headerButton(IconData icon, {VoidCallback? onTap}) {
     return Material(
       color: Colors.white.withOpacity(0.3),
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
-        onTap: () {},
+        onTap: onTap ?? () {},
         borderRadius: BorderRadius.circular(20),
         child: SizedBox(
           width: 40,

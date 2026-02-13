@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/availability_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
+import '../../services/children_service.dart';
 import '../../utils/constants.dart';
 import 'child_profile_setup_screen.dart';
 
@@ -192,6 +193,8 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                   const SizedBox(height: 8),
                   _buildPlayWithLeoCard(context),
                   const SizedBox(height: 24),
+                  _buildDailyRoutineCard(context),
+                  const SizedBox(height: 24),
                   _buildProgressSection(context),
                   const SizedBox(height: 24),
                   _buildTwoColumnCards(context),
@@ -307,6 +310,110 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                 ),
               ),
               const Icon(Icons.arrow_forward_ios_rounded, color: _primary, size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDailyRoutineCard(BuildContext context) {
+    return _Card(
+      child: InkWell(
+        onTap: () async {
+          try {
+            final childrenService = ChildrenService(
+              getToken: () => AuthService().getStoredToken(),
+            );
+            final children = await childrenService.getChildren();
+            
+            if (!mounted) return;
+            
+            if (children.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Veuillez d\'abord ajouter un profil d\'enfant'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+              return;
+            }
+            
+            // Prendre le premier enfant
+            final firstChild = children.first;
+            
+            context.push(
+              '/family/child-daily-routine',
+              extra: {'childId': firstChild.id},
+            );
+          } catch (e) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Erreur: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Row(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      _primaryDark,
+                      _primary,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _primaryDark.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: Text(
+                    '📅',
+                    style: TextStyle(fontSize: 32),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Routine & Rappels',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: _slate800,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Voir les tâches quotidiennes de votre enfant',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: _slate500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded, color: _primaryDark, size: 18),
             ],
           ),
         ),
@@ -508,60 +615,6 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                 ),
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _Card(
-                child: InkWell(
-                  onTap: () {
-                    // Navigate directly with empty childId
-                    // The screen will handle the empty state
-                    context.push(
-                      AppConstants.familyChildDailyRoutineRoute,
-                      extra: {'childId': ''},
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: _primary.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.calendar_today_rounded, color: _primary, size: 22),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Routine Quotidienne',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: _slate800,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Gérer les tâches',
-                          style: TextStyle(fontSize: 12, color: _slate500),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            // Empty space for symmetry, or add another card later
-            Expanded(child: Container()),
           ],
         ),
       ],

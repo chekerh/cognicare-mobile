@@ -79,6 +79,7 @@ export class TaskReminder {
         date: Date,
         completed: Boolean,
         completedAt: Date,
+        proofImageUrl: String,
       },
     ],
     default: [],
@@ -87,6 +88,7 @@ export class TaskReminder {
     date: Date;
     completed: boolean;
     completedAt?: Date;
+    proofImageUrl?: string;
   }>;
 
   @Prop({ default: true })

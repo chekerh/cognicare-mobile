@@ -747,4 +747,67 @@ export class AuthService {
 
     return true;
   }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const user = await this.userModel.findById(userId).select('+password');
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Hash and save new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    // Optionally: Invalidate all refresh tokens for security
+    await this.refreshTokenModel.deleteMany({ userId: user._id });
+  }
+
+  async changeEmail(userId: string, newEmail: string): Promise<void> {
+    // Check if email is already in use
+    const existingUser = await this.userModel.findOne({ email: newEmail });
+    if (existingUser) {
+      throw new BadRequestException('Email already in use');
+    }
+
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Generate verification code for new email
+    const code = this.generateRandomCode(6);
+    const hashedCode = await bcrypt.hash(code, 10);
+    
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+
+    // Delete any existing verification for this email
+    await this.emailVerificationModel.deleteMany({ email: newEmail });
+
+    // Create new verification record
+    const verification = new this.emailVerificationModel({
+      email: newEmail,
+      code: hashedCode,
+      expiresAt,
+      verified: false,
+    });
+    await verification.save();
+
+    // Send verification email to new address
+    await this.mailService.sendVerificationCode(newEmail, code);
+
+    // Note: Email is not updated yet. User must verify the code first.
+    // You may want to add a separate endpoint to complete email change after verification.
+  }
 }

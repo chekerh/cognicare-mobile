@@ -144,7 +144,10 @@ class AppConstants {
   static const String familyGameSuccessRoute = '/family/game-success';
   static const String familyGamesSelectionRoute = '/family/games';
   static const String familyChildDailyRoutineRoute = '/family/child-daily-routine';
+  static const String familyCreateReminderRoute = '/family/create-reminder';
+  static const String familyMedicineVerificationRoute = '/family/medicine-verification';
   static const String familyReminderNotificationRoute = '/family/reminder-notification';
+  static const String familySettingsRoute = '/family/settings';
 
   // Volunteer sector routes (JWT-protected, role: volunteer)
   static const String volunteerRoute = '/volunteer';

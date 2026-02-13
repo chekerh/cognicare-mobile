@@ -142,8 +142,10 @@ class TaskReminder {
         return ReminderFrequency.daily;
       case 'weekly':
         return ReminderFrequency.weekly;
-      default:
+      case 'interval':
         return ReminderFrequency.interval;
+      default:
+        return ReminderFrequency.daily;
     }
   }
 

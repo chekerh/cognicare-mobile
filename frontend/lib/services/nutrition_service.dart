@@ -8,6 +8,27 @@ class NutritionService {
 
   NutritionService({required this.getToken});
 
+  Future<List<NutritionPlan>> getNutritionPlansByChild(String childId) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+
+    final response = await http.get(
+      Uri.parse('${AppConstants.baseUrl}${AppConstants.nutritionPlansByChildEndpoint(childId)}'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
+      return data.map((json) => NutritionPlan.fromJson(json as Map<String, dynamic>)).toList();
+    } else {
+      final error = jsonDecode(response.body) as Map<String, dynamic>;
+      throw Exception(error['message'] ?? 'Failed to get nutrition plans');
+    }
+  }
+
   Future<NutritionPlan> createNutritionPlan(Map<String, dynamic> planData) async {
     final token = await getToken();
     if (token == null) throw Exception('Not authenticated');
@@ -22,41 +43,14 @@ class NutritionService {
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return NutritionPlan.fromJson(data);
+      return NutritionPlan.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
       final error = jsonDecode(response.body) as Map<String, dynamic>;
       throw Exception(error['message'] ?? 'Failed to create nutrition plan');
     }
   }
 
-  Future<NutritionPlan> getNutritionPlanByChildId(String childId) async {
-    final token = await getToken();
-    if (token == null) throw Exception('Not authenticated');
-
-    final response = await http.get(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.nutritionPlansByChildEndpoint(childId)}'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return NutritionPlan.fromJson(data);
-    } else if (response.statusCode == 404) {
-      throw Exception('No nutrition plan found for this child');
-    } else {
-      final error = jsonDecode(response.body) as Map<String, dynamic>;
-      throw Exception(error['message'] ?? 'Failed to get nutrition plan');
-    }
-  }
-
-  Future<NutritionPlan> updateNutritionPlan(
-    String planId,
-    Map<String, dynamic> updates,
-  ) async {
+  Future<NutritionPlan> updateNutritionPlan(String planId, Map<String, dynamic> planData) async {
     final token = await getToken();
     if (token == null) throw Exception('Not authenticated');
 
@@ -66,33 +60,14 @@ class NutritionService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode(updates),
+      body: jsonEncode(planData),
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      return NutritionPlan.fromJson(data);
+      return NutritionPlan.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
     } else {
       final error = jsonDecode(response.body) as Map<String, dynamic>;
       throw Exception(error['message'] ?? 'Failed to update nutrition plan');
-    }
-  }
-
-  Future<void> deleteNutritionPlan(String planId) async {
-    final token = await getToken();
-    if (token == null) throw Exception('Not authenticated');
-
-    final response = await http.delete(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.nutritionPlanEndpoint(planId)}'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    if (response.statusCode != 200) {
-      final error = jsonDecode(response.body) as Map<String, dynamic>;
-      throw Exception(error['message'] ?? 'Failed to delete nutrition plan');
     }
   }
 }

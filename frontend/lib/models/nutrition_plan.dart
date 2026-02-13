@@ -1,3 +1,63 @@
+class Medication {
+  final String name;
+  final String dosage;
+  final String time;
+  final bool withFood;
+  final String? notes;
+
+  Medication({
+    required this.name,
+    required this.dosage,
+    required this.time,
+    required this.withFood,
+    this.notes,
+  });
+
+  factory Medication.fromJson(Map<String, dynamic> json) {
+    return Medication(
+      name: json['name'] ?? '',
+      dosage: json['dosage'] ?? '',
+      time: json['time'] ?? '',
+      withFood: json['withFood'] ?? false,
+      notes: json['notes'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'dosage': dosage,
+      'time': time,
+      'withFood': withFood,
+      if (notes != null) 'notes': notes,
+    };
+  }
+}
+
+class Snack {
+  final String time;
+  final List<String> items;
+
+  Snack({
+    required this.time,
+    required this.items,
+  });
+
+  factory Snack.fromJson(Map<String, dynamic> json) {
+    return Snack(
+      time: json['time'] ?? '',
+      items: (json['items'] as List<dynamic>?)?.cast<String>() ?? [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'time': time,
+      'items': items,
+    };
+  }
+}
+
 class NutritionPlan {
   final String id;
   final String childId;
@@ -50,23 +110,25 @@ class NutritionPlan {
       createdBy: json['createdBy'] ?? '',
       dailyWaterGoal: json['dailyWaterGoal'] ?? 6,
       waterReminderInterval: json['waterReminderInterval'] ?? 120,
-      breakfast: (json['breakfast'] as List<dynamic>?)?.cast<String>() ?? [],
+      breakfast:
+          (json['breakfast'] as List<dynamic>?)?.cast<String>() ?? [],
       breakfastTime: json['breakfastTime'],
       lunch: (json['lunch'] as List<dynamic>?)?.cast<String>() ?? [],
       lunchTime: json['lunchTime'],
       dinner: (json['dinner'] as List<dynamic>?)?.cast<String>() ?? [],
       dinnerTime: json['dinnerTime'],
       snacks: (json['snacks'] as List<dynamic>?)
-              ?.map((e) => Snack.fromJson(e as Map<String, dynamic>))
+              ?.map((s) => Snack.fromJson(s as Map<String, dynamic>))
               .toList() ??
           [],
-      allergies: (json['allergies'] as List<dynamic>?)?.cast<String>() ?? [],
+      allergies:
+          (json['allergies'] as List<dynamic>?)?.cast<String>() ?? [],
       restrictions:
           (json['restrictions'] as List<dynamic>?)?.cast<String>() ?? [],
       preferences:
           (json['preferences'] as List<dynamic>?)?.cast<String>() ?? [],
       medications: (json['medications'] as List<dynamic>?)
-              ?.map((e) => Medication.fromJson(e as Map<String, dynamic>))
+              ?.map((m) => Medication.fromJson(m as Map<String, dynamic>))
               .toList() ??
           [],
       specialNotes: json['specialNotes'],
@@ -86,72 +148,18 @@ class NutritionPlan {
       'dailyWaterGoal': dailyWaterGoal,
       'waterReminderInterval': waterReminderInterval,
       'breakfast': breakfast,
-      'breakfastTime': breakfastTime,
+      if (breakfastTime != null) 'breakfastTime': breakfastTime,
       'lunch': lunch,
-      'lunchTime': lunchTime,
+      if (lunchTime != null) 'lunchTime': lunchTime,
       'dinner': dinner,
-      'dinnerTime': dinnerTime,
+      if (dinnerTime != null) 'dinnerTime': dinnerTime,
       'snacks': snacks.map((s) => s.toJson()).toList(),
       'allergies': allergies,
       'restrictions': restrictions,
       'preferences': preferences,
       'medications': medications.map((m) => m.toJson()).toList(),
-      'specialNotes': specialNotes,
+      if (specialNotes != null) 'specialNotes': specialNotes,
       'isActive': isActive,
-    };
-  }
-}
-
-class Snack {
-  final String time;
-  final List<String> items;
-
-  Snack({required this.time, required this.items});
-
-  factory Snack.fromJson(Map<String, dynamic> json) {
-    return Snack(
-      time: json['time'] ?? '',
-      items: (json['items'] as List<dynamic>?)?.cast<String>() ?? [],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'time': time, 'items': items};
-  }
-}
-
-class Medication {
-  final String name;
-  final String dosage;
-  final String time;
-  final bool withFood;
-  final String? notes;
-
-  Medication({
-    required this.name,
-    required this.dosage,
-    required this.time,
-    this.withFood = false,
-    this.notes,
-  });
-
-  factory Medication.fromJson(Map<String, dynamic> json) {
-    return Medication(
-      name: json['name'] ?? '',
-      dosage: json['dosage'] ?? '',
-      time: json['time'] ?? '',
-      withFood: json['withFood'] ?? false,
-      notes: json['notes'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'dosage': dosage,
-      'time': time,
-      'withFood': withFood,
-      'notes': notes,
     };
   }
 }

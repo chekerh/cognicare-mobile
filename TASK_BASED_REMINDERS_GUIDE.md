@@ -1,422 +1,399 @@
-# Task-Based Reminders & Nutrition System - Implementation Guide
+# Système de Routine Quotidienne et Rappels - CogniCare
 
-## Overview
-This implementation provides a comprehensive task-based reminder system integrated with nutrition planning for children with cognitive health needs. The system supports reminders for water intake, meals, medication, homework, and other daily activities, with optional Raspberry Pi integration for physical reminders.
+## 📋 Vue d'ensemble
 
-## Backend Implementation (NestJS)
+Ce système permet aux parents de créer et gérer des rappels basés sur des tâches pour leurs enfants (boire de l'eau, prendre des médicaments, faire les devoirs, etc.). Les rappels sont intégrés avec le plan nutritionnel de l'enfant.
 
-### 1. Database Schemas
+## ✨ Nouveautés (Dernière mise à jour)
 
-#### Nutrition Plan Schema (`/backend/src/nutrition/schemas/nutrition-plan.schema.ts`)
-- **Purpose**: Store personalized meal plans, hydration goals, and dietary restrictions
-- **Key Features**:
-  - Daily water intake goals with customizable reminder intervals
-  - Meal planning (breakfast, lunch, dinner) with specific times
-  - Snack scheduling with custom times
-  - Food allergies and dietary restrictions tracking
-  - Medication tracking with dosage and timing
-  - Linked to child and creator (parent/healthcare professional)
+### 🎯 Système de Templates
+- **8 tâches pré-configurées** prêtes à l'emploi
+- **Création instantanée** en un clic
+- **Interface moderne** avec grille colorée
+- **Personnalisation** : chaque tâche a son icône, couleur et horaire
 
-#### Task Reminder Schema (`/backend/src/nutrition/schemas/task-reminder.schema.ts`)
-- **Purpose**: Store task reminders with flexible scheduling
-- **Key Features**:
-  - Multiple reminder types (water, meal, medication, homework, activity, hygiene, custom)
-  - Flexible frequency (once, daily, weekly, interval)
-  - Completion history tracking per day
-  - Sound/vibration settings
-  - Raspberry Pi sync capability
-  - Color-coded visual customization
+### 🚀 Expérience Utilisateur Optimisée
+- **Bouton FAB** : Accès rapide à la création depuis la routine
+- **État vide intelligent** : Guide l'utilisateur vers la création
+- **Rafraîchissement automatique** : Liste mise à jour après chaque ajout
+- **Messages de confirmation** : Feedback visuel à chaque action
 
-### 2. API Endpoints
+### 💊 Vérification par Photo pour Médicaments ⭐ NOUVEAU
+- **Preuve obligatoire** : Pour les tâches de type "Médicament", une photo est requise
+- **Capture automatique** : Ouverture de la caméra pour prendre un selfie
+- **Instructions claires** : Guide l'enfant étape par étape
+- **Stockage sécurisé** : Les photos sont sauvegardées côté serveur
+- **Interface animée** : Animations et feedback visuels encourageants
+- **Validation instantanée** : Confirmation visuelle une fois la photo prise
 
-#### Nutrition Endpoints
+## 🎯 Fonctionnalités
+
+### Frontend (Flutter)
+
+#### Écrans créés :
+1. **Child Daily Routine Screen** (`child_daily_routine_screen.dart`)
+   - Affiche toutes les tâches du jour de l'enfant
+   - Permet de cocher/décocher les tâches complétées
+   - Barre de progression visuelle
+   - Design adapté aux enfants avec de grandes icônes et couleurs
+   - **Bouton FAB "Ajouter une tâche"** pour créer rapidement de nouveaux rappels
+   - État vide avec bouton d'action pour ajouter des tâches
+
+2. **Create Reminder Screen** (`create_reminder_screen.dart`) ⭐ NOUVEAU
+   - Interface de création de rappels avec **templates pré-configurés**
+   - 8 tâches courantes disponibles en un clic :
+     - 🪥 Brush Teeth (Se brosser les dents)
+     - 💊 Take Medicine (Prendre les médicaments)
+     - 😊 Wash Face (Se laver le visage)
+     - 👕 Get Dressed (S'habiller)
+     - 🍴 Eat Breakfast (Prendre le petit-déjeuner)
+     - 💧 Drink Water (Boire de l'eau)
+     - 🎒 Pack Bag (Préparer le sac)
+     - 📚 Do Homework (Faire les devoirs)
+   - Chaque template inclut : icône, titre, description, heure/fréquence, couleur
+   - Design en grille moderne et coloré
+   - Création instantanée en un clic
+
+3. **Reminder Notification Screen** (`reminder_notification_screen.dart`)
+   - Notification visuelle animée pour chaque rappel
+   - Grande icône animée avec un smiley
+   - Badge Raspberry Pi connecté
+   - Cercle de temps animé
+
+4. **Carte Dashboard** (dans `family_member_dashboard_screen.dart`)
+   - Nouvelle carte "Routine & Rappels" dans le dashboard famille
+   - Navigation automatique vers la routine quotidienne
+
+#### Models :
+- **TaskReminder** : Modèle pour les rappels de tâches
+  - Types : water, meal, medication, homework, activity, hygiene, custom
+  - Fréquences : once, daily, weekly, interval
+  - Paramètres : son, vibration, sync Raspberry Pi
+
+- **NutritionPlan** : Modèle pour les plans nutritionnels
+  - Objectifs d'hydratation
+  - Horaires des repas
+  - Médicaments et suppléments
+  - Allergies et restrictions
+
+#### Services :
+- **RemindersService** : Communication avec l'API des rappels
+  - `getTodayReminders(childId)` : Récupère les rappels du jour
+  - `completeTask(reminderId, completed, date)` : Marque une tâche comme complétée
+
+- **NutritionService** : Communication avec l'API nutrition
+  - `getNutritionPlansByChild(childId)` : Récupère les plans nutritionnels
+  - `createNutritionPlan(planData)` : Crée un nouveau plan
+  - `updateNutritionPlan(planId, planData)` : Met à jour un plan
+
+### Backend (NestJS)
+
+#### Module Nutrition (`backend/src/nutrition/`)
+
+Déjà complètement implémenté avec :
+
+**Contrôleurs :**
+- `NutritionController` : CRUD pour les plans nutritionnels
+- `RemindersController` : CRUD pour les rappels
+
+**Services :**
+- `NutritionService` : Logique métier pour les plans nutritionnels
+- `RemindersService` : Logique métier pour les rappels
+
+**Endpoints principaux :**
 ```
-POST   /api/v1/nutrition/plans                    - Create nutrition plan
-GET    /api/v1/nutrition/plans/child/:childId     - Get active plan for child
-PATCH  /api/v1/nutrition/plans/:planId            - Update nutrition plan
-DELETE /api/v1/nutrition/plans/:planId            - Deactivate plan
+POST   /api/v1/reminders                      - Créer un rappel
+GET    /api/v1/reminders/child/:childId       - Tous les rappels d'un enfant
+GET    /api/v1/reminders/child/:childId/today - Rappels du jour
+PATCH  /api/v1/reminders/:reminderId          - Modifier un rappel
+POST   /api/v1/reminders/complete             - Marquer une tâche comme complétée
+DELETE /api/v1/reminders/:reminderId          - Désactiver un rappel
+GET    /api/v1/reminders/child/:childId/stats - Statistiques de complétion
+
+POST   /api/v1/nutrition/plans                      - Créer un plan nutritionnel
+GET    /api/v1/nutrition/plans/child/:childId       - Plans d'un enfant
+PATCH  /api/v1/nutrition/plans/:planId              - Modifier un plan
 ```
 
-#### Reminder Endpoints
-```
-POST   /api/v1/reminders                          - Create task reminder
-GET    /api/v1/reminders/child/:childId           - Get all reminders for child
-GET    /api/v1/reminders/child/:childId/today     - Get today's reminders
-PATCH  /api/v1/reminders/:reminderId              - Update reminder
-POST   /api/v1/reminders/complete                 - Mark task as completed
-DELETE /api/v1/reminders/:reminderId              - Deactivate reminder
-GET    /api/v1/reminders/child/:childId/stats     - Get completion statistics
-```
+## 🔄 Flux de données
 
-### 3. Security & Authorization
-- Only parents and healthcare professionals can manage nutrition plans and reminders
-- JWT authentication required for all endpoints
-- Role-based access control (family, doctor, psychologist, speech_therapist, occupational_therapist)
-- Child ownership verification for all operations
+1. **Affichage de la routine quotidienne :**
+   ```
+   Dashboard → Carte "Routine & Rappels" → Child Daily Routine Screen
+   → RemindersService.getTodayReminders(childId)
+   → Backend /api/v1/reminders/child/:childId/today
+   → Affichage des tâches avec état de complétion
+   ```
 
-### 4. Data Validation
-- Comprehensive DTOs with class-validator decorators
-- Swagger/OpenAPI documentation for all endpoints
-- Type-safe request/response handling
+2. **Complétion d'une tâche :**
+   ```
+   User clique sur checkbox → RemindersService.completeTask()
+   → Backend /api/v1/reminders/complete
+   → Mise à jour de l'UI + Message de félicitation
+   ```
 
-## Frontend Implementation (Flutter)
+3. **Navigation vers notification :**
+   ```
+   User clique sur une tâche → Navigation avec extras
+   → Reminder Notification Screen avec animation
+   ```
 
-### 1. Models
+## 🎨 Design
 
-#### NutritionPlan (`/frontend/lib/models/nutrition_plan.dart`)
-- Includes nested models for Snack and Medication
-- JSON serialization for API communication
-- Comprehensive field validation
+Le design suit les mockups fournis avec :
+- Fond bleu ciel (#BFE3F5)
+- Cartes blanches avec ombres légères
+- Grandes icônes emoji pour chaque type de tâche
+- Animations fluides (scale, rotation)
+- Barre de progression visuelle
+- État vide avec message encourageant
 
-#### TaskReminder (`/frontend/lib/models/task_reminder.dart`)
-- Enum-based type and frequency definitions
-- Completion status tracking
-- Immutable copyWith method for state updates
+## 🔐 Sécurité
 
-### 2. Services
+- Toutes les routes sont protégées par JWT (`JwtAuthGuard`)
+- Vérification des permissions (rôle `family` requis)
+- Validation des relations parent-enfant dans le backend
 
-#### NutritionService (`/frontend/lib/services/nutrition_service.dart`)
-- Full CRUD operations for nutrition plans
-- Error handling with user-friendly messages
-- Token-based authentication
+## 🚀 Utilisation
 
-#### RemindersService (`/frontend/lib/services/reminders_service.dart`)
-- Reminder management (create, update, delete)
-- Task completion tracking
-- Statistics retrieval (completion rates, daily stats)
-- Today's reminders filtering
+### Comment ajouter des tâches pour votre enfant :
 
-### 3. User Interfaces
+**Méthode 1 : Via l'état vide (première fois)**
+1. Allez dans le Dashboard Famille
+2. Cliquez sur la carte **"Routine & Rappels"**
+3. Dans l'écran vide, cliquez sur **"Ajouter des tâches"**
+4. Sélectionnez une ou plusieurs tâches parmi les templates
+5. Les tâches apparaîtront immédiatement dans la routine quotidienne
 
-#### Child Daily Routine Screen (`/frontend/lib/screens/family/child_daily_routine_screen.dart`)
-**Purpose**: Visual routine checklist for children (matching provided screenshot)
-**Features**:
-- Color-coded task cards with icons
-- Tap-to-complete checkboxes with immediate visual feedback
-- Progress tracking (X / Y tasks completed)
-- Time-based filtering (morning, afternoon, evening routines)
-- Raspberry Pi connection status indicator
-- Encouraging completion messages
-- Supports custom task icons (emojis or Material icons)
+**Méthode 2 : Via le bouton FAB (après avoir des tâches)**
+1. Dans l'écran "Child Daily Visual Routine"
+2. Cliquez sur le bouton **"+ Ajouter une tâche"** en bas à droite
+3. Sélectionnez les nouvelles tâches à ajouter
+4. La liste se rafraîchit automatiquement
 
-**Visual Design**:
-- Light blue background (#BFE3F5)
-- White task cards with rounded corners
-- Large, accessible icons and text
-- Clear visual hierarchy for child-friendly UX
+**Méthode 3 : Par programmation (pour développeurs)**
 
-#### Reminder Notification Screen (`/frontend/lib/screens/family/reminder_notification_screen.dart`)
-**Purpose**: Full-screen reminder notification (matching provided screenshot)
-**Features**:
-- Animated pulsing icon
-- Large, clear task title and time display
-- "I'm done!" action button
-- "Remind me later" option
-- Raspberry Pi sync indicator
-- Smooth animations for engagement
-
-**Visual Design**:
-- Centered content with large touch targets
-- Animated circular icon container
-- Pulsing time display for attention
-- High contrast colors for accessibility
-
-## Integration Points
-
-### 1. With Existing Child Profile
 ```dart
-// Get child ID from auth provider or navigation
-final childId = context.read<AuthProvider>().user?.childrenIds?.first;
-
-// Load reminders for child
-final reminders = await RemindersService().getTodayReminders(childId);
-```
-
-### 2. With Gamification System
-```dart
-// After task completion, award points
-if (completed) {
-  await GamificationService().awardPoints(
-    childId: childId,
-    points: 10,
-    reason: 'Completed ${reminder.title}',
-  );
-}
-```
-
-### 3. With Raspberry Pi (Future Enhancement)
-- Use `piSyncEnabled` flag on reminders
-- Backend can trigger Pi notifications via MQTT or WebSocket
-- Pi displays physical reminder (LED, speaker, screen)
-- Child interaction tracked back to app
-
-## Usage Examples
-
-### Creating a Nutrition Plan (Parent Dashboard)
-```dart
-final nutritionService = NutritionService(
-  getToken: () async => authProvider.accessToken,
-);
-
-final plan = await nutritionService.createNutritionPlan({
-  'childId': childId,
-  'dailyWaterGoal': 6,
-  'waterReminderInterval': 120, // every 2 hours
-  'breakfast': ['Oatmeal', 'Banana', 'Milk'],
-  'breakfastTime': '08:00',
-  'lunch': ['Chicken', 'Rice', 'Vegetables'],
-  'lunchTime': '12:30',
-  'medications': [
-    {
-      'name': 'Melatonin',
-      'dosage': '1mg',
-      'time': '20:00',
-      'withFood': false,
-    }
-  ],
-  'allergies': ['Peanuts', 'Dairy'],
-});
-```
-
-### Creating Task Reminders
-```dart
-final remindersService = RemindersService(
-  getToken: () async => authProvider.accessToken,
-);
-
-// Water reminder every 2 hours
-await remindersService.createReminder({
+final reminderData = {
   'childId': childId,
   'type': 'water',
-  'title': 'Drink Water',
-  'description': 'Remember to drink a full glass of water',
-  'icon': '💧',
-  'color': '#3B82F6',
+  'title': 'Boire de l\'eau',
+  'description': 'N\'oublie pas de boire un grand verre d\'eau',
   'frequency': 'interval',
   'intervalMinutes': 120,
   'soundEnabled': true,
   'vibrationEnabled': true,
-  'piSyncEnabled': true,
-});
+  'piSyncEnabled': false,
+};
 
-// Medication reminder at specific time
-await remindersService.createReminder({
-  'childId': childId,
-  'type': 'medication',
-  'title': 'Take Medicine',
-  'description': 'Melatonin 1mg',
-  'icon': '💊',
-  'time': '20:00',
-  'frequency': 'daily',
-  'soundEnabled': true,
-});
+await RemindersService(
+  getToken: () => AuthService().getStoredToken(),
+).createReminder(reminderData);
 ```
 
-### Displaying Child Routine
-```dart
-// Navigate to routine screen
-context.push('/family/child-routine', extra: {
-  'childId': childId,
-  'routineType': 'morning', // or 'afternoon', 'evening', null
-});
+### Templates disponibles :
+
+| Icône | Tâche | Fréquence | Horaire | Type |
+|-------|-------|-----------|---------|------|
+| 🪥 | Brush Teeth | Quotidien | 08:00 | Hygiène |
+| 💊 | Take Medicine | Quotidien | 09:00 | Médicament |
+| 😊 | Wash Face | Quotidien | 08:30 | Hygiène |
+| 👕 | Get Dressed | Quotidien | 08:45 | Activité |
+| 🍴 | Eat Breakfast | Quotidien | 09:00 | Repas |
+| 💧 | Drink Water | Intervalle | 120min | Eau |
+| 🎒 | Pack Bag | Quotidien | 10:00 | Activité |
+| 📚 | Do Homework | Quotidien | 16:00 | Devoirs |
+
+## 📱 Intégration Raspberry Pi
+
+Le système est prêt pour l'intégration avec Raspberry Pi :
+- Badge "PI CONNECTÉ" dans l'interface
+- Flag `piSyncEnabled` dans les rappels
+- Peut envoyer des notifications physiques via le Pi
+
+## 💊 Système de Vérification par Photo (Médicaments)
+
+### Comment ça marche ?
+
+Quand un enfant essaie de cocher une tâche de type **"Take Medicine"**, au lieu de simplement la marquer comme complétée, le système :
+
+1. **Détecte automatiquement** que c'est une tâche médicament
+2. **Ouvre l'écran de vérification** avec instructions claires
+3. **Active la caméra frontale** pour un selfie
+4. **Guide l'enfant** avec 3 étapes illustrées :
+   - 📦 Préparer les médicaments
+   - 💧 Les prendre avec de l'eau
+   - 📸 Prendre une photo (selfie)
+5. **Permet de reprendre** la photo si nécessaire
+6. **Envoie la preuve** au serveur avec validation
+7. **Affiche une confirmation** avec message encourageant
+
+### Architecture Technique
+
+#### Frontend (Flutter)
+```
+child_daily_routine_screen.dart
+  ↓ Clic sur checkbox médicament
+_toggleTaskCompletion() détecte ReminderType.medication
+  ↓ Navigation vers
+MedicineVerificationScreen
+  ↓ Utilise ImagePicker
+Capture photo (source: camera, frontale)
+  ↓ Preview + validation
+RemindersService.completeTaskWithProof()
+  ↓ Upload multipart/form-data
+Backend reçoit image + données
 ```
 
-### Marking Task Complete
-```dart
-await remindersService.completeTask(
-  reminderId: reminder.id,
-  completed: true,
-  date: DateTime.now(),
-);
-
-// Show encouragement
-ScaffoldMessenger.of(context).showSnackBar(
-  SnackBar(
-    content: Text('Great job staying hydrated! 💧'),
-    backgroundColor: Colors.green,
-  ),
-);
+#### Backend (NestJS)
+```
+POST /api/v1/reminders/complete
+  ↓ @UseInterceptors(FileInterceptor('proofImage'))
+RemindersController.completeTask()
+  ↓ Reçoit DTO + fichier optionnel
+RemindersService.completeTask()
+  ↓ Sauvegarde dans /uploads/proof-images/
+Mise à jour TaskReminder.completionHistory
+  ↓ Ajout proofImageUrl
+Retour avec succès
 ```
 
-### Getting Completion Statistics
-```dart
-final stats = await remindersService.getCompletionStats(
-  childId,
-  days: 7, // last 7 days
-);
+### Structure de Stockage
 
-// Returns:
-// {
-//   totalReminders: 10,
-//   totalTasks: 70,     // 10 reminders × 7 days
-//   completedTasks: 56,
-//   completionRate: 80, // percentage
-//   dailyStats: [
-//     {date: '2026-02-13', total: 10, completed: 8},
-//     ...
-//   ]
-// }
+**Fichiers :**
+```
+backend/uploads/proof-images/
+  ├── 679f6619aac148861803c_1739482520000_proof.jpg
+  ├── 679f6619aac148861803c_1739482680000_proof.jpg
+  └── ...
 ```
 
-## Raspberry Pi Integration Guide
-
-### Hardware Setup
-1. Raspberry Pi 3/4 with speaker/LED display
-2. Network connection (WiFi or Ethernet)
-3. Optional: Physical button for task completion
-
-### Software Architecture
-```
-Backend (NestJS)
-    ↓ (MQTT/WebSocket)
-Raspberry Pi (Python/Node.js)
-    ↓ (GPIO/Audio)
-Physical Output (LED/Speaker/Display)
+**Base de données (MongoDB) :**
+```json
+{
+  "completionHistory": [
+    {
+      "date": "2026-02-13T00:00:00.000Z",
+      "completed": true,
+      "completedAt": "2026-02-13T14:30:00.000Z",
+      "proofImageUrl": "/uploads/proof-images/679f6619aac148861803c_1739482520000_proof.jpg"
+    }
+  ]
+}
 ```
 
-### Example Pi Integration Flow
-1. Backend detects reminder time
-2. Sends MQTT message to Pi: `{childId, reminderId, title, icon, time}`
-3. Pi displays reminder on screen + plays sound
-4. Child presses button or app to complete
-5. Pi sends completion back to backend
-6. Backend updates completion history
+### Sécurité
 
-### MQTT Topics (Suggested)
-```
-cognicare/{childId}/reminders/trigger
-cognicare/{childId}/reminders/complete
-cognicare/{childId}/status
-```
+1. **Authentification JWT** : Requise pour upload
+2. **Validation des permissions** : Vérification parent-enfant
+3. **Type MIME** : Validation des formats image
+4. **Noms de fichiers uniques** : `{reminderId}_{timestamp}_{original}`
+5. **Stockage isolé** : Dossier dédié aux preuves
 
-## Testing Checklist
+### Configuration Requise
 
-### Backend Testing
-- ✅ Nutrition plan CRUD operations
-- ✅ Reminder CRUD operations
-- ✅ Authorization (only parent/healthcare can manage)
-- ✅ Child ownership validation
-- ✅ Completion tracking accuracy
-- ✅ Statistics calculation (7-day, 30-day)
+**Frontend :**
+- Package `image_picker: ^1.0.7` (✅ ajouté dans `pubspec.yaml`)
+- Permissions caméra dans `Info.plist` (iOS) et `AndroidManifest.xml` (Android)
+- **📖 Voir le guide complet** : `CAMERA_PERMISSIONS_SETUP.md`
 
-### Frontend Testing
-- ✅ Nutrition plan form validation
-- ✅ Reminder creation with all types
-- ✅ Daily routine display
-- ✅ Task completion UI feedback
-- ✅ Progress bar accuracy
-- ✅ Time-based filtering (morning/afternoon/evening)
+**Backend :**
+- Multer (déjà inclus avec NestJS)
+- Dossier `uploads/proof-images/` créé automatiquement
+- Aucune configuration supplémentaire requise
 
-### Integration Testing
-- ⏳ End-to-end: Create plan → Create reminders → Display → Complete → Stats
-- ⏳ Raspberry Pi sync (if applicable)
-- ⏳ Local notifications (requires flutter_local_notifications setup)
-
-## Next Steps
-
-### Immediate Enhancements
-1. **Local Notifications**: Add flutter_local_notifications package
-   ```yaml
-   dependencies:
-     flutter_local_notifications: ^17.0.0
-   ```
-
-2. **Schedule Background Jobs**: Use Android WorkManager / iOS Background Fetch
-   ```dart
-   // Schedule daily reminder checks
-   Workmanager().registerPeriodicTask(
-     "reminderCheck",
-     "checkReminders",
-     frequency: Duration(hours: 1),
-   );
-   ```
-
-3. **Parent Configuration UI**: Create screens for:
-   - Nutrition plan editor
-   - Reminder scheduler
-   - Completion history viewer
-   - Settings (sounds, vibration, Pi sync)
-
-4. **Gamification Integration**:
-   ```dart
-   // After completing 5 tasks in a day
-   if (completedToday >= 5) {
-     await StickerBookProvider().unlockSticker('hydration_hero');
-   }
-   ```
-
-### Advanced Features
-- Voice reminders (text-to-speech)
-- AI-powered suggestion (meal planning based on allergies)
-- Progress charts (weekly/monthly completion trends)
-- Multi-language support for task titles
-- Photo uploads for meal verification
-- Family collaboration (multiple parents managing same child)
-
-## File Structure Summary
-
-```
-backend/src/nutrition/
-├── schemas/
-│   ├── nutrition-plan.schema.ts       # MongoDB schema for nutrition plans
-│   └── task-reminder.schema.ts        # MongoDB schema for reminders
-├── dto/
-│   ├── create-nutrition-plan.dto.ts   # Validation for nutrition plan creation
-│   ├── update-nutrition-plan.dto.ts   # Validation for updates
-│   ├── create-task-reminder.dto.ts    # Validation for reminder creation
-│   ├── update-task-reminder.dto.ts    # Validation for updates
-│   └── complete-task.dto.ts           # Validation for task completion
-├── nutrition.controller.ts            # Nutrition plan API endpoints
-├── reminders.controller.ts            # Task reminder API endpoints
-├── nutrition.service.ts               # Nutrition business logic
-├── reminders.service.ts               # Reminder business logic
-└── nutrition.module.ts                # NestJS module configuration
-
-frontend/lib/
-├── models/
-│   ├── nutrition_plan.dart            # Nutrition plan data model
-│   └── task_reminder.dart             # Task reminder data model
-├── services/
-│   ├── nutrition_service.dart         # HTTP client for nutrition API
-│   └── reminders_service.dart         # HTTP client for reminders API
-└── screens/family/
-    ├── child_daily_routine_screen.dart       # Visual routine checklist
-    └── reminder_notification_screen.dart     # Full-screen reminder alert
-```
-
-## API Documentation
-
-Access Swagger documentation at: `http://localhost:3000/api`
-
-- All endpoints require JWT Bearer token
-- Comprehensive request/response examples
-- Try-it-out functionality for testing
-
-## Support & Troubleshooting
-
-### Common Issues
-
-1. **"Nutrition plan not found"**: Create a plan first before accessing reminders
-2. **"Not authorized"**: Ensure user is parent of child or healthcare professional
-3. **Reminders not showing**: Check if child has any active reminders with `isActive: true`
-4. **Pi sync not working**: Verify `piSyncEnabled` flag and network connectivity
-
-### Debug Endpoints
-
+**Installation :**
 ```bash
-# Get all reminders for child
-curl -H "Authorization: Bearer TOKEN" \
-  http://localhost:3000/api/v1/reminders/child/CHILD_ID
-
-# Get today's reminders
-curl -H "Authorization: Bearer TOKEN" \
-  http://localhost:3000/api/v1/reminders/child/CHILD_ID/today
-
-# Get completion stats
-curl -H "Authorization: Bearer TOKEN" \
-  http://localhost:3000/api/v1/reminders/child/CHILD_ID/stats?days=7
+cd frontend
+flutter pub get
 ```
 
-## Conclusion
+**Pour tester :**
+- Utilisez un **appareil réel** (simulateur/émulateur ont des limitations caméra)
+- Consultez `CAMERA_PERMISSIONS_SETUP.md` pour la configuration complète
 
-This implementation provides a complete task-based reminder system with nutrition planning, designed specifically for children with cognitive health needs. The visual, child-friendly interface encourages engagement, while the comprehensive backend ensures data security and proper authorization. The system is ready for production use and can be extended with local notifications and Raspberry Pi integration for enhanced physical reminders.
+## 📊 Flux Utilisateur Complet
+
+### 1️⃣ Premier lancement (aucune tâche)
+```
+Dashboard Famille
+  ↓ Clic sur "Routine & Rappels"
+Child Daily Visual Routine (État vide)
+  ↓ Clic sur "Ajouter des tâches"
+Create Reminder Screen
+  ↓ Sélection d'une tâche (ex: 🪥 Brush Teeth)
+Création instantanée + Retour automatique
+  ↓
+Child Daily Visual Routine (avec la nouvelle tâche)
+```
+
+### 2️⃣ Ajout de tâches supplémentaires
+```
+Child Daily Visual Routine
+  ↓ Clic sur FAB "+ Ajouter une tâche"
+Create Reminder Screen
+  ↓ Sélection de plusieurs tâches
+Création + Retour
+  ↓
+Liste mise à jour automatiquement
+```
+
+### 3️⃣ Complétion d'une tâche
+```
+Child Daily Visual Routine
+  ↓ Clic sur checkbox d'une tâche
+Appel API pour marquer comme complétée
+  ↓
+✅ Message de félicitation + Mise à jour UI
+  ↓
+Barre de progression mise à jour (ex: 3/7)
+```
+
+### 4️⃣ Voir les détails d'une tâche
+```
+Child Daily Visual Routine
+  ↓ Clic sur une carte de tâche
+Reminder Notification Screen
+  ↓ Affichage animé avec détails
+Grande icône + Description + Temps
+  ↓ Badge "PI CONNECTÉ" si activé
+Animations (rotation, scale, pulsation)
+```
+
+### 5️⃣ Compléter une tâche "Médicament" (avec vérification) 💊📸
+```
+Child Daily Visual Routine
+  ↓ Clic sur checkbox de "Take Medicine"
+Détection automatique → Type = medication
+  ↓ Navigation vers
+Medicine Verification Screen
+  ↓ Instructions affichées
+Étape 1: Préparer médicaments
+Étape 2: Les prendre avec eau
+Étape 3: Prendre photo (selfie)
+  ↓ Clic sur "Prendre une photo"
+Caméra frontale s'ouvre
+  ↓ Capture photo
+Preview avec option "Reprendre"
+  ↓ Clic sur "Valider la prise"
+Upload multipart avec proofImage
+  ↓ Backend sauvegarde image
+Mise à jour completionHistory avec proofImageUrl
+  ↓ Retour automatique
+✅ "Médicament vérifié ! Bravo !"
+  ↓ Liste rafraîchie
+Tâche cochée + barre de progression mise à jour
+```
+
+## 🔮 Prochaines étapes suggérées
+
+1. ✅ **Écran de création de rappels** - ✅ TERMINÉ
+2. **Formulaire personnalisé** : Permettre de créer des tâches personnalisées (titre, heure, fréquence custom)
+3. **Statistiques** : Graphiques de complétion des tâches sur 7/30 jours
+4. **Notifications push** : Intégration avec Firebase pour rappels en temps réel
+5. **Synchronisation Pi** : Protocole MQTT pour les rappels physiques
+6. **Gamification** : Récompenses et badges pour tâches complétées
+7. **Édition de rappels** : Modifier/supprimer les rappels existants
+8. **Historique** : Voir les statistiques de complétion passées
+9. **Plans nutritionnels** : Créer/éditer des plans nutritionnels liés aux rappels
+10. **Mode nuit** : Support du thème sombre

@@ -567,4 +567,92 @@ export class AuthController {
         'Password reset successfully. Please login with your new password.',
     };
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('change-password')
+  @ApiBearerAuth('JWT-auth')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Change password for authenticated user',
+    description: 'Change password by providing current password and new password',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        currentPassword: { type: 'string', example: 'oldPassword123' },
+        newPassword: { type: 'string', example: 'newPassword123' },
+      },
+      required: ['currentPassword', 'newPassword'],
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Password changed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Password changed successfully' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Current password is incorrect',
+    type: ErrorResponseDto,
+  })
+  async changePassword(
+    @Request() req: { user: { id: string } },
+    @Body() body: { currentPassword: string; newPassword: string },
+  ) {
+    await this.authService.changePassword(
+      req.user.id,
+      body.currentPassword,
+      body.newPassword,
+    );
+    return { message: 'Password changed successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('change-email')
+  @ApiBearerAuth('JWT-auth')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Change email for authenticated user',
+    description: 'Request email change (sends verification email)',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        newEmail: { type: 'string', example: 'newemail@example.com' },
+      },
+      required: ['newEmail'],
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Verification email sent',
+    schema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          example: 'Verification email sent to new address',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Email already in use',
+    type: ErrorResponseDto,
+  })
+  async changeEmail(
+    @Request() req: { user: { id: string } },
+    @Body() body: { newEmail: string },
+  ) {
+    await this.authService.changeEmail(req.user.id, body.newEmail);
+    return { message: 'Verification email sent to new address' };
+  }
 }

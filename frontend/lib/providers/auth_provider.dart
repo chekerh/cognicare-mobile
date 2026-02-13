@@ -94,4 +94,20 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
     _authService.saveUser(user); // persist so stored user stays in sync
   }
+
+  Future<void> updateProfilePicture(String newImageUrl) async {
+    if (_user != null) {
+      final updatedUser = User(
+        id: _user!.id,
+        name: _user!.name,
+        email: _user!.email,
+        role: _user!.role,
+        profilePicture: newImageUrl,
+        phone: _user!.phone,
+        createdAt: _user!.createdAt,
+        lastLogin: _user!.lastLogin,
+      );
+      updateUser(updatedUser);
+    }
+  }
 }

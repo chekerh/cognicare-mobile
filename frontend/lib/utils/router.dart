@@ -43,6 +43,8 @@ import '../screens/family/engagement_dashboard_screen.dart';
 import '../screens/family/family_volunteer_profile_screen.dart';
 import '../screens/family/child_daily_routine_screen.dart';
 import '../screens/family/reminder_notification_screen.dart';
+import '../screens/family/create_reminder_screen.dart';
+import '../screens/family/medicine_verification_screen.dart';
 import '../screens/volunteer/volunteer_dashboard_screen.dart';
 import '../screens/volunteer/volunteer_shell_screen.dart';
 import '../screens/volunteer/volunteer_agenda_screen.dart';
@@ -70,6 +72,7 @@ import '../screens/healthcare/healthcare_comparative_screen.dart';
 import '../screens/healthcare/healthcare_protocol_editor_screen.dart';
 import '../screens/healthcare/healthcare_consultation_screen.dart';
 import '../screens/profile/healthcare_profile_screen.dart';
+import '../screens/profile/settings_screen.dart';
 import '../screens/family/create_security_code_screen.dart';
 import '../screens/family/sticker_book_screen.dart';
 import '../screens/family/game_success_screen.dart';
@@ -542,18 +545,31 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           builder: (context, state) => const GamesSelectionScreen(),
         ),
         GoRoute(
-          path: 'create-security-code',
-          builder: (context, state) => const CreateSecurityCodeScreen(),
-        ),
-        GoRoute(
           path: 'child-daily-routine',
           builder: (context, state) {
             final extra = state.extra as Map<String, dynamic>?;
             final childId = extra?['childId'] as String? ?? '';
-            final routineType = extra?['routineType'] as String?;
-            return ChildDailyRoutineScreen(
-              childId: childId,
-              routineType: routineType,
+            return ChildDailyRoutineScreen(childId: childId);
+          },
+        ),
+        GoRoute(
+          path: 'create-reminder',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            return CreateReminderScreen(
+              childId: extra?['childId'] as String? ?? '',
+              childName: extra?['childName'] as String? ?? 'Enfant',
+            );
+          },
+        ),
+        GoRoute(
+          path: 'medicine-verification',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            return MedicineVerificationScreen(
+              reminderId: extra?['reminderId'] as String? ?? '',
+              taskTitle: extra?['taskTitle'] as String? ?? 'Take Medicine',
+              taskDescription: extra?['taskDescription'] as String?,
             );
           },
         ),
@@ -561,17 +577,22 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           path: 'reminder-notification',
           builder: (context, state) {
             final extra = state.extra as Map<String, dynamic>?;
-            final taskTitle = extra?['taskTitle'] as String? ?? 'Reminder';
-            final taskDescription = extra?['taskDescription'] as String?;
-            final icon = extra?['icon'] as String? ?? '💧';
-            final time = extra?['time'] as String?;
             return ReminderNotificationScreen(
-              taskTitle: taskTitle,
-              taskDescription: taskDescription,
-              icon: icon,
-              time: time,
+              taskTitle: extra?['taskTitle'] as String? ?? '',
+              taskDescription: extra?['taskDescription'] as String?,
+              icon: extra?['icon'] as String? ?? '📅',
+              time: extra?['time'] as String?,
+              reminderId: extra?['reminderId'] as String? ?? '',
             );
           },
+        ),
+        GoRoute(
+          path: 'settings',
+          builder: (context, state) => const SettingsScreen(),
+        ),
+        GoRoute(
+          path: 'create-security-code',
+          builder: (context, state) => const CreateSecurityCodeScreen(),
         ),
         GoRoute(
           path: 'order-confirmation',
