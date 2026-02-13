@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
+import '../../widgets/chat_message_bar.dart';
 
 /// Chat privé 1-on-1 — design Private Community Chat.
 /// Header: back, avatar (avec point vert Online), nom, statut, vidéo, info.
@@ -276,7 +277,22 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                         ),
             ),
           ),
-          _buildInputBar(),
+          ChatMessageBar(
+            controller: _controller,
+            onSend: _sendMessage,
+            hintText: 'Votre message...',
+            sending: _sending,
+            onVoiceTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Message vocal — bientôt disponible')),
+              );
+            },
+            onPhotoTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Envoi de photo — bientôt disponible')),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -463,66 +479,4 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     );
   }
 
-  Widget _buildInputBar() {
-    final bottomPadding = MediaQuery.paddingOf(context).bottom;
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomPadding),
-        color: Colors.white,
-      child: Row(
-        children: [
-          Material(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(999),
-            child: InkWell(
-              onTap: () {},
-              borderRadius: BorderRadius.circular(999),
-              child: Container(
-                width: 44,
-                height: 44,
-                alignment: Alignment.center,
-                child: const Icon(Icons.add, color: _textPrimary, size: 26),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              decoration: InputDecoration(
-                hintText: 'Type a message...',
-                hintStyle: const TextStyle(color: _textMuted, fontSize: 15),
-                filled: true,
-                fillColor: Colors.grey.shade100,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              ),
-              textCapitalization: TextCapitalization.sentences,
-              onSubmitted: (_) => _sendMessage(),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Material(
-            color: _primary,
-            borderRadius: BorderRadius.circular(999),
-            child: InkWell(
-              onTap: _sending ? null : _sendMessage,
-              borderRadius: BorderRadius.circular(999),
-              child: Container(
-                width: 44,
-                height: 44,
-                alignment: Alignment.center,
-                child: Icon(Icons.send_rounded, color: _sending ? Colors.white70 : Colors.white, size: 22),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-    );
-  }
 }

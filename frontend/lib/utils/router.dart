@@ -53,6 +53,7 @@ import '../screens/volunteer/volunteer_family_chat_screen.dart';
 import '../screens/volunteer/volunteer_profile_screen.dart';
 import '../screens/volunteer/volunteer_application_screen.dart';
 import '../screens/volunteer/volunteer_courses_screen.dart';
+import '../screens/volunteer/volunteer_formations_hub_screen.dart';
 import '../screens/volunteer/volunteer_mission_report_screen.dart';
 import '../screens/volunteer/volunteer_offer_help_screen.dart';
 import '../screens/volunteer/volunteer_new_availability_screen.dart';
@@ -91,7 +92,7 @@ String? _redirect(BuildContext context, GoRouterState state) {
   // Utilisateur connecté : redirection selon la route et le rôle
   if (location == AppConstants.loginRoute || location == AppConstants.signupRoute) {
     if (AppConstants.isFamilyRole(role)) return AppConstants.familyDashboardRoute;
-    if (AppConstants.isVolunteerRole(role)) return AppConstants.volunteerDashboardRoute;
+    if (AppConstants.isVolunteerRole(role)) return AppConstants.volunteerFormationsRoute;
     if (AppConstants.isOrganizationLeaderRole(role)) return AppConstants.organizationDashboardRoute;
     if (AppConstants.isHealthcareRole(role)) return AppConstants.healthcareDashboardRoute;
     return AppConstants.homeRoute;
@@ -167,13 +168,13 @@ GoRouter createAppRouter(AuthProvider authProvider) {
       path: AppConstants.organizationDashboardRoute,
       builder: (context, state) => const OrganizationDashboardScreen(),
     ),
-    // Secteur Bénévole : shell avec bottom nav (Accueil, Agenda, Messages, Profil)
+    // Secteur Bénévole : shell avec bottom nav (Accueil, Agenda, Formations, Messages, Profil)
     GoRoute(
       path: AppConstants.volunteerRoute,
       redirect: (_, state) {
         final path = state.uri.path;
         if (path == AppConstants.volunteerRoute || path == '${AppConstants.volunteerRoute}/') {
-          return AppConstants.volunteerDashboardRoute;
+          return AppConstants.volunteerFormationsRoute;
         }
         return null;
       },
@@ -202,6 +203,22 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           path: 'courses',
           builder: (context, state) => const VolunteerCoursesScreen(),
         ),
+        GoRoute(
+          path: 'missions',
+          builder: (context, state) => const VolunteerMissionsScreen(),
+        ),
+        GoRoute(
+          path: 'mission-itinerary',
+          builder: (context, state) => VolunteerMissionItineraryScreen.fromState(state),
+        ),
+        GoRoute(
+          path: 'task-accepted',
+          builder: (context, state) => VolunteerTaskAcceptedScreen.fromState(state),
+        ),
+        GoRoute(
+          path: 'notifications',
+          builder: (context, state) => const VolunteerNotificationsScreen(),
+        ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) => VolunteerShellScreen(
             navigationShell: navigationShell,
@@ -226,20 +243,8 @@ GoRouter createAppRouter(AuthProvider authProvider) {
             StatefulShellBranch(
               routes: [
                 GoRoute(
-                  path: 'missions',
-                  builder: (context, state) => const VolunteerMissionsScreen(),
-                ),
-                GoRoute(
-                  path: 'mission-itinerary',
-                  builder: (context, state) => VolunteerMissionItineraryScreen.fromState(state),
-                ),
-                GoRoute(
-                  path: 'task-accepted',
-                  builder: (context, state) => VolunteerTaskAcceptedScreen.fromState(state),
-                ),
-                GoRoute(
-                  path: 'notifications',
-                  builder: (context, state) => const VolunteerNotificationsScreen(),
+                  path: 'formations',
+                  builder: (context, state) => const VolunteerFormationsHubScreen(),
                 ),
               ],
             ),

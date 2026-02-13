@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../widgets/chat_message_bar.dart';
 
 const Color _primary = Color(0xFFA3D9E2);
 
@@ -128,7 +129,21 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
                 ],
               ),
             ),
-            _buildInputBar(loc),
+            ChatMessageBar(
+              controller: _controller,
+              onSend: _sendMessage,
+              hintText: loc.writeMessage,
+              onVoiceTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Message vocal — bientôt disponible')),
+                );
+              },
+              onPhotoTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Envoi de photo — bientôt disponible')),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -386,53 +401,4 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
     );
   }
 
-  Widget _buildInputBar(AppLocalizations loc) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.add_circle_outline, color: _primary, size: 28),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              decoration: InputDecoration(
-                hintText: loc.writeMessage,
-                hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-                filled: true,
-                fillColor: Colors.grey.shade100,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                suffixIcon: Icon(Icons.sticky_note_2_outlined, color: Colors.grey.shade400, size: 20),
-              ),
-              onSubmitted: (_) => _sendMessage(),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Material(
-            color: _primary,
-            borderRadius: BorderRadius.circular(999),
-            child: InkWell(
-              onTap: _sendMessage,
-              borderRadius: BorderRadius.circular(999),
-              child: const Padding(
-                padding: EdgeInsets.all(10),
-                child: Icon(Icons.send, color: Colors.white, size: 20),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

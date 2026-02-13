@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
+import '../../widgets/chat_message_bar.dart';
 
 // Family Circle Chat — aligné sur le HTML (primary #457B9D, background #A8E0E9)
 const Color _primary = Color(0xFF457B9D);
@@ -263,7 +264,19 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                 ],
               ),
             ),
-            _buildInputBar(context),
+            ChatMessageBar(
+              controller: _messageController,
+              onSend: _sendMessage,
+              hintText: 'Votre message...',
+              onVoiceTap: _onMicTap,
+              isRecording: _isRecording,
+              recordingDuration: _recordingDuration,
+              onPhotoTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Envoi de photo — bientôt disponible')),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -654,84 +667,6 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     );
   }
 
-  Widget _buildInputBar(BuildContext context) {
-    final bottomPadding = MediaQuery.paddingOf(context).bottom;
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          padding: EdgeInsets.fromLTRB(16, 16, 16, 10 + bottomPadding),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.4),
-            border: Border(
-              top: BorderSide(color: Colors.white.withOpacity(0.3)),
-            ),
-          ),
-          child: Row(
-            children: [
-              Material(
-                color: Colors.white,
-                shape: const CircleBorder(),
-                elevation: 2,
-                child: InkWell(
-                  onTap: () {},
-                  customBorder: const CircleBorder(),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.add_rounded, color: _primary, size: 24),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _messageController,
-                  decoration: InputDecoration(
-                    hintText: 'Type a message...',
-                    hintStyle: const TextStyle(color: _slate500, fontSize: 14),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(999),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    suffixIcon: const Icon(Icons.sentiment_satisfied_alt_rounded, size: 22, color: _slate500),
-                  ),
-                  textCapitalization: TextCapitalization.sentences,
-                  onSubmitted: (_) => _sendMessage(),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Material(
-                color: _isRecording ? Colors.red : _primary,
-                shape: const CircleBorder(),
-                elevation: 4,
-                shadowColor: (_isRecording ? Colors.red : _primary).withOpacity(0.4),
-                child: InkWell(
-                  onTap: _onMicTap,
-                  customBorder: const CircleBorder(),
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    alignment: Alignment.center,
-                    child: _isRecording
-                        ? Text(
-                            _formatDuration(_recordingDuration),
-                            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                          )
-                        : const Icon(Icons.mic_rounded, color: Colors.white, size: 24),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 enum _SenderType { mom, dad, therapist }

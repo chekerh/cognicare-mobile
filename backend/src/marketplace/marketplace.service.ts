@@ -54,7 +54,7 @@ export class MarketplaceService {
         title: 'Visual Timer',
         price: '$18.50',
         imageUrl:
-          'https://images.unsplash.com/photo-1560869713-72d2c8364444?w=400',
+          'https://images.unsplash.com/photo-1501139083538-0139583c060f?w=400',
         description: 'Time management aid.',
         category: 'cognitive',
         order: 2,
@@ -82,7 +82,7 @@ export class MarketplaceService {
         title: 'Chewelry Pendant',
         price: '$12.00',
         imageUrl:
-          'https://images.unsplash.com/photo-1560869713-72d2c8364444?w=400',
+          'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400',
         description: 'Safe oral sensory.',
         category: 'sensory',
         order: 5,

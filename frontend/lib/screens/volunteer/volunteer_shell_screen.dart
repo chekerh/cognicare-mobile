@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 const Color _navPrimary = Color(0xFFA4D9E5);
 const Color _navInactive = Color(0xFF94A3B8);
 
-/// Shell secteur bénévole : Agenda | Mission | Accueil (centre) | Messages | Profil.
-/// Même style que la navbar famille : bouton central Accueil mis en avant.
+/// Shell secteur bénévole : Accueil | Agenda | Formations | Messages | Profil.
+/// Formations est l'écran affiché en premier après connexion.
 class VolunteerShellScreen extends StatelessWidget {
   const VolunteerShellScreen({
     super.key,
@@ -43,9 +43,9 @@ class VolunteerShellScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
+                _navItem(context, 0, Icons.home_outlined, Icons.home_rounded, 'Accueil', currentIndex),
                 _navItem(context, 1, Icons.calendar_today_outlined, Icons.calendar_today, 'Agenda', currentIndex),
-                _navItem(context, 2, Icons.assignment_outlined, Icons.assignment, 'Mission', currentIndex),
-                _centerHomeButton(context, currentIndex),
+                _navItem(context, 2, Icons.school_outlined, Icons.school_rounded, 'Formations', currentIndex),
                 _navItem(context, 3, Icons.chat_bubble_outline, Icons.chat_bubble, 'Messages', currentIndex),
                 _navItem(context, 4, Icons.person_outline, Icons.person, 'Profil', currentIndex),
               ],
@@ -57,40 +57,12 @@ class VolunteerShellScreen extends StatelessWidget {
   }
 
   int _indexFromPath(String path) {
-    if (path.endsWith('/dashboard') || path == '/volunteer' || path == '/volunteer/') return 0;
+    if (path.endsWith('/dashboard')) return 0;
     if (path.endsWith('/agenda')) return 1;
-    if (path.endsWith('/missions') || path.endsWith('/mission-itinerary') || path.endsWith('/task-accepted') || path.endsWith('/notifications')) return 2;
+    if (path.endsWith('/formations') || path == '/volunteer' || path == '/volunteer/') return 2;
     if (path.endsWith('/messages')) return 3;
     if (path.endsWith('/profile')) return 4;
-    return 0;
-  }
-
-  /// Bouton central Accueil : cercle bleu avec icône maison.
-  Widget _centerHomeButton(BuildContext context, int currentIndex) {
-    return InkWell(
-      onTap: () => _onTap(0),
-      borderRadius: BorderRadius.circular(32),
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: _navPrimary,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: _navPrimary.withOpacity(0.45),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: const Icon(
-          Icons.home_rounded,
-          color: Colors.white,
-          size: 30,
-        ),
-      ),
-    );
+    return 2;
   }
 
   Widget _navItem(

@@ -137,6 +137,7 @@ class AppConstants {
   static const String volunteerOfferHelpRoute = '/volunteer/offer-help';
   static const String volunteerNewAvailabilityRoute = '/volunteer/new-availability';
   static const String volunteerApplicationRoute = '/volunteer/application';
+  static const String volunteerFormationsRoute = '/volunteer/formations';
   static const String coursesRoute = '/volunteer/courses';
 
   // Healthcare professional sector routes (JWT-protected, role: healthcare)

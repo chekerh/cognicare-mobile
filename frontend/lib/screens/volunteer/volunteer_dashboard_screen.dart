@@ -70,36 +70,45 @@ class VolunteerDashboardScreen extends StatelessWidget {
                   const Text('Bénévole', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                 ],
               ),
-              GestureDetector(
-                onTap: () => context.go(AppConstants.volunteerProfileRoute),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: _primary.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: _primary, width: 2),
-                      ),
-                      child: const Icon(Icons.person_outline, color: _primary, size: 28),
-                    ),
-                    Positioned(
-                      top: -2,
-                      right: -2,
-                      child: Container(
-                        width: 16,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                    onPressed: () => context.go(AppConstants.volunteerMissionsRoute),
+                    child: const Text('Missions', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  ),
+                  GestureDetector(
+                    onTap: () => context.go(AppConstants.volunteerProfileRoute),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: _primary.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: _primary, width: 2),
+                          ),
+                          child: const Icon(Icons.person_outline, color: _primary, size: 28),
                         ),
-                      ),
+                        Positioned(
+                          top: -2,
+                          right: -2,
+                          child: Container(
+                            width: 16,
+                            height: 16,
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
+import '../../widgets/chat_message_bar.dart';
 
 const Color _primary = Color(0xFF77B5D1);
 const Color _bgSoft = Color(0xFFEEF7FB);
@@ -289,12 +290,21 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                         ),
             ),
           ),
-          SafeArea(
-            top: false,
-            bottom: true,
-            left: true,
-            right: true,
-            child: _buildInputBar(),
+          ChatMessageBar(
+            controller: _controller,
+            onSend: _sendMessage,
+            hintText: 'Votre message...',
+            sending: _sending,
+            onVoiceTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Message vocal — bientôt disponible')),
+              );
+            },
+            onPhotoTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Envoi de photo — bientôt disponible')),
+              );
+            },
           ),
         ],
       ),
@@ -469,80 +479,4 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     );
   }
 
-  Widget _buildInputBar() {
-    final padding = MediaQuery.paddingOf(context);
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        16 + padding.left,
-        12,
-        16 + padding.right,
-        12,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.add_circle_outline),
-            style: IconButton.styleFrom(foregroundColor: _textMuted),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      decoration: InputDecoration(
-                        hintText: 'Écrire un message...',
-                        hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      textCapitalization: TextCapitalization.sentences,
-                      onSubmitted: (_) => _sendMessage(),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.emoji_emotions_outlined),
-                    style: IconButton.styleFrom(
-                      foregroundColor: Colors.grey.shade500,
-                      padding: EdgeInsets.zero,
-                      minimumSize: const Size(36, 36),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Material(
-            color: _primary,
-            borderRadius: BorderRadius.circular(999),
-            child: InkWell(
-              onTap: _sending ? null : _sendMessage,
-              borderRadius: BorderRadius.circular(999),
-              child: Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                child: Icon(Icons.send, color: _sending ? Colors.white70 : Colors.white, size: 20),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
