@@ -9,7 +9,7 @@ yarn-error.log
 .env.local
 .env.*.local
 
-# Build output
+# Build output (keep dist for now, it will be rebuilt)
 dist
 build
 coverage
@@ -35,7 +35,6 @@ Thumbs.db
 *.spec.ts
 test
 tests
-coverage
 
 # Documentation
 README.md
@@ -46,9 +45,3 @@ LICENSE
 Dockerfile
 .dockerignore
 docker-compose.yml
-
-# Misc
-.prettierrc
-.eslintrc.js
-tsconfig.json
-tsconfig.build.json

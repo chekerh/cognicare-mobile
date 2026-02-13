@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: cognicare-mobile
+    runtime: docker
+    rootDir: backend
+    plan: free
+    region: frankfurt
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+    healthCheckPath: /api/v1/health
