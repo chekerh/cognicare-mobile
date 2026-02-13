@@ -146,9 +146,9 @@ class _VolunteerFormationsHubScreenState
             ],
           ),
           const SizedBox(height: 8),
-          Row(
+          const Row(
             children: [
-              const Text(
+              Text(
                 'Formations',
                 style: TextStyle(
                   fontSize: 28,
@@ -156,7 +156,7 @@ class _VolunteerFormationsHubScreenState
                   color: _textPrimary,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Icon(Icons.school_rounded, color: _primary, size: 28),
             ],
           ),
@@ -200,7 +200,7 @@ class _VolunteerFormationsHubScreenState
                   color: _primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.school_outlined, color: _primary, size: 26),
+                child: const Icon(Icons.school_outlined, color: _primary, size: 26),
               ),
               const SizedBox(width: 16),
               const Expanded(
@@ -221,7 +221,7 @@ class _VolunteerFormationsHubScreenState
     final course = enrollment['course'] as Map<String, dynamic>?;
     final title = course?['title'] as String? ?? 'Formation';
     final progress = (enrollment['progressPercent'] as num?)?.toInt() ?? 0;
-    final moduleCount = 5;
+    const moduleCount = 5;
     final currentModule = (progress / 20).ceil().clamp(1, moduleCount);
     const moduleLabels = [
       'Introduction',
@@ -278,7 +278,7 @@ class _VolunteerFormationsHubScreenState
                         color: _primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(Icons.psychology_outlined,
+                      child: const Icon(Icons.psychology_outlined,
                           color: _primary, size: 26),
                     ),
                     const SizedBox(width: 16),
@@ -379,7 +379,6 @@ class _VolunteerFormationsHubScreenState
             final c = entry.value;
             final id = c['id'] as String? ?? '';
             final title = c['title'] as String? ?? 'Cours';
-            final desc = c['description'] as String? ?? '';
             final fallback = catalogItems[i % catalogItems.length];
             final duration = fallback.$3;
             final difficulty = fallback.$4;
@@ -413,10 +412,10 @@ class _VolunteerFormationsHubScreenState
 
   Widget _buildCertificationsSection() {
     const certs = [
-      ('Mentor Niveau 1', Icons.star_rounded, const Color(0xFFFBBF24), true),
-      ('Inclusion Sociale', Icons.check_circle_rounded, const Color(0xFF22C55E),
+      ('Mentor Niveau 1', Icons.star_rounded, Color(0xFFFBBF24), true),
+      ('Inclusion Sociale', Icons.check_circle_rounded, Color(0xFF22C55E),
           true),
-      ('Expert Cognitif', Icons.lock_outline, const Color(0xFF94A3B8), false),
+      ('Expert Cognitif', Icons.lock_outline, Color(0xFF94A3B8), false),
     ];
 
     return Padding(
@@ -532,7 +531,7 @@ class _CatalogCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(Icons.arrow_forward_ios, size: 14, color: _textSecondary),
+                const Icon(Icons.arrow_forward_ios, size: 14, color: _textSecondary),
               ],
             ),
           ),

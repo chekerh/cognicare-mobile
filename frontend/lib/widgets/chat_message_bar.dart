@@ -38,9 +38,9 @@ class ChatMessageBar extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
         padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(ctx).bottom + 8),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
         child: Wrap(
           spacing: 8,
@@ -68,8 +68,8 @@ class ChatMessageBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
-    final primary = AppTheme.primary;
-    final textColor = AppTheme.text;
+    const primary = AppTheme.primary;
+    const textColor = AppTheme.text;
     final muted = textColor.withOpacity(0.6);
 
     return Container(

@@ -89,14 +89,6 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     _audioPlayer.onPlayerComplete.listen((_) {
       if (mounted) setState(() => _playingVoiceUrl = null);
     });
-    _audioPlayer.onPlayerError.listen((msg, stack) {
-      if (mounted) {
-        setState(() => _playingVoiceUrl = null);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossible de lire le message vocal')),
-        );
-      }
-    });
     _messages = [];
     if (widget.conversationId != null && widget.conversationId!.isNotEmpty) {
       _conversationId = widget.conversationId;
@@ -241,10 +233,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       if (mounted) setState(() => _playingVoiceUrl = null);
       return;
     }
-    try {
-      await _audioPlayer.play(UrlSource(url, mimeType: 'audio/mp4'));
-      if (mounted) setState(() => _playingVoiceUrl = msg.attachmentUrl);
-    } catch (e) {
+    void onVoiceError() {
       if (mounted) {
         setState(() => _playingVoiceUrl = null);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -252,6 +241,14 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
         );
       }
     }
+    runZonedGuarded(() {
+      _audioPlayer.play(UrlSource(url, mimeType: 'audio/mp4')).then((_) {
+        if (mounted) setState(() => _playingVoiceUrl = msg.attachmentUrl);
+      }).catchError((e, st) {
+        onVoiceError();
+        return null;
+      });
+    }, (error, stack) => onVoiceError());
   }
 
   Future<void> _onVoiceTap() async {
@@ -601,7 +598,22 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                             width: 200,
                             height: 200,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Icon(Icons.image_not_supported, color: msg.isMe ? Colors.white70 : _textMuted),
+                            errorBuilder: (_, __, ___) => Container(
+                              width: 200,
+                              height: 200,
+                              color: msg.isMe ? Colors.white12 : _bgSoft,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.image_not_supported, size: 48, color: msg.isMe ? Colors.white70 : _textMuted),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Image non disponible',
+                                    style: TextStyle(fontSize: 12, color: msg.isMe ? Colors.white70 : _textMuted),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         )
                       : msg.attachmentType == 'voice'

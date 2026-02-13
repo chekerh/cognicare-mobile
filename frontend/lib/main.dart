@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
@@ -17,7 +18,22 @@ import 'utils/router.dart';
 import 'utils/theme.dart';
 
 void main() {
-  runApp(const CogniCareApp());
+  runZonedGuarded(() {
+    runApp(const CogniCareApp());
+  }, (error, stack) {
+    // Voice playback errors from audioplayers (e.g. 404 on Render) are already
+    // shown via SnackBar in chat; avoid logging as unhandled.
+    if (error is PlatformException &&
+        (error.code == 'DarwinAudioError' ||
+            error.message?.contains('DarwinAudioError') == true)) {
+      return;
+    }
+    FlutterError.reportError(FlutterErrorDetails(
+      exception: error,
+      stack: stack,
+      library: 'runZonedGuarded',
+    ));
+  });
 }
 
 class CogniCareApp extends StatefulWidget {
