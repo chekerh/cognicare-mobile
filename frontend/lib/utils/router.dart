@@ -78,6 +78,8 @@ import '../screens/family/sticker_book_screen.dart';
 import '../screens/family/game_success_screen.dart';
 import '../screens/family/games_selection_screen.dart';
 import '../screens/profile/profile_screen.dart';
+import '../screens/call/call_screen.dart';
+import '../services/call_service.dart';
 import 'constants.dart';
 
 String? _redirect(BuildContext context, GoRouterState state) {
@@ -93,6 +95,9 @@ String? _redirect(BuildContext context, GoRouterState state) {
     if (!isPublic) return AppConstants.loginRoute;
     return null;
   }
+
+  // Route d'appel accessible à tout utilisateur authentifié
+  if (location == AppConstants.callRoute) return null;
 
   // Utilisateur connecté : redirection selon la route et le rôle
   if (location == AppConstants.loginRoute || location == AppConstants.signupRoute) {
@@ -166,6 +171,33 @@ GoRouter createAppRouter(AuthProvider authProvider) {
       builder: (context, state) => const ForgotPasswordScreen(),
     ),
     GoRoute(
+      path: AppConstants.callRoute,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        if (extra != null) {
+          return CallScreen(
+            channelId: extra['channelId'] as String? ?? '',
+            remoteUserId: extra['remoteUserId'] as String? ?? '',
+            remoteUserName: extra['remoteUserName'] as String? ?? 'Appelant',
+            remoteImageUrl: extra['remoteImageUrl'] as String?,
+            isVideo: extra['isVideo'] as bool? ?? false,
+            isIncoming: extra['isIncoming'] as bool? ?? false,
+            incomingCall: extra['incomingCall'] as IncomingCall?,
+          );
+        }
+        final q = state.uri.queryParameters;
+        return CallScreen(
+          channelId: q['channelId'] ?? '',
+          remoteUserId: q['remoteUserId'] ?? '',
+          remoteUserName: q['remoteUserName'] ?? 'Appelant',
+          remoteImageUrl: q['remoteImageUrl'],
+          isVideo: q['isVideo'] == 'true',
+          isIncoming: q['isIncoming'] == 'true',
+          incomingCall: null,
+        );
+      },
+    ),
+    GoRoute(
       path: AppConstants.homeRoute,
       builder: (context, state) => const HomeContainerScreen(),
     ),
@@ -187,6 +219,21 @@ GoRouter createAppRouter(AuthProvider authProvider) {
         GoRoute(
           path: 'family-chat',
           builder: (context, state) => VolunteerFamilyChatScreen.fromState(state),
+        ),
+        GoRoute(
+          path: 'private-chat',
+          builder: (context, state) {
+            final id = state.uri.queryParameters['id'] ?? '';
+            final name = state.uri.queryParameters['name'] ?? 'Person';
+            final imageUrl = state.uri.queryParameters['imageUrl'];
+            final conversationId = state.uri.queryParameters['conversationId'];
+            return FamilyPrivateChatScreen(
+              personId: id,
+              personName: name,
+              personImageUrl: imageUrl?.isEmpty == true ? null : imageUrl,
+              conversationId: conversationId?.isEmpty == true ? null : conversationId,
+            );
+          },
         ),
         GoRoute(
           path: 'mission-report',

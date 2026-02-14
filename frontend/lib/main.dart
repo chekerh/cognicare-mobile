@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/auth_provider.dart';
+import 'providers/call_provider.dart';
 import 'services/auth_service.dart';
 import 'providers/cart_provider.dart';
 import 'providers/community_feed_provider.dart';
@@ -16,6 +17,7 @@ import 'services/gamification_service.dart';
 import 'services/children_service.dart';
 import 'utils/router.dart';
 import 'utils/theme.dart';
+import 'widgets/call_connection_handler.dart';
 
 void main() {
   runZonedGuarded(() {
@@ -59,6 +61,7 @@ class _CogniCareAppState extends State<CogniCareApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: _authProvider),
+        ChangeNotifierProvider(create: (_) => CallProvider()),
         ChangeNotifierProvider(create: (_) => LanguageProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => CommunityFeedProvider()),
@@ -99,7 +102,8 @@ class _CogniCareAppState extends State<CogniCareApp> {
         builder: (_, auth, __) => Consumer<LanguageProvider>(
           builder: (context, languageProvider, child) => PresencePinger(
             isAuthenticated: auth.isAuthenticated,
-            child: MaterialApp.router(
+            child: CallConnectionHandler(
+              child: MaterialApp.router(
               title: 'CogniCare',
               theme: AppTheme.lightTheme,
               routerConfig: _router,
@@ -107,6 +111,7 @@ class _CogniCareAppState extends State<CogniCareApp> {
               supportedLocales: AppLocalizations.supportedLocales,
               locale: languageProvider.locale,
               debugShowCheckedModeBanner: false,
+            ),
             ),
           ),
         ),

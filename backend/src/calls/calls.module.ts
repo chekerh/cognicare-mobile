@@ -1,0 +1,24 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { CallsController } from './calls.controller';
+import { CallsService } from './calls.service';
+import { CallsGateway } from './calls.gateway';
+
+@Module({
+  imports: [
+    ConfigModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>('JWT_SECRET') || 'fallback-secret',
+        signOptions: { expiresIn: '7d' },
+      }),
+      inject: [ConfigService],
+    }),
+  ],
+  controllers: [CallsController],
+  providers: [CallsService, CallsGateway],
+  exports: [CallsService],
+})
+export class CallsModule {}

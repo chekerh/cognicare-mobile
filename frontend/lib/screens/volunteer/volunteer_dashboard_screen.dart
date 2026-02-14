@@ -2,14 +2,78 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../models/user.dart' as app_user;
 import '../../providers/auth_provider.dart';
+import '../../services/healthcare_service.dart';
 import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFF89CFF0);
 
-/// Tableau de bord bénévole — Points Impact, Missions, Compétences, Demandes Ouvertes, Planning.
-class VolunteerDashboardScreen extends StatelessWidget {
+String _fullImageUrl(String path) {
+  if (path.isEmpty) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  final base = AppConstants.baseUrl.endsWith('/')
+      ? AppConstants.baseUrl.substring(0, AppConstants.baseUrl.length - 1)
+      : AppConstants.baseUrl;
+  return path.startsWith('/') ? '$base$path' : '$base/$path';
+}
+
+String _roleToSpecializationLabel(String role) {
+  switch (role) {
+    case 'doctor':
+      return 'Médecin';
+    case 'psychologist':
+      return 'Pédopsychiatre / Psychologue';
+    case 'speech_therapist':
+      return 'Orthophoniste';
+    case 'occupational_therapist':
+      return 'Ergothérapeute';
+    default:
+      return role;
+  }
+}
+
+/// Tableau de bord bénévole — Points Impact, Missions, Compétences, Professionnels de santé (contact), Planning.
+class VolunteerDashboardScreen extends StatefulWidget {
   const VolunteerDashboardScreen({super.key});
+
+  @override
+  State<VolunteerDashboardScreen> createState() => _VolunteerDashboardScreenState();
+}
+
+class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
+  List<app_user.User>? _healthcareUsers;
+  bool _healthcareLoading = false;
+  String? _healthcareError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHealthcare();
+  }
+
+  Future<void> _loadHealthcare() async {
+    setState(() {
+      _healthcareLoading = true;
+      _healthcareError = null;
+    });
+    try {
+      final list = await HealthcareService().getHealthcareProfessionals();
+      if (!mounted) return;
+      setState(() {
+        _healthcareUsers = list;
+        _healthcareLoading = false;
+        _healthcareError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _healthcareUsers = null;
+        _healthcareLoading = false;
+        _healthcareError = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,15 +93,13 @@ class VolunteerDashboardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header fixe comme AppBar (ne défile pas)
             _buildHeader(context, userName),
-            // Contenu scrollable en dessous
             Expanded(
               child: CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(child: _buildStatsCards()),
                   SliverToBoxAdapter(child: _buildSkillsSection(context)),
-                  SliverToBoxAdapter(child: _buildRequestsSection(context)),
+                  SliverToBoxAdapter(child: _buildHealthcareSection(context)),
                   SliverToBoxAdapter(child: _buildPlanningSection(context)),
                   const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
@@ -238,60 +300,75 @@ class VolunteerDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRequestsSection(BuildContext context) {
+  Widget _buildHealthcareSection(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Demandes Ouvertes', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade100,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text('URGENT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red.shade700)),
+          const Text(
+            'Professionnels de santé',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Contacter un expert pour échanger ou poser vos questions.',
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 16),
+          if (_healthcareLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_healthcareError != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Column(
+                children: [
+                  Text(_healthcareError!, style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
+                  const SizedBox(height: 8),
+                  TextButton(onPressed: _loadHealthcare, child: const Text('Réessayer')),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _requestCard(
-            familyName: 'Famille Martin',
-            location: '2.4 km • Lyon 03',
-            description: 'Besoin d\'aide pour une séance de lecture adaptée avec Lucas (8 ans, Spectre Autistique).',
-            timeSlot: '16:30 - 18:00',
-            badge: 'Aujourd\'hui',
-            badgeColor: _primary,
-            badgeBgColor: _primary.withOpacity(0.1),
-          ),
-          const SizedBox(height: 16),
-          _requestCard(
-            familyName: 'Famille Dubois',
-            location: '5.1 km • Villeurbanne',
-            description: 'Accompagnement pour une sortie au parc Georges Bazin. Sophie a besoin d\'un binôme rassurant.',
-            timeSlot: '14:00 - 16:00',
-            badge: 'Demain',
-            badgeColor: Colors.grey.shade600,
-            badgeBgColor: Colors.grey.shade100,
-          ),
+            )
+          else if (_healthcareUsers == null || _healthcareUsers!.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Text(
+                'Aucun professionnel pour le moment.',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              ),
+            )
+          else
+            ...List.generate(_healthcareUsers!.length * 2 - 1, (i) {
+              if (i.isOdd) return const SizedBox(height: 16);
+              return _healthcareContactCard(context, _healthcareUsers![i ~/ 2]);
+            }),
         ],
       ),
     );
   }
 
-  Widget _requestCard({
-    required String familyName,
-    required String location,
-    required String description,
-    required String timeSlot,
-    required String badge,
-    required Color badgeColor,
-    required Color badgeBgColor,
-  }) {
+  Widget _healthcareContactCard(BuildContext context, app_user.User user) {
+    final imageUrl = (user.profilePic != null && user.profilePic!.isNotEmpty)
+        ? _fullImageUrl(user.profilePic!)
+        : '';
+    final specialization = _roleToSpecializationLabel(user.role);
+    const size = 40.0;
+    final avatar = imageUrl.isNotEmpty
+        ? ClipRRect(
+            borderRadius: BorderRadius.circular(size / 2),
+            child: Image.network(
+              imageUrl,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _avatarPlaceholder(size, user.fullName),
+            ),
+          )
+        : _avatarPlaceholder(size, user.fullName);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -306,24 +383,22 @@ class VolunteerDashboardScreen extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(color: Colors.grey.shade100, shape: BoxShape.circle),
-                child: Icon(Icons.home_outlined, color: Colors.grey.shade600, size: 22),
-              ),
+              avatar,
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(familyName, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                    Text(
+                      user.fullName,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                    ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 14, color: Colors.grey.shade500),
+                        Icon(Icons.medical_services_outlined, size: 14, color: Colors.grey.shade500),
                         const SizedBox(width: 4),
-                        Text(location, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                        Text('CogniCare', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                       ],
                     ),
                   ],
@@ -331,38 +406,50 @@ class VolunteerDashboardScreen extends StatelessWidget {
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: badgeBgColor, borderRadius: BorderRadius.circular(8)),
-                child: Text(badge, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: badgeColor)),
+                decoration: BoxDecoration(
+                  color: _primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  specialization,
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _primary),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Text(description, style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.5)),
+          Text(
+            specialization,
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.5),
+          ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.only(top: 16),
             decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.grey.shade100))),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.schedule, size: 14, color: Colors.grey.shade500),
-                    const SizedBox(width: 4),
-                    Text(timeSlot, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                  ],
-                ),
                 Material(
                   color: _primary,
                   borderRadius: BorderRadius.circular(12),
                   elevation: 2,
                   shadowColor: _primary.withOpacity(0.3),
                   child: InkWell(
-                    onTap: () {},
+                    onTap: () {
+                      final uri = Uri(
+                        path: AppConstants.volunteerPrivateChatRoute,
+                        queryParameters: {
+                          'id': user.id.toString(),
+                          'name': user.fullName,
+                          if (imageUrl.isNotEmpty) 'imageUrl': imageUrl,
+                        },
+                      );
+                      context.push(uri.toString());
+                    },
                     borderRadius: BorderRadius.circular(12),
                     child: const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      child: Text('Accepter', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                      child: Text('Message', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
                     ),
                   ),
                 ),
@@ -370,6 +457,24 @@ class VolunteerDashboardScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _avatarPlaceholder(double size, String name) {
+    final initial = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?';
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: _primary.withOpacity(0.2),
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Text(
+          initial,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _primary),
+        ),
       ),
     );
   }

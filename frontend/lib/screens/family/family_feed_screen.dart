@@ -23,12 +23,17 @@ const Color _feedBackground = Color(0xFFF8FAFC);
 // Couleurs Le Cercle du Don
 const Color _donationPrimary = Color(0xFFA3D9E2);
 
-/// Construit l'URL complète pour une image du backend (ex. /uploads/posts/xxx.jpg).
+/// Construit l'URL complète pour une image (backend ou Cloudinary).
+/// - Déjà absolue (http/https) → retournée telle quelle.
+/// - Commence par / → baseUrl + path.
+/// - Sinon (ex. uploads/...) → baseUrl + / + path.
 String _fullImageUrl(String path) {
+  if (path.isEmpty) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
   final base = AppConstants.baseUrl.endsWith('/')
       ? AppConstants.baseUrl.substring(0, AppConstants.baseUrl.length - 1)
       : AppConstants.baseUrl;
-  return path.startsWith('/') ? '$base$path' : path;
+  return path.startsWith('/') ? '$base$path' : '$base/$path';
 }
 
 /// Family Community Feed — aligné sur le design HTML fourni.
@@ -2156,7 +2161,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   }
 }
 
-/// Carte expert — photo, nom, badge Verified, spécialisation, lieu, Book Consultation / Message.
+/// Carte expert — photo de profil si présente, sinon initiale ; nom, badge Verified, spécialisation, lieu, Book Consultation / Message.
 class _ExpertCard extends StatelessWidget {
   const _ExpertCard({
     required this.name,
@@ -2171,10 +2176,59 @@ class _ExpertCard extends StatelessWidget {
   final String name;
   final String specialization;
   final String location;
+  /// URL de la photo de profil (vide = afficher l'initiale du nom).
   final String imageUrl;
   final Color primaryColor;
   final VoidCallback onBookConsultation;
   final VoidCallback onMessage;
+
+  Widget _buildProfileImage() {
+    const size = 80.0;
+    final initial = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?';
+    final avatarPlaceholder = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFFA3D9E2).withOpacity(0.25),
+      ),
+      child: Center(
+        child: Text(
+          initial,
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF7FBAC4),
+          ),
+        ),
+      ),
+    );
+    if (imageUrl.isEmpty) return avatarPlaceholder;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Image.network(
+        imageUrl,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        loadingBuilder: (_, child, progress) {
+          if (progress == null) return child;
+          return SizedBox(
+            width: size,
+            height: size,
+            child: const Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        },
+        errorBuilder: (_, __, ___) => avatarPlaceholder,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2202,36 +2256,7 @@ class _ExpertCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  imageUrl,
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (_, child, progress) {
-                    if (progress == null) return child;
-                    return Container(
-                      width: 80,
-                      height: 80,
-                      color: const Color(0xFFA3D9E2).withOpacity(0.2),
-                      child: const Center(
-                        child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                    );
-                  },
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 80,
-                    height: 80,
-                    color: const Color(0xFFA3D9E2).withOpacity(0.2),
-                    child: const Icon(Icons.person, size: 36, color: Color(0xFF7FBAC4)),
-                  ),
-                ),
-              ),
+              _buildProfileImage(),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(

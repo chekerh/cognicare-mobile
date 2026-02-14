@@ -20,6 +20,7 @@ import { GamificationModule } from './gamification/gamification.module';
 import { VolunteersModule } from './volunteers/volunteers.module';
 import { CoursesModule } from './courses/courses.module';
 import { NutritionModule } from './nutrition/nutrition.module';
+import { CallsModule } from './calls/calls.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { NutritionModule } from './nutrition/nutrition.module';
     VolunteersModule,
     CoursesModule,
     NutritionModule,
+    CallsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

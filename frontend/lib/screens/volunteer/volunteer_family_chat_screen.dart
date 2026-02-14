@@ -6,8 +6,10 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:record/record.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/call_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
@@ -535,12 +537,39 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
             ),
           ),
           IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.info_outline, color: _textMuted, size: 24),
+            onPressed: () => _initiateCall(context, false),
+            icon: const Icon(Icons.call, color: _textMuted, size: 26),
+          ),
+          IconButton(
+            onPressed: () => _initiateCall(context, true),
+            icon: const Icon(Icons.videocam_outlined, color: _textMuted, size: 26),
           ),
         ],
       ),
     );
+  }
+
+  void _initiateCall(BuildContext context, bool isVideo) {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final caller = auth.user;
+    if (caller == null || widget.familyId.isEmpty) return;
+    final ids = [caller.id, widget.familyId]..sort();
+    final channelId = 'call_${ids[0]}_${ids[1]}_${DateTime.now().millisecondsSinceEpoch}';
+    final callProvider = Provider.of<CallProvider>(context, listen: false);
+    callProvider.service.initiateCall(
+      targetUserId: widget.familyId,
+      channelId: channelId,
+      isVideo: isVideo,
+      callerName: caller.fullName,
+    );
+    context.push(AppConstants.callRoute, extra: {
+      'channelId': channelId,
+      'remoteUserId': widget.familyId,
+      'remoteUserName': widget.familyName,
+      'remoteImageUrl': null,
+      'isVideo': isVideo,
+      'isIncoming': false,
+    });
   }
 
   Widget _buildDateSeparator() {

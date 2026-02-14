@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/call_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
@@ -504,6 +505,29 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     );
   }
 
+  void _initiateCall(BuildContext context, bool isVideo) {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final caller = auth.user;
+    if (caller == null) return;
+    final ids = [caller.id, widget.personId]..sort();
+    final channelId = 'call_${ids[0]}_${ids[1]}_${DateTime.now().millisecondsSinceEpoch}';
+    final callProvider = Provider.of<CallProvider>(context, listen: false);
+    callProvider.service.initiateCall(
+      targetUserId: widget.personId,
+      channelId: channelId,
+      isVideo: isVideo,
+      callerName: caller.fullName,
+    );
+    context.push(AppConstants.callRoute, extra: {
+      'channelId': channelId,
+      'remoteUserId': widget.personId,
+      'remoteUserName': widget.personName,
+      'remoteImageUrl': widget.personImageUrl,
+      'isVideo': isVideo,
+      'isIncoming': false,
+    });
+  }
+
   Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 8, 16, 12),
@@ -576,12 +600,12 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
             ),
           ),
           IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.videocam_outlined, color: _textPrimary, size: 26),
+            onPressed: () => _initiateCall(context, false),
+            icon: const Icon(Icons.call, color: _textPrimary, size: 26),
           ),
           IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.info_outline, color: _textPrimary, size: 24),
+            onPressed: () => _initiateCall(context, true),
+            icon: const Icon(Icons.videocam_outlined, color: _textPrimary, size: 26),
           ),
         ],
       ),

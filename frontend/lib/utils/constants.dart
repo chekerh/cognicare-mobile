@@ -101,6 +101,7 @@ class AppConstants {
   static const String onboardingRoute = '/onboarding';
   static const String loginRoute = '/login';
   static const String signupRoute = '/signup';
+  static const String callRoute = '/call';
   static const String forgotPasswordRoute = '/forgot-password';
   static const String homeRoute = '/home';
   static const String organizationDashboardRoute = '/organization-dashboard';
@@ -159,6 +160,7 @@ class AppConstants {
   static const String volunteerNotificationsRoute = '/volunteer/notifications';
   static const String volunteerMessagesRoute = '/volunteer/messages';
   static const String volunteerFamilyChatRoute = '/volunteer/family-chat';
+  static const String volunteerPrivateChatRoute = '/volunteer/private-chat';
   static const String volunteerProfileRoute = '/volunteer/profile';
   static const String volunteerMissionReportRoute = '/volunteer/mission-report';
   static const String volunteerOfferHelpRoute = '/volunteer/offer-help';

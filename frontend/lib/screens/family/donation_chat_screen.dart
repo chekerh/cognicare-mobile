@@ -237,6 +237,14 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
           ),
           IconButton(
             onPressed: () {},
+            icon: Icon(Icons.call, color: Colors.grey.shade600, size: 24),
+          ),
+          IconButton(
+            onPressed: () {},
+            icon: Icon(Icons.videocam_outlined, color: Colors.grey.shade600, size: 24),
+          ),
+          IconButton(
+            onPressed: () {},
             icon: Icon(Icons.more_vert, color: Colors.grey.shade600),
           ),
         ],
