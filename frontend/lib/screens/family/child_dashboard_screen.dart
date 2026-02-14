@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/child_mode_session_provider.dart';
 import '../../utils/constants.dart';
 import '../../widgets/child_mode_exit_button.dart';
 
@@ -14,7 +15,7 @@ const Color _progressIconBg = Color(0xFF81E2BB);
 const Color _giftsIconBg = Color(0xFFFF9F89);
 const Color _slate700 = Color(0xFF334155);
 
-class ChildDashboardScreen extends StatelessWidget {
+class ChildDashboardScreen extends StatefulWidget {
   const ChildDashboardScreen({
     super.key,
     this.selectedEmotion,
@@ -23,8 +24,23 @@ class ChildDashboardScreen extends StatelessWidget {
   /// Emotion selected on previous screen (happy, sad, angry, tired, silly)
   final String? selectedEmotion;
 
+  @override
+  State<ChildDashboardScreen> createState() => _ChildDashboardScreenState();
+}
+
+class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ChildModeSessionProvider>().startSession();
+      }
+    });
+  }
+
   String _getGreeting(AppLocalizations loc) {
-    switch (selectedEmotion?.toLowerCase()) {
+    switch (widget.selectedEmotion?.toLowerCase()) {
       case 'happy':
         return loc.greetingWhenHappy;
       case 'sad':

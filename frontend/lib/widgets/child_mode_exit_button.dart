@@ -2,9 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
+import '../providers/child_mode_session_provider.dart';
 import '../providers/child_security_code_provider.dart';
+import '../providers/gamification_provider.dart';
+import '../services/gamification_service.dart';
 import '../utils/constants.dart';
 import 'parent_code_input_dialog.dart';
+
+/// Enregistre la durée du mode enfant et navigue vers le profil (sortie sans code).
+Future<void> _recordChildModeDurationAndExit(BuildContext context) async {
+  final sessionProvider = context.read<ChildModeSessionProvider>();
+  final durationSeconds = sessionProvider.durationSeconds;
+  sessionProvider.clearSession();
+  final gp = context.read<GamificationProvider>();
+  if (gp.currentChildId != null && durationSeconds > 0) {
+    try {
+      await gp.recordGameSession(
+        gameType: GameType.childMode,
+        completed: true,
+        timeSpentSeconds: durationSeconds,
+      );
+    } catch (_) {}
+  }
+  if (context.mounted) context.go(AppConstants.familyProfileRoute);
+}
 
 /// Bouton "Appui long" pour quitter le mode enfant (affiché sur le dashboard et tous les écrans de jeux).
 class ChildModeExitButton extends StatelessWidget {
@@ -30,7 +51,7 @@ class ChildModeExitButton extends StatelessWidget {
       if (codeProvider.hasCode) {
         await ParentCodeInputDialog.show(context);
       } else {
-        if (context.mounted) context.go(AppConstants.familyProfileRoute);
+        await _recordChildModeDurationAndExit(context);
       }
     }
 

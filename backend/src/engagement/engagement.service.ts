@@ -21,6 +21,7 @@ const GAME_TYPE_LABELS: Record<string, string> = {
   [GameType.SHAPE_SORTING]: 'Tri des formes',
   [GameType.STAR_TRACER]: 'Tracé étoile',
   [GameType.BASKET_SORT]: 'Tri panier',
+  [GameType.CHILD_MODE]: 'Mode enfant',
 };
 
 export interface DashboardActivity {

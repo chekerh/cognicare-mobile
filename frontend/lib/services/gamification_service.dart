@@ -7,6 +7,8 @@ enum GameType {
   shapeSorting,
   starTracer,
   basketSort,
+  /// Temps passé en mode enfant (session ouverte).
+  childMode,
 }
 
 class GameSessionResult {
@@ -152,6 +154,8 @@ class GamificationService {
         return 'star_tracer';
       case GameType.basketSort:
         return 'basket_sort';
+      case GameType.childMode:
+        return 'child_mode';
     }
   }
 

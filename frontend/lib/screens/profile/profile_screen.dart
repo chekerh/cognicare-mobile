@@ -14,6 +14,7 @@ import '../../utils/theme.dart';
 import '../../utils/constants.dart';
 import '../../services/auth_service.dart';
 import '../../providers/child_security_code_provider.dart';
+import '../../providers/gamification_provider.dart';
 import 'change_password_dialog.dart';
 import 'change_email_dialog.dart';
 import 'change_phone_dialog.dart';
@@ -1155,7 +1156,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       color: _profilePrimary.withOpacity(0.12),
       borderRadius: BorderRadius.circular(24),
       child: InkWell(
-        onTap: () => context.push(AppConstants.familyEngagementDashboardRoute),
+        onTap: () async {
+          final gp = context.read<GamificationProvider>();
+          await gp.initialize();
+          final childId = gp.currentChildId;
+          if (context.mounted) {
+            final path = childId != null && childId.isNotEmpty
+                ? '${AppConstants.familyEngagementDashboardRoute}?childId=${Uri.encodeComponent(childId)}'
+                : AppConstants.familyEngagementDashboardRoute;
+            context.push(path);
+          }
+        },
         borderRadius: BorderRadius.circular(24),
         child: Padding(
           padding: const EdgeInsets.all(16),

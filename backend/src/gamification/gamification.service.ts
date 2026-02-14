@@ -138,15 +138,17 @@ export class GamificationService {
    */
   private calculatePoints(dto: RecordGameSessionDto): number {
     if (!dto.completed) return 0;
+    if (dto.gameType === GameType.CHILD_MODE) return 0;
 
     const basePoints: Record<GameType, number> = {
       [GameType.MATCHING]: 50,
       [GameType.SHAPE_SORTING]: 50,
       [GameType.STAR_TRACER]: 75,
       [GameType.BASKET_SORT]: 50,
+      [GameType.CHILD_MODE]: 0,
     };
 
-    let points = basePoints[dto.gameType] || 50;
+    let points = basePoints[dto.gameType] ?? 50;
 
     // Bonus for speed (if timeSpentSeconds provided)
     if (dto.timeSpentSeconds && dto.timeSpentSeconds > 0) {

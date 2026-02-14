@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/gamification_provider.dart';
 import '../../services/availability_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
@@ -61,6 +62,9 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkChildProfileComplete());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<GamificationProvider>().initialize();
+    });
     _loadVolunteerAvailabilities();
   }
 

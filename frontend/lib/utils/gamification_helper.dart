@@ -32,6 +32,25 @@ Future<void> recordGameCompletion({
       metrics: metrics,
     );
 
+    if (result == null) {
+      final err = gamificationProvider.error ?? '';
+      if (err.contains('No child') || err.contains('child')) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text(
+                  'Ajoute un enfant dans ton profil pour enregistrer tes parties et voir le tableau d\'engagement.',
+                ),
+                duration: const Duration(seconds: 4),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        });
+      }
+    }
+
     // Badge feedback: light toast without green frame (milestone phrase is on Bravo screen)
     if (result != null && result.badgesEarned.isNotEmpty) {
       for (final badge in result.badgesEarned) {

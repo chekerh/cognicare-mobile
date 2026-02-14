@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/gamification_provider.dart';
 import '../../utils/constants.dart';
 import '../../widgets/child_mode_exit_button.dart';
 
@@ -11,8 +13,23 @@ const Color _cardCoral = Color(0xFFFF9F89);
 const Color _textDark = Color(0xFF334155);
 
 /// Écran de sélection des jeux : l’enfant choisit quel jeu jouer (Match Pairs, Shape Sorting, Star Tracer).
-class GamesSelectionScreen extends StatelessWidget {
+class GamesSelectionScreen extends StatefulWidget {
   const GamesSelectionScreen({super.key});
+
+  @override
+  State<GamesSelectionScreen> createState() => _GamesSelectionScreenState();
+}
+
+class _GamesSelectionScreenState extends State<GamesSelectionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<GamificationProvider>().initialize();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

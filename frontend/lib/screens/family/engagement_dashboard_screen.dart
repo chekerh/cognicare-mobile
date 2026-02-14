@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/gamification_provider.dart';
 import '../../services/engagement_service.dart';
 
 const Color _primary = Color(0xFF8ED8E6);
@@ -27,6 +29,13 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
   void initState() {
     super.initState();
     _loadDashboard();
+    if (widget.childId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<GamificationProvider>().setCurrentChildId(widget.childId!);
+        }
+      });
+    }
   }
 
   Future<void> _loadDashboard() async {
@@ -42,6 +51,10 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
           _loading = false;
           _error = null;
         });
+        // Garder le même enfant pour les prochaines parties (ex. Oslin)
+        if (widget.childId == null && data.childId.isNotEmpty) {
+          context.read<GamificationProvider>().setCurrentChildId(data.childId);
+        }
       }
     } catch (e) {
       if (mounted) {

@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
+import '../providers/child_mode_session_provider.dart';
 import '../providers/child_security_code_provider.dart';
+import '../providers/gamification_provider.dart';
+import '../services/gamification_service.dart';
 import '../utils/constants.dart';
 
 const Color _primary = Color(0xFF39AFEF);
@@ -48,17 +51,32 @@ class _ParentCodeInputDialogState extends State<ParentCodeInputDialog> {
     });
   }
 
-  void _onConfirm() {
-    final provider = Provider.of<ChildSecurityCodeProvider>(context, listen: false);
-    if (provider.verifyCode(_code)) {
-      Navigator.of(context).pop(true);
-      context.go(AppConstants.familyProfileRoute);
-    } else {
+  Future<void> _onConfirm() async {
+    final codeProvider = Provider.of<ChildSecurityCodeProvider>(context, listen: false);
+    if (!codeProvider.verifyCode(_code)) {
       setState(() {
         _showError = true;
         _code = '';
       });
+      return;
     }
+    // Enregistrer la durée du mode enfant (temps de jeu) avant de quitter
+    final sessionProvider = Provider.of<ChildModeSessionProvider>(context, listen: false);
+    final durationSeconds = sessionProvider.durationSeconds;
+    sessionProvider.clearSession();
+    final gp = Provider.of<GamificationProvider>(context, listen: false);
+    if (gp.currentChildId != null && durationSeconds > 0) {
+      try {
+        await gp.recordGameSession(
+          gameType: GameType.childMode,
+          completed: true,
+          timeSpentSeconds: durationSeconds,
+        );
+      } catch (_) {}
+    }
+    if (!mounted) return;
+    Navigator.of(context).pop(true);
+    context.go(AppConstants.familyProfileRoute);
   }
 
   void _onCancel() {

@@ -8,6 +8,8 @@ export enum GameType {
   SHAPE_SORTING = 'shape_sorting',
   STAR_TRACER = 'star_tracer',
   BASKET_SORT = 'basket_sort',
+  /** Temps passé en mode enfant (session ouverte). */
+  CHILD_MODE = 'child_mode',
 }
 
 @Schema({ timestamps: true })
