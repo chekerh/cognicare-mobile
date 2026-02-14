@@ -1382,9 +1382,8 @@ export class OrganizationService {
       email: invitation.email,
       fullName: invitation.leaderFullName,
       phone: invitation.leaderPhone,
-      password: invitation.leaderPassword, // Already hashed
+      passwordHash: invitation.leaderPassword, // Already hashed
       role: 'organization_leader',
-      isVerified: true,
     });
 
     // Create the organization
@@ -1392,7 +1391,8 @@ export class OrganizationService {
       name: invitation.organizationName,
       leaderId: user._id,
       staffIds: [],
-      childIds: [],
+      familyIds: [],
+      childrenIds: [],
     });
 
     // Link user to organization
