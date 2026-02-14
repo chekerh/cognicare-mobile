@@ -172,6 +172,13 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
         _loading = false;
         _loadError = null;
       });
+      // Afficher les derniers messages en bas : scroll après le build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        }
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -347,8 +354,9 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       final XFile? picked = await _imagePicker.pickImage(source: ImageSource.gallery);
       if (picked == null || !mounted) return;
       final file = File(picked.path);
+      // Priorité au token stocké pour éviter 401 si AuthProvider pas encore rechargé
       final chatService = ChatService(
-        getToken: () async => Provider.of<AuthProvider>(context, listen: false).accessToken ?? await AuthService().getStoredToken(),
+        getToken: () async => await AuthService().getStoredToken() ?? Provider.of<AuthProvider>(context, listen: false).accessToken,
       );
       setState(() => _sending = true);
       try {
@@ -368,15 +376,34 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       } catch (e) {
         if (mounted) {
           setState(() => _sending = false);
+          final msg = e.toString().replaceFirst('Exception: ', '');
+          final isUnauthorized = msg.toLowerCase().contains('unauthorized') || msg.toLowerCase().contains('session expirée');
+          if (isUnauthorized) {
+            setState(() => _loadError = msg);
+          }
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+            SnackBar(
+              content: Text(isUnauthorized ? 'Session expirée. Veuillez vous reconnecter.' : msg),
+              action: isUnauthorized
+                  ? SnackBarAction(
+                      label: 'Reconnecter',
+                      onPressed: () async {
+                        await Provider.of<AuthProvider>(context, listen: false).logout();
+                        if (context.mounted) context.go(AppConstants.loginRoute);
+                      },
+                    )
+                  : null,
+            ),
           );
         }
       }
     } catch (e) {
       if (mounted) {
+        final msg = e.toString().replaceFirst('Exception: ', '');
+        final isUnauthorized = msg.toLowerCase().contains('unauthorized') || msg.toLowerCase().contains('session expirée');
+        if (isUnauthorized) setState(() => _loadError = msg);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+          SnackBar(content: Text(isUnauthorized ? 'Session expirée. Veuillez vous reconnecter.' : msg)),
         );
       }
     }

@@ -164,7 +164,9 @@ class ChatService {
   /// Upload attachment (image or voice). Returns the URL to use in sendMessage.
   Future<String> uploadAttachment(File file, String type) async {
     final token = await getToken();
-    if (token == null) throw Exception('Not authenticated');
+    if (token == null || token.isEmpty) {
+      throw Exception('Session expirée. Veuillez vous reconnecter.');
+    }
     final uri = Uri.parse(
       '${AppConstants.baseUrl}${AppConstants.conversationsUploadEndpoint}',
     );
@@ -174,6 +176,9 @@ class ChatService {
     request.fields['type'] = type;
     final streamed = await request.send();
     final response = await http.Response.fromStream(streamed);
+    if (response.statusCode == 401) {
+      throw Exception('Unauthorized');
+    }
     if (response.statusCode != 200 && response.statusCode != 201) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;
@@ -196,7 +201,9 @@ class ChatService {
     String? attachmentType,
   }) async {
     final token = await getToken();
-    if (token == null) throw Exception('Not authenticated');
+    if (token == null || token.isEmpty) {
+      throw Exception('Session expirée. Veuillez vous reconnecter.');
+    }
     final uri = Uri.parse(
       '${AppConstants.baseUrl}${AppConstants.conversationsMessagesEndpoint(conversationId)}',
     );
@@ -211,6 +218,7 @@ class ChatService {
       },
       body: jsonEncode(body),
     );
+    if (response.statusCode == 401) throw Exception('Unauthorized');
     if (response.statusCode != 200 && response.statusCode != 201) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;

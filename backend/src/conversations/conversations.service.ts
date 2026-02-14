@@ -148,7 +148,8 @@ export class ConversationsService {
       if (id) {
         roleById.set(id, String(u.role ?? '').toLowerCase());
         if (u.fullName != null) nameById.set(id, u.fullName);
-        if (u.profilePic != null) profilePicById.set(id, u.profilePic);
+        const pic = u.profilePic != null ? String(u.profilePic).trim() : '';
+        if (pic !== '') profilePicById.set(id, pic);
       }
     }
 
@@ -180,7 +181,7 @@ export class ConversationsService {
           ? this.decryptMessage(c.lastMessage)
           : undefined,
         timeAgo: c.timeAgo,
-        imageUrl: displayImageUrl,
+        imageUrl: typeof displayImageUrl === 'string' ? displayImageUrl : '',
         unread: c.unread,
         segment,
       };
@@ -204,6 +205,13 @@ export class ConversationsService {
       .exec();
 
     if (conv) {
+      const other = await this.userModel
+        .findById(oid)
+        .select('profilePic')
+        .lean()
+        .exec();
+      const pic = (other as { profilePic?: string } | null)?.profilePic;
+      const imageUrl = pic && String(pic).trim() !== '' ? String(pic).trim() : (conv.imageUrl ?? '');
       return {
         id: conv._id.toString(),
         threadId: conv.threadId?.toString(),
@@ -211,7 +219,7 @@ export class ConversationsService {
         subtitle: conv.subtitle,
         lastMessage: conv.lastMessage,
         timeAgo: conv.timeAgo,
-        imageUrl: conv.imageUrl,
+        imageUrl,
         unread: conv.unread,
         segment: conv.segment,
       };
@@ -220,14 +228,18 @@ export class ConversationsService {
     const threadId = new Types.ObjectId();
     const otherUser = await this.userModel
       .findById(oid)
-      .select('role fullName')
+      .select('role fullName profilePic')
       .lean()
       .exec();
     const otherUserLean = otherUser as {
       role?: string;
       fullName?: string;
+      profilePic?: string;
     } | null;
     const otherRole = otherUserLean?.role?.toLowerCase?.();
+    const otherProfilePic = otherUserLean?.profilePic && String(otherUserLean.profilePic).trim() !== ''
+      ? String(otherUserLean.profilePic).trim()
+      : '';
     const role = currentUserRole?.toLowerCase?.();
 
     // Segment for the user making the request (current user)
@@ -261,7 +273,7 @@ export class ConversationsService {
         name: otherUserLean?.fullName ?? 'Conversation',
         lastMessage: '',
         timeAgo: '',
-        imageUrl: '',
+        imageUrl: otherProfilePic,
         segment: segmentForCurrentUser,
       },
       {
@@ -283,7 +295,7 @@ export class ConversationsService {
       subtitle: created.subtitle,
       lastMessage: created.lastMessage,
       timeAgo: created.timeAgo,
-      imageUrl: created.imageUrl,
+      imageUrl: otherProfilePic,
       unread: created.unread,
       segment: created.segment,
     };
