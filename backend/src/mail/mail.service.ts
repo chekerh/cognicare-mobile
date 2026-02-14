@@ -354,12 +354,12 @@ export class MailService {
     organizationName: string,
     acceptUrl: string,
     rejectUrl: string,
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (!this.apiKey || !this.from) {
       console.warn(
         'Skipping org leader invitation email: SENDGRID_API_KEY or MAIL_FROM not configured',
       );
-      return;
+      return false;
     }
 
     const emailContent = `
@@ -420,11 +420,26 @@ export class MailService {
     try {
       await sgMail.send(msg);
       console.log(`Org leader invitation email sent to ${email}`);
+      return true;
     } catch (err: unknown) {
+      // Log detailed error for debugging
+      if (err && typeof err === 'object' && 'code' in err) {
+        console.error('SendGrid error code:', err.code);
+        if ('response' in err && err.response) {
+          console.error(
+            'SendGrid response:',
+            JSON.stringify(err.response, null, 2),
+          );
+        }
+      }
       console.error('Failed to send org leader invitation email:', err);
-      throw new InternalServerErrorException(
-        'Could not send organization leader invitation email.',
+
+      // Don't throw - allow invitation to be created even if email fails
+      // This handles cases where SendGrid is misconfigured in production
+      console.warn(
+        'Invitation created but email not sent. Manual notification may be required.',
       );
+      return false;
     }
   }
 }

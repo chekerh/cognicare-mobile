@@ -1339,21 +1339,20 @@ export class OrganizationService {
     const rejectUrl = `${baseUrl}/api/v1/organization/admin/invitations/${token}/reject`;
 
     // Send invitation email
-    try {
-      await this.mailService.sendOrgLeaderInvitation(
-        leaderEmail,
-        leaderFullName,
-        organizationName,
-        acceptUrl,
-        rejectUrl,
-      );
-    } catch (error) {
-      console.error('Failed to send org leader invitation email:', error);
-      // Still return success - invitation is created, email can be resent
-    }
+    const emailSent = await this.mailService.sendOrgLeaderInvitation(
+      leaderEmail,
+      leaderFullName,
+      organizationName,
+      acceptUrl,
+      rejectUrl,
+    );
+
+    const message = emailSent
+      ? 'Organization leader invitation sent successfully'
+      : 'Organization leader invitation created (email failed - check SendGrid configuration). You may need to manually send the invitation link.';
 
     return {
-      message: 'Organization leader invitation sent successfully',
+      message,
       invitation,
     };
   }
