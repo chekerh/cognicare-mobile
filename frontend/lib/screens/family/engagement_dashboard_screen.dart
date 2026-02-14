@@ -2,17 +2,59 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../services/engagement_service.dart';
 
 const Color _primary = Color(0xFF8ED8E6);
 const Color _bgLight = Color(0xFFF4F9FB);
 
-/// Tableau d'Engagement hebdomadaire — temps de jeu, activités récentes, badges.
-class EngagementDashboardScreen extends StatelessWidget {
-  const EngagementDashboardScreen({super.key});
+/// Tableau d'Engagement avec données réelles (API).
+class EngagementDashboardScreen extends StatefulWidget {
+  const EngagementDashboardScreen({super.key, this.childId});
+
+  final String? childId;
+
+  @override
+  State<EngagementDashboardScreen> createState() => _EngagementDashboardScreenState();
+}
+
+class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
+  final EngagementService _engagementService = EngagementService();
+  EngagementDashboard? _dashboard;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDashboard();
+  }
+
+  Future<void> _loadDashboard() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final data = await _engagementService.getDashboard(childId: widget.childId);
+      if (mounted) {
+        setState(() {
+          _dashboard = data;
+          _loading = false;
+          _error = null;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       backgroundColor: _bgLight,
       body: SafeArea(
@@ -22,16 +64,11 @@ class EngagementDashboardScreen extends StatelessWidget {
           children: [
             _buildHeader(context),
             Expanded(
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(24, 16, 24, 32 + bottomPadding),
-                children: [
-                  _buildPlaytimeCard(),
-                  const SizedBox(height: 32),
-                  _buildRecentActivities(context),
-                  const SizedBox(height: 32),
-                  _buildBadgesSection(),
-                ],
-              ),
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator(color: _primary))
+                  : _error != null
+                      ? _buildError()
+                      : _buildContent(context),
             ),
           ],
         ),
@@ -42,9 +79,7 @@ class EngagementDashboardScreen extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: BoxDecoration(
-        color: _bgLight.withOpacity(0.8),
-      ),
+      decoration: BoxDecoration(color: _bgLight.withOpacity(0.8)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -85,8 +120,46 @@ class EngagementDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaytimeCard() {
-    const double progress = 42 / 60; // 42 min / 60 min goal
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF64748B))),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              onPressed: _loadDashboard,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Réessayer'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    final d = _dashboard!;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final progress = d.playTimeGoalMinutes > 0
+        ? (d.playTimeTodayMinutes / d.playTimeGoalMinutes).clamp(0.0, 1.0)
+        : 0.0;
+
+    return ListView(
+      padding: EdgeInsets.fromLTRB(24, 16, 24, 32 + bottomPadding),
+      children: [
+        _buildPlaytimeCard(progress, d.playTimeTodayMinutes, d.playTimeGoalMinutes, d.focusMessage),
+        const SizedBox(height: 32),
+        _buildRecentActivities(d.recentActivities),
+        const SizedBox(height: 32),
+        _buildBadgesSection(d.badges),
+      ],
+    );
+  }
+
+  Widget _buildPlaytimeCard(double progress, int minutes, int goal, String focusMessage) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -117,20 +190,20 @@ class EngagementDashboardScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const Column(
+              Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text.rich(
                     TextSpan(
-                      text: '42 ',
-                      style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                      text: '$minutes ',
+                      style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                       children: [
-                        TextSpan(text: 'min', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Color(0xFF94A3B8))),
+                        TextSpan(text: 'min', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.grey.shade400)),
                       ],
                     ),
                   ),
-                  SizedBox(height: 4),
-                  Text('Objectif: 60 min', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
+                  const SizedBox(height: 4),
+                  Text('Objectif: $goal min', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
                 ],
               ),
             ],
@@ -148,7 +221,7 @@ class EngagementDashboardScreen extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Julie est très concentrée ! +5% de focus aujourd\'hui par rapport à hier.',
+                    focusMessage,
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey.shade700),
                   ),
                 ),
@@ -160,7 +233,7 @@ class EngagementDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentActivities(BuildContext context) {
+  Widget _buildRecentActivities(List<EngagementActivity> activities) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -175,34 +248,35 @@ class EngagementDashboardScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        _activityItem(
-          icon: Icons.extension,
-          iconBg: Colors.orange.shade100,
-          iconColor: Colors.orange.shade700,
-          title: 'Puzzle terminé',
-          time: '14:20',
-          subtitle: 'Niveau expert réussi en 12 minutes.',
-          badge: ('AGILITÉ COGNITIVE +10', Colors.green, Icons.trending_up),
-        ),
-        const SizedBox(height: 16),
-        _activityItem(
-          icon: Icons.nights_stay,
-          iconBg: Colors.indigo.shade100,
-          iconColor: Colors.indigo.shade700,
-          title: 'Sommeil calme',
-          time: '13:00',
-          subtitle: 'Sieste de 45 min sans interruptions.',
-        ),
-        const SizedBox(height: 16),
-        _activityItem(
-          icon: Icons.graphic_eq,
-          iconBg: Colors.pink.shade100,
-          iconColor: Colors.pink.shade700,
-          title: 'Ambiance lancée',
-          time: '10:45',
-          subtitle: '"Forêt de Pins" activée pour la lecture.',
-          badge: ('AI COMMENT: Sérénité optimale', Colors.blue, Icons.psychology),
-        ),
+        if (activities.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade100),
+            ),
+            child: Center(
+              child: Text(
+                'Aucune activité aujourd\'hui.',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+              ),
+            ),
+          )
+        else
+          ...activities.map((a) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _activityItem(
+                  icon: a.type == 'game' ? Icons.extension : Icons.check_circle_outline,
+                  iconBg: a.type == 'game' ? Colors.orange.shade100 : Colors.indigo.shade100,
+                  iconColor: a.type == 'game' ? Colors.orange.shade700 : Colors.indigo.shade700,
+                  title: a.title,
+                  time: a.time,
+                  subtitle: a.subtitle,
+                  badgeLabel: a.badgeLabel,
+                  badgeColor: a.badgeColor,
+                ),
+              )),
       ],
     );
   }
@@ -214,24 +288,37 @@ class EngagementDashboardScreen extends StatelessWidget {
     required String title,
     required String time,
     required String subtitle,
-    (String, Color, IconData)? badge,
+    String? badgeLabel,
+    String? badgeColor,
   }) {
+    Color badgeColorResolved = Colors.green;
+    if (badgeColor != null) {
+      switch (badgeColor.toLowerCase()) {
+        case 'green':
+          badgeColorResolved = Colors.green;
+          break;
+        case 'blue':
+          badgeColorResolved = Colors.blue;
+          break;
+        case 'orange':
+          badgeColorResolved = Colors.orange;
+          break;
+        default:
+          badgeColorResolved = Colors.green;
+      }
+    }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: iconBg,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2))],
-              ),
-              child: Icon(icon, color: iconColor, size: 28),
-            ),
-          ],
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: iconBg,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2))],
+          ),
+          child: Icon(icon, color: iconColor, size: 28),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -249,26 +336,26 @@ class EngagementDashboardScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                    Expanded(child: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
                     Text(time, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(subtitle, style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
-                if (badge != null) ...[
+                if (badgeLabel != null && badgeLabel.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: badge.$2.withOpacity(0.15),
+                      color: badgeColorResolved.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(badge.$3, size: 14, color: badge.$2),
+                        Icon(Icons.trending_up, size: 14, color: badgeColorResolved),
                         const SizedBox(width: 4),
-                        Text(badge.$1, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: badge.$2)),
+                        Text(badgeLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: badgeColorResolved)),
                       ],
                     ),
                   ),
@@ -281,70 +368,74 @@ class EngagementDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBadgesSection() {
-    final badges = [
-      (Icons.emoji_events, Colors.yellow.shade700, 'EXPLORATEUR', Colors.yellow.shade100, false),
-      (Icons.bolt, Colors.cyan.shade700, 'SÉANCE ÉCLAIR', Colors.cyan.shade100, false),
-      (Icons.favorite, Colors.purple.shade700, 'EMPATHIE', Colors.purple.shade100, true), // locked
-      (Icons.verified, _primary, '7 JOURS +', _primary.withOpacity(0.2), false),
-    ];
+  Widget _buildBadgesSection(List<EngagementBadge> badges) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Badges d\'engagement', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
         const SizedBox(height: 16),
-        SizedBox(
-          height: 140,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: badges.length,
-            itemBuilder: (context, i) {
-              final b = badges[i];
-              return Container(
-                width: 112,
-                margin: EdgeInsets.only(right: i < badges.length - 1 ? 16 : 0),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.grey.shade100),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
-                ),
-                child: Opacity(
-                  opacity: b.$5 ? 0.6 : 1,
+        if (badges.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.grey.shade100),
+            ),
+            child: Center(
+              child: Text(
+                'Aucun badge encore. Continue de jouer !',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+              ),
+            ),
+          )
+        else
+          SizedBox(
+            height: 140,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: badges.length,
+              itemBuilder: (context, i) {
+                final b = badges[i];
+                return Container(
+                  width: 112,
+                  margin: EdgeInsets.only(right: i < badges.length - 1 ? 16 : 0),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Colors.grey.shade100),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+                  ),
                   child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            color: b.$4,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(b.$1, color: b.$2, size: 32),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: _primary.withOpacity(0.2),
+                          shape: BoxShape.circle,
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          b.$3,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: b.$5 ? Colors.grey.shade500 : Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                ),
-              );
-            },
+                        child: const Icon(Icons.emoji_events, color: _primary, size: 32),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        b.name.toUpperCase(),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
-
 }
 
 class _ProgressRingPainter extends CustomPainter {

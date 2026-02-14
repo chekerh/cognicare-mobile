@@ -21,6 +21,7 @@ import { VolunteersModule } from './volunteers/volunteers.module';
 import { CoursesModule } from './courses/courses.module';
 import { NutritionModule } from './nutrition/nutrition.module';
 import { CallsModule } from './calls/calls.module';
+import { EngagementModule } from './engagement/engagement.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { CallsModule } from './calls/calls.module';
     CoursesModule,
     NutritionModule,
     CallsModule,
+    EngagementModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -485,7 +485,9 @@ GoRouter createAppRouter(AuthProvider authProvider) {
         ),
         GoRoute(
           path: 'engagement-dashboard',
-          builder: (context, state) => const EngagementDashboardScreen(),
+          builder: (context, state) => EngagementDashboardScreen(
+            childId: state.uri.queryParameters['childId'],
+          ),
         ),
         GoRoute(
           path: 'propose-donation',

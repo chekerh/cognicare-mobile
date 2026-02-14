@@ -83,6 +83,13 @@ class AppConstants {
   static String reminderStatsEndpoint(String childId, {int days = 7}) =>
       '/api/v1/reminders/child/$childId/stats?days=$days';
 
+  /// Tableau d'engagement (temps de jeu, activités, badges)
+  static const String engagementDashboardEndpoint = '/api/v1/engagement/dashboard';
+  static String engagementDashboardUrl([String? childId]) =>
+      childId == null || childId.isEmpty
+          ? engagementDashboardEndpoint
+          : '$engagementDashboardEndpoint?childId=${Uri.encodeComponent(childId)}';
+
   /// Returns a full URL for an image from the API (profile pics, post images).
   /// If [pathOrUrl] is empty, returns ''. If it already starts with 'http', returns as-is.
   /// Otherwise prefixes with [baseUrl] (e.g. /uploads/profiles/xxx → http://host/uploads/profiles/xxx).
