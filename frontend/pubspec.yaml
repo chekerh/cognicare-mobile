@@ -74,8 +74,8 @@ dependencies:
   # Lecture des messages vocaux
   audioplayers: ^6.0.0
 
-  # Appels vocaux / vidéo (Agora RTC)
-  agora_rtc_engine: ^6.3.2
+  # Appels vocaux / vidéo (Jitsi Meet - gratuit, open source)
+  jitsi_meet_flutter_sdk: ^11.6.0
   socket_io_client: ^3.0.1
 
   # Internationalization (managed by flutter_localizations)

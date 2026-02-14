@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
@@ -17,21 +18,6 @@ class IncomingCall {
     required this.fromUserName,
     required this.channelId,
     required this.isVideo,
-  });
-}
-
-/// Token + appId response from backend.
-class CallTokenResponse {
-  final String token;
-  final String channel;
-  final String uid;
-  final String appId;
-
-  CallTokenResponse({
-    required this.token,
-    required this.channel,
-    required this.uid,
-    required this.appId,
   });
 }
 
@@ -61,38 +47,9 @@ class CallService {
     return await _storage.read(key: AppConstants.jwtTokenKey);
   }
 
-  Future<CallTokenResponse> getRtcToken({
-    required String channel,
-    required String uid,
-  }) async {
-    final token = await _getToken();
-    if (token == null) throw Exception('Non authentifié');
-    final uri = Uri.parse(
-        '$_baseUrl/api/v1/calls/token?channel=${Uri.encodeComponent(channel)}&uid=${Uri.encodeComponent(uid)}');
-    final response = await _client.get(
-      uri,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-    if (response.statusCode != 200) {
-      final body = response.body;
-      Map<String, dynamic>? err;
-      try {
-        err = jsonDecode(body) as Map<String, dynamic>?;
-      } catch (_) {}
-      throw Exception(err?['message'] ?? 'Erreur token: ${response.statusCode}');
-    }
-    final map = jsonDecode(response.body) as Map<String, dynamic>;
-    final appIdRaw = map['appId'];
-    final appId = (appIdRaw?.toString() ?? '').trim();
-    return CallTokenResponse(
-      token: (map['token'] as String?) ?? '',
-      channel: (map['channel'] as String?) ?? '',
-      uid: (map['uid'] as String?) ?? '',
-      appId: appId,
-    );
+  /// Nom de salle Jitsi à utiliser (meet.jit.si, gratuit, pas de clé).
+  static String jitsiRoomName(String channelId) {
+    return channelId.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
   }
 
   /// Connect to signaling WebSocket. Call when user logs in.

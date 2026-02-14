@@ -21,13 +21,16 @@ class _CallConnectionHandlerState extends State<CallConnectionHandler> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    final callProvider = Provider.of<CallProvider>(context, listen: false);
-    if (auth.isAuthenticated && auth.user != null) {
-      callProvider.connect(auth.user!.id);
-    } else {
-      callProvider.disconnect();
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final callProvider = Provider.of<CallProvider>(context, listen: false);
+      if (auth.isAuthenticated && auth.user != null) {
+        callProvider.connect(auth.user!.id);
+      } else {
+        callProvider.disconnect();
+      }
+    });
   }
 
   @override

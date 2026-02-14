@@ -1,17 +1,14 @@
 import 'dart:async';
-import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jitsi_meet_flutter_sdk/jitsi_meet_flutter_sdk.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../services/auth_service.dart';
 import '../../services/call_service.dart';
-import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFFA8DADC);
 
-/// Écran d'appel vocal ou vidéo (Agora RTC).
+/// Écran d'appel vocal ou vidéo (Jitsi Meet - gratuit, open source).
 class CallScreen extends StatefulWidget {
   const CallScreen({
     super.key,
@@ -38,11 +35,9 @@ class CallScreen extends StatefulWidget {
 
 class _CallScreenState extends State<CallScreen> {
   final CallService _callService = CallService();
-  RtcEngine? _engine;
+  JitsiMeet? _jitsiMeet;
   bool _joined = false;
-  int? _remoteUid;
   bool _muted = false;
-  bool _speakerOn = true;
   bool _videoEnabled = true;
   String? _error;
   StreamSubscription? _acceptedSub;
@@ -57,19 +52,17 @@ class _CallScreenState extends State<CallScreen> {
       _listenForEnd();
     } else {
       _listenForResponse();
-      _joinChannel();
+      _joinCall();
     }
   }
 
   void _listenForResponse() {
     _acceptedSub = _callService.onCallAccepted.listen((channelId) {
-      if (channelId == widget.channelId && mounted) {
-        _joinChannel();
-      }
+      if (channelId == widget.channelId && mounted) _joinCall();
     });
     _rejectedSub = _callService.onCallRejected.listen((_) {
       if (mounted) {
-        _showSnack('Appel refusé');
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Appel refusé')));
         context.pop();
       }
     });
@@ -81,69 +74,71 @@ class _CallScreenState extends State<CallScreen> {
     });
   }
 
-  Future<void> _joinChannel() async {
+  void _startNoAnswerTimer() {
+    _noAnswerTimer?.cancel();
+    if (widget.isIncoming) return;
+    _noAnswerTimer = Timer(const Duration(seconds: 60), () {
+      if (!mounted) return;
+      if (_joined) return;
+      _noAnswerTimer?.cancel();
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pas de réponse')));
+      context.pop();
+    });
+  }
+
+  Future<void> _joinCall() async {
     try {
-      final userId = Provider.of<AuthProvider>(context, listen: false).user?.id;
-      if (userId == null) throw Exception('Utilisateur non connecté');
-      final resp = await _callService.getRtcToken(
-        channel: widget.channelId,
-        uid: userId,
-      );
-      if (resp.appId.isEmpty) {
-        throw Exception('Agora non configuré. Configurez AGORA_APP_ID sur le backend.');
-      }
-      _engine = createAgoraRtcEngine();
-      await _engine!.initialize(RtcEngineContext(appId: resp.appId));
-      await _engine!.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
-      if (widget.isVideo) {
-        await _engine!.enableVideo();
-        await _engine!.startPreview();
-      } else {
-        await _engine!.enableAudio();
-      }
-      _engine!.registerEventHandler(
-        RtcEngineEventHandler(
-          onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
-            if (mounted) {
-              setState(() => _joined = true);
-              if (!widget.isIncoming) _startNoAnswerTimer();
-            }
-          },
-          onUserJoined: (RtcConnection connection, int uid, int elapsed) {
-            if (mounted) {
-              _noAnswerTimer?.cancel();
-              setState(() => _remoteUid = uid);
-            }
-          },
-          onUserOffline: (RtcConnection connection, int uid, UserOfflineReasonType reason) {
-            if (mounted) setState(() => _remoteUid = null);
-          },
-          onError: (ErrorCodeType err, String msg) {
-            if (!mounted) return;
-            final isInvalidAppId = msg.contains('-102') || msg.contains('Invalid App ID');
-            setState(() => _error = isInvalidAppId
-                ? 'App ID Agora invalide. Vérifiez AGORA_APP_ID et AGORA_APP_CERTIFICATE sur le backend (Render).'
-                : msg);
-          },
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final userName = auth.user?.fullName ?? auth.user?.email ?? 'Utilisateur';
+      final roomName = CallService.jitsiRoomName(widget.channelId);
+
+      final options = JitsiMeetConferenceOptions(
+        serverURL: 'https://meet.jit.si',
+        room: roomName,
+        userInfo: JitsiMeetUserInfo(
+          displayName: userName,
+          email: '',
         ),
+        configOverrides: {
+          'startWithAudioMuted': false,
+          'startWithVideoMuted': !widget.isVideo,
+          'subject': widget.isVideo ? 'Appel vidéo CogniCare' : 'Appel vocal CogniCare',
+        },
+        featureFlags: {
+          'unsaferoomwarning.enabled': false,
+        },
       );
-      await _engine!.joinChannelWithUserAccount(
-        token: resp.token,
-        channelId: widget.channelId,
-        userAccount: userId,
-        options: const ChannelMediaOptions(
-          channelProfile: ChannelProfileType.channelProfileCommunication,
-          clientRoleType: ClientRoleType.clientRoleBroadcaster,
-        ),
+
+      final listener = JitsiMeetEventListener(
+        conferenceJoined: (url) {
+          if (mounted) setState(() => _joined = true);
+          if (!widget.isIncoming) _noAnswerTimer?.cancel();
+        },
+        participantJoined: (email, name, role, participantId) {
+          if (mounted) _noAnswerTimer?.cancel();
+        },
+        conferenceTerminated: (url, error) {
+          if (mounted) _onCallEnded();
+        },
+        readyToClose: () {
+          if (mounted) _onCallEnded();
+        },
       );
+
+      _jitsiMeet = JitsiMeet();
+      _jitsiMeet!.join(options, listener);
+
+      if (mounted && !widget.isIncoming) _startNoAnswerTimer();
     } catch (e) {
       if (!mounted) return;
-      final errStr = e.toString().replaceFirst('Exception: ', '');
-      final isInvalidAppId = errStr.contains('-102') || errStr.contains('Invalid App ID');
-      setState(() => _error = isInvalidAppId
-          ? 'App ID Agora invalide. Vérifiez AGORA_APP_ID et AGORA_APP_CERTIFICATE sur le backend (Render).'
-          : errStr);
+      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
     }
+  }
+
+  void _onCallEnded() {
+    _callService.endCall(widget.remoteUserId);
+    _noAnswerTimer?.cancel();
+    if (mounted) context.pop();
   }
 
   Future<void> _acceptCall() async {
@@ -154,7 +149,7 @@ class _CallScreenState extends State<CallScreen> {
     );
     _endedSub?.cancel();
     _listenForEnd();
-    await _joinChannel();
+    await _joinCall();
   }
 
   void _rejectCall() {
@@ -166,25 +161,9 @@ class _CallScreenState extends State<CallScreen> {
 
   void _endCall() {
     _callService.endCall(widget.remoteUserId);
-    _engine?.leaveChannel();
-    _engine?.release();
-    context.pop();
-  }
-
-  void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-  }
-
-  void _startNoAnswerTimer() {
+    _jitsiMeet?.hangUp();
     _noAnswerTimer?.cancel();
-    if (widget.isIncoming) return;
-    _noAnswerTimer = Timer(const Duration(seconds: 60), () {
-      if (!mounted) return;
-      if (_remoteUid != null) return;
-      _noAnswerTimer?.cancel();
-      _showSnack('Pas de réponse');
-      context.pop();
-    });
+    if (mounted) context.pop();
   }
 
   @override
@@ -193,8 +172,7 @@ class _CallScreenState extends State<CallScreen> {
     _acceptedSub?.cancel();
     _rejectedSub?.cancel();
     _endedSub?.cancel();
-    _engine?.leaveChannel();
-    _engine?.release();
+    _jitsiMeet?.hangUp();
     super.dispose();
   }
 
@@ -207,7 +185,7 @@ class _CallScreenState extends State<CallScreen> {
             ? _buildError()
             : widget.isIncoming && widget.incomingCall != null && !_joined
                 ? _buildIncomingUI()
-                : _buildCallUI(),
+                : _buildJoiningOrCallUI(),
       ),
     );
   }
@@ -256,16 +234,8 @@ class _CallScreenState extends State<CallScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _circleButton(
-              icon: Icons.call_end,
-              color: Colors.red,
-              onTap: _rejectCall,
-            ),
-            _circleButton(
-              icon: Icons.call,
-              color: Colors.green,
-              onTap: _acceptCall,
-            ),
+            _circleButton(icon: Icons.call_end, color: Colors.red, onTap: _rejectCall),
+            _circleButton(icon: Icons.call, color: Colors.green, onTap: _acceptCall),
           ],
         ),
         const SizedBox(height: 48),
@@ -273,83 +243,35 @@ class _CallScreenState extends State<CallScreen> {
     );
   }
 
-  Widget _buildCallUI() {
+  Widget _buildJoiningOrCallUI() {
     return Stack(
       fit: StackFit.expand,
       children: [
-        if (widget.isVideo)
-          _remoteUid != null
-              ? AgoraVideoView(
-                  controller: VideoViewController.remote(
-                    rtcEngine: _engine!,
-                    canvas: VideoCanvas(uid: _remoteUid!),
-                    connection: RtcConnection(channelId: widget.channelId),
-                  ),
-                )
-              : Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: _primary.withOpacity(0.3),
-                        child: Text(
-                          widget.remoteUserName.isNotEmpty ? widget.remoteUserName[0].toUpperCase() : '?',
-                          style: const TextStyle(fontSize: 40, color: Colors.white),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        _joined ? 'Appel en cours...' : 'Connexion...',
-                        style: TextStyle(color: Colors.white.withOpacity(0.8)),
-                      ),
-                    ],
-                  ),
-                )
-        else
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: _primary.withOpacity(0.3),
-                  child: Text(
-                    widget.remoteUserName.isNotEmpty ? widget.remoteUserName[0].toUpperCase() : '?',
-                    style: const TextStyle(fontSize: 40, color: Colors.white),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  widget.remoteUserName,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-                ),
-                Text(
-                  _remoteUid != null
-                      ? 'En communication'
-                      : _joined
-                          ? 'Appel en cours...'
-                          : 'Connexion...',
-                  style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.7)),
-                ),
-              ],
-            ),
-          ),
-        if (widget.isVideo && _joined)
-          Positioned(
-            top: 16,
-            left: 16,
-            child: SizedBox(
-              width: 120,
-              height: 160,
-              child: AgoraVideoView(
-                controller: VideoViewController(
-                  rtcEngine: _engine!,
-                  canvas: const VideoCanvas(uid: 0),
+        Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundColor: _primary.withOpacity(0.3),
+                child: Text(
+                  widget.remoteUserName.isNotEmpty ? widget.remoteUserName[0].toUpperCase() : '?',
+                  style: const TextStyle(fontSize: 40, color: Colors.white),
                 ),
               ),
-            ),
+              const SizedBox(height: 24),
+              Text(
+                widget.remoteUserName,
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _joined ? 'Réunion Jitsi en cours...' : 'Connexion à la réunion...',
+                style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.7)),
+              ),
+            ],
           ),
+        ),
         Positioned(
           left: 0,
           right: 0,
@@ -357,28 +279,7 @@ class _CallScreenState extends State<CallScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _circleButton(
-                icon: _muted ? Icons.mic_off : Icons.mic,
-                color: _muted ? Colors.red : Colors.white24,
-                onTap: () async {
-                  await _engine?.muteLocalAudioStream(_muted ? false : true);
-                  setState(() => _muted = !_muted);
-                },
-              ),
-              if (widget.isVideo)
-                _circleButton(
-                  icon: _videoEnabled ? Icons.videocam : Icons.videocam_off,
-                  color: _videoEnabled ? Colors.white24 : Colors.red,
-                  onTap: () async {
-                    await _engine?.muteLocalVideoStream(_videoEnabled ? true : false);
-                    setState(() => _videoEnabled = !_videoEnabled);
-                  },
-                ),
-              _circleButton(
-                icon: Icons.call_end,
-                color: Colors.red,
-                onTap: _endCall,
-              ),
+              _circleButton(icon: Icons.call_end, color: Colors.red, onTap: _endCall),
             ],
           ),
         ),
@@ -397,10 +298,9 @@ class _CallScreenState extends State<CallScreen> {
       child: InkWell(
         onTap: onTap,
         customBorder: const CircleBorder(),
-        child: Container(
+        child: SizedBox(
           width: 56,
           height: 56,
-          alignment: Alignment.center,
           child: Icon(icon, color: Colors.white, size: 28),
         ),
       ),
