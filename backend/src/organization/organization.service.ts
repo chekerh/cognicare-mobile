@@ -138,18 +138,19 @@ export class OrganizationService {
     await family.save();
 
     // Link all family's children to organization
-    if (family.childrenIds && family.childrenIds.length > 0) {
+    const familyChildren = await this.childModel.find({ parentId: family._id });
+    if (familyChildren.length > 0) {
       await this.childModel.updateMany(
-        { _id: { $in: family.childrenIds } },
+        { parentId: family._id },
         { organizationId: new Types.ObjectId(orgId) },
       );
 
       // Add children to org's childrenIds
-      for (const childId of family.childrenIds) {
+      for (const child of familyChildren) {
         if (
-          !org.childrenIds.some((id) => id.toString() === childId.toString())
+          !org.childrenIds.some((id) => id.toString() === child._id.toString())
         ) {
-          org.childrenIds.push(childId);
+          org.childrenIds.push(child._id);
         }
       }
       await org.save();
@@ -168,17 +169,19 @@ export class OrganizationService {
     org.familyIds = org.familyIds.filter((id) => id.toString() !== familyId);
 
     // Remove family's children from organization
-    if (family && family.childrenIds) {
+    if (family) {
+      const familyChildren = await this.childModel.find({
+        parentId: family._id,
+      });
+      const childrenIds = familyChildren.map((child) => child._id.toString());
+
       org.childrenIds = org.childrenIds.filter(
-        (childId) =>
-          !family.childrenIds?.some(
-            (id) => id.toString() === childId.toString(),
-          ),
+        (childId) => !childrenIds.includes(childId.toString()),
       );
 
       // Unlink children from organization
       await this.childModel.updateMany(
-        { _id: { $in: family.childrenIds } },
+        { parentId: family._id },
         { $unset: { organizationId: 1 } },
       );
     }
@@ -397,9 +400,6 @@ export class OrganizationService {
         await child.save();
         children.push(child);
 
-        // Add to family's children
-        family.childrenIds!.push(child._id);
-
         // Add to organization's children
         org.childrenIds.push(child._id);
       }
@@ -493,10 +493,6 @@ export class OrganizationService {
     });
 
     await child.save();
-
-    // Add to family's children
-    family.childrenIds!.push(child._id);
-    await family.save();
 
     // Add to organization's children
     org.childrenIds.push(child._id);
@@ -817,7 +813,6 @@ export class OrganizationService {
       userId: user._id,
       email: user.email,
       role: user.role,
-      hasChildren: user.childrenIds?.length || 0,
     });
 
     // Validate user role matches invitation type
@@ -983,18 +978,23 @@ export class OrganizationService {
       }
 
       // Link family's children to organization
-      if (user.childrenIds && user.childrenIds.length > 0) {
+      const existingChildren = await this.childModel.find({
+        parentId: user._id,
+      });
+      if (existingChildren.length > 0) {
         await this.childModel.updateMany(
-          { _id: { $in: user.childrenIds } },
+          { parentId: user._id },
           { organizationId: invitation.organizationId },
         );
 
         // Add children to org's childrenIds
-        for (const childId of user.childrenIds) {
+        for (const child of existingChildren) {
           if (
-            !org.childrenIds.some((id) => id.toString() === childId.toString())
+            !org.childrenIds.some(
+              (id) => id.toString() === child._id.toString(),
+            )
           ) {
-            org.childrenIds.push(childId);
+            org.childrenIds.push(child._id);
           }
         }
       }

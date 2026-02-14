@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document } from 'mongoose';
 
 export type UserDocument = User & Document;
 
@@ -44,9 +44,6 @@ export class User {
 
   @Prop({ type: 'ObjectId', ref: 'Organization' })
   organizationId?: string;
-
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Child' }] })
-  childrenIds?: Types.ObjectId[];
 
   @Prop()
   profilePic?: string;
