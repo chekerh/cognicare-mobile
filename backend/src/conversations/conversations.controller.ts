@@ -102,7 +102,7 @@ export class ConversationsController {
     body: {
       text: string;
       attachmentUrl?: string;
-      attachmentType?: 'image' | 'voice';
+      attachmentType?: 'image' | 'voice' | 'call_missed';
     },
   ) {
     const userId = req.user.id as string;
@@ -110,10 +110,15 @@ export class ConversationsController {
     if (!text && !body?.attachmentUrl) {
       throw new BadRequestException('text or attachmentUrl is required');
     }
+    const fallbackText = body?.attachmentType === 'call_missed'
+      ? 'Appel manqué'
+      : body?.attachmentType === 'voice'
+        ? 'Message vocal'
+        : 'Photo';
     return this.conversationsService.addMessage(
       id,
       userId,
-      text || (body.attachmentType === 'voice' ? 'Message vocal' : 'Photo'),
+      text || fallbackText,
       body.attachmentUrl,
       body.attachmentType,
     );

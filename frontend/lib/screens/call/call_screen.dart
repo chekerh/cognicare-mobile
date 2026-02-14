@@ -4,7 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:jitsi_meet_flutter_sdk/jitsi_meet_flutter_sdk.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/call_provider.dart';
+import '../../services/auth_service.dart';
 import '../../services/call_service.dart';
+import '../../services/chat_service.dart';
 
 const Color _primary = Color(0xFFA8DADC);
 
@@ -34,7 +37,7 @@ class CallScreen extends StatefulWidget {
 }
 
 class _CallScreenState extends State<CallScreen> {
-  final CallService _callService = CallService();
+  late CallService _callService;
   JitsiMeet? _jitsiMeet;
   bool _joined = false;
   bool _muted = false;
@@ -46,14 +49,23 @@ class _CallScreenState extends State<CallScreen> {
   Timer? _noAnswerTimer;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _callService = Provider.of<CallProvider>(context, listen: false).service;
+  }
+
+  @override
   void initState() {
     super.initState();
-    if (widget.isIncoming && widget.incomingCall != null) {
-      _listenForEnd();
-    } else {
-      _listenForResponse();
-      _joinCall();
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (widget.isIncoming && widget.incomingCall != null) {
+        _listenForEnd();
+      } else {
+        _listenForResponse();
+        _joinCall();
+      }
+    });
   }
 
   void _listenForResponse() {
@@ -62,6 +74,7 @@ class _CallScreenState extends State<CallScreen> {
     });
     _rejectedSub = _callService.onCallRejected.listen((_) {
       if (mounted) {
+        _addMissedCallMessage();
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Appel refusé')));
         context.pop();
       }
@@ -81,6 +94,7 @@ class _CallScreenState extends State<CallScreen> {
       if (!mounted) return;
       if (_joined) return;
       _noAnswerTimer?.cancel();
+      _addMissedCallMessage();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pas de réponse')));
       context.pop();
     });
@@ -139,6 +153,23 @@ class _CallScreenState extends State<CallScreen> {
     _callService.endCall(widget.remoteUserId);
     _noAnswerTimer?.cancel();
     if (mounted) context.pop();
+  }
+
+  Future<void> _addMissedCallMessage() async {
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      if (auth.user == null || widget.remoteUserId.isEmpty) return;
+      final chatService = ChatService(
+        getToken: () async => auth.accessToken ?? await AuthService().getStoredToken(),
+      );
+      final conv = await chatService.getOrCreateConversation(widget.remoteUserId);
+      final text = widget.isVideo ? 'Appel vidéo manqué' : 'Appel vocal manqué';
+      await chatService.sendMessage(
+        conv.id,
+        text,
+        attachmentType: 'call_missed',
+      );
+    } catch (_) {}
   }
 
   Future<void> _acceptCall() async {

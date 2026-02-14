@@ -382,7 +382,7 @@ export class ConversationsService {
     userId: string,
     text: string,
     attachmentUrl?: string,
-    attachmentType?: 'image' | 'voice',
+    attachmentType?: 'image' | 'voice' | 'call_missed',
   ) {
     const conv = await this.conversationModel.findById(conversationId).exec();
     if (!conv) throw new NotFoundException('Conversation not found');

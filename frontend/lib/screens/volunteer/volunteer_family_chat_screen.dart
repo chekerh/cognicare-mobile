@@ -645,7 +645,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                             ),
                           ),
                         )
-                      : msg.attachmentType == 'voice'
+                          : msg.attachmentType == 'voice'
                           ? Material(
                               color: Colors.transparent,
                               child: InkWell(
@@ -675,6 +675,38 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                                 ),
                               ),
                             )
+                          : msg.attachmentType == 'call_missed'
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.call_missed,
+                                          color: msg.isMe ? Colors.white70 : Colors.red.shade400,
+                                          size: 22,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          msg.text,
+                                          style: TextStyle(fontSize: 14, color: msg.isMe ? Colors.white : _textPrimary),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextButton(
+                                      onPressed: () => _initiateCall(context, msg.text.contains('vidéo')),
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                        minimumSize: Size.zero,
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      child: Text('Rappeler', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _primary)),
+                                    ),
+                                  ],
+                                )
                           : Text(
                               msg.text,
                               style: TextStyle(fontSize: 14, color: msg.isMe ? Colors.white : _textPrimary, height: 1.4),
