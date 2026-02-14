@@ -48,6 +48,7 @@ class _CallScreenState extends State<CallScreen> {
   StreamSubscription? _acceptedSub;
   StreamSubscription? _rejectedSub;
   StreamSubscription? _endedSub;
+  Timer? _noAnswerTimer;
 
   @override
   void initState() {
@@ -103,10 +104,16 @@ class _CallScreenState extends State<CallScreen> {
       _engine!.registerEventHandler(
         RtcEngineEventHandler(
           onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
-            if (mounted) setState(() => _joined = true);
+            if (mounted) {
+              setState(() => _joined = true);
+              if (!widget.isIncoming) _startNoAnswerTimer();
+            }
           },
           onUserJoined: (RtcConnection connection, int uid, int elapsed) {
-            if (mounted) setState(() => _remoteUid = uid);
+            if (mounted) {
+              _noAnswerTimer?.cancel();
+              setState(() => _remoteUid = uid);
+            }
           },
           onUserOffline: (RtcConnection connection, int uid, UserOfflineReasonType reason) {
             if (mounted) setState(() => _remoteUid = null);
@@ -168,8 +175,21 @@ class _CallScreenState extends State<CallScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
+  void _startNoAnswerTimer() {
+    _noAnswerTimer?.cancel();
+    if (widget.isIncoming) return;
+    _noAnswerTimer = Timer(const Duration(seconds: 60), () {
+      if (!mounted) return;
+      if (_remoteUid != null) return;
+      _noAnswerTimer?.cancel();
+      _showSnack('Pas de réponse');
+      context.pop();
+    });
+  }
+
   @override
   void dispose() {
+    _noAnswerTimer?.cancel();
     _acceptedSub?.cancel();
     _rejectedSub?.cancel();
     _endedSub?.cancel();
@@ -305,7 +325,11 @@ class _CallScreenState extends State<CallScreen> {
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 Text(
-                  _joined ? 'En communication' : 'Connexion...',
+                  _remoteUid != null
+                      ? 'En communication'
+                      : _joined
+                          ? 'Appel en cours...'
+                          : 'Connexion...',
                   style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.7)),
                 ),
               ],

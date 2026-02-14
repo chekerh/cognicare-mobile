@@ -8,10 +8,21 @@ export class CallsService {
   private readonly appCertificate: string;
 
   constructor(private config: ConfigService) {
-    this.appId = (this.config.get<string>('AGORA_APP_ID') ?? '').trim();
-    this.appCertificate = (
-      this.config.get<string>('AGORA_APP_CERTIFICATE') ?? ''
-    ).trim();
+    this.appId = this.sanitizeAppId(
+      this.config.get<string>('AGORA_APP_ID') ?? '',
+    );
+    this.appCertificate = this.sanitizeCert(
+      this.config.get<string>('AGORA_APP_CERTIFICATE') ?? '',
+    );
+  }
+
+  /** Remove spaces, newlines, and non-printable chars that Render/env can add. */
+  private sanitizeAppId(raw: string): string {
+    return raw.replace(/\s/g, '').replace(/[^\x20-\x7E]/g, '').trim();
+  }
+
+  private sanitizeCert(raw: string): string {
+    return raw.replace(/\s/g, '').replace(/[^\x20-\x7E]/g, '').trim();
   }
 
   getAppId(): string {

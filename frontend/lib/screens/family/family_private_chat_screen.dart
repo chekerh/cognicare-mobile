@@ -589,7 +589,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  _isOnline == true ? 'Online' : 'Offline',
+                  _isOnline == true ? 'En ligne' : 'Hors ligne',
                   style: TextStyle(
                     fontSize: 13,
                     color: _isOnline == true ? Colors.green.shade700 : _textMuted,

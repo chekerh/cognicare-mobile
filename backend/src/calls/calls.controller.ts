@@ -11,13 +11,28 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CallsService } from './calls.service';
 
 @ApiTags('calls')
-@ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
 @Controller('calls')
 export class CallsController {
   constructor(private readonly callsService: CallsService) {}
 
+  @Get('check')
+  @ApiOperation({
+    summary: 'Check if Agora is configured (for debugging)',
+    description:
+      'Returns configured status and appId length. Use to verify env vars on Render.',
+  })
+  checkConfig() {
+    const appId = this.callsService.getAppId();
+    return {
+      configured: this.callsService.isConfigured(),
+      appIdLength: appId.length,
+      appIdValid: appId.length === 32 && /^[0-9a-fA-F]+$/.test(appId),
+    };
+  }
+
   @Get('token')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     summary: 'Get Agora RTC token for voice/video call',
     description:
