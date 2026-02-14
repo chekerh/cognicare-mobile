@@ -163,3 +163,8 @@ firestore-debug.log
 *.swp
 *.bak
 *~
+
+# Logo / photo personnelle — ne pas versionner sur le repo
+frontend/assets/perso/
+**/logo_perso*
+**/ma_photo*
