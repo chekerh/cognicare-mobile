@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, RequestMethod } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import * as compression from 'compression';
@@ -43,6 +43,7 @@ async function bootstrap() {
   const allowedOrigins = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'http://localhost:5173', // Web dashboard dev server (Vite)
     'http://localhost:8080',
     'http://localhost:54200', // Flutter web dev server
     'http://localhost:54201',
@@ -87,16 +88,19 @@ async function bootstrap() {
       if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        // Reject CORS without throwing error (prevents 500 status)
+        callback(null, false);
       }
     },
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
     allowedHeaders: 'Content-Type,Authorization,Accept',
   });
 
-  // Global prefix for API versioning
-  app.setGlobalPrefix('api/v1');
+  // Global prefix for API versioning (exclude root path for welcome endpoint)
+  app.setGlobalPrefix('api/v1', {
+    exclude: [{ path: '/', method: RequestMethod.GET }],
+  });
 
   // Global exception filter
   app.useGlobalFilters(new HttpExceptionFilter());

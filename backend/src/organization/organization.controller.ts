@@ -222,7 +222,7 @@ export class OrganizationController {
   }
 
   @Get(':orgId/staff')
-  @Roles('organization_leader')
+  @Roles('organization_leader', 'admin')
   @ApiOperation({ summary: 'Get all staff members in organization' })
   async getStaff(@Param('orgId') orgId: string) {
     return this.organizationService.getStaff(orgId);
@@ -247,7 +247,7 @@ export class OrganizationController {
   }
 
   @Get(':orgId/families')
-  @Roles('organization_leader')
+  @Roles('organization_leader', 'admin')
   @ApiOperation({ summary: 'Get all families in organization' })
   async getFamilies(@Param('orgId') orgId: string) {
     return await this.organizationService.getFamilies(orgId);
@@ -255,7 +255,7 @@ export class OrganizationController {
 
   // Children management endpoints
   @Get(':orgId/children')
-  @Roles('organization_leader')
+  @Roles('organization_leader', 'admin')
   @ApiOperation({ summary: 'Get all children in organization' })
   async getAllChildren(@Param('orgId') orgId: string) {
     return await this.organizationService.getAllChildren(orgId);
@@ -263,7 +263,7 @@ export class OrganizationController {
 
   // Statistics endpoint
   @Get(':orgId/stats')
-  @Roles('organization_leader')
+  @Roles('organization_leader', 'admin')
   @ApiOperation({ summary: 'Get organization statistics' })
   async getStats(@Param('orgId') orgId: string) {
     return await this.organizationService.getOrganizationStats(orgId);

@@ -13,4 +13,6 @@ services:
         value: production
       - key: PORT
         value: 3000
+      - key: BACKEND_URL
+        value: https://cognicare-mobile-h4ct.onrender.com
     healthCheckPath: /api/v1/health

@@ -128,10 +128,6 @@ export class ChildrenService {
       organizationId: family.organizationId,
     });
 
-    if (!family.childrenIds) family.childrenIds = [];
-    family.childrenIds.push(child._id);
-    await family.save();
-
     if (family.organizationId) {
       const org = await this.organizationModel
         .findById(family.organizationId)

@@ -1,21 +1,21 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document } from 'mongoose';
 
 export type UserDocument = User & Document;
 
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true })
-  fullName: string;
+  fullName!: string;
 
   @Prop({ required: true, unique: true })
-  email: string;
+  email!: string;
 
   @Prop()
   phone?: string;
 
   @Prop({ required: true })
-  passwordHash: string;
+  passwordHash!: string;
 
   @Prop({
     required: true,
@@ -31,7 +31,7 @@ export class User {
       'other',
     ],
   })
-  role:
+  role!:
     | 'family'
     | 'doctor'
     | 'volunteer'
@@ -44,9 +44,6 @@ export class User {
 
   @Prop({ type: 'ObjectId', ref: 'Organization' })
   organizationId?: string;
-
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Child' }] })
-  childrenIds?: Types.ObjectId[];
 
   @Prop()
   profilePic?: string;
