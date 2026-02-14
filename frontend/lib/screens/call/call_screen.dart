@@ -112,7 +112,11 @@ class _CallScreenState extends State<CallScreen> {
             if (mounted) setState(() => _remoteUid = null);
           },
           onError: (ErrorCodeType err, String msg) {
-            if (mounted) setState(() => _error = msg);
+            if (!mounted) return;
+            final isInvalidAppId = msg.contains('-102') || msg.contains('Invalid App ID');
+            setState(() => _error = isInvalidAppId
+                ? 'App ID Agora invalide. Vérifiez AGORA_APP_ID et AGORA_APP_CERTIFICATE sur le backend (Render).'
+                : msg);
           },
         ),
       );
@@ -126,7 +130,12 @@ class _CallScreenState extends State<CallScreen> {
         ),
       );
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      if (!mounted) return;
+      final errStr = e.toString().replaceFirst('Exception: ', '');
+      final isInvalidAppId = errStr.contains('-102') || errStr.contains('Invalid App ID');
+      setState(() => _error = isInvalidAppId
+          ? 'App ID Agora invalide. Vérifiez AGORA_APP_ID et AGORA_APP_CERTIFICATE sur le backend (Render).'
+          : errStr);
     }
   }
 

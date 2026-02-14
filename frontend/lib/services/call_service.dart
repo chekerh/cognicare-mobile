@@ -85,11 +85,13 @@ class CallService {
       throw Exception(err?['message'] ?? 'Erreur token: ${response.statusCode}');
     }
     final map = jsonDecode(response.body) as Map<String, dynamic>;
+    final appIdRaw = map['appId'];
+    final appId = (appIdRaw?.toString() ?? '').trim();
     return CallTokenResponse(
-      token: map['token'] as String,
-      channel: map['channel'] as String,
-      uid: map['uid'] as String,
-      appId: map['appId'] as String,
+      token: (map['token'] as String?) ?? '',
+      channel: (map['channel'] as String?) ?? '',
+      uid: (map['uid'] as String?) ?? '',
+      appId: appId,
     );
   }
 

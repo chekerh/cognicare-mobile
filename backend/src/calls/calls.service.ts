@@ -8,9 +8,10 @@ export class CallsService {
   private readonly appCertificate: string;
 
   constructor(private config: ConfigService) {
-    this.appId = this.config.get<string>('AGORA_APP_ID') ?? '';
-    this.appCertificate =
-      this.config.get<string>('AGORA_APP_CERTIFICATE') ?? '';
+    this.appId = (this.config.get<string>('AGORA_APP_ID') ?? '').trim();
+    this.appCertificate = (
+      this.config.get<string>('AGORA_APP_CERTIFICATE') ?? ''
+    ).trim();
   }
 
   getAppId(): string {

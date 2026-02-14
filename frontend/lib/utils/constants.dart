@@ -1,13 +1,15 @@
 class AppConstants {
   // API Configuration
-  // Sur simulateur: défaut 127.0.0.1. Sur appareil réel: flutter run --dart-define=BASE_URL=http://VOTRE_IP:3000
-  // Sans slash final pour éviter //api/... (404) quand BASE_URL est donné avec / à la fin.
+  /// URL du backend utilisée par défaut (sans --dart-define). Modifie ici si tu changes d'hébergeur.
+  static const String productionBaseUrl = 'https://cognicare-mobile-h4ct.onrender.com';
+  /// Par défaut l'app utilise productionBaseUrl. Pour le dev local : flutter run --dart-define=BASE_URL=http://127.0.0.1:3000
   static String get baseUrl {
     const raw = String.fromEnvironment(
       'BASE_URL',
-      defaultValue: 'http://127.0.0.1:3000',
+      defaultValue: 'https://cognicare-mobile-h4ct.onrender.com',
     );
-    return raw.endsWith('/') ? raw.substring(0, raw.length - 1) : raw;
+    final fromEnv = raw.endsWith('/') ? raw.substring(0, raw.length - 1) : raw;
+    return fromEnv;
   }
 
   // API Endpoints
