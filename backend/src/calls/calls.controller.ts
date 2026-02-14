@@ -5,6 +5,7 @@ import {
   UseGuards,
   Request,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -13,6 +14,8 @@ import { CallsService } from './calls.service';
 @ApiTags('calls')
 @Controller('calls')
 export class CallsController {
+  private readonly logger = new Logger(CallsController.name);
+
   constructor(private readonly callsService: CallsService) {}
 
   @Get('check')
@@ -61,6 +64,10 @@ export class CallsController {
       uid,
       req.user.id,
     );
-    return { token, channel, uid, appId: this.callsService.getAppId() };
+    const appId = this.callsService.getAppId();
+    this.logger.log(
+      `token issued appIdLength=${appId.length} appIdValid=${appId.length === 32 && /^[0-9a-fA-F]+$/.test(appId)}`,
+    );
+    return { token, channel, uid, appId };
   }
 }
