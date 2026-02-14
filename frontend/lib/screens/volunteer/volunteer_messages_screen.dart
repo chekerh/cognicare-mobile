@@ -63,7 +63,7 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
       setState(() {
         _inboxConversations = list
             .map((e) => _Conversation(
-                  id: e.id,
+                  id: e.otherUserId ?? e.id,
                   name: e.name,
                   subtitle: e.subtitle,
                   lastMessage: e.lastMessage,
@@ -97,10 +97,10 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
     context.push(
       '/volunteer/family-chat',
       extra: {
-        'familyId': c.conversationId != null ? '' : c.id,
+        'familyId': c.id,
         'familyName': c.name,
         'missionType': c.missionType ?? c.subtitle ?? 'Mission',
-        if (c.conversationId != null) 'conversationId': c.conversationId!,
+        if (c.conversationId != null && c.conversationId!.isNotEmpty) 'conversationId': c.conversationId!,
       },
     );
   }

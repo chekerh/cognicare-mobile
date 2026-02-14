@@ -96,7 +96,8 @@ String? _redirect(BuildContext context, GoRouterState state) {
     return null;
   }
 
-  // Route d'appel accessible à tout utilisateur authentifié
+  // Route d'appel : la famille peut initier ; bénévoles et autres doivent pouvoir ouvrir
+  // l'écran pour recevoir un appel entrant. Pas de redirection pour /call.
   if (location == AppConstants.callRoute) return null;
 
   // Utilisateur connecté : redirection selon la route et le rôle

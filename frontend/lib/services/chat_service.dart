@@ -36,6 +36,8 @@ class ChatMessage {
 
 class InboxConversation {
   final String id;
+  /// ID de l'autre participant (pour appels, ex. famille pour un bénévole).
+  final String? otherUserId;
   final String name;
   final String? subtitle;
   final String lastMessage;
@@ -46,6 +48,7 @@ class InboxConversation {
 
   InboxConversation({
     required this.id,
+    this.otherUserId,
     required this.name,
     this.subtitle,
     required this.lastMessage,
@@ -58,6 +61,7 @@ class InboxConversation {
   factory InboxConversation.fromJson(Map<String, dynamic> json) {
     return InboxConversation(
       id: json['id'] as String? ?? '',
+      otherUserId: json['otherUserId'] as String?,
       name: json['name'] as String? ?? '',
       subtitle: json['subtitle'] as String?,
       lastMessage: json['lastMessage'] as String? ?? '',

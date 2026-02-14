@@ -175,6 +175,7 @@ export class ConversationsService {
         : (c.imageUrl ?? '');
       return {
         id: c._id.toString(),
+        otherUserId: otherId ?? undefined,
         name: displayName,
         subtitle: c.subtitle,
         lastMessage: c.lastMessage
