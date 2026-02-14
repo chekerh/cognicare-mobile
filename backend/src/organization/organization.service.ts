@@ -894,7 +894,7 @@ export class OrganizationService {
 
     // Send email - ensure proper URL formatting
     let baseUrl =
-      this.configService.get<string>('CORS_ORIGIN') || 'http://localhost:3000';
+      this.configService.get<string>('BACKEND_URL') || 'http://localhost:3000';
 
     // Remove trailing slash if present
     baseUrl = baseUrl.replace(/\/$/, '');
@@ -1334,7 +1334,7 @@ export class OrganizationService {
 
     // Generate accept/reject URLs
     const baseUrl =
-      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+      this.configService.get<string>('BACKEND_URL') || 'http://localhost:3000';
     const acceptUrl = `${baseUrl}/api/v1/organization/admin/invitations/${token}/accept`;
     const rejectUrl = `${baseUrl}/api/v1/organization/admin/invitations/${token}/reject`;
 
