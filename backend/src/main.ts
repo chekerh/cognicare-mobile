@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, RequestMethod } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import * as compression from 'compression';
@@ -95,8 +95,10 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type,Authorization,Accept',
   });
 
-  // Global prefix for API versioning
-  app.setGlobalPrefix('api/v1');
+  // Global prefix for API versioning (exclude root path for welcome endpoint)
+  app.setGlobalPrefix('api/v1', {
+    exclude: [{ path: '/', method: RequestMethod.GET }],
+  });
 
   // Global exception filter
   app.useGlobalFilters(new HttpExceptionFilter());
