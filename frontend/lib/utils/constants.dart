@@ -32,6 +32,8 @@ class AppConstants {
 
   // Marketplace
   static const String marketplaceProductsEndpoint = '/api/v1/marketplace/products';
+  static String marketplaceProductByIdEndpoint(String id) => '/api/v1/marketplace/products/$id';
+  static const String marketplaceUploadImageEndpoint = '/api/v1/marketplace/products/upload-image';
 
   // Donations (Le Cercle du Don)
   static const String donationsEndpoint = '/api/v1/donations';
@@ -138,6 +140,7 @@ class AppConstants {
   static const String familyDonationChatRoute = '/family/donation-chat';
   static const String familyProposeDonationRoute = '/family/propose-donation';
   static const String familyProductDetailRoute = '/family/product-detail';
+  static const String familyAddProductRoute = '/family/add-product';
   static const String familyPatientRecordRoute = '/family/patient-record';
   static const String familyNotificationsRoute = '/family/notifications';
   static const String familyExpertBookingRoute = '/family/expert-booking';
@@ -148,6 +151,10 @@ class AppConstants {
   static const String familyCartRoute = '/family/cart';
   static const String familyCheckoutRoute = '/family/checkout';
   static const String familyOrderConfirmationRoute = '/family/order-confirmation';
+
+  // PayPal
+  static const String paypalCreateOrderEndpoint = '/api/v1/paypal/create-order';
+  static String paypalOrderStatusEndpoint(String orderId) => '/api/v1/paypal/order-status?orderId=$orderId';
   static const String familyChildProfileSetupRoute = '/family/child-profile-setup';
   static const String familyVolunteerProfileRoute = '/family/volunteer-profile';
   static const String familyChildModeRoute = '/family/child-mode';

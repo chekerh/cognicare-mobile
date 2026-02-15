@@ -445,7 +445,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get mobility => 'التنقل';
 
   @override
-  String get earlyLearning => 'التنمية المبكرة';
+  String get earlyLearning => 'ألعاب';
 
   @override
   String get clothing => 'الملابس';

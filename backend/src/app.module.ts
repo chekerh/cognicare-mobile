@@ -23,6 +23,7 @@ import { NutritionModule } from './nutrition/nutrition.module';
 import { CallsModule } from './calls/calls.module';
 import { EngagementModule } from './engagement/engagement.module';
 import { DonationsModule } from './donations/donations.module';
+import { PaypalModule } from './paypal/paypal.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { DonationsModule } from './donations/donations.module';
     CallsModule,
     EngagementModule,
     DonationsModule,
+    PaypalModule,
   ],
   controllers: [AppController],
   providers: [AppService],

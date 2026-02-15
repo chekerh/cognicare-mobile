@@ -445,7 +445,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mobility => 'Mobilité';
 
   @override
-  String get earlyLearning => 'Éveil';
+  String get earlyLearning => 'Jouets';
 
   @override
   String get clothing => 'Vêtements';

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -50,12 +51,12 @@ class FamilyFeedScreen extends StatefulWidget {
 
 class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   int _selectedTab = 0; // 0: Community, 1: Donations, 2: Healthcare
-  int _donationsToggleIndex = 0; // 0: Je donne, 1: Je recherche
-  int _donationsCategoryIndex = 0; // 0: Tout, 1: Mobilité, 2: Éveil, 3: Vêtements
+  int _donationsCategoryIndex = 0; // 0: Tout, 1: Mobilité, 2: Jouets, 3: Vêtements
   late final Future<List<MarketplaceProduct>> _marketplaceProductsFuture;
   final TextEditingController _donationSearchController = TextEditingController();
   final FocusNode _donationSearchFocusNode = FocusNode();
   String _donationSearchQuery = '';
+  Timer? _donationSearchDebounce;
 
   List<app_user.User>? _healthcareUsers;
   bool _healthcareLoading = false;
@@ -74,13 +75,21 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     _loadDonations();
   }
 
+  void _onDonationSearchChanged(String value) {
+    setState(() => _donationSearchQuery = value);
+    _donationSearchDebounce?.cancel();
+    _donationSearchDebounce = Timer(const Duration(milliseconds: 450), () {
+      _loadDonations();
+    });
+  }
+
   Future<void> _loadDonations() async {
     setState(() {
       _donationsLoading = true;
       _donationsError = null;
     });
     try {
-      final isOffer = _donationsToggleIndex == 0;
+      const isOffer = true; // Afficher les dons (offres)
       final category = _donationsCategoryIndex > 0 ? _donationsCategoryIndex : null;
       final search = _donationSearchQuery.trim().isNotEmpty ? _donationSearchQuery.trim() : null;
       final list = await DonationService().getDonations(
@@ -129,6 +138,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
 
   @override
   void dispose() {
+    _donationSearchDebounce?.cancel();
     _donationSearchController.dispose();
     _donationSearchFocusNode.dispose();
     super.dispose();
@@ -382,25 +392,6 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              // Toggle Je donne / Je recherche
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: _donationPrimary.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _donationToggleSegment(loc.jeDonne, 0),
-                    ),
-                    Expanded(
-                      child: _donationToggleSegment(loc.jeRecherche, 1),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
               // Category chips
               SizedBox(
                 height: 44,
@@ -454,36 +445,6 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _donationToggleSegment(String label, int index) {
-    final selected = _donationsToggleIndex == index;
-    return Material(
-      color: selected ? Colors.white : Colors.transparent,
-      borderRadius: BorderRadius.circular(8),
-      elevation: selected ? 2 : 0,
-      shadowColor: Colors.black26,
-      child: InkWell(
-        onTap: () {
-          setState(() => _donationsToggleIndex = index);
-          _loadDonations();
-        },
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: selected ? _donationPrimary : const Color(0xFF64748B),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      ),
     );
   }
 
@@ -564,13 +525,13 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           filled: true,
           fillColor: Colors.white,
         ),
-        onChanged: (value) => setState(() => _donationSearchQuery = value),
+        onChanged: _onDonationSearchChanged,
         onSubmitted: (_) => _loadDonations(),
       ),
     );
   }
 
-  /// Catégories dons : 0 Tout, 1 Mobilité, 2 Éveil, 3 Vêtements
+  /// Catégories dons : 0 Tout, 1 Mobilité, 2 Jouets, 3 Vêtements
   static const int _catAll = 0;
 
   List<Widget> _buildDonationCards(AppLocalizations loc) {
@@ -617,7 +578,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                 Icon(Icons.inventory_2_outlined, size: 56, color: _donationPrimary.withOpacity(0.5)),
                 const SizedBox(height: 16),
                 Text(
-                  loc.jeDonne == 'Je donne' ? 'Aucun don pour le moment' : 'Aucune recherche pour le moment',
+                  'Aucun don pour le moment',
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 ),
               ],

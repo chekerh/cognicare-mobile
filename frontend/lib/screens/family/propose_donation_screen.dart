@@ -29,7 +29,7 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
 
   final List<File> _photos = [];
   static const int _maxPhotos = 5;
-  int _categoryIndex = -1; // -1 = non sélectionné, 0=Vêtements, 1=Mobilier, 2=Éveil
+  int _categoryIndex = -1; // -1 = non sélectionné, 0=Vêtements, 1=Mobilier, 2=Jouets
   int _conditionIndex = 1; // 0=Neuf, 1=Très bon état, 2=Bon état
   int _suitableAgeIndex = -1; // -1 = non sélectionné
   bool _isSubmitting = false;
@@ -39,7 +39,7 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
   bool _mapLoading = false;
   final GeocodingService _geocoding = GeocodingService();
 
-  static const List<String> _categories = ['Vêtements', 'Mobilier', "Matériel d'éveil"];
+  static const List<String> _categories = ['Vêtements', 'Mobilier', 'Jouets'];
   static const List<String> _conditions = ['Neuf', 'Très bon état', 'Bon état'];
   static const List<String> _suitableAges = ['Tous âges', '0-2 ans', '3-5 ans', '6-9 ans', '10-12 ans', '12+ ans'];
 

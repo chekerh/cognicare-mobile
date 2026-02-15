@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/cart_provider.dart';
 import '../../services/notification_service.dart';
+import '../../services/paypal_service.dart';
 import '../../utils/constants.dart';
 
 /// Étape 2/3 — Paiement et livraison. Design HTML.
@@ -41,6 +43,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _confirmPay(BuildContext context, CartProvider cart) {
+    if (_paymentMethod == 2) {
+      _processPayPalPayment(context, cart);
+      return;
+    }
     if (_paymentMethod != 0) {
       _processPayment(context, cart);
       return;
@@ -48,6 +54,81 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       _processPayment(context, cart);
     }
+  }
+
+  Future<void> _processPayPalPayment(BuildContext context, CartProvider cart) async {
+    final total = cart.subtotal;
+    if (total <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Le panier est vide.'), behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+    final amountStr = total.toStringAsFixed(2);
+    try {
+      final result = await PaypalService().createOrder(amount: amountStr, currencyCode: 'USD');
+      final launched = await launchUrl(Uri.parse(result.approvalUrl), mode: LaunchMode.externalApplication);
+      if (!mounted) return;
+      if (!launched) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Impossible d\'ouvrir PayPal.'), behavior: SnackBarBehavior.floating),
+        );
+        return;
+      }
+      _showPayPalWaitingDialog(context, cart, result.orderId);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showPayPalWaitingDialog(BuildContext context, CartProvider cart, String orderId) {
+    final address = '${_streetController.text}, ${_zipController.text} ${_cityController.text}';
+    final totalStr = '\$${cart.subtotal.toStringAsFixed(2)}';
+    showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => _PayPalWaitingDialog(
+        orderId: orderId,
+        onVerified: () async {
+          try {
+            final status = await PaypalService().getOrderStatus(orderId);
+            if (status.status == 'COMPLETED') {
+              if (!ctx.mounted) return;
+              Navigator.of(ctx).pop(true);
+              cart.clear();
+              ctx.push(
+                AppConstants.familyOrderConfirmationRoute,
+                extra: { 'orderId': orderId, 'address': address },
+              );
+            } else {
+              if (!ctx.mounted) return;
+              ScaffoldMessenger.of(ctx).showSnackBar(
+                SnackBar(
+                  content: Text('Paiement pas encore finalisé (statut: ${status.status}). Réessayez après avoir payé sur PayPal.'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          } catch (e) {
+            if (!ctx.mounted) return;
+            ScaffoldMessenger.of(ctx).showSnackBar(
+              SnackBar(
+                content: Text(e.toString().replaceFirst('Exception: ', '')),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
 
   void _processPayment(BuildContext context, CartProvider cart) {
@@ -338,6 +419,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _PayPalWaitingDialog extends StatelessWidget {
+  final String orderId;
+  final VoidCallback onVerified;
+
+  const _PayPalWaitingDialog({required this.orderId, required this.onVerified});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Paiement PayPal'),
+      content: const Text(
+        'Un navigateur a été ouvert pour finaliser le paiement. '
+        'Une fois le paiement effectué sur PayPal, appuyez sur « Vérifier le paiement » ci-dessous.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Annuler'),
+        ),
+        FilledButton(
+          onPressed: onVerified,
+          child: const Text('Vérifier le paiement'),
+        ),
+      ],
     );
   }
 }

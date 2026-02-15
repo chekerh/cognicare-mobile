@@ -1,9 +1,7 @@
-import 'dart:math' show cos, sin, sqrt, asin;
-
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/geocoding_service.dart';
 import '../../utils/constants.dart';
@@ -13,15 +11,6 @@ const Color _primary = Color(0xFFA3D9E2);
 const Color _textDark = Color(0xFF111418);
 const Color _textMuted = Color(0xFF64748B);
 const Color _bgLight = Color(0xFFF0F7FF);
-
-/// Distance en mètres entre deux points (formule de Haversine).
-double _haversineKm(double lat1, double lon1, double lat2, double lon2) {
-  const p = 0.017453292519943295; // pi/180
-  final a = 0.5 -
-      cos((lat2 - lat1) * p) / 2 +
-      cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
-  return 12742 * asin(sqrt(a)); // 2 * R = 12742 km
-}
 
 /// Page détail d'une annonce de don — design aligné sur le HTML fourni.
 class DonationDetailScreen extends StatefulWidget {
@@ -74,16 +63,15 @@ class DonationDetailScreen extends StatefulWidget {
 class _DonationDetailScreenState extends State<DonationDetailScreen> {
   double? _mapLat;
   double? _mapLng;
-  String? _computedDistanceText;
   bool _loadingMap = false;
 
   @override
   void initState() {
     super.initState();
-    _initMapAndDistance();
+    _initMapCoords();
   }
 
-  Future<void> _initMapAndDistance() async {
+  Future<void> _initMapCoords() async {
     double? lat = widget.latitude;
     double? lng = widget.longitude;
     if (lat == null || lng == null) {
@@ -105,35 +93,24 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
       _mapLat = lat;
       _mapLng = lng;
     });
-    if (lat != null && lng != null) {
-      _computeDistance(lat, lng);
-    }
   }
 
-  Future<void> _computeDistance(double donationLat, double donationLng) async {
-    try {
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return;
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) return;
+  Future<void> _openInGoogleMaps() async {
+    if (_mapLat != null && _mapLng != null) {
+      final url = Uri.parse(
+        'https://www.google.com/maps/dir/?api=1&destination=$_mapLat,$_mapLng',
+      );
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
       }
-      if (permission == LocationPermission.deniedForever) return;
-      final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(timeLimit: Duration(seconds: 8)),
-      ).timeout(const Duration(seconds: 10));
-      final km = _haversineKm(pos.latitude, pos.longitude, donationLat, donationLng);
-      String text;
-      if (km < 1) {
-        text = '${(km * 1000).round()} m';
-      } else if (km < 10) {
-        text = '${km.toStringAsFixed(1)} km';
-      } else {
-        text = '${km.round()} km';
+    } else if (widget.location.trim().isNotEmpty) {
+      final url = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(widget.location)}',
+      );
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
       }
-      if (mounted) setState(() => _computedDistanceText = text);
-    } catch (_) {}
+    }
   }
 
   @override
@@ -145,7 +122,6 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
     final displayDescription = (widget.fullDescription ?? widget.description ?? '').trim().isNotEmpty ? (widget.fullDescription ?? widget.description)! : (widget.description ?? '');
     final donor = widget.donorName ?? 'Donateur';
     final avatarUrl = widget.donorAvatarUrl;
-    final distance = _computedDistanceText ?? widget.distanceText;
 
     return Scaffold(
       backgroundColor: _bgLight,
@@ -174,12 +150,11 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
                           donorName: donor,
                           donorAvatarUrl: avatarUrl,
                           location: widget.location,
-                          distanceText: distance,
-                          showDistance: distance != null,
                           suitableAge: widget.suitableAge,
                           mapLat: _mapLat,
                           mapLng: _mapLng,
                           loadingMap: _loadingMap,
+                          onMapTap: _openInGoogleMaps,
                         ),
                       ),
                     ),
@@ -292,12 +267,11 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
     required String donorName,
     required String? donorAvatarUrl,
     required String location,
-    String? distanceText,
-    bool showDistance = true,
     String? suitableAge,
     double? mapLat,
     double? mapLng,
     bool loadingMap = false,
+    VoidCallback? onMapTap,
   }) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -439,35 +413,20 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
           ),
           const SizedBox(height: 24),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              const Icon(Icons.location_on, color: _primary, size: 20),
+              const SizedBox(width: 8),
               Expanded(
-                child: Row(
-                  children: [
-                    const Icon(Icons.location_on, color: _primary, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        location,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: _textDark,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  location,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _textDark,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (showDistance && distanceText != null && distanceText.isNotEmpty)
-                Text(
-                  'À $distanceText ${loc.distanceFromYou}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 12),
@@ -489,21 +448,59 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
               ),
             )
           else if (mapLat != null && mapLng != null)
-            LocationMapWidget(
-              latitude: mapLat,
-              longitude: mapLng,
-              height: 160,
-              borderRadius: BorderRadius.circular(16),
+            _buildTappableMap(
+              child: LocationMapWidget(
+                latitude: mapLat,
+                longitude: mapLng,
+                height: 160,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              onTap: onMapTap,
             )
           else
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                height: 160,
-                color: Colors.grey.shade100,
-                child: Center(
-                  child: Icon(Icons.map_outlined, size: 48, color: Colors.grey.shade400),
+            _buildTappableMap(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  height: 160,
+                  color: Colors.grey.shade100,
+                  child: Center(
+                    child: Icon(Icons.map_outlined, size: 48, color: Colors.grey.shade400),
+                  ),
                 ),
+              ),
+              onTap: onMapTap,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTappableMap({required Widget child, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          child,
+          if (onTap != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.65),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.directions, color: Colors.white, size: 18),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Voir l\'itinéraire (Google Maps)',
+                    style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500),
+                  ),
+                ],
               ),
             ),
         ],

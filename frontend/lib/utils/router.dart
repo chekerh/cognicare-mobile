@@ -28,6 +28,7 @@ import '../screens/family/expert_booking_screen.dart';
 import '../screens/family/expert_booking_confirmation_screen.dart';
 import '../screens/family/expert_appointments_screen.dart';
 import '../screens/family/propose_donation_screen.dart';
+import '../screens/family/add_product_screen.dart';
 import '../screens/family/product_detail_screen.dart';
 import '../screens/family/clinical_patient_record_screen.dart';
 import '../screens/family/family_notifications_screen.dart';
@@ -493,6 +494,10 @@ GoRouter createAppRouter(AuthProvider authProvider) {
         GoRoute(
           path: 'propose-donation',
           builder: (context, state) => const ProposeDonationScreen(),
+        ),
+        GoRoute(
+          path: 'add-product',
+          builder: (context, state) => const AddProductScreen(),
         ),
         GoRoute(
           path: 'child-profile-setup',
