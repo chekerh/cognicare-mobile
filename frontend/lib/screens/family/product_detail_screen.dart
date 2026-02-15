@@ -344,14 +344,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             )
           else
             ..._reviews.map(
-              (r) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildReview(
-                  name: r.userName,
-                  rating: r.rating,
-                  text: r.comment.isEmpty ? '(Avis sans commentaire)' : r.comment,
-                ),
-              ),
+              (r) {
+                final profileImageUrl = r.userProfileImageUrl != null && r.userProfileImageUrl!.isNotEmpty
+                    ? (r.userProfileImageUrl!.startsWith('http')
+                        ? r.userProfileImageUrl!
+                        : '${AppConstants.baseUrl}${r.userProfileImageUrl}')
+                    : null;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildReview(
+                    name: r.userName,
+                    rating: r.rating,
+                    text: r.comment.isEmpty ? '(Avis sans commentaire)' : r.comment,
+                    profileImageUrl: profileImageUrl,
+                  ),
+                );
+              },
             ),
         ],
       ),
@@ -452,6 +460,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     required String name,
     required int rating,
     required String text,
+    String? profileImageUrl,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -468,13 +477,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               CircleAvatar(
                 radius: 20,
                 backgroundColor: _marketPrimary.withOpacity(0.3),
-                child: Text(
-                  name[0],
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.text,
-                  ),
-                ),
+                backgroundImage: profileImageUrl != null ? NetworkImage(profileImageUrl) : null,
+                onBackgroundImageError: (_, __) {},
+                child: profileImageUrl == null || profileImageUrl.isEmpty
+                    ? Text(
+                        name.isNotEmpty ? name[0] : '?',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.text,
+                        ),
+                      )
+                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(

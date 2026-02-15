@@ -20,6 +20,9 @@ export class Review {
   @Prop({ default: '' })
   comment: string;
 
+  @Prop({ default: null })
+  userProfileImageUrl?: string;
+
   createdAt?: Date;
   updatedAt?: Date;
 }

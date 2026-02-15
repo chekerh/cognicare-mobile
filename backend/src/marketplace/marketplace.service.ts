@@ -139,10 +139,11 @@ export class MarketplaceService {
 
     const user = await this.userModel
       .findById(userId)
-      .select('fullName')
+      .select('fullName profilePic')
       .lean()
       .exec();
     const userName = user?.fullName ?? 'User';
+    const userProfileImageUrl = user?.profilePic ?? undefined;
 
     const review = await this.reviewModel.findOneAndUpdate(
       {
@@ -154,6 +155,7 @@ export class MarketplaceService {
           rating: dto.rating,
           comment: dto.comment ?? '',
           userName,
+          ...(userProfileImageUrl != null && userProfileImageUrl !== '' && { userProfileImageUrl }),
           updatedAt: new Date(),
         },
       },
