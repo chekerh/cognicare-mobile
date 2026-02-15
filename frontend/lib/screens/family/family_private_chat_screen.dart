@@ -13,6 +13,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/call_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/auth_service.dart';
+import '../../services/call_service.dart';
 import '../../utils/theme.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
@@ -82,6 +83,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   Timer? _recordingTimer;
   String? _currentRecordPath;
   String? _playingVoiceUrl;
+  StreamSubscription<IncomingMessageEvent>? _incomingMessageSub;
 
   void _scrollToBottom({bool animated = true}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -130,8 +132,21 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       ),
     );
     _initConversationAndMessages();
+    _bindIncomingMessageEvents();
     _audioPlayer.onPlayerComplete.listen((_) {
       if (mounted) setState(() => _playingVoiceUrl = null);
+    });
+  }
+
+  void _bindIncomingMessageEvents() {
+    final callProvider = Provider.of<CallProvider>(context, listen: false);
+    _incomingMessageSub?.cancel();
+    _incomingMessageSub = callProvider.service.onIncomingMessage.listen((evt) {
+      if (!mounted) return;
+      final cid = _conversationId;
+      if (cid == null) return;
+      if (evt.conversationId != cid) return;
+      _loadMessages();
     });
   }
 
@@ -246,6 +261,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
 
   @override
   void dispose() {
+    _incomingMessageSub?.cancel();
     _recordingTimer?.cancel();
     if (_isRecording) _recorder.stop().ignore();
     _recorder.dispose();

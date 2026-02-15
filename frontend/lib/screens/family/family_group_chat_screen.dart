@@ -9,8 +9,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/call_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/auth_service.dart';
+import '../../services/call_service.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
@@ -52,6 +54,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
   Duration _recordingDuration = Duration.zero;
   Timer? _recordingTimer;
   String? _playingMessageId;
+  StreamSubscription<IncomingMessageEvent>? _incomingMessageSub;
 
   List<_ChatMessage> _messages = [];
   bool _loading = false;
@@ -142,6 +145,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     _audioPlayer.onPlayerComplete.listen((_) {
       if (mounted) setState(() => _playingMessageId = null);
     });
+    _bindIncomingMessageEvents();
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.white,
@@ -150,6 +154,18 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
         systemNavigationBarIconBrightness: Brightness.dark,
       ),
     );
+  }
+
+  void _bindIncomingMessageEvents() {
+    final callProvider = Provider.of<CallProvider>(context, listen: false);
+    _incomingMessageSub?.cancel();
+    _incomingMessageSub = callProvider.service.onIncomingMessage.listen((evt) {
+      if (!mounted) return;
+      final cid = widget.groupId;
+      if (cid == null || cid.isEmpty) return;
+      if (evt.conversationId != cid) return;
+      _loadMessagesFromApi();
+    });
   }
 
   Future<void> _showAddMember(BuildContext context) async {
@@ -278,6 +294,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
 
   @override
   void dispose() {
+    _incomingMessageSub?.cancel();
     _recordingTimer?.cancel();
     if (_isRecording) {
       _recorder.stop().ignore();

@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../utils/constants.dart';
 import 'notification_service.dart';
+import 'notifications_feed_service.dart';
 
 /// Incoming call data from WebSocket signaling.
 class IncomingCall {
@@ -22,8 +21,24 @@ class IncomingCall {
   });
 }
 
+/// Incoming chat notification payload from WebSocket.
+class IncomingMessageEvent {
+  final String conversationId;
+  final String senderName;
+  final String preview;
+  final String? messageId;
+  final DateTime? createdAt;
+
+  IncomingMessageEvent({
+    required this.conversationId,
+    required this.senderName,
+    required this.preview,
+    this.messageId,
+    this.createdAt,
+  });
+}
+
 class CallService {
-  final http.Client _client = http.Client();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   io.Socket? _socket;
   String? _userId;
@@ -31,11 +46,17 @@ class CallService {
   final _callAcceptedController = StreamController<String>.broadcast();
   final _callRejectedController = StreamController<void>.broadcast();
   final _callEndedController = StreamController<void>.broadcast();
+  final _incomingMessageController =
+      StreamController<IncomingMessageEvent>.broadcast();
+  final NotificationsFeedService _notificationsFeedService =
+      NotificationsFeedService();
 
   Stream<IncomingCall> get onIncomingCall => _incomingCallController.stream;
   Stream<String> get onCallAccepted => _callAcceptedController.stream;
   Stream<void> get onCallRejected => _callRejectedController.stream;
   Stream<void> get onCallEnded => _callEndedController.stream;
+  Stream<IncomingMessageEvent> get onIncomingMessage =>
+      _incomingMessageController.stream;
 
   String get _baseUrl {
     final base = AppConstants.baseUrl.endsWith('/')
@@ -113,9 +134,35 @@ class CallService {
     _socket!.on('message:new', (data) {
       debugPrint('📞 [CALL] message:new reçu: $data');
       if (data is Map) {
-        final senderName =
-            (data['senderName'] ?? 'Quelqu\'un').toString();
+        final senderName = (data['senderName'] ?? 'Quelqu\'un').toString();
         final preview = (data['preview'] ?? '').toString();
+        final conversationId = (data['conversationId'] ?? '').toString();
+        final messageIdRaw = data['messageId'];
+        final createdAtRaw = data['createdAt'];
+        final createdAt =
+            createdAtRaw != null ? DateTime.tryParse(createdAtRaw.toString()) : null;
+        if (conversationId.isNotEmpty) {
+          _incomingMessageController.add(
+            IncomingMessageEvent(
+              conversationId: conversationId,
+              senderName: senderName,
+              preview: preview,
+              messageId: messageIdRaw?.toString(),
+              createdAt: createdAt,
+            ),
+          );
+        }
+        // Save in notification center list so it appears in Notifications screen.
+        _notificationsFeedService
+            .createNotification(
+              type: 'family_message',
+              title: senderName,
+              description:
+                  preview.isNotEmpty ? preview : 'Nouveau message',
+            )
+            .catchError((e) {
+          debugPrint('🔔 [NOTIF] Échec enregistrement feed notif: $e');
+        });
         NotificationService().showNewMessage(
           senderName: senderName,
           preview: preview.isNotEmpty ? preview : 'Nouveau message',

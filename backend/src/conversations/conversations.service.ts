@@ -477,6 +477,9 @@ export class ConversationsService {
       this.callsGateway.emitMessageNew(recipientId, {
         senderName,
         preview,
+        conversationId: conv._id.toString(),
+        messageId: created._id.toString(),
+        createdAt: (created as any).createdAt?.toISOString?.(),
       });
     }
 

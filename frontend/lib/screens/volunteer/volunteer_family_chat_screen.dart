@@ -7,11 +7,11 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
 import 'package:record/record.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/call_provider.dart';
 import '../../services/auth_service.dart';
+import '../../services/call_service.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
 import '../../widgets/chat_message_bar.dart';
@@ -85,6 +85,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
   Timer? _recordingTimer;
   String? _currentRecordPath;
   String? _playingVoiceUrl;
+  StreamSubscription<IncomingMessageEvent>? _incomingMessageSub;
 
   @override
   void initState() {
@@ -93,6 +94,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       if (mounted) setState(() => _playingVoiceUrl = null);
     });
     _messages = [];
+    _bindIncomingMessageEvents();
     if (widget.conversationId != null && widget.conversationId!.isNotEmpty) {
       _conversationId = widget.conversationId;
       _loadMessagesDirect();
@@ -101,6 +103,18 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     } else {
       _messages = _defaultMessages();
     }
+  }
+
+  void _bindIncomingMessageEvents() {
+    final callProvider = Provider.of<CallProvider>(context, listen: false);
+    _incomingMessageSub?.cancel();
+    _incomingMessageSub = callProvider.service.onIncomingMessage.listen((evt) {
+      if (!mounted) return;
+      final cid = _conversationId;
+      if (cid == null || cid.isEmpty) return;
+      if (evt.conversationId != cid) return;
+      _loadMessagesDirect();
+    });
   }
 
   Future<void> _loadMessagesDirect() async {
@@ -219,6 +233,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
 
   @override
   void dispose() {
+    _incomingMessageSub?.cancel();
     _recordingTimer?.cancel();
     if (_isRecording) _recorder.stop().ignore();
     _recorder.dispose();
