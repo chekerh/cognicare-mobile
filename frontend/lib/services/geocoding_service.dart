@@ -1,45 +1,62 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-/// Service de géocodage via Nominatim (OpenStreetMap) - gratuit, sans clé API.
+/// Service de géocodage — accepte toute localisation dans le monde.
+/// Utilise Photon (Komoot) puis Nominatim (OSM), gratuits et sans clé API.
 class GeocodingService {
   final http.Client _client = http.Client();
+  static const String _photonUrl = 'https://photon.komoot.io/api/';
   static const String _nominatimUrl = 'https://nominatim.openstreetmap.org/search';
 
   /// Convertit une adresse ou un lieu en coordonnées (lat, lng).
-  /// Retourne null si non trouvé.
-  /// Essaie des variantes (ex: "ariana" -> "Ariana, Tunisie") pour améliorer les résultats.
+  /// Accepte toute localisation dans le monde.
   Future<GeocodingResult?> geocode(String address) async {
     final trimmed = address.trim();
     if (trimmed.isEmpty) return null;
 
-    final queries = <String>[trimmed];
-    if (!trimmed.contains(',')) {
-      queries.add('$trimmed, Tunisie');
-      queries.add('$trimmed, France');
-    }
-
-    for (final q in queries) {
-      final result = await _geocodeQuery(q);
-      if (result != null) return result;
-    }
-    return null;
+    final result = await _geocodePhoton(trimmed) ?? await _geocodeNominatim(trimmed);
+    return result;
   }
 
-  Future<GeocodingResult?> _geocodeQuery(String query) async {
+  /// Photon (Komoot) — rapide, couverture mondiale.
+  Future<GeocodingResult?> _geocodePhoton(String query) async {
+    try {
+      final uri = Uri.parse(_photonUrl).replace(
+        queryParameters: {'q': query, 'limit': '1'},
+      );
+      final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+      if (response.statusCode != 200) return null;
+      final json = jsonDecode(response.body) as Map<String, dynamic>?;
+      final features = json?['features'] as List<dynamic>?;
+      if (features == null || features.isEmpty) return null;
+      final first = features.first as Map<String, dynamic>;
+      final coords = first['geometry']?['coordinates'] as List<dynamic>?;
+      final props = first['properties'] as Map<String, dynamic>?;
+      if (coords == null || coords.length < 2) return null;
+      final lng = (coords[0] as num).toDouble();
+      final lat = (coords[1] as num).toDouble();
+      final name = props?['name'] as String?;
+      final country = props?['country'] as String?;
+      final display = [name, country].where((e) => e != null && e.toString().isNotEmpty).join(', ');
+      return GeocodingResult(
+        latitude: lat,
+        longitude: lng,
+        displayName: display.isNotEmpty ? display : query,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Nominatim (OpenStreetMap) — fallback.
+  Future<GeocodingResult?> _geocodeNominatim(String query) async {
     try {
       final uri = Uri.parse(_nominatimUrl).replace(
-        queryParameters: {
-          'q': query,
-          'format': 'json',
-          'limit': '1',
-        },
+        queryParameters: {'q': query, 'format': 'json', 'limit': '1'},
       );
       final response = await _client.get(
         uri,
-        headers: {
-          'User-Agent': 'CogniCare/1.0 (donation app)',
-        },
+        headers: {'User-Agent': 'CogniCare/1.0'},
       ).timeout(const Duration(seconds: 10));
       if (response.statusCode != 200) return null;
       final list = jsonDecode(response.body) as List<dynamic>?;
@@ -65,7 +82,7 @@ class GeocodingResult {
   final double longitude;
   final String displayName;
 
-  GeocodingResult({
+  const GeocodingResult({
     required this.latitude,
     required this.longitude,
     required this.displayName,
