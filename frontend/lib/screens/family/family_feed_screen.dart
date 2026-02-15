@@ -654,8 +654,11 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               'location': d.location,
               'distanceText': null,
               'donorName': d.donorName,
+              'donorAvatarUrl': d.donorProfilePic != null ? _fullImageUrl(d.donorProfilePic!) : null,
               'donorId': d.donorId,
               'donationId': d.id,
+              'latitude': d.latitude,
+              'longitude': d.longitude,
             });
           },
         ),

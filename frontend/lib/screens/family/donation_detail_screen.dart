@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
+import '../../widgets/location_map_widget.dart';
 
 const Color _primary = Color(0xFFA3D9E2);
 const Color _textDark = Color(0xFF111418);
@@ -11,7 +12,7 @@ const Color _bgLight = Color(0xFFF0F7FF);
 
 /// Page détail d'une annonce de don — design aligné sur le HTML fourni.
 class DonationDetailScreen extends StatelessWidget {
-  const DonationDetailScreen({super.key, this.title, this.description, this.fullDescription, this.conditionIndex = 0, this.categoryIndex = 0, this.imageUrl = '', this.location = '', this.distanceText, this.donorName, this.donorAvatarUrl, this.donorRating});
+  const DonationDetailScreen({super.key, this.title, this.description, this.fullDescription, this.conditionIndex = 0, this.categoryIndex = 0, this.imageUrl = '', this.location = '', this.distanceText, this.donorName, this.donorAvatarUrl, this.donorRating, this.latitude, this.longitude});
 
   final String? title;
   final String? description;
@@ -24,6 +25,8 @@ class DonationDetailScreen extends StatelessWidget {
   final String? donorName;
   final String? donorAvatarUrl;
   final double? donorRating;
+  final double? latitude;
+  final double? longitude;
 
   static Map<String, dynamic> _extraFromState(GoRouterState state) {
     final extra = state.extra as Map<String, dynamic>?;
@@ -44,6 +47,8 @@ class DonationDetailScreen extends StatelessWidget {
       donorName: e['donorName'] as String?,
       donorAvatarUrl: e['donorAvatarUrl'] as String?,
       donorRating: (e['donorRating'] as num?)?.toDouble(),
+      latitude: (e['latitude'] as num?)?.toDouble(),
+      longitude: (e['longitude'] as num?)?.toDouble(),
     );
   }
 
@@ -54,9 +59,9 @@ class DonationDetailScreen extends StatelessWidget {
     final conditionColors = [Colors.green, Colors.amber, Colors.green];
     final categoryLabels = [loc.all, loc.mobility, loc.earlyLearning, loc.clothing];
     final displayDescription = (fullDescription ?? description ?? '').trim().isNotEmpty ? (fullDescription ?? description)! : (description ?? '');
-    final donor = donorName ?? 'Sophie M.';
+    final donor = donorName ?? 'Donateur';
     final rating = donorRating ?? 4.9;
-    final avatarUrl = donorAvatarUrl ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuCxbVRWBSYTDKId85kQAuSX5JA8c-eT0A5QUwJLIg_p5WszXzBgyevGPwH63Pjo19KKDvjOwP5gbClRYgouv7Wd56Ik5ZNe0eIB0pB5B31FWEzA4zVWO9n7lznIK4Oo4Pr16H2N2DBZPkq7liRPNHSuB16JQMVa2qKn1BdONq1iyaNCZ51EaDzu7uAJT_2cR14x2M12f0MFgq1FluiBC0utFUxdv0uDnI843xsSa_IUY_sygaC2DL0mGixfoSkCsnIOhP809UKt19Q';
+    final avatarUrl = donorAvatarUrl;
     final distance = distanceText ?? '2 km';
 
     return Scaffold(
@@ -88,6 +93,8 @@ class DonationDetailScreen extends StatelessWidget {
                           rating: rating,
                           location: location,
                           distanceText: distance,
+                          latitude: latitude,
+                          longitude: longitude,
                         ),
                       ),
                     ),
@@ -198,10 +205,12 @@ class DonationDetailScreen extends StatelessWidget {
     required Color conditionColor,
     required String categoryLabel,
     required String donorName,
-    required String donorAvatarUrl,
+    required String? donorAvatarUrl,
     required double rating,
     required String location,
     required String distanceText,
+    double? latitude,
+    double? longitude,
   }) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -280,8 +289,16 @@ class DonationDetailScreen extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundImage: NetworkImage(donorAvatarUrl),
+                backgroundImage: donorAvatarUrl != null && donorAvatarUrl.isNotEmpty
+                    ? NetworkImage(donorAvatarUrl)
+                    : null,
                 onBackgroundImageError: (_, __) {},
+                child: donorAvatarUrl == null || donorAvatarUrl.isEmpty
+                    ? Text(
+                        donorName.isNotEmpty ? donorName[0].toUpperCase() : '?',
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _primary),
+                      )
+                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -358,16 +375,24 @@ class DonationDetailScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              height: 128,
-              color: Colors.grey.shade100,
-              child: Center(
-                child: Icon(Icons.map_outlined, size: 48, color: Colors.grey.shade400),
+          if (latitude != null && longitude != null)
+            LocationMapWidget(
+              latitude: latitude,
+              longitude: longitude,
+              height: 160,
+              borderRadius: BorderRadius.circular(16),
+            )
+          else
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                height: 160,
+                color: Colors.grey.shade100,
+                child: Center(
+                  child: Icon(Icons.map_outlined, size: 48, color: Colors.grey.shade400),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

@@ -9,6 +9,9 @@ class Donation {
   final int category;
   final int condition;
   final String location;
+  final double? latitude;
+  final double? longitude;
+  final String? donorProfilePic;
   final bool isOffer;
   final List<String> imageUrls;
   final String imageUrl;
@@ -24,6 +27,9 @@ class Donation {
     required this.category,
     required this.condition,
     required this.location,
+    this.latitude,
+    this.longitude,
+    this.donorProfilePic,
     required this.isOffer,
     this.imageUrls = const [],
     this.imageUrl = '',
@@ -44,6 +50,9 @@ class Donation {
       category: (json['category'] as num?)?.toInt() ?? 0,
       condition: (json['condition'] as num?)?.toInt() ?? 1,
       location: json['location']?.toString() ?? '',
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      donorProfilePic: json['donorProfilePic']?.toString(),
       isOffer: json['isOffer'] == true,
       imageUrls: list,
       imageUrl: json['imageUrl']?.toString() ?? first,

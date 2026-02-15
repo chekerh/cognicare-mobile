@@ -28,6 +28,12 @@ export class Donation {
   @Prop({ required: true })
   location: string;
 
+  @Prop({ type: Number })
+  latitude?: number;
+
+  @Prop({ type: Number })
+  longitude?: number;
+
   /** true = offre (Je donne), false = demande (Je recherche) */
   @Prop({ default: true })
   isOffer: boolean;

@@ -67,14 +67,16 @@ class AuthService {
 
   Future<AuthResponse> login(String email, String password) async {
     try {
-      final response = await _client.post(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.loginEndpoint}'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
-      );
+      final response = await _client
+          .post(
+            Uri.parse('${AppConstants.baseUrl}${AppConstants.loginEndpoint}'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'email': email,
+              'password': password,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final authResponse = AuthResponse.fromJson(jsonDecode(response.body));

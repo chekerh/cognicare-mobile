@@ -75,6 +75,8 @@ export class DonationsService {
       category: dto.category,
       condition: dto.condition,
       location: dto.location,
+      latitude: dto.latitude,
+      longitude: dto.longitude,
       isOffer: dto.isOffer ?? true,
       imageUrls: dto.imageUrls ?? [],
     });
@@ -104,12 +106,15 @@ export class DonationsService {
       id: string;
       donorId: string;
       donorName: string;
+      donorProfilePic?: string;
       title: string;
       description: string;
       fullDescription?: string;
       category: number;
       condition: number;
       location: string;
+      latitude?: number;
+      longitude?: number;
       isOffer: boolean;
       imageUrls: string[];
       imageUrl: string;
@@ -142,16 +147,32 @@ export class DonationsService {
       .lean()
       .exec();
 
-    return docs.map((d: any) => ({
+    const donorIds = [...new Set((docs as any[]).map((d) => d.donorId).filter(Boolean))];
+    const userIds = donorIds.map((id: any) => (id instanceof Types.ObjectId ? id : new Types.ObjectId(String(id))));
+    const users = await this.userModel
+      .find({ _id: { $in: userIds } })
+      .select('_id profilePic')
+      .lean()
+      .exec();
+    const profilePicByDonorId = new Map<string, string>();
+    for (const u of users as { _id: any; profilePic?: string }[]) {
+      const id = u._id?.toString();
+      if (id && u.profilePic) profilePicByDonorId.set(id, u.profilePic);
+    }
+
+    return (docs as any[]).map((d) => ({
       id: d._id.toString(),
       donorId: d.donorId?.toString(),
       donorName: d.donorName ?? '',
+      donorProfilePic: profilePicByDonorId.get(d.donorId?.toString()) || undefined,
       title: d.title ?? '',
       description: d.description ?? '',
       fullDescription: d.description,
       category: d.category ?? 0,
       condition: d.condition ?? 1,
       location: d.location ?? '',
+      latitude: d.latitude,
+      longitude: d.longitude,
       isOffer: d.isOffer ?? true,
       imageUrls: d.imageUrls ?? [],
       imageUrl: (d.imageUrls && d.imageUrls[0]) || '',

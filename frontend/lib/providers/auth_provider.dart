@@ -27,7 +27,8 @@ class AuthProvider with ChangeNotifier {
       _user = response.user;
       _isLoading = false;
       notifyListeners();
-      await _authService.updatePresence();
+      // Ne pas bloquer la navigation : mise à jour présence en arrière-plan
+      _authService.updatePresence().catchError((_) {});
       return true;
     } catch (e) {
       _isLoading = false;
@@ -77,7 +78,7 @@ class AuthProvider with ChangeNotifier {
       _accessToken = storedToken;
       _user = storedUser;
       notifyListeners();
-      await _authService.updatePresence();
+      _authService.updatePresence().catchError((_) {});
       return true;
     }
     return false;

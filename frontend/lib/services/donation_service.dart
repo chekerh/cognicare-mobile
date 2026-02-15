@@ -59,19 +59,26 @@ class DonationService {
     required String location,
     required List<String> imageUrls,
     bool isOffer = true,
+    double? latitude,
+    double? longitude,
   }) async {
+    final body = <String, dynamic>{
+      'title': title,
+      'description': description,
+      'category': category,
+      'condition': condition,
+      'location': location,
+      'imageUrls': imageUrls,
+      'isOffer': isOffer,
+    };
+    if (latitude != null && longitude != null) {
+      body['latitude'] = latitude;
+      body['longitude'] = longitude;
+    }
     final response = await _client.post(
       Uri.parse('${AppConstants.baseUrl}${AppConstants.donationsEndpoint}'),
       headers: await _headers(),
-      body: jsonEncode({
-        'title': title,
-        'description': description,
-        'category': category,
-        'condition': condition,
-        'location': location,
-        'imageUrls': imageUrls,
-        'isOffer': isOffer,
-      }),
+      body: jsonEncode(body),
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
       try {

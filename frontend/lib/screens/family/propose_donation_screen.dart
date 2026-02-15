@@ -138,6 +138,8 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
         location: _locationController.text.trim(),
         imageUrls: imageUrls,
         isOffer: true,
+        latitude: _mapLat,
+        longitude: _mapLng,
       );
     } catch (e) {
       setState(() => _isSubmitting = false);

@@ -18,6 +18,14 @@ export class CreateDonationDto {
   @IsString()
   location: string;
 
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
+
   /** true = offre (Je donne), false = demande */
   @IsOptional()
   @IsBoolean()
