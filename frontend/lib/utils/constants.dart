@@ -22,6 +22,8 @@ class AppConstants {
   static const String familyMembersEndpoint = '/api/v1/auth/family-members';
   static String familyMemberEndpoint(String id) => '/api/v1/auth/family-members/$id';
 
+  /// List other family users for starting conversations (GET). Requires JWT.
+  static const String usersFamiliesEndpoint = '/api/v1/users/families';
   /// Presence of another user (GET). Requires JWT.
   static String userPresenceEndpoint(String userId) => '/api/v1/users/$userId/presence';
 

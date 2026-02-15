@@ -477,9 +477,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               CircleAvatar(
                 radius: 20,
                 backgroundColor: _marketPrimary.withOpacity(0.3),
-                backgroundImage: profileImageUrl != null ? NetworkImage(profileImageUrl) : null,
-                onBackgroundImageError: (_, __) {},
-                child: profileImageUrl == null || profileImageUrl.isEmpty
+                backgroundImage: (profileImageUrl != null && profileImageUrl.isNotEmpty)
+                    ? NetworkImage(profileImageUrl)
+                    : null,
+                onBackgroundImageError: (profileImageUrl != null && profileImageUrl.isNotEmpty)
+                    ? (_, __) {}
+                    : null,
+                child: (profileImageUrl == null || profileImageUrl.isEmpty)
                     ? Text(
                         name.isNotEmpty ? name[0] : '?',
                         style: const TextStyle(

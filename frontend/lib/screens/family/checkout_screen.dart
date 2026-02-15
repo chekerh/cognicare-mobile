@@ -4,12 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/cart_provider.dart';
 import '../../services/notification_service.dart';
+import '../../services/notifications_feed_service.dart';
 import '../../services/paypal_service.dart';
 import '../../utils/constants.dart';
 
-/// Étape 2/3 — Paiement et livraison. Design HTML.
+/// Étape 2/3 — Paiement et livraison. Même bleu de fond que l'écran Commande confirmée (#ADD8E6).
 const Color _primary = Color(0xFFADD8E6);
-const Color _vibrantBlue = Color(0xFF2563EB);
+const Color _accentColor = Color(0xFF212121);
 const Color _textPrimary = Color(0xFF1E293B);
 
 class CheckoutScreen extends StatefulWidget {
@@ -49,6 +50,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
     if (_paymentMethod != 0) {
       _processPayment(context, cart);
+      return;
+    }
+    // Paiement carte : vérifier que tous les champs sont remplis
+    final card = _cardController.text.trim();
+    final expiry = _expiryController.text.trim();
+    final cvv = _cvvController.text.trim();
+    if (card.isEmpty || expiry.isEmpty || cvv.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez remplir tous les champs (numéro de carte, date d\'expiration, CVV).'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       return;
     }
     if (_formKey.currentState?.validate() ?? false) {
@@ -102,10 +116,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             if (status.status == 'COMPLETED') {
               if (!ctx.mounted) return;
               Navigator.of(ctx).pop(true);
+              final amountStr = '\$${cart.subtotal.toStringAsFixed(2)}';
+              try {
+                await NotificationsFeedService().createNotification(
+                  type: 'order_confirmed',
+                  title: 'Paiement confirmé',
+                  description: 'Commande #$orderId • $amountStr',
+                );
+              } catch (_) {}
+              final imageUrl = cart.items.isNotEmpty ? cart.items.first.imageUrl : null;
               cart.clear();
               ctx.push(
                 AppConstants.familyOrderConfirmationRoute,
-                extra: { 'orderId': orderId, 'address': address },
+                extra: { 'orderId': orderId, 'address': address, if (imageUrl != null) 'imageUrl': imageUrl },
               );
             } else {
               if (!ctx.mounted) return;
@@ -131,7 +154,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  void _processPayment(BuildContext context, CartProvider cart) {
+  Future<void> _processPayment(BuildContext context, CartProvider cart) async {
     final orderId = '${DateTime.now().millisecondsSinceEpoch}'.substring(5);
     final address = '${_streetController.text}, ${_zipController.text} ${_cityController.text}';
     final totalStr = '\$${cart.subtotal.toStringAsFixed(2)}';
@@ -139,12 +162,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       orderId: orderId,
       amount: totalStr,
     );
+    try {
+      await NotificationsFeedService().createNotification(
+        type: 'order_confirmed',
+        title: 'Paiement confirmé',
+        description: 'Commande #$orderId • $totalStr',
+      );
+    } catch (_) {}
+    final imageUrl = cart.items.isNotEmpty ? cart.items.first.imageUrl : null;
     cart.clear();
+    if (!context.mounted) return;
     context.push(
       AppConstants.familyOrderConfirmationRoute,
       extra: {
         'orderId': orderId,
         'address': address,
+        if (imageUrl != null) 'imageUrl': imageUrl,
       },
     );
   }
@@ -228,7 +261,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(40),
         boxShadow: [
-          BoxShadow(color: _vibrantBlue.withOpacity(0.15), blurRadius: 20),
+          BoxShadow(color: _accentColor.withOpacity(0.08), blurRadius: 20),
         ],
       ),
       child: Column(
@@ -240,10 +273,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: _vibrantBlue.withOpacity(0.1),
+                  color: _accentColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.local_shipping, color: _vibrantBlue, size: 20),
+                child: const Icon(Icons.local_shipping, color: _accentColor, size: 20),
               ),
               const SizedBox(width: 8),
               const Text('Shipping Address', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _textPrimary)),
@@ -298,7 +331,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(40),
         boxShadow: [
-          BoxShadow(color: _vibrantBlue.withOpacity(0.15), blurRadius: 20),
+          BoxShadow(color: _accentColor.withOpacity(0.08), blurRadius: 20),
         ],
       ),
       child: Column(
@@ -310,10 +343,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: _vibrantBlue.withOpacity(0.1),
+                  color: _accentColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.credit_card, color: _vibrantBlue, size: 20),
+                child: const Icon(Icons.credit_card, color: _accentColor, size: 20),
               ),
               const SizedBox(width: 8),
               const Text('Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _textPrimary)),
@@ -355,20 +388,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: selected ? _vibrantBlue.withOpacity(0.1) : Colors.grey.shade100,
+            color: selected ? _accentColor.withOpacity(0.1) : Colors.grey.shade100,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: selected ? _vibrantBlue : Colors.transparent,
+              color: selected ? _accentColor : Colors.transparent,
               width: 2,
             ),
           ),
           child: Column(
             children: [
-              Icon(icon, color: selected ? _vibrantBlue : Colors.grey, size: 24),
+              Icon(icon, color: selected ? _accentColor : Colors.grey, size: 24),
               const SizedBox(height: 4),
               Text(
                 label,
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: selected ? _vibrantBlue : Colors.grey),
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: selected ? _accentColor : Colors.grey),
               ),
             ],
           ),
@@ -403,7 +436,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       child: ElevatedButton(
         onPressed: () => _confirmPay(context, cart),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF1E293B),
+          backgroundColor: _accentColor,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 20),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),

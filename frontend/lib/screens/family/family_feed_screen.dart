@@ -70,7 +70,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   @override
   void initState() {
     super.initState();
-    _marketplaceProductsFuture = MarketplaceService().getProducts(limit: 6);
+    _marketplaceProductsFuture = MarketplaceService().getMyProducts(limit: 6);
     _loadHealthcareUsers();
     _loadDonations();
   }
@@ -1971,15 +1971,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     children: List.generate(3, (_) => _marketplaceCardPlaceholder()),
                   );
                 }
-                List<MarketplaceProduct> products = snapshot.data ?? [];
+                final products = snapshot.data ?? [];
                 if (snapshot.hasError || products.isEmpty) {
-                  products = _fallbackMarketplaceProducts();
-                }
-                if (products.isEmpty) {
-                  return ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [_marketplaceCardPlaceholder()],
-                  );
+                  return _marketplaceEmptyState(context);
                 }
                 return ListView.builder(
                   scrollDirection: Axis.horizontal,
@@ -1996,39 +1990,33 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     );
   }
 
-  /// URLs d'images de repli (Unsplash) quand l'API n'en fournit pas.
-  static const List<String> _fallbackImageUrls = [
-    'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400', // weighted blanket
-    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', // headphones
-    'https://images.unsplash.com/photo-1501139083538-0139583c060f?w=400',   // timer
-  ];
-
-  /// Produits affichés quand l'API est indisponible ou renvoie une liste vide.
-  List<MarketplaceProduct> _fallbackMarketplaceProducts() {
-    final loc = AppLocalizations.of(context)!;
-    return [
-      MarketplaceProduct(
-        id: 'fallback_1',
-        title: loc.weightedBlanket,
-        price: '\$45.00',
-        imageUrl: _fallbackImageUrls[0],
-        description: '',
+  /// État vide : plus de mock, uniquement les données de l'API.
+  Widget _marketplaceEmptyState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.shopping_bag_outlined, size: 40, color: AppTheme.text.withOpacity(0.3)),
+            const SizedBox(height: 8),
+            Text(
+              'Aucun produit pour le moment',
+              style: TextStyle(fontSize: 13, color: AppTheme.text.withOpacity(0.6)),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => context.go(AppConstants.familyMarketRoute),
+              child: Text(
+                AppLocalizations.of(context)!.viewAll,
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
       ),
-      MarketplaceProduct(
-        id: 'fallback_2',
-        title: loc.noiseCancelling,
-        price: '\$129.00',
-        imageUrl: _fallbackImageUrls[1],
-        description: '',
-      ),
-      MarketplaceProduct(
-        id: 'fallback_3',
-        title: loc.visualTimer,
-        price: '\$18.50',
-        imageUrl: _fallbackImageUrls[2],
-        description: '',
-      ),
-    ];
+    );
   }
 
   Widget _marketplaceCardPlaceholder() {
@@ -2225,8 +2213,7 @@ class _ExpertCard extends StatelessWidget {
   Widget build(BuildContext context) {
     const Color slate900 = Color(0xFF0F172A);
     const Color slate400 = Color(0xFF94A3B8);
-    const Color blue50 = Color(0xFFEFF6FF);
-    const Color blue600 = Color(0xFF2563EB);
+    const Color verifiedAccent = Color(0xFF212121);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -2270,20 +2257,20 @@ class _ExpertCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: blue50,
+                            color: verifiedAccent.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(999),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.verified, size: 14, color: blue600),
-                              SizedBox(width: 4),
+                              Icon(Icons.verified, size: 14, color: verifiedAccent),
+                              const SizedBox(width: 4),
                               Text(
                                 'VERIFIED',
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color: blue600,
+                                  color: verifiedAccent,
                                 ),
                               ),
                             ],

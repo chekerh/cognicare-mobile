@@ -24,8 +24,8 @@ const Color _slate400 = Color(0xFF94A3B8);
 const Color _slate300 = Color(0xFFCBD5E1);
 const Color _green100 = Color(0xFFDCFCE7);
 const Color _green600 = Color(0xFF16A34A);
-const Color _blue100 = Color(0xFFDBEAFE);
-const Color _blue600 = Color(0xFF2563EB);
+/// Même gris foncé que "Commande Confirmée" (boutons, icônes d'accent)
+const Color _accentColor = Color(0xFF212121);
 
 /// Données d'un bénévole affiché sur l'accueil famille.
 class _VolunteerCardData {
@@ -366,7 +366,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      _primaryDark,
+                      _accentColor,
                       _primary,
                     ],
                     begin: Alignment.topLeft,
@@ -375,7 +375,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: _primaryDark.withOpacity(0.3),
+                      color: _accentColor.withOpacity(0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -412,7 +412,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios_rounded, color: _primaryDark, size: 18),
+              const Icon(Icons.arrow_forward_ios_rounded, color: _accentColor, size: 18),
             ],
           ),
         ),
@@ -588,11 +588,11 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                         Container(
                           width: 40,
                           height: 40,
-                          decoration: const BoxDecoration(
-                            color: _blue100,
+                          decoration: BoxDecoration(
+                            color: _accentColor.withOpacity(0.12),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.medical_services_rounded, color: _blue600, size: 22),
+                          child: const Icon(Icons.medical_services_rounded, color: _accentColor, size: 22),
                         ),
                         const SizedBox(height: 12),
                         const Text(
@@ -739,11 +739,11 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                           const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.verified_rounded, size: 16, color: _blue600),
+                              Icon(Icons.verified_rounded, size: 16, color: _accentColor),
                               SizedBox(width: 4),
                               Text(
                                 'VÉRIFIÉ',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _blue600, letterSpacing: 0.5),
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _accentColor, letterSpacing: 0.5),
                               ),
                             ],
                           ),
@@ -784,7 +784,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                   child: ElevatedButton(
                     onPressed: () => _openChatWithVolunteer(context, v),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _primaryDark,
+                      backgroundColor: _accentColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -824,7 +824,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
         children: [
           const CircleAvatar(
             radius: 16,
-            backgroundColor: _primaryDark,
+            backgroundColor: _accentColor,
             child: Icon(Icons.person_rounded, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),

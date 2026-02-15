@@ -45,7 +45,7 @@ class HealthcareMessagesScreen extends StatefulWidget {
 }
 
 class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
-  int _selectedTab = 0; // 0: Famille, 1: Bénévole, 2: Personnes
+  int _selectedTab = 0; // 0: Famille, 1: Bénévole (sans Personnes)
   List<_Conversation>? _inboxConversations;
   bool _loading = false;
   String? _loadError;
@@ -116,7 +116,6 @@ class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
         children: [
           _tab('Famille', 0),
           _tab('Bénévole', 1),
-          _tab('Personnes', 2),
         ],
       ),
     );
@@ -227,10 +226,8 @@ class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
     List<_Conversation> rawList;
     if (_selectedTab == 0) {
       rawList = all.where((c) => c.segment == 'families').toList();
-    } else if (_selectedTab == 1) {
-      rawList = all.where((c) => c.segment == 'benevole').toList();
     } else {
-      rawList = all.where((c) => c.segment != 'families' && c.segment != 'benevole').toList();
+      rawList = all.where((c) => c.segment == 'benevole').toList();
     }
     final list = _filterBySearch(rawList);
     if (list.isEmpty) {
@@ -254,9 +251,7 @@ class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
               child: Text(
                 _selectedTab == 0
                     ? 'Vos conversations avec les familles apparaîtront ici.'
-                    : _selectedTab == 1
-                        ? 'Vos conversations avec les bénévoles apparaîtront ici.'
-                        : 'Vos conversations avec les patients et l\'équipe apparaîtront ici.',
+                    : 'Vos conversations avec les bénévoles apparaîtront ici.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,

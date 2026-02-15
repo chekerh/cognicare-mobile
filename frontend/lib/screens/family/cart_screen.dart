@@ -6,7 +6,7 @@ import '../../utils/constants.dart';
 
 /// Étape 1/3 — Panier. Design HTML CogniCare.
 const Color _primary = Color(0xFFADD8E6);
-const Color _vibrantBlue = Color(0xFF2563EB);
+const Color _accentColor = Color(0xFF212121); // même gris foncé que "Commande Confirmée"
 const Color _textPrimary = Color(0xFF1E293B);
 
 class CartScreen extends StatelessWidget {
@@ -53,7 +53,7 @@ class CartScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.shopping_cart_outlined, size: 80, color: _vibrantBlue.withOpacity(0.5)),
+                Icon(Icons.shopping_cart_outlined, size: 80, color: _accentColor.withOpacity(0.5)),
                 const SizedBox(height: 16),
                 const Text(
                   'Votre panier est vide',
@@ -144,7 +144,7 @@ class CartScreen extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(40),
           boxShadow: [
-            BoxShadow(color: _vibrantBlue.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 4)),
+            BoxShadow(color: _accentColor.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 4)),
           ],
         ),
         child: Column(
@@ -165,12 +165,12 @@ class CartScreen extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => context.push(AppConstants.familyCheckoutRoute),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _vibrantBlue,
+                  backgroundColor: _accentColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   elevation: 4,
-                  shadowColor: _vibrantBlue.withOpacity(0.4),
+                  shadowColor: _accentColor.withOpacity(0.4),
                 ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -263,7 +263,7 @@ class _CartItemTile extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(item.price, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _vibrantBlue)),
+                    Text(item.price, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _accentColor)),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
@@ -285,7 +285,7 @@ class _CartItemTile extends StatelessWidget {
                             onTap: () => cart.updateQuantity(item.productId, item.quantity + 1),
                             child: const Padding(
                               padding: EdgeInsets.all(4),
-                              child: Icon(Icons.add, size: 20, color: _vibrantBlue),
+                              child: Icon(Icons.add, size: 20, color: _accentColor),
                             ),
                           ),
                         ],

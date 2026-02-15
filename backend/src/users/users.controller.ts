@@ -89,6 +89,17 @@ export class UsersController {
     return this.usersService.findHealthcareProfessionals();
   }
 
+  @Get('families')
+  @ApiOperation({
+    summary: 'List other family users',
+    description:
+      'Returns other users with role family (excluding current user). So the current user can start a conversation with them from the Families tab.',
+  })
+  @ApiResponse({ status: 200, description: 'List of family users (id, fullName, profilePic)' })
+  async getFamilies(@Request() req: { user: { id: string } }) {
+    return this.usersService.findFamilyUsers(req.user.id);
+  }
+
   @Get(':id/presence')
   @ApiOperation({
     summary: 'Get user online presence (any authenticated user)',

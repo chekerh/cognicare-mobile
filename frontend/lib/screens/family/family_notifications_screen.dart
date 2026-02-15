@@ -88,6 +88,8 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
         return (label: 'FAMILY MESSAGE', icon: Icons.chat_bubble, color: const Color(0xFF2563EB), alert: false);
       case 'health_update':
         return (label: 'HEALTH UPDATE', icon: Icons.favorite, color: const Color(0xFF059669), alert: false);
+      case 'order_confirmed':
+        return (label: 'PAIEMENT CONFIRMÉ', icon: Icons.check_circle, color: const Color(0xFF059669), alert: false);
       default:
         return (label: type.toUpperCase(), icon: Icons.notifications, color: _textMuted, alert: false);
     }

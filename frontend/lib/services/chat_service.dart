@@ -73,6 +73,23 @@ class InboxConversation {
   }
 }
 
+/// Famille affichée dans l'onglet Families pour démarrer une conversation.
+class FamilyUser {
+  final String id;
+  final String fullName;
+  final String? profilePic;
+
+  FamilyUser({required this.id, required this.fullName, this.profilePic});
+
+  factory FamilyUser.fromJson(Map<String, dynamic> json) {
+    return FamilyUser(
+      id: json['id'] as String? ?? '',
+      fullName: json['fullName'] as String? ?? '',
+      profilePic: json['profilePic'] as String?,
+    );
+  }
+}
+
 class ChatService {
   final http.Client _client;
   final Future<String?> Function() getToken;
@@ -81,6 +98,35 @@ class ChatService {
     http.Client? client,
     required this.getToken,
   }) : _client = client ?? http.Client();
+
+  /// Liste des autres familles avec qui l'utilisateur peut ouvrir une conversation.
+  Future<List<FamilyUser>> getFamiliesToContact() async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}${AppConstants.usersFamiliesEndpoint}',
+    );
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode != 200) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to load families');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to load families: ${response.statusCode}');
+      }
+    }
+    final list = jsonDecode(response.body) as List<dynamic>? ?? [];
+    return list
+        .map((e) => FamilyUser.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
 
   Future<List<InboxConversation>> getInbox() async {
     final token = await getToken();

@@ -667,9 +667,11 @@ GoRouter createAppRouter(AuthProvider authProvider) {
             final extra = state.extra as Map<String, dynamic>?;
             final orderId = extra?['orderId']?.toString() ?? '12345';
             final address = extra?['address']?.toString() ?? '15 Rue de la Paix, 75002 Paris, France';
+            final imageUrl = extra?['imageUrl']?.toString();
             return OrderConfirmationScreen(
               orderId: orderId,
               address: address,
+              imageUrl: imageUrl,
             );
           },
         ),

@@ -93,6 +93,21 @@ export class UsersService {
     return this.userModel.find({ role }).select('-passwordHash').exec();
   }
 
+  /** List other family users (for starting conversations). Excludes current user. */
+  async findFamilyUsers(excludeUserId: string): Promise<{ id: string; fullName: string; profilePic?: string }[]> {
+    const users = await this.userModel
+      .find({ role: 'family', _id: { $ne: excludeUserId } })
+      .select('_id fullName profilePic')
+      .sort({ fullName: 1 })
+      .lean()
+      .exec();
+    return users.map((u: any) => ({
+      id: u._id.toString(),
+      fullName: u.fullName ?? '',
+      profilePic: u.profilePic,
+    }));
+  }
+
   /** List healthcare professionals (any authenticated user, e.g. family can contact them). */
   async findHealthcareProfessionals(): Promise<User[]> {
     return this.userModel

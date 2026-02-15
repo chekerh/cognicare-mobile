@@ -8,6 +8,7 @@ import '../../utils/theme.dart';
 
 const Color _marketPrimary = Color(0xFFADD8E6);
 const Color _marketBackground = Color(0xFFF8FAFC);
+const Color _accentColor = Color(0xFF212121); // même gris que "Commande Confirmée"
 
 /// Marketplace — écran de produits spécialisés (secteur famille).
 class FamilyMarketScreen extends StatefulWidget {
@@ -62,7 +63,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
   static Color _badgeToColor(String? badge) {
     if (badge == null || badge.isEmpty) return _marketPrimary;
     final b = badge.toUpperCase();
-    if (b.contains('TOP')) return Colors.blue;
+    if (b.contains('TOP')) return _accentColor;
     if (b.contains('SKILL') || b.contains('BUILDER')) return Colors.green;
     if (b.contains('POPULAR')) return Colors.orange;
     return _marketPrimary;
@@ -102,8 +103,8 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
           final added = await context.push<bool>(AppConstants.familyAddProductRoute);
           if (added == true && mounted) _loadProducts();
         },
-        backgroundColor: _marketPrimary,
-        child: const Icon(Icons.add, color: AppTheme.text),
+        backgroundColor: _accentColor,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -122,7 +123,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.1),
+            color: _accentColor.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -182,7 +183,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? const Color(0xFF1E293B)
+                            ? _accentColor
                             : Colors.white.withOpacity(0.4),
                         borderRadius: BorderRadius.circular(999),
                       ),
@@ -234,7 +235,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.auto_awesome, color: Color(0xFF3B82F6), size: 24),
+                const Icon(Icons.auto_awesome, color: _accentColor, size: 24),
                 const SizedBox(width: 8),
                 Text(
                   '${loc.recommendedFor} Leo',
@@ -253,7 +254,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF2563EB),
+                  color: _accentColor,
                 ),
               ),
             ),
@@ -400,8 +401,8 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
                 ElevatedButton(
                   onPressed: () => _openProductDetail(product),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _marketPrimary,
-                    foregroundColor: AppTheme.text,
+                    backgroundColor: _accentColor,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
@@ -523,7 +524,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
               style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF2563EB),
+                color: _accentColor,
               ),
             ),
             const SizedBox(height: 12),

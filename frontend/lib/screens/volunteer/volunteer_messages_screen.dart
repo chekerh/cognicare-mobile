@@ -36,7 +36,7 @@ class _Conversation {
   });
 }
 
-/// Messages bénévole — onglets Personnes / Familles, liste de conversations.
+/// Messages bénévole — onglets Familles / Healthcare (sans Personnes).
 class VolunteerMessagesScreen extends StatefulWidget {
   const VolunteerMessagesScreen({super.key});
 
@@ -45,7 +45,7 @@ class VolunteerMessagesScreen extends StatefulWidget {
 }
 
 class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
-  int _selectedTab = 0; // 0: Personnes, 1: Familles, 2: Healthcare
+  int _selectedTab = 0; // 0: Familles, 1: Healthcare
   String _searchQuery = '';
   List<_Conversation>? _inboxConversations;
   bool _loading = false;
@@ -168,9 +168,8 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
       ),
       child: Row(
         children: [
-          _tab('Personnes', 0),
-          _tab('Familles', 1),
-          _tab('Healthcare', 2),
+          _tab('Familles', 0),
+          _tab('Healthcare', 1),
         ],
       ),
     );
@@ -236,8 +235,6 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
     final all = _inboxConversations ?? [];
     List<_Conversation> rawList;
     if (_selectedTab == 0) {
-      rawList = all.where((c) => c.segment != 'families' && c.segment != 'healthcare').toList();
-    } else if (_selectedTab == 1) {
       rawList = all.where((c) => c.segment == 'families').toList();
     } else {
       rawList = all.where((c) => c.segment == 'healthcare').toList();
@@ -247,10 +244,8 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
       return Center(
         child: Text(
           _selectedTab == 0
-              ? 'Aucune conversation avec des personnes.'
-              : _selectedTab == 1
-                  ? 'Aucune conversation avec des familles.'
-                  : 'Aucune conversation avec des professionnels de santé.',
+              ? 'Aucune conversation avec des familles.'
+              : 'Aucune conversation avec des professionnels de santé.',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
         ),

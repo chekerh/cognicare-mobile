@@ -5,16 +5,21 @@ import '../../utils/constants.dart';
 /// Étape 3/3 — Commande confirmée. Design HTML.
 const Color _primary = Color(0xFFADD8E6);
 const Color _brandBlue = Color(0xFF2563EB);
+/// Même couleur que le titre "Commande Confirmée !" (gris très foncé)
+const Color _titleColor = Color(0xFF212121);
 
 class OrderConfirmationScreen extends StatelessWidget {
   const OrderConfirmationScreen({
     super.key,
     required this.orderId,
     required this.address,
+    this.imageUrl,
   });
 
   final String orderId;
   final String address;
+  /// URL de l'image du produit (premier du panier). Si null, affiche une icône par défaut.
+  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -29,14 +34,14 @@ class OrderConfirmationScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     const SizedBox(height: 48),
-                    _buildSuccessGraphic(),
+                    _buildSuccessGraphic(context),
                     const SizedBox(height: 32),
                     Text(
                       'Commande Confirmée !',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
-                        color: Colors.grey.shade900,
+                        color: _titleColor,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -57,12 +62,12 @@ class OrderConfirmationScreen extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _brandBlue,
+                          backgroundColor: _titleColor,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 20),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                           elevation: 4,
-                          shadowColor: _brandBlue.withOpacity(0.4),
+                          shadowColor: _titleColor.withOpacity(0.4),
                         ),
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -93,7 +98,10 @@ class OrderConfirmationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSuccessGraphic() {
+  Widget _buildSuccessGraphic(BuildContext context) {
+    final url = imageUrl != null && imageUrl!.isNotEmpty
+        ? (imageUrl!.startsWith('http') ? imageUrl! : '${AppConstants.baseUrl}$imageUrl')
+        : null;
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -114,17 +122,19 @@ class OrderConfirmationScreen extends StatelessWidget {
             color: Colors.white.withOpacity(0.4),
             borderRadius: BorderRadius.circular(48),
             boxShadow: [
-              BoxShadow(color: _brandBlue.withOpacity(0.3), blurRadius: 24),
+              BoxShadow(color: _titleColor.withOpacity(0.2), blurRadius: 24),
             ],
           ),
           child: Center(
-            child: Image.network(
-              'https://lh3.googleusercontent.com/aida-public/AB6AXuBxLi3orbHizk7ckWGJn-wDDnoiT68bQFAdQE-2k2Qbu6NU4QC3FrichU0ktckfBVTFKt3T7FN6J8FUnmaTDnkva4rGz0dNbR0Gsw4ChyoCA4H_RlQK9XF3MquE-uTTTFPzQQHNRyqOrbamEu0RcvMHe3sT5w0BJF9ipV-6DObg4ysAlFyJFoGYBfshDRWvsHoIoYaF4p5_k-uChYJ8cBjDxHYEQz_10CPUh8lqiyDYebcgVq9o-nETukSZoBuEuPkDZYSoTpZNBn8',
-              width: 160,
-              height: 160,
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(Icons.card_giftcard, size: 80, color: _brandBlue),
-            ),
+            child: url != null
+                ? Image.network(
+                    url,
+                    width: 160,
+                    height: 160,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.card_giftcard, size: 80, color: _titleColor),
+                  )
+                : const Icon(Icons.card_giftcard, size: 80, color: _titleColor),
           ),
         ),
       ],
@@ -155,10 +165,10 @@ class OrderConfirmationScreen extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: _brandBlue.withOpacity(0.1),
+                  color: _titleColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(Icons.local_shipping, color: _brandBlue, size: 28),
+                child: const Icon(Icons.local_shipping, color: _titleColor, size: 28),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -185,10 +195,10 @@ class OrderConfirmationScreen extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: _brandBlue.withOpacity(0.1),
+                    color: _titleColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(Icons.location_on, color: _brandBlue, size: 28),
+                  child: const Icon(Icons.location_on, color: _titleColor, size: 28),
                 ),
                 const SizedBox(width: 16),
                 Expanded(

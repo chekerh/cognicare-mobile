@@ -65,6 +65,29 @@ class NotificationsFeedService {
       throw Exception('Échec: ${response.statusCode}');
     }
   }
+
+  /// Créer une notification (ex: confirmation de commande) — enregistrée dans le centre de notifications.
+  Future<void> createNotification({
+    required String type,
+    required String title,
+    String description = '',
+  }) async {
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}${AppConstants.notificationsEndpoint}',
+    );
+    final response = await _client.post(
+      uri,
+      headers: await _headers(),
+      body: jsonEncode({
+        'type': type,
+        'title': title,
+        'description': description,
+      }),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Échec enregistrement notification: ${response.statusCode}');
+    }
+  }
 }
 
 class NotificationsFeedResult {

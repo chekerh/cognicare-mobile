@@ -8,7 +8,7 @@ import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
 
-/// Écran Chats — trois onglets (Persons, Families, Benevole) comme Suivi.
+/// Écran Chats — onglets Families, Benevole, Healthcare (sans Persons).
 /// Design Community Messaging Inbox : search, Online Now, liste de conversations.
 const Color _primary = Color(0xFFA8DADC);
 const Color _textPrimary = Color(0xFF0F172A);
@@ -49,11 +49,14 @@ class FamilyFamiliesScreen extends StatefulWidget {
 }
 
 class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
-  int _selectedTab = 0; // 0: Persons, 1: Families, 2: Benevole, 3: Healthcare
+  int _selectedTab = 0; // 0: Families, 1: Benevole, 2: Healthcare
   String _searchQuery = '';
   List<_Conversation>? _inboxConversations;
   bool _inboxLoading = false;
   String? _inboxError;
+  List<FamilyUser>? _familiesToContact;
+  bool _familiesLoading = false;
+  String? _familiesError;
 
   Future<void> _loadInbox() async {
     setState(() {
@@ -90,6 +93,58 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
     }
   }
 
+  Future<void> _loadFamiliesToContact() async {
+    if (_familiesLoading || _familiesToContact != null) return;
+    setState(() {
+      _familiesLoading = true;
+      _familiesError = null;
+    });
+    try {
+      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final list = await chatService.getFamiliesToContact();
+      if (!mounted) return;
+      setState(() {
+        _familiesToContact = list;
+        _familiesLoading = false;
+        _familiesError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _familiesLoading = false;
+        _familiesError = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  }
+
+  Future<void> _openChatWithFamily(BuildContext context, FamilyUser family) async {
+    try {
+      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final conv = await chatService.getOrCreateConversation(family.id);
+      if (!context.mounted) return;
+      context.push(
+        Uri(
+          path: AppConstants.familyPrivateChatRoute,
+          queryParameters: {
+            'id': family.id,
+            'name': conv.name,
+            if (conv.imageUrl.isNotEmpty) 'imageUrl': conv.imageUrl,
+            'conversationId': conv.id,
+          },
+        ).toString(),
+      );
+      _loadInbox();
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossible d\'ouvrir la conversation.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -97,8 +152,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
   }
 
   void _openChat(BuildContext context, _Conversation c) {
-    // Persons (0), Benevole (2), Healthcare (3) → chat privé 1-à-1 (avec conversationId si API).
-    if (_selectedTab == 0 || _selectedTab == 2 || _selectedTab == 3) {
+    // Families (0) → groupe ; Benevole (1), Healthcare (2) → chat privé 1-à-1.
+    if (_selectedTab == 1 || _selectedTab == 2) {
       final params = <String, String>{
         'id': c.id,
         'name': c.name,
@@ -112,7 +167,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
         ).toString(),
       );
     } else {
-      // Families (1) → groupe
+      // Families (0) → groupe
       final membersMatch = RegExp(r'(\d+)').firstMatch(c.subtitle ?? '');
       final members = membersMatch != null ? membersMatch.group(1)! : '2';
       context.push(
@@ -211,10 +266,9 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
       ),
       child: Row(
         children: [
-          _tab('Persons', 0),
-          _tab('Families', 1),
-          _tab('Benevole', 2),
-          _tab('Healthcare', 3),
+          _tab('Families', 0),
+          _tab('Benevole', 1),
+          _tab('Healthcare', 2),
         ],
       ),
     );
@@ -300,16 +354,9 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
     if (_inboxConversations != null && _inboxConversations!.isNotEmpty) {
       if (_selectedTab == 0) {
         rawList = _inboxConversations!
-            .where((c) =>
-                c.segment != 'families' &&
-                c.segment != 'benevole' &&
-                c.segment != 'healthcare')
-            .toList();
-      } else if (_selectedTab == 1) {
-        rawList = _inboxConversations!
             .where((c) => c.segment == 'families')
             .toList();
-      } else if (_selectedTab == 2) {
+      } else if (_selectedTab == 1) {
         rawList = _inboxConversations!
             .where((c) => c.segment == 'benevole')
             .toList();
@@ -323,6 +370,102 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
     }
     final list = _filterBySearch(rawList);
     if (list.isEmpty) {
+      if (_selectedTab == 0) {
+        if (_familiesToContact == null && !_familiesLoading) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _loadFamiliesToContact());
+        }
+        if (_familiesLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (_familiesError != null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _familiesError!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14, color: _textMuted),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: _loadFamiliesToContact,
+                    child: const Text('Réessayer'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        final families = _familiesToContact ?? [];
+        if (families.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.people_outline, size: 64, color: Colors.grey.shade400),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Aucune autre famille pour le moment.\nVos conversations apparaîtront ici.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        return Container(
+          margin: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+            border: Border.all(color: Colors.grey.shade100),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Familles avec qui communiquer',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: _textPrimary,
+                  ),
+                ),
+              ),
+              ...families.asMap().entries.map((entry) {
+                final f = entry.value;
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (entry.key > 0) Divider(height: 1, color: Colors.grey.shade100),
+                    _FamilyContactTile(
+                      family: f,
+                      onTap: () => _openChatWithFamily(context, f),
+                    ),
+                  ],
+                );
+              }),
+            ],
+          ),
+        );
+      }
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -332,13 +475,9 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
               Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.shade400),
               const SizedBox(height: 16),
               Text(
-                _selectedTab == 0
-                    ? 'Aucune conversation pour le moment.\nVos échanges apparaîtront ici.'
-                    : _selectedTab == 1
-                        ? 'Aucune conversation avec des familles.'
-                        : _selectedTab == 2
-                            ? 'Aucune conversation avec des bénévoles.'
-                            : 'Aucune conversation avec les professionnels de santé.',
+                _selectedTab == 1
+                    ? 'Aucune conversation avec des bénévoles.'
+                    : 'Aucune conversation avec les professionnels de santé.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
               ),
@@ -421,6 +560,77 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _FamilyContactTile extends StatelessWidget {
+  const _FamilyContactTile({required this.family, required this.onTap});
+
+  final FamilyUser family;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = family.profilePic != null && family.profilePic!.isNotEmpty
+        ? (family.profilePic!.startsWith('http')
+            ? family.profilePic!
+            : '${AppConstants.baseUrl}${family.profilePic}')
+        : '';
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            ClipOval(
+              child: imageUrl.isEmpty
+                  ? Container(
+                      width: 48,
+                      height: 48,
+                      color: _primary.withOpacity(0.3),
+                      child: const Icon(Icons.person, size: 24),
+                    )
+                  : Image.network(
+                      imageUrl,
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 48,
+                        height: 48,
+                        color: _primary.withOpacity(0.3),
+                        child: const Icon(Icons.person, size: 24),
+                      ),
+                    ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    family.fullName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: _textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Appuyer pour envoyer un message',
+                    style: TextStyle(fontSize: 12, color: _textMuted),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chat_bubble_outline, size: 20, color: _textMuted),
+          ],
+        ),
       ),
     );
   }
