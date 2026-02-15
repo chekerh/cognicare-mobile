@@ -5,6 +5,7 @@ import { Message, MessageSchema } from './message.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { ConversationsService } from './conversations.service';
 import { ConversationsController } from './conversations.controller';
+import { CallsModule } from '../calls/calls.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ConversationsController } from './conversations.controller';
       { name: Message.name, schema: MessageSchema },
       { name: User.name, schema: UserSchema },
     ]),
+    CallsModule,
   ],
   controllers: [ConversationsController],
   providers: [ConversationsService],

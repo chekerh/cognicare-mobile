@@ -78,6 +78,9 @@ dependencies:
   jitsi_meet_flutter_sdk: ^11.6.0
   socket_io_client: ^3.0.1
 
+  # Notifications locales (appel entrant, nouveau message)
+  flutter_local_notifications: ^18.0.1
+
   # Internationalization (managed by flutter_localizations)
   intl: any
 

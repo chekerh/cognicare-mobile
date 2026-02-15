@@ -154,4 +154,16 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
     }
   }
+
+  /** Emit message:new to a user (for in-app notifications when they receive a chat message). */
+  emitMessageNew(targetUserId: string, payload: { senderName: string; preview: string }) {
+    const sockets = userIdToSocket.get(targetUserId);
+    if (sockets) {
+      for (const sid of sockets) {
+        const s = this.server.sockets.sockets.get(sid);
+        if (s) s.emit('message:new', payload);
+      }
+      this.logger.log(`[CALL] message:new envoyé à targetUserId=${targetUserId}`);
+    }
+  }
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../services/call_service.dart';
+import '../services/notification_service.dart';
 
 class CallProvider with ChangeNotifier {
   final CallService _service = CallService();
@@ -15,6 +16,10 @@ class CallProvider with ChangeNotifier {
     _service.connect(userId);
     _incomingSub?.cancel();
     _incomingSub = _service.onIncomingCall.listen((call) {
+      NotificationService().showIncomingCall(
+        callerName: call.fromUserName,
+        isVideo: call.isVideo,
+      );
       _pendingIncoming = call;
       notifyListeners();
     });

@@ -19,6 +19,6 @@ import { CallsGateway } from './calls.gateway';
   ],
   controllers: [CallsController],
   providers: [CallsService, CallsGateway],
-  exports: [CallsService],
+  exports: [CallsService, CallsGateway],
 })
 export class CallsModule {}

@@ -17,6 +17,7 @@ import {
 } from './conversation.schema';
 import { Message, MessageDocument } from './message.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
+import { CallsGateway } from '../calls/calls.gateway';
 
 @Injectable()
 export class ConversationsService {
@@ -28,6 +29,7 @@ export class ConversationsService {
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
     private readonly configService: ConfigService,
+    private readonly callsGateway: CallsGateway,
   ) {}
 
   /** Derive a 32-byte AES key from env (MESSAGES_ENCRYPTION_KEY) or a fallback string. */
@@ -406,6 +408,27 @@ export class ConversationsService {
         { lastMessage: encryptedText, timeAgo, updatedAt: new Date() },
       )
       .exec();
+
+    // Emit message:new to recipient for in-app notification
+    const recipientId = conv.user.equals(uid)
+      ? conv.otherUserId?.toString()
+      : conv.user?.toString();
+    if (recipientId) {
+      const sender = await this.userModel
+        .findById(uid)
+        .select('fullName')
+        .lean()
+        .exec();
+      const senderName =
+        (sender as { fullName?: string } | null)?.fullName ?? 'Quelqu\'un';
+      const preview =
+        text.length > 80 ? text.slice(0, 77) + '...' : text;
+      this.callsGateway.emitMessageNew(recipientId, {
+        senderName,
+        preview,
+      });
+    }
+
     return {
       id: created._id.toString(),
       senderId: created.senderId.toString(),

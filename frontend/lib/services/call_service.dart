@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../utils/constants.dart';
+import 'notification_service.dart';
 
 /// Incoming call data from WebSocket signaling.
 class IncomingCall {
@@ -108,6 +109,18 @@ class CallService {
     _socket!.on('call:ended', (_) {
       debugPrint('📞 [CALL] call:ended reçu');
       _callEndedController.add(null);
+    });
+    _socket!.on('message:new', (data) {
+      debugPrint('📞 [CALL] message:new reçu: $data');
+      if (data is Map) {
+        final senderName =
+            (data['senderName'] ?? 'Quelqu\'un').toString();
+        final preview = (data['preview'] ?? '').toString();
+        NotificationService().showNewMessage(
+          senderName: senderName,
+          preview: preview.isNotEmpty ? preview : 'Nouveau message',
+        );
+      }
     });
   }
 
