@@ -83,6 +83,38 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   String? _currentRecordPath;
   String? _playingVoiceUrl;
 
+  void _scrollToBottom({bool animated = true}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      final target = _scrollController.position.maxScrollExtent;
+      if (animated) {
+        _scrollController.animateTo(
+          target,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+        );
+      } else {
+        _scrollController.jumpTo(target);
+      }
+    });
+  }
+
+  void _showTopNotification(String message, {bool isError = false}) {
+    final messenger = ScaffoldMessenger.of(context);
+    final screenHeight = MediaQuery.of(context).size.height;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: isError ? const Color(0xFFB3261E) : const Color(0xFF1E293B),
+          duration: const Duration(milliseconds: 1400),
+          margin: EdgeInsets.fromLTRB(12, 0, 12, screenHeight - 150),
+        ),
+      );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -175,13 +207,8 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
         _loading = false;
         _loadError = null;
       });
-      // Afficher les derniers messages en bas : scroll après le build
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        if (_scrollController.hasClients) {
-          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-        }
-      });
+      // Afficher les derniers messages en bas.
+      _scrollToBottom(animated: false);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -425,19 +452,22 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       );
       setState(() => _messages.add(optimistic));
       _controller.clear();
+      _scrollToBottom();
       try {
         final chatService = ChatService(getToken: () async => Provider.of<AuthProvider>(context, listen: false).accessToken ?? await AuthService().getStoredToken());
         await chatService.sendMessage(cid, text);
         if (!mounted) return;
         setState(() => _sending = false);
+        _showTopNotification('Message envoyé');
       } catch (e) {
         if (!mounted) return;
         setState(() {
           _messages.remove(optimistic);
           _sending = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        _showTopNotification(
+          e.toString().replaceFirst('Exception: ', ''),
+          isError: true,
         );
       }
     } else {
@@ -451,6 +481,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
         );
       });
       _controller.clear();
+      _scrollToBottom();
     }
   }
 

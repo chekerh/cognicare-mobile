@@ -58,6 +58,38 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
   String? _loadError;
   bool _sending = false;
 
+  void _scrollToBottom({bool animated = true}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      final target = _scrollController.position.maxScrollExtent;
+      if (animated) {
+        _scrollController.animateTo(
+          target,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+        );
+      } else {
+        _scrollController.jumpTo(target);
+      }
+    });
+  }
+
+  void _showTopNotification(String message, {bool isError = false}) {
+    final messenger = ScaffoldMessenger.of(context);
+    final screenHeight = MediaQuery.of(context).size.height;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: isError ? const Color(0xFFB3261E) : const Color(0xFF1E293B),
+          duration: const Duration(milliseconds: 1400),
+          margin: EdgeInsets.fromLTRB(12, 0, 12, screenHeight - 150),
+        ),
+      );
+  }
+
   static List<_ChatMessage> _defaultLocalMessages() {
     return [
       _ChatMessage(
@@ -233,12 +265,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
         _loading = false;
         _loadError = null;
       });
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        if (_scrollController.hasClients) {
-          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-        }
-      });
+      _scrollToBottom(animated: false);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -485,6 +512,18 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     final cid = widget.groupId;
     if (cid != null) {
       setState(() => _sending = true);
+      final optimisticId = 'optimistic_${DateTime.now().microsecondsSinceEpoch}';
+      final optimistic = _ChatMessage(
+        id: optimisticId,
+        senderName: 'Me',
+        senderType: _SenderType.dad,
+        text: text,
+        time: _formatTime(DateTime.now()),
+        isFromRight: true,
+      );
+      setState(() => _messages.add(optimistic));
+      _messageController.clear();
+      _scrollToBottom();
       try {
         final chatService = ChatService(
           getToken: () async =>
@@ -495,31 +534,32 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
         if (!mounted) return;
         setState(() {
           _sending = false;
-          _messages.add(
-            _ChatMessage(
-              id: sent.id,
-              senderName: 'Me',
-              senderType: _SenderType.dad,
-              text: sent.text,
-              time: _formatTime(sent.createdAt),
-              isFromRight: true,
-            ),
+          final index = _messages.indexWhere((m) => m.id == optimisticId);
+          final synced = _ChatMessage(
+            id: sent.id,
+            senderName: 'Me',
+            senderType: _SenderType.dad,
+            text: sent.text,
+            time: _formatTime(sent.createdAt),
+            isFromRight: true,
           );
-        });
-        _messageController.clear();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && _scrollController.hasClients) {
-            _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+          if (index != -1) {
+            _messages[index] = synced;
+          } else {
+            _messages.add(synced);
           }
         });
+        _scrollToBottom();
+        _showTopNotification('Message envoyé');
       } catch (e) {
         if (!mounted) return;
-        setState(() => _sending = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
-            behavior: SnackBarBehavior.floating,
-          ),
+        setState(() {
+          _sending = false;
+          _messages.removeWhere((m) => m.id == optimisticId);
+        });
+        _showTopNotification(
+          e.toString().replaceFirst('Exception: ', ''),
+          isError: true,
         );
       }
     } else {
@@ -536,6 +576,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
         );
       });
       _messageController.clear();
+      _scrollToBottom();
     }
   }
 
