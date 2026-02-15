@@ -28,6 +28,25 @@ export class MarketplaceService {
     return list as ProductLean[];
   }
 
+  /** Liste uniquement les produits créés par l'utilisateur connecté. */
+  async listBySeller(
+    userId: string,
+    limit = 50,
+    category?: string,
+  ): Promise<ProductLean[]> {
+    const q: Record<string, unknown> = {
+      sellerId: new Types.ObjectId(userId),
+    };
+    if (category && category !== 'all') q.category = category;
+    const list = await this.productModel
+      .find(q)
+      .sort({ order: 1, createdAt: -1 })
+      .limit(limit)
+      .lean()
+      .exec();
+    return list as ProductLean[];
+  }
+
   async uploadProductImage(file: {
     buffer: Buffer;
     mimetype: string;

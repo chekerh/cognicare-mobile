@@ -40,6 +40,23 @@ class MarketplaceService {
         .toList();
   }
 
+  /// Liste uniquement les produits ajoutés par l'utilisateur connecté (JWT requis).
+  Future<List<MarketplaceProduct>> getMyProducts({int limit = 50, String? category}) async {
+    final query = <String, String>{'limit': limit.toString()};
+    if (category != null && category != 'all') query['category'] = category;
+    final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.marketplaceMyProductsEndpoint}')
+        .replace(queryParameters: query);
+    final response = await _client.get(uri, headers: await _headers());
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load my products: ${response.statusCode}');
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final list = body['products'] as List<dynamic>? ?? [];
+    return list
+        .map((e) => MarketplaceProduct.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   /// Récupère un produit par ID.
   Future<MarketplaceProduct> getProductById(String id) async {
     final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.marketplaceProductByIdEndpoint(id)}');

@@ -57,6 +57,29 @@ export class MarketplaceController {
     return { products: list };
   }
 
+  @Get('products/mine')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'List only products created by the logged-in user' })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'category', required: false, type: String })
+  @ApiResponse({ status: 200, description: 'List of my products' })
+  async getMyProducts(
+    @Request() req: { user: { id: string } },
+    @Query('limit') limit?: string,
+    @Query('category') category?: string,
+  ) {
+    const limitNum = limit
+      ? Math.min(100, Math.max(1, parseInt(limit, 10) || 50))
+      : 50;
+    const list = await this.marketplaceService.listBySeller(
+      req.user.id,
+      limitNum,
+      category,
+    );
+    return { products: list };
+  }
+
   @Public()
   @Get('products/:id')
   @ApiOperation({ summary: 'Get product by ID' })

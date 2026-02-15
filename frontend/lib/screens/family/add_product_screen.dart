@@ -94,7 +94,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     if (!mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
-    context.pop();
+    context.pop(true);
     messenger.showSnackBar(
       const SnackBar(
         content: Text('Produit publié avec succès.'),

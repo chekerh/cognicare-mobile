@@ -41,7 +41,8 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
     final category = _selectedCategoryKey != null ? _categoryToApi(_selectedCategoryKey!) : 'all';
     setState(() => _loading = true);
     try {
-      final list = await MarketplaceService().getProducts(limit: 50, category: category);
+      // Uniquement les produits ajoutés par l'utilisateur connecté
+      final list = await MarketplaceService().getMyProducts(limit: 50, category: category);
       if (mounted) setState(() { _products = list; _loading = false; });
     } catch (_) {
       if (mounted) setState(() { _products = []; _loading = false; });
@@ -97,7 +98,10 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push(AppConstants.familyAddProductRoute),
+        onPressed: () async {
+          final added = await context.push<bool>(AppConstants.familyAddProductRoute);
+          if (added == true && mounted) _loadProducts();
+        },
         backgroundColor: _marketPrimary,
         child: const Icon(Icons.add, color: AppTheme.text),
       ),
