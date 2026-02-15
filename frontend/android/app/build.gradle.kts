@@ -7,12 +7,14 @@ plugins {
 
 android {
     namespace = "com.cognicare.app"
-    compileSdk = 35  // Required by audioplayers_android, flutter_plugin_android_lifecycle
+    compileSdk = 36  // Required by multiple plugins including geolocator, image_picker, etc.
     ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Enable core library desugaring for flutter_local_notifications
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -24,7 +26,7 @@ android {
         applicationId = "com.cognicare.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 24  // Jitsi Meet SDK minimum
+        minSdk = 26  // Required by Jitsi Meet SDK
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -42,3 +44,8 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+}
+
