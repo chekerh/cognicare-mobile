@@ -2,17 +2,25 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Product, ProductDocument } from './schemas/product.schema';
+import { Review, ReviewDocument } from './schemas/review.schema';
+import { User, UserDocument } from '../users/schemas/user.schema';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateProductDto } from './dto/create-product.dto';
+import { CreateReviewDto } from './dto/create-review.dto';
 
 /** Plain object returned by .lean() (no Mongoose Document methods). */
 export type ProductLean = Product & { _id: Types.ObjectId };
+export type ReviewLean = Review & { _id: Types.ObjectId };
 
 @Injectable()
 export class MarketplaceService {
   constructor(
     @InjectModel(Product.name)
     private readonly productModel: Model<ProductDocument>,
+    @InjectModel(Review.name)
+    private readonly reviewModel: Model<ReviewDocument>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<UserDocument>,
     private readonly cloudinary: CloudinaryService,
   ) {}
 
@@ -106,5 +114,51 @@ export class MarketplaceService {
       throw new NotFoundException('Product not found');
     }
     return product as ProductLean;
+  }
+
+  async listReviews(productId: string): Promise<ReviewLean[]> {
+    if (!Types.ObjectId.isValid(productId)) return [];
+    const list = await this.reviewModel
+      .find({ productId: new Types.ObjectId(productId) })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+    return list as ReviewLean[];
+  }
+
+  async createOrUpdateReview(
+    productId: string,
+    userId: string,
+    dto: CreateReviewDto,
+  ): Promise<ReviewLean> {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw new NotFoundException('Product not found');
+    }
+    const product = await this.productModel.findById(productId).exec();
+    if (!product) throw new NotFoundException('Product not found');
+
+    const user = await this.userModel
+      .findById(userId)
+      .select('fullName')
+      .lean()
+      .exec();
+    const userName = user?.fullName ?? 'User';
+
+    const review = await this.reviewModel.findOneAndUpdate(
+      {
+        productId: new Types.ObjectId(productId),
+        userId: new Types.ObjectId(userId),
+      },
+      {
+        $set: {
+          rating: dto.rating,
+          comment: dto.comment ?? '',
+          userName,
+          updatedAt: new Date(),
+        },
+      },
+      { upsert: true, new: true },
+    );
+    return review.toObject() as ReviewLean;
   }
 }

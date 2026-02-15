@@ -34,6 +34,7 @@ class AppConstants {
   static const String marketplaceProductsEndpoint = '/api/v1/marketplace/products';
   static const String marketplaceMyProductsEndpoint = '/api/v1/marketplace/products/mine';
   static String marketplaceProductByIdEndpoint(String id) => '/api/v1/marketplace/products/$id';
+  static String marketplaceProductReviewsEndpoint(String id) => '/api/v1/marketplace/products/$id/reviews';
   static const String marketplaceUploadImageEndpoint = '/api/v1/marketplace/products/upload-image';
 
   // Donations (Le Cercle du Don)

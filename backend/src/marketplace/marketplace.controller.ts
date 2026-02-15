@@ -23,6 +23,7 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MarketplaceService } from './marketplace.service';
 import { CreateProductDto } from './dto/create-product.dto';
+import { CreateReviewDto } from './dto/create-review.dto';
 import { Public } from '../auth/decorators/public.decorator';
 
 @ApiTags('marketplace')
@@ -88,6 +89,44 @@ export class MarketplaceController {
   @ApiResponse({ status: 404, description: 'Product not found' })
   async getProductById(@Param('id') id: string) {
     return this.marketplaceService.findById(id);
+  }
+
+  @Public()
+  @Get('products/:id/reviews')
+  @ApiOperation({ summary: 'List reviews for a product' })
+  @ApiParam({ name: 'id', description: 'Product ID' })
+  @ApiResponse({ status: 200, description: 'List of reviews' })
+  async getProductReviews(@Param('id') id: string) {
+    const reviews = await this.marketplaceService.listReviews(id);
+    return { reviews };
+  }
+
+  @Post('products/:id/reviews')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Add or update my review for a product' })
+  @ApiParam({ name: 'id', description: 'Product ID' })
+  @ApiResponse({ status: 201, description: 'Review created or updated' })
+  async createReview(
+    @Request() req: { user: { id: string } },
+    @Param('id') productId: string,
+    @Body() dto: CreateReviewDto,
+  ) {
+    const review = await this.marketplaceService.createOrUpdateReview(
+      productId,
+      req.user.id,
+      dto,
+    );
+    return {
+      id: review._id.toString(),
+      productId: review.productId.toString(),
+      userId: review.userId.toString(),
+      userName: review.userName,
+      rating: review.rating,
+      comment: review.comment,
+      createdAt: review.createdAt,
+      updatedAt: review.updatedAt,
+    };
   }
 
   @Post('products/upload-image')

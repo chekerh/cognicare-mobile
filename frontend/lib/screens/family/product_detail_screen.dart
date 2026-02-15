@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/product_review.dart';
 import '../../providers/cart_provider.dart';
+import '../../services/marketplace_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 
@@ -36,6 +38,24 @@ class ProductDetailScreen extends StatefulWidget {
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   final int _currentImageIndex = 0;
   bool _isFavorite = false;
+  List<ProductReview> _reviews = [];
+  bool _reviewsLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReviews();
+  }
+
+  Future<void> _loadReviews() async {
+    setState(() => _reviewsLoading = true);
+    try {
+      final list = await MarketplaceService().getReviews(widget.productId);
+      if (mounted) setState(() { _reviews = list; _reviewsLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() { _reviews = []; _reviewsLoading = false; });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -263,6 +283,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildReviewsSection() {
     final loc = AppLocalizations.of(context)!;
+    final avgRating = _reviews.isEmpty
+        ? 0.0
+        : _reviews.map((r) => r.rating).reduce((a, b) => a + b) / _reviews.length;
+    final ratingStr = _reviews.isEmpty
+        ? '0 (0 avis)'
+        : '${avgRating.toStringAsFixed(1)} (${_reviews.length} avis)';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -281,9 +308,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const SizedBox(width: 12),
               const Icon(Icons.star, color: Colors.amber, size: 20),
               const SizedBox(width: 4),
-              const Text(
-                '4.9 (24 avis)',
-                style: TextStyle(
+              Text(
+                ratingStr,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.text,
@@ -291,23 +318,134 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () => _showAddReviewDialog(),
+            icon: const Icon(Icons.edit, size: 18),
+            label: const Text('Écrire un avis'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: _marketPrimary,
+              side: BorderSide(color: _marketPrimary),
+            ),
+          ),
           const SizedBox(height: 16),
-          _buildReview(
-            name: 'Marie D.',
-            rating: 5,
-            text:
-                '"A aidé mon fils à dormir toute la nuit sans interruption ! Un vrai changement pour nous."',
-          ),
-          const SizedBox(height: 12),
-          _buildReview(
-            name: 'Thomas L.',
-            rating: 5,
-            text:
-                '"Matériaux de haute qualité et très efficace pendant les crises sensorielles."',
-          ),
+          if (_reviewsLoading)
+            const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+          else if (_reviews.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                'Aucun avis pour le moment. Soyez le premier à donner votre avis !',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.text.withOpacity(0.7),
+                ),
+              ),
+            )
+          else
+            ..._reviews.map(
+              (r) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildReview(
+                  name: r.userName,
+                  rating: r.rating,
+                  text: r.comment.isEmpty ? '(Avis sans commentaire)' : r.comment,
+                ),
+              ),
+            ),
         ],
       ),
     );
+  }
+
+  Future<void> _showAddReviewDialog() async {
+    int rating = 5;
+    final commentController = TextEditingController();
+
+    final submitted = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              title: const Text('Écrire un avis'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Note :', style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(5, (i) {
+                        final star = i + 1;
+                        return IconButton(
+                          icon: Icon(
+                            Icons.star,
+                            size: 32,
+                            color: star <= rating ? Colors.amber : Colors.grey,
+                          ),
+                          onPressed: () => setDialogState(() => rating = star),
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('Commentaire (optionnel) :', style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: commentController,
+                      maxLines: 3,
+                      decoration: const InputDecoration(
+                        hintText: 'Partagez votre expérience...',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: const Text('Annuler'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: const Text('Publier'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (submitted != true || !mounted) return;
+
+    try {
+      await MarketplaceService().createReview(
+        productId: widget.productId,
+        rating: rating,
+        comment: commentController.text.trim(),
+      );
+      commentController.dispose();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Votre avis a été publié.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      _loadReviews();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Widget _buildReview({

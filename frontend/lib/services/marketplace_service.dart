@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/marketplace_product.dart';
+import '../models/product_review.dart';
 import '../utils/constants.dart';
 
 /// Service pour les produits du marketplace (secteur famille).
@@ -55,6 +56,49 @@ class MarketplaceService {
     return list
         .map((e) => MarketplaceProduct.fromJson(e as Map<String, dynamic>))
         .toList();
+  }
+
+  /// Liste les avis d'un produit.
+  Future<List<ProductReview>> getReviews(String productId) async {
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}${AppConstants.marketplaceProductReviewsEndpoint(productId)}',
+    );
+    final response = await _client.get(uri);
+    if (response.statusCode != 200) {
+      return [];
+    }
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final list = body['reviews'] as List<dynamic>? ?? [];
+    return list
+        .map((e) => ProductReview.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Ajoute ou met à jour mon avis sur un produit (JWT requis).
+  Future<ProductReview> createReview({
+    required String productId,
+    required int rating,
+    String comment = '',
+  }) async {
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}${AppConstants.marketplaceProductReviewsEndpoint(productId)}',
+    );
+    final response = await _client.post(
+      uri,
+      headers: await _headers(),
+      body: jsonEncode({'rating': rating, 'comment': comment}),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      String message = 'Échec: ${response.statusCode}';
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        final m = err['message'];
+        if (m != null) message = m.toString();
+      } catch (_) {}
+      throw Exception(message);
+    }
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return ProductReview.fromJson(data);
   }
 
   /// Récupère un produit par ID.
