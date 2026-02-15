@@ -81,24 +81,58 @@ class NotificationService {
     );
   }
 
+  int _messageNotificationId = 100;
+
   /// Affiche une notification de nouveau message.
   Future<void> showNewMessage({
     required String senderName,
     required String preview,
   }) async {
     if (!_initialized) await initialize();
-    debugPrint('🔔 [NOTIF] Affichage notification message: $senderName - $preview');
+    final id = _messageNotificationId++;
+    if (_messageNotificationId > 99999) _messageNotificationId = 100;
+    debugPrint('🔔 [NOTIF] Affichage notification message: $senderName - $preview (id=$id)');
     await _plugin.show(
-      2,
+      id,
       senderName,
-      preview,
+      preview.isNotEmpty ? preview : 'Nouveau message',
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _channel.id,
+          _channel.name,
+          channelDescription: _channel.description,
+          importance: Importance.max,
+          priority: Priority.high,
+          visibility: NotificationVisibility.public,
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          interruptionLevel: InterruptionLevel.timeSensitive,
+        ),
+      ),
+      payload: 'message',
+    );
+  }
+
+  /// Affiche une notification de confirmation de paiement.
+  Future<void> showPaymentConfirmation({
+    required String orderId,
+    required String amount,
+  }) async {
+    if (!_initialized) await initialize();
+    await _plugin.show(
+      3,
+      'Paiement confirmé',
+      'Commande #$orderId • $amount',
       NotificationDetails(
         android: AndroidNotificationDetails(
           _channel.id,
           _channel.name,
           channelDescription: _channel.description,
           importance: Importance.high,
-          priority: Priority.defaultPriority,
+          priority: Priority.high,
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,
@@ -106,7 +140,7 @@ class NotificationService {
           presentSound: true,
         ),
       ),
-      payload: 'message',
+      payload: 'payment:$orderId',
     );
   }
 }

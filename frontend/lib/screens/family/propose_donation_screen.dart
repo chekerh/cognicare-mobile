@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/donation_service.dart';
 
 const Color _primary = Color(0xFFA3D9E2);
 const Color _primaryDark = Color(0xFF7FBAC4);
@@ -74,8 +75,35 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
 
     setState(() => _isSubmitting = true);
 
-    // API donation : à brancher quand le backend sera prêt (titre, description, catégorie, état, localisation, photos)
-    await Future.delayed(const Duration(milliseconds: 600));
+    try {
+      final service = DonationService();
+      final imageUrls = <String>[];
+      for (final photo in _photos) {
+        final url = await service.uploadImage(photo);
+        imageUrls.add(url);
+      }
+
+      await service.createDonation(
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        category: _categoryIndex,
+        condition: _conditionIndex,
+        location: _locationController.text.trim(),
+        imageUrls: imageUrls,
+        isOffer: true,
+      );
+    } catch (e) {
+      setState(() => _isSubmitting = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     setState(() => _isSubmitting = false);
     if (!mounted) return;

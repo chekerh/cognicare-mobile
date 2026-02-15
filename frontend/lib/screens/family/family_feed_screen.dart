@@ -8,8 +8,10 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/community_feed_provider.dart';
+import '../../models/donation.dart';
 import '../../models/marketplace_product.dart';
 import '../../models/user.dart' as app_user;
+import '../../services/donation_service.dart';
 import '../../services/healthcare_service.dart';
 import '../../services/marketplace_service.dart';
 import '../../utils/constants.dart';
@@ -60,11 +62,46 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   String? _healthcareError;
   String _healthcareSearchQuery = '';
 
+  List<Donation>? _donations;
+  bool _donationsLoading = false;
+  String? _donationsError;
+
   @override
   void initState() {
     super.initState();
     _marketplaceProductsFuture = MarketplaceService().getProducts(limit: 6);
     _loadHealthcareUsers();
+    _loadDonations();
+  }
+
+  Future<void> _loadDonations() async {
+    setState(() {
+      _donationsLoading = true;
+      _donationsError = null;
+    });
+    try {
+      final isOffer = _donationsToggleIndex == 0;
+      final category = _donationsCategoryIndex > 0 ? _donationsCategoryIndex : null;
+      final search = _donationSearchQuery.trim().isNotEmpty ? _donationSearchQuery.trim() : null;
+      final list = await DonationService().getDonations(
+        isOffer: isOffer,
+        category: category,
+        search: search,
+      );
+      if (!mounted) return;
+      setState(() {
+        _donations = list;
+        _donationsLoading = false;
+        _donationsError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _donations = null;
+        _donationsLoading = false;
+        _donationsError = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
   }
 
   Future<void> _loadHealthcareUsers() async {
@@ -321,7 +358,10 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     final loc = AppLocalizations.of(context)!;
     return Stack(
       children: [
-        SingleChildScrollView(
+        RefreshIndicator(
+          onRefresh: _loadDonations,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -385,6 +425,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
             ],
           ),
         ),
+        ),
         // FAB "Proposer un don" — bouton rond à droite
         Positioned(
           right: 24,
@@ -397,7 +438,11 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               shape: const CircleBorder(),
               color: _donationPrimary,
               child: InkWell(
-                onTap: () => context.push(AppConstants.familyProposeDonationRoute),
+                onTap: () async {
+                  await context.push(AppConstants.familyProposeDonationRoute);
+                  if (!mounted) return;
+                  _loadDonations();
+                },
                 customBorder: const CircleBorder(),
                 child: const SizedBox(
                   width: 56,
@@ -420,7 +465,10 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
       elevation: selected ? 2 : 0,
       shadowColor: Colors.black26,
       child: InkWell(
-        onTap: () => setState(() => _donationsToggleIndex = index),
+        onTap: () {
+          setState(() => _donationsToggleIndex = index);
+          _loadDonations();
+        },
         borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -445,7 +493,10 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
       color: selected ? _donationPrimary : Colors.white,
       borderRadius: BorderRadius.circular(999),
       child: InkWell(
-        onTap: () => setState(() => _donationsCategoryIndex = index),
+        onTap: () {
+          setState(() => _donationsCategoryIndex = index);
+          _loadDonations();
+        },
         borderRadius: BorderRadius.circular(999),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -504,6 +555,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   onPressed: () {
                     _donationSearchController.clear();
                     setState(() => _donationSearchQuery = '');
+                    _loadDonations();
                   },
                 )
               : null,
@@ -513,123 +565,97 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           fillColor: Colors.white,
         ),
         onChanged: (value) => setState(() => _donationSearchQuery = value),
+        onSubmitted: (_) => _loadDonations(),
       ),
     );
   }
 
   /// Catégories dons : 0 Tout, 1 Mobilité, 2 Éveil, 3 Vêtements
   static const int _catAll = 0;
-  /// Toggle : 0 = Je donne (offres), 1 = Je recherche (demandes)
-  static const int _toggleGive = 0;
 
   List<Widget> _buildDonationCards(AppLocalizations loc) {
-    const cardData = [
-      (
-        title: 'Vêtements sensoriels',
-        description: 'Textiles adaptés sans coutures irritantes pour le confort sensoriel au quotidien.',
-        fullDescription: 'Ensemble de 5 hauts en coton biologique, conçus spécifiquement pour les enfants avec hypersensibilité tactile. Sans étiquettes intérieures et avec des coutures plates inversées pour éviter toute irritation. Très utiles pour les enfants TSA ou avec des troubles de l\'intégration sensorielle.',
-        condition: 0,
-        location: 'Paris 15e, Javel',
-        category: 3,
-        isGive: true,
-        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNwpJkxXJO4qPvJguyMJI8Jj88n_cMeQpmeJ63D72nrT2h90NZ859t1A8minaQ01kX1yk4QnB9teSjXGeEYzkpbKipI7RfPGJobNOAsBjk4fpKddk-MM9kz4yOhH3tRdsuJudTtF4QstUtzLwYJ_awa2QheQHTygqORQNQ4yMqHZ96GRkTLApID38iQL9fPZD5MsHqEE-mHsdzqe9iOiehayCPKYyG7HQ4lcIMHYlWestP5gwoWly2gRYLJd7XbXsEcIQUFCPoG6I',
-        distanceText: '2.4 km',
-      ),
-      (
-        title: 'Lit médicalisé',
-        description: 'Lit avec réglages électriques et barrières de sécurité. Disponible immédiatement.',
-        fullDescription: null,
-        condition: 1,
-        location: 'Lyon • 5km',
-        category: 1,
-        isGive: true,
-        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCb8SXYxcrQ4CgCujtTt7fyG-k61uPITDNwrJTWzYKq-U4ZY0bIdijFvRAiH_MPJTUX9gWaVwYoAVal5YaYgIbxmjyyZiPCh4GWFQquL3xQWz9ywGw2ywUWn1Fss4VAh3Rgtle-gVREM-fphtNAN8MEbcrgx60VPNtITY2D7_VjDGfo1gypD70ogxVDENtD3la2XEm7AsjpcfXvNwvQvUYgNeZ7PC-kDgKsPdufaXu5RAW06WxKn6TqGCatPdGlypP0chAws6irEm0',
-        distanceText: null,
-      ),
-      (
-        title: 'Kit d\'éveil Montessori',
-        description: 'Ensemble de jeux en bois pour le développement de la motricité fine.',
-        fullDescription: null,
-        condition: 2,
-        location: 'Bordeaux • 12km',
-        category: 2,
-        isGive: true,
-        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCxkZXpSV2sgwfy7eL_wAO1VsHV3zZ3O38eifySxi_30mTe2bbtkA_R3-okaq759yz1-H9z8NffBRyQeRPi52wJ7oDhkMdkBeg58wlnBcXv_cVyjCZ3VeTr16QDFESkDDeuEZTARH_dKSUn5tI39xeZgP_uwRuSgLl1YIaqVuubechX6zjuSmiyce8q7dDGcCHDUtpuZkwDhnysqYydnUck6NKWjiepuPqt3vVRuB6lNrfPHLoHr8n4vCyg1IbHEB8Vye4Pu3JN8TU',
-        distanceText: null,
-      ),
-      (
-        title: 'Déambulateur',
-        description: 'Déambulateur réglable avec freins et panier. Idéal pour la mobilité au quotidien.',
-        fullDescription: null,
-        condition: 0,
-        location: 'Marseille • 8km',
-        category: 1,
-        isGive: false,
-        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNwpJkxXJO4qPvJguyMJI8Jj88n_cMeQpmeJ63D72nrT2h90NZ859t1A8minaQ01kX1yk4QnB9teSjXGeEYzkpbKipI7RfPGJobNOAsBjk4fpKddk-MM9kz4yOhH3tRdsuJudTtF4QstUtzLwYJ_awa2QheQHTygqORQNQ4yMqHZ96GRkTLApID38iQL9fPZD5MsHqEE-mHsdzqe9iOiehayCPKYyG7HQ4lcIMHYlWestP5gwoWly2gRYLJd7XbXsEcIQUFCPoG6I',
-        distanceText: null,
-      ),
-      (
-        title: 'Puzzle sensoriel',
-        description: 'Puzzle en bois à encastrer pour l\'éveil et la motricité fine.',
-        fullDescription: null,
-        condition: 2,
-        location: 'Toulouse • 15km',
-        category: 2,
-        isGive: false,
-        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCxkZXpSV2sgwfy7eL_wAO1VsHV3zZ3O38eifySxi_30mTe2bbtkA_R3-okaq759yz1-H9z8NffBRyQeRPi52wJ7oDhkMdkBeg58wlnBcXv_cVyjCZ3VeTr16QDFESkDDeuEZTARH_dKSUn5tI39xeZgP_uwRuSgLl1YIaqVuubechX6zjuSmiyce8q7dDGcCHDUtpuZkwDhnysqYydnUck6NKWjiepuPqt3vVRuB6lNrfPHLoHr8n4vCyg1IbHEB8Vye4Pu3JN8TU',
-        distanceText: null,
-      ),
-      (
-        title: 'Combinaison adaptée',
-        description: 'Combinaison à pressions pour faciliter l\'habillage. Taille 2 ans.',
-        fullDescription: null,
-        condition: 1,
-        location: 'Nantes • 10km',
-        category: 3,
-        isGive: false,
-        imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNwpJkxXJO4qPvJguyMJI8Jj88n_cMeQpmeJ63D72nrT2h90NZ859t1A8minaQ01kX1yk4QnB9teSjXGeEYzkpbKipI7RfPGJobNOAsBjk4fpKddk-MM9kz4yOhH3tRdsuJudTtF4QstUtzLwYJ_awa2QheQHTygqORQNQ4yMqHZ96GRkTLApID38iQL9fPZD5MsHqEE-mHsdzqe9iOiehayCPKYyG7HQ4lcIMHYlWestP5gwoWly2gRYLJd7XbXsEcIQUFCPoG6I',
-        distanceText: null,
-      ),
-    ];
-    final isGiveMode = _donationsToggleIndex == _toggleGive;
-    var filtered = cardData.where((d) => d.isGive == isGiveMode).toList();
-    final selectedCategory = _donationsCategoryIndex;
-    if (selectedCategory != _catAll) {
-      filtered = filtered.where((d) => d.category == selectedCategory).toList();
+    if (_donationsLoading) {
+      return [
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 48),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ];
     }
-    final search = _donationSearchQuery.trim().toLowerCase();
-    if (search.isNotEmpty) {
-      filtered = filtered.where((d) {
-        return d.title.toLowerCase().contains(search) ||
-            d.description.toLowerCase().contains(search) ||
-            (d.fullDescription?.toLowerCase().contains(search) ?? false) ||
-            d.location.toLowerCase().contains(search);
-      }).toList();
+    if (_donationsError != null) {
+      return [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+          child: Column(
+            children: [
+              Icon(Icons.error_outline, size: 48, color: Colors.red.shade300),
+              const SizedBox(height: 16),
+              Text(
+                _donationsError!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.red.shade700, fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              TextButton.icon(
+                onPressed: _loadDonations,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Réessayer'),
+              ),
+            ],
+          ),
+        ),
+      ];
     }
-    return filtered.map((d) {
+    final list = _donations ?? [];
+    if (list.isEmpty) {
+      return [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 48),
+          child: Center(
+            child: Column(
+              children: [
+                Icon(Icons.inventory_2_outlined, size: 56, color: _donationPrimary.withOpacity(0.5)),
+                const SizedBox(height: 16),
+                Text(
+                  loc.jeDonne == 'Je donne' ? 'Aucun don pour le moment' : 'Aucune recherche pour le moment',
+                  style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ];
+    }
+    const conditionMap = {0: 2, 1: 0, 2: 1};
+    return list.map((d) {
+      final conditionDisplayIndex = conditionMap[d.condition] ?? d.condition;
+      final imageUrl = _fullImageUrl(d.imageUrl);
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: _donationCard(
           title: d.title,
           description: d.description,
-          fullDescription: d.fullDescription,
-          conditionIndex: d.condition,
+          fullDescription: d.fullDescription ?? d.description,
+          conditionIndex: conditionDisplayIndex,
           categoryIndex: d.category,
           location: d.location,
-          distanceText: d.distanceText,
-          imageUrl: d.imageUrl,
-          isOffer: d.isGive,
+          distanceText: null,
+          imageUrl: imageUrl,
+          isOffer: d.isOffer,
           loc: loc,
           onDetailsTap: () {
             context.push(AppConstants.familyDonationDetailRoute, extra: {
               'title': d.title,
               'description': d.description,
-              'fullDescription': d.fullDescription,
-              'conditionIndex': d.condition,
+              'fullDescription': d.fullDescription ?? d.description,
+              'conditionIndex': conditionDisplayIndex,
               'categoryIndex': d.category,
-              'imageUrl': d.imageUrl,
+              'imageUrl': imageUrl,
               'location': d.location,
-              'distanceText': d.distanceText,
+              'distanceText': null,
+              'donorName': d.donorName,
+              'donorId': d.donorId,
+              'donationId': d.id,
             });
           },
         ),

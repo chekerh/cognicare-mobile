@@ -22,6 +22,7 @@ import { CoursesModule } from './courses/courses.module';
 import { NutritionModule } from './nutrition/nutrition.module';
 import { CallsModule } from './calls/calls.module';
 import { EngagementModule } from './engagement/engagement.module';
+import { DonationsModule } from './donations/donations.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { EngagementModule } from './engagement/engagement.module';
     NutritionModule,
     CallsModule,
     EngagementModule,
+    DonationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

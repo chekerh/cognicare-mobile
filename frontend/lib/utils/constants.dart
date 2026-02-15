@@ -33,6 +33,10 @@ class AppConstants {
   // Marketplace
   static const String marketplaceProductsEndpoint = '/api/v1/marketplace/products';
 
+  // Donations (Le Cercle du Don)
+  static const String donationsEndpoint = '/api/v1/donations';
+  static const String donationsUploadImageEndpoint = '/api/v1/donations/upload-image';
+
   // Conversations / Chat
   static const String conversationsInboxEndpoint = '/api/v1/conversations/inbox';
   static const String conversationsByParticipantEndpoint = '/api/v1/conversations/by-participant';

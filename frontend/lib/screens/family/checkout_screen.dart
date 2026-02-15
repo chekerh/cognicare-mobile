@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../services/notification_service.dart';
 import '../../utils/constants.dart';
 
 /// Étape 2/3 — Paiement et livraison. Design HTML.
@@ -52,6 +53,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void _processPayment(BuildContext context, CartProvider cart) {
     final orderId = '${DateTime.now().millisecondsSinceEpoch}'.substring(5);
     final address = '${_streetController.text}, ${_zipController.text} ${_cityController.text}';
+    final totalStr = '\$${cart.subtotal.toStringAsFixed(2)}';
+    NotificationService().showPaymentConfirmation(
+      orderId: orderId,
+      amount: totalStr,
+    );
     cart.clear();
     context.push(
       AppConstants.familyOrderConfirmationRoute,
