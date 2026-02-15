@@ -54,11 +54,19 @@ class CallService {
 
   /// Connect to signaling WebSocket. Call when user logs in.
   Future<void> connect(String userId) async {
-    if (_socket?.connected == true && _userId == userId) return;
+    debugPrint('📞 [CALL] connect() userId=$userId, baseUrl=$_baseUrl');
+    if (_socket?.connected == true && _userId == userId) {
+      debugPrint('📞 [CALL] Déjà connecté, skip');
+      return;
+    }
     disconnect();
     _userId = userId;
     final token = await _getToken();
-    if (token == null) return;
+    if (token == null) {
+      debugPrint('📞 [CALL] ERREUR: Token null, impossible de se connecter au WebSocket');
+      return;
+    }
+    debugPrint('📞 [CALL] Connexion WebSocket en cours...');
     final wsUrl = _baseUrl
         .replaceFirst('https://', 'https://')
         .replaceFirst('http://', 'http://');
@@ -72,8 +80,13 @@ class CallService {
           .setAuth({'token': token})
           .build(),
     );
-    _socket!.onConnect((_) {});
+    _socket!.onConnect((_) {
+      debugPrint('📞 [CALL] WebSocket connecté pour userId=$userId');
+    });
+    _socket!.on('error', (e) => debugPrint('📞 [CALL] WebSocket error: $e'));
+    _socket!.onDisconnect((_) => debugPrint('📞 [CALL] WebSocket déconnecté'));
     _socket!.on('call:incoming', (data) {
+      debugPrint('📞 [CALL] call:incoming reçu: $data');
       if (data is Map) {
         _incomingCallController.add(IncomingCall(
           fromUserId: (data['fromUserId'] ?? '').toString(),
@@ -85,10 +98,17 @@ class CallService {
     });
     _socket!.on('call:accepted', (data) {
       final channelId = data is Map ? (data['channelId'] ?? '').toString() : '';
+      debugPrint('📞 [CALL] call:accepted reçu channelId=$channelId');
       _callAcceptedController.add(channelId);
     });
-    _socket!.on('call:rejected', (_) => _callRejectedController.add(null));
-    _socket!.on('call:ended', (_) => _callEndedController.add(null));
+    _socket!.on('call:rejected', (_) {
+      debugPrint('📞 [CALL] call:rejected reçu');
+      _callRejectedController.add(null);
+    });
+    _socket!.on('call:ended', (_) {
+      debugPrint('📞 [CALL] call:ended reçu');
+      _callEndedController.add(null);
+    });
   }
 
   void disconnect() {
@@ -104,6 +124,10 @@ class CallService {
     required bool isVideo,
     required String callerName,
   }) {
+    debugPrint('📞 [CALL] initiateCall targetUserId=$targetUserId channelId=$channelId isVideo=$isVideo socketConnected=${_socket?.connected}');
+    if (_socket?.connected != true) {
+      debugPrint('📞 [CALL] ERREUR: Socket non connecté, call:initiate non envoyé!');
+    }
     _socket?.emit('call:initiate', {
       'targetUserId': targetUserId,
       'channelId': channelId,
@@ -113,6 +137,7 @@ class CallService {
   }
 
   void acceptCall({required String fromUserId, required String channelId}) {
+    debugPrint('📞 [CALL] acceptCall fromUserId=$fromUserId channelId=$channelId socketConnected=${_socket?.connected}');
     _socket?.emit('call:accept', {
       'fromUserId': fromUserId,
       'channelId': channelId,
@@ -120,10 +145,12 @@ class CallService {
   }
 
   void rejectCall(String fromUserId) {
+    debugPrint('📞 [CALL] rejectCall fromUserId=$fromUserId');
     _socket?.emit('call:reject', {'fromUserId': fromUserId});
   }
 
   void endCall(String targetUserId) {
+    debugPrint('📞 [CALL] endCall targetUserId=$targetUserId');
     _socket?.emit('call:end', {'targetUserId': targetUserId});
   }
 }

@@ -8,7 +8,7 @@ import {
 import { Server } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 interface SocketWithUserId {
   id: string;
@@ -30,6 +30,8 @@ const userIdToSocket = new Map<string, Set<string>>();
   transports: ['websocket', 'polling'],
 })
 export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  private readonly logger = new Logger(CallsGateway.name);
+
   @WebSocketServer()
   server!: Server;
 
@@ -39,6 +41,7 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   handleConnection(client: SocketWithUserId) {
+    this.logger.log(`[CALL] Connexion socket client.id=${client.id}`);
     const token =
       client.handshake?.auth?.token ??
       (client.handshake?.headers?.authorization ?? '').replace('Bearer ', '');
@@ -58,7 +61,9 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         userIdToSocket.set(userId, new Set());
       }
       userIdToSocket.get(userId)!.add(client.id);
-    } catch {
+      this.logger.log(`[CALL] userId=${userId} connecté. Total users: ${userIdToSocket.size}`);
+    } catch (e) {
+      this.logger.warn(`[CALL] Connexion refusée: ${e}`);
       client.emit('error', { message: 'Invalid token' });
       client.disconnect(true);
     }
@@ -66,6 +71,7 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleDisconnect(client: SocketWithUserId) {
     const userId = client.userId;
+    this.logger.log(`[CALL] Déconnexion client.id=${client.id} userId=${userId}`);
     if (userId && userIdToSocket.has(userId)) {
       userIdToSocket.get(userId)!.delete(client.id);
       if (userIdToSocket.get(userId)!.size === 0) {
@@ -86,8 +92,10 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const callerId = client.userId;
     if (!callerId) return;
+    this.logger.log(`[CALL] call:initiate callerId=${callerId} targetUserId=${payload.targetUserId} channelId=${payload.channelId}`);
     const sockets = userIdToSocket.get(payload.targetUserId);
     if (sockets && sockets.size > 0) {
+      this.logger.log(`[CALL] Cible trouvée: ${sockets.size} socket(s), envoi call:incoming`);
       for (const sid of sockets) {
         const targetSocket = this.server.sockets.sockets.get(sid);
         if (targetSocket) {
@@ -99,6 +107,8 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
           });
         }
       }
+    } else {
+      this.logger.warn(`[CALL] Cible NON trouvée! targetUserId=${payload.targetUserId} n'est pas connecté. Users connectés: ${Array.from(userIdToSocket.keys()).join(', ')}`);
     }
   }
 
@@ -108,12 +118,16 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     payload: { fromUserId: string; channelId: string },
   ) {
     if (!client.userId) return;
+    this.logger.log(`[CALL] call:accept calleeId=${client.userId} fromUserId=${payload.fromUserId} channelId=${payload.channelId}`);
     const sockets = userIdToSocket.get(payload.fromUserId);
     if (sockets) {
+      this.logger.log(`[CALL] Envoi call:accepted au caller`);
       for (const sid of sockets) {
         const s = this.server.sockets.sockets.get(sid);
         if (s) s.emit('call:accepted', { channelId: payload.channelId });
       }
+    } else {
+      this.logger.warn(`[CALL] call:accept - caller fromUserId=${payload.fromUserId} non trouvé`);
     }
   }
 

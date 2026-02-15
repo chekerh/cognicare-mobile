@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jitsi_meet_flutter_sdk/jitsi_meet_flutter_sdk.dart';
@@ -57,11 +58,14 @@ class _CallScreenState extends State<CallScreen> {
   @override
   void initState() {
     super.initState();
+    debugPrint('📞 [CALL_SCREEN] initState isIncoming=${widget.isIncoming} channelId=${widget.channelId} remoteUserId=${widget.remoteUserId}');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (widget.isIncoming && widget.incomingCall != null) {
+        debugPrint('📞 [CALL_SCREEN] Appel ENTRANT: écoute call:ended');
         _listenForEnd();
       } else {
+        debugPrint('📞 [CALL_SCREEN] Appel SORTANT: écoute accept/reject + join Jitsi');
         _listenForResponse();
         _joinCall();
       }
@@ -70,6 +74,7 @@ class _CallScreenState extends State<CallScreen> {
 
   void _listenForResponse() {
     _acceptedSub = _callService.onCallAccepted.listen((channelId) {
+      debugPrint('📞 [CALL_SCREEN] call:accepted reçu channelId=$channelId (attendu=${widget.channelId})');
       if (channelId == widget.channelId && mounted) _joinCall();
     });
     _rejectedSub = _callService.onCallRejected.listen((_) {
@@ -105,6 +110,7 @@ class _CallScreenState extends State<CallScreen> {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final userName = auth.user?.fullName ?? auth.user?.email ?? 'Utilisateur';
       final roomName = CallService.jitsiRoomName(widget.channelId);
+      debugPrint('📞 [CALL_SCREEN] _joinCall roomName=$roomName isVideo=${widget.isVideo} isIncoming=${widget.isIncoming}');
 
       final options = JitsiMeetConferenceOptions(
         serverURL: 'https://meet.jit.si',
@@ -117,14 +123,19 @@ class _CallScreenState extends State<CallScreen> {
           'startWithAudioMuted': false,
           'startWithVideoMuted': !widget.isVideo,
           'subject': widget.isVideo ? 'Appel vidéo CogniCare' : 'Appel vocal CogniCare',
+          'enableLobby': false,
+          'enableWelcomePage': false,
+          'prejoinPageEnabled': false,
         },
         featureFlags: {
           'unsaferoomwarning.enabled': false,
+          'prejoinpage.enabled': false,
         },
       );
 
       final listener = JitsiMeetEventListener(
         conferenceJoined: (url) {
+          debugPrint('📞 [CALL_SCREEN] Jitsi conferenceJoined! url=$url');
           if (mounted) setState(() => _joined = true);
           if (!widget.isIncoming) _noAnswerTimer?.cancel();
         },
@@ -174,6 +185,7 @@ class _CallScreenState extends State<CallScreen> {
 
   Future<void> _acceptCall() async {
     if (widget.incomingCall == null) return;
+    debugPrint('📞 [CALL_SCREEN] acceptCall: envoi call:accept au backend');
     _callService.acceptCall(
       fromUserId: widget.incomingCall!.fromUserId,
       channelId: widget.channelId,

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -552,7 +553,15 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
   void _initiateCall(BuildContext context, bool isVideo) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final caller = auth.user;
-    if (caller == null || widget.familyId.isEmpty) return;
+    if (caller == null) {
+      debugPrint('📞 [VOLUNTEER_CHAT] Appel impossible: utilisateur non connecté');
+      return;
+    }
+    if (widget.familyId.isEmpty) {
+      debugPrint('📞 [VOLUNTEER_CHAT] Appel impossible: familyId vide');
+      return;
+    }
+    debugPrint('📞 [VOLUNTEER_CHAT] Initiation appel vers familyId=${widget.familyId} isVideo=$isVideo');
     final ids = [caller.id, widget.familyId]..sort();
     final channelId = 'call_${ids[0]}_${ids[1]}_${DateTime.now().millisecondsSinceEpoch}';
     final callProvider = Provider.of<CallProvider>(context, listen: false);

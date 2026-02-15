@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -26,8 +27,10 @@ class _CallConnectionHandlerState extends State<CallConnectionHandler> {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final callProvider = Provider.of<CallProvider>(context, listen: false);
       if (auth.isAuthenticated && auth.user != null) {
+        debugPrint('📞 [CALL_HANDLER] Utilisateur connecté, connexion WebSocket userId=${auth.user!.id}');
         callProvider.connect(auth.user!.id);
       } else {
+        debugPrint('📞 [CALL_HANDLER] Utilisateur non connecté, déconnexion WebSocket');
         callProvider.disconnect();
       }
     });
@@ -41,9 +44,11 @@ class _CallConnectionHandlerState extends State<CallConnectionHandler> {
         final callProvider = Provider.of<CallProvider>(context, listen: false);
         final pending = callProvider.pendingIncoming;
         if (pending != null && context.mounted) {
+          debugPrint('📞 [CALL_HANDLER] Appel entrant reçu! fromUserId=${pending.fromUserId} fromUserName=${pending.fromUserName} channelId=${pending.channelId}');
           WidgetsBinding.instance.addPostFrameCallback((_) {
             callProvider.clearPendingIncoming();
             if (context.mounted) {
+              debugPrint('📞 [CALL_HANDLER] Navigation vers écran d\'appel...');
               context.push(
                 AppConstants.callRoute,
                 extra: {
