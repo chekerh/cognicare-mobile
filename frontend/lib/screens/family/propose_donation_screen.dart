@@ -7,6 +7,7 @@ import '../../l10n/app_localizations.dart';
 import '../../services/donation_service.dart';
 import '../../services/geocoding_service.dart';
 import '../../widgets/location_map_widget.dart';
+import '../../widgets/location_search_field.dart';
 
 const Color _primary = Color(0xFFA3D9E2);
 const Color _primaryDark = Color(0xFF7FBAC4);
@@ -24,7 +25,7 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _locationController = TextEditingController(text: 'Ariana, Tunisie');
+  final _locationController = TextEditingController();
 
   final List<File> _photos = [];
   static const int _maxPhotos = 5;
@@ -43,7 +44,6 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _geocodeLocation());
   }
 
   @override
@@ -62,14 +62,21 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
       _mapLat = null;
       _mapLng = null;
     });
-    final result = await _geocoding.geocode(address);
+    // Essayer geocode direct, puis searchSuggestions en secours (ex: "ariana" → première suggestion)
+    GeocodingResult? result = await _geocoding.geocode(address);
+    if (result == null) {
+      final suggestions = await _geocoding.searchSuggestions(address);
+      result = suggestions.isNotEmpty ? suggestions.first : null;
+    }
     if (!mounted) return;
     setState(() {
       _mapLoading = false;
       _mapLat = result?.latitude;
       _mapLng = result?.longitude;
     });
-    if (result == null && mounted) {
+    if (result != null) {
+      _locationController.text = result.displayName;
+    } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -464,50 +471,15 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
         children: [
           const Text('Localisation du retrait', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
           const SizedBox(height: 12),
-          InkWell(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Localisation'),
-                  content: TextField(
-                    controller: _locationController,
-                    decoration: const InputDecoration(
-                      labelText: 'Ville ou quartier',
-                      hintText: 'Ex: Ariana, Paris 15e, Lyon...',
-                    ),
-                    onSubmitted: (v) => Navigator.pop(ctx),
-                  ),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.pop(ctx), child: Text(loc.cancel)),
-                    TextButton(
-                      onPressed: () async {
-                        Navigator.pop(ctx);
-                        await _geocodeLocation();
-                        if (mounted) setState(() {});
-                      },
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-              );
+          LocationSearchField(
+            controller: _locationController,
+            onLocationSelected: (result) {
+              setState(() {
+                _mapLat = result.latitude;
+                _mapLng = result.longitude;
+                _mapLoading = false;
+              });
             },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.location_on, color: _primary, size: 24),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text(_locationController.text, style: TextStyle(fontSize: 14, color: Colors.grey.shade600))),
-                  Icon(Icons.edit, color: Colors.grey.shade500, size: 20),
-                ],
-              ),
-            ),
           ),
           const SizedBox(height: 12),
           Builder(

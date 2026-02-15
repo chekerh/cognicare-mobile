@@ -8,8 +8,89 @@ class GeocodingService {
   static const String _photonUrl = 'https://photon.komoot.io/api/';
   static const String _nominatimUrl = 'https://nominatim.openstreetmap.org/search';
 
+  static const _userAgent = 'CogniCare/1.0 (donation-app)';
+
+  /// Recherche de suggestions pendant la saisie (comme Google Maps).
+  /// Photon en priorité, Nominatim en secours.
+  Future<List<GeocodingResult>> searchSuggestions(String query) async {
+    final trimmed = query.trim();
+    if (trimmed.length < 2) return [];
+
+    var results = await _searchPhoton(trimmed);
+    if (results.isEmpty) results = await _searchNominatimSuggestions(trimmed);
+    return results;
+  }
+
+  Future<List<GeocodingResult>> _searchPhoton(String query) async {
+    try {
+      final uri = Uri.parse(_photonUrl).replace(
+        queryParameters: {'q': query, 'limit': '6'},
+      );
+      final response = await _client.get(
+        uri,
+        headers: {'User-Agent': _userAgent},
+      ).timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) return [];
+      final json = jsonDecode(response.body) as Map<String, dynamic>?;
+      final features = json?['features'] as List<dynamic>?;
+      if (features == null || features.isEmpty) return [];
+
+      final results = <GeocodingResult>[];
+      for (final f in features) {
+        final feature = f as Map<String, dynamic>;
+        final coords = feature['geometry']?['coordinates'] as List<dynamic>?;
+        final props = feature['properties'] as Map<String, dynamic>?;
+        if (coords == null || coords.length < 2) continue;
+        final lng = (coords[0] as num).toDouble();
+        final lat = (coords[1] as num).toDouble();
+        final name = props?['name'] as String?;
+        final city = props?['city'] as String?;
+        final state = props?['state'] as String?;
+        final country = props?['country'] as String?;
+        final parts = [name, city, state, country].where((e) => e != null && e.toString().isNotEmpty).toSet().toList();
+        final display = parts.join(', ');
+        results.add(GeocodingResult(latitude: lat, longitude: lng, displayName: display.isNotEmpty ? display : query));
+      }
+      return results;
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<List<GeocodingResult>> _searchNominatimSuggestions(String query) async {
+    try {
+      final uri = Uri.parse(_nominatimUrl).replace(
+        queryParameters: {'q': query, 'format': 'json', 'limit': '6'},
+      );
+      final response = await _client.get(
+        uri,
+        headers: {'User-Agent': _userAgent},
+      ).timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) return [];
+      final list = jsonDecode(response.body) as List<dynamic>?;
+      if (list == null || list.isEmpty) return [];
+
+      final results = <GeocodingResult>[];
+      for (final item in list) {
+        final map = item as Map<String, dynamic>;
+        final lat = (map['lat'] as num?)?.toDouble();
+        final lng = (map['lon'] as num?)?.toDouble();
+        final displayName = map['display_name'] as String?;
+        if (lat != null && lng != null) {
+          results.add(GeocodingResult(
+            latitude: lat,
+            longitude: lng,
+            displayName: displayName ?? query,
+          ));
+        }
+      }
+      return results;
+    } catch (_) {
+      return [];
+    }
+  }
+
   /// Convertit une adresse ou un lieu en coordonnées (lat, lng).
-  /// Accepte toute localisation dans le monde.
   Future<GeocodingResult?> geocode(String address) async {
     final trimmed = address.trim();
     if (trimmed.isEmpty) return null;
