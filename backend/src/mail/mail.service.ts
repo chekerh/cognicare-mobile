@@ -412,17 +412,26 @@ export class MailService {
 
     const msg = {
       to: email,
-      from: this.from,
+      from: this.from as string,
       subject: `CogniCare – You're Invited to Lead ${organizationName}`,
       html: htmlContent,
     };
 
     try {
+      console.log(`Attempting to send org leader invitation email to ${email}`);
+      console.log(`Using from address: ${this.from}`);
+      console.log(`Accept URL: ${acceptUrl}`);
+      console.log(`Reject URL: ${rejectUrl}`);
+      
       await sgMail.send(msg);
-      console.log(`Org leader invitation email sent to ${email}`);
+      console.log(`✅ Org leader invitation email sent successfully to ${email}`);
       return true;
     } catch (err: unknown) {
       // Log detailed error for debugging
+      console.error('❌ FAILED to send org leader invitation email');
+      console.error(`Recipient: ${email}`);
+      console.error(`Organization: ${organizationName}`);
+      
       if (err && typeof err === 'object' && 'code' in err) {
         console.error('SendGrid error code:', err.code);
         if ('response' in err && err.response) {
@@ -432,7 +441,7 @@ export class MailService {
           );
         }
       }
-      console.error('Failed to send org leader invitation email:', err);
+      console.error('Full error:', err);
 
       // Don't throw - allow invitation to be created even if email fails
       // This handles cases where SendGrid is misconfigured in production
