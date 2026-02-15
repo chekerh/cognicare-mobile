@@ -22,7 +22,7 @@ import 'widgets/call_connection_handler.dart';
 import 'services/notification_service.dart';
 
 void main() async {
-  WidgetsBinding.flutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().initialize();
   runZonedGuarded(() {
     runApp(const CogniCareApp());

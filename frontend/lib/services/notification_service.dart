@@ -97,7 +97,7 @@ class NotificationService {
           _channel.name,
           channelDescription: _channel.description,
           importance: Importance.high,
-          priority: Priority.defaultImportance,
+          priority: Priority.defaultPriority,
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,
