@@ -50,7 +50,6 @@ export class MarketplaceController {
     @Query('limit') limit?: string,
     @Query('category') category?: string,
   ) {
-    await this.marketplaceService.seedIfEmpty();
     const limitNum = limit
       ? Math.min(100, Math.max(1, parseInt(limit, 10) || 20))
       : 20;
