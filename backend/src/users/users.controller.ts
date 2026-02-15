@@ -9,6 +9,7 @@ import {
   Query,
   Request,
   Post,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -98,6 +99,43 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'List of family users (id, fullName, profilePic)' })
   async getFamilies(@Request() req: { user: { id: string } }) {
     return this.usersService.findFamilyUsers(req.user.id);
+  }
+
+  @Get('me/blocked')
+  @ApiOperation({ summary: 'List blocked user IDs' })
+  @ApiResponse({ status: 200, description: 'Array of blocked user IDs' })
+  async getBlocked(@Request() req: { user: { id: string } }) {
+    return this.usersService.getBlockedUserIds(req.user.id);
+  }
+
+  @Post('me/block')
+  @ApiOperation({ summary: 'Block a user' })
+  @ApiBody({
+    schema: { type: 'object', properties: { userId: { type: 'string' } }, required: ['userId'] },
+  })
+  @ApiResponse({ status: 201, description: 'User blocked' })
+  async blockUser(
+    @Request() req: { user: { id: string } },
+    @Body() body: { userId: string },
+  ) {
+    const targetUserId = body?.userId;
+    if (!targetUserId || typeof targetUserId !== 'string') {
+      throw new BadRequestException('userId is required');
+    }
+    await this.usersService.blockUser(req.user.id, targetUserId);
+    return { success: true };
+  }
+
+  @Delete('me/block/:userId')
+  @ApiOperation({ summary: 'Unblock a user' })
+  @ApiParam({ name: 'userId', description: 'User ID to unblock' })
+  @ApiResponse({ status: 200, description: 'User unblocked' })
+  async unblockUser(
+    @Request() req: { user: { id: string } },
+    @Param('userId') targetUserId: string,
+  ) {
+    await this.usersService.unblockUser(req.user.id, targetUserId);
+    return { success: true };
   }
 
   @Get(':id/presence')

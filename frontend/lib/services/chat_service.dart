@@ -45,6 +45,8 @@ class InboxConversation {
   final String imageUrl;
   final bool unread;
   final String segment;
+  final bool isGroup;
+  final List<String> participantIds;
 
   InboxConversation({
     required this.id,
@@ -56,9 +58,15 @@ class InboxConversation {
     required this.imageUrl,
     this.unread = false,
     this.segment = 'persons',
+    this.isGroup = false,
+    this.participantIds = const [],
   });
 
   factory InboxConversation.fromJson(Map<String, dynamic> json) {
+    final participantIdsRaw = json['participantIds'];
+    final participantIds = participantIdsRaw is List
+        ? (participantIdsRaw).map((e) => e.toString()).toList()
+        : <String>[];
     return InboxConversation(
       id: json['id'] as String? ?? '',
       otherUserId: json['otherUserId'] as String?,
@@ -69,6 +77,8 @@ class InboxConversation {
       imageUrl: json['imageUrl'] as String? ?? '',
       unread: json['unread'] as bool? ?? false,
       segment: json['segment'] as String? ?? 'persons',
+      isGroup: json['isGroup'] as bool? ?? false,
+      participantIds: participantIds,
     );
   }
 }
@@ -282,6 +292,66 @@ class ChatService {
     return ChatMessage.fromJson(json);
   }
 
+  /// Create a group conversation (e.g. family group). Returns the new conversation.
+  Future<Map<String, dynamic>> createGroup(
+    String name,
+    List<String> participantIds,
+  ) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}/api/v1/conversations/groups',
+    );
+    final response = await _client.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'name': name, 'participantIds': participantIds}),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to create group');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to create group: ${response.statusCode}');
+      }
+    }
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
+    return Map<String, dynamic>.from(json);
+  }
+
+  /// Add a member to a group conversation.
+  Future<void> addMemberToGroup(
+    String conversationId,
+    String userId,
+  ) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}/api/v1/conversations/$conversationId/members',
+    );
+    final response = await _client.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'userId': userId}),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to add member');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to add member: ${response.statusCode}');
+      }
+    }
+  }
+
   Future<void> deleteConversation(String conversationId) async {
     final token = await getToken();
     if (token == null) throw Exception('Not authenticated');
@@ -304,5 +374,175 @@ class ChatService {
         throw Exception('Failed to delete conversation: ${response.statusCode}');
       }
     }
+  }
+
+  /// Get conversation settings (autoSavePhotos, muted) from API.
+  Future<Map<String, dynamic>> getConversationSettings(String conversationId) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}${AppConstants.conversationsSettingsEndpoint(conversationId)}',
+    );
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode != 200) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to load settings');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to load settings: ${response.statusCode}');
+      }
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  /// Update conversation settings (autoSavePhotos, muted).
+  Future<Map<String, dynamic>> updateConversationSettings(
+    String conversationId, {
+    bool? autoSavePhotos,
+    bool? muted,
+  }) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}${AppConstants.conversationsSettingsEndpoint(conversationId)}',
+    );
+    final body = <String, dynamic>{};
+    if (autoSavePhotos != null) body['autoSavePhotos'] = autoSavePhotos;
+    if (muted != null) body['muted'] = muted;
+    final response = await _client.patch(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(body),
+    );
+    if (response.statusCode != 200) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to update settings');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to update settings: ${response.statusCode}');
+      }
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  /// Get media (images, voice) shared in the conversation.
+  Future<List<Map<String, dynamic>>> getConversationMedia(String conversationId) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}${AppConstants.conversationsMediaEndpoint(conversationId)}',
+    );
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode != 200) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to load media');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to load media: ${response.statusCode}');
+      }
+    }
+    final list = jsonDecode(response.body) as List<dynamic>? ?? [];
+    return list.map((e) => e as Map<String, dynamic>).toList();
+  }
+
+  /// Search messages in conversation.
+  Future<List<Map<String, dynamic>>> searchConversationMessages(
+    String conversationId,
+    String query,
+  ) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}${AppConstants.conversationsSearchEndpoint(conversationId, query)}',
+    );
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode != 200) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to search');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to search: ${response.statusCode}');
+      }
+    }
+    final list = jsonDecode(response.body) as List<dynamic>? ?? [];
+    return list.map((e) => e as Map<String, dynamic>).toList();
+  }
+
+  /// Block a user (store in MongoDB).
+  Future<void> blockUser(String targetUserId) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}${AppConstants.usersMeBlockEndpoint}',
+    );
+    final response = await _client.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'userId': targetUserId}),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to block user');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to block user: ${response.statusCode}');
+      }
+    }
+  }
+
+  /// Get list of blocked user IDs.
+  Future<List<String>> getBlockedUserIds() async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}${AppConstants.usersMeBlockedEndpoint}',
+    );
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode != 200) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to load blocked list');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to load blocked list: ${response.statusCode}');
+      }
+    }
+    final list = jsonDecode(response.body) as List<dynamic>? ?? [];
+    return list.map((e) => e.toString()).toList();
   }
 }

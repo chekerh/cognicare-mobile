@@ -11,7 +11,9 @@ import 'package:provider/provider.dart';
 import 'package:record/record.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/call_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../services/auth_service.dart';
+import '../../utils/theme.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
 import '../../widgets/chat_message_bar.dart';
@@ -471,7 +473,9 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
           ),
           Expanded(
             child: Container(
-              color: const Color(0xFFF8FAFC),
+              decoration: AppTheme.chatBackgroundForThemeId(
+                Provider.of<ThemeProvider>(context).themeId,
+              ),
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _loadError != null
@@ -582,59 +586,88 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          Stack(
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: _primary.withOpacity(0.3),
-                backgroundImage: widget.personImageUrl != null && widget.personImageUrl!.isNotEmpty
-                    ? NetworkImage(widget.personImageUrl!)
-                    : null,
-                child: widget.personImageUrl == null || widget.personImageUrl!.isEmpty
-                    ? const Icon(Icons.person, color: _textMuted, size: 28)
-                    : null,
-              ),
-              if (_isOnline == true)
-                Positioned(
-                  bottom: 2,
-                  right: 2,
-                  child: Container(
-                    width: 14,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.personName,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: _textPrimary,
-                  ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  context.push(
+                    Uri(
+                      path: AppConstants.familyConversationSettingsRoute,
+                      queryParameters: {
+                        'title': widget.personName,
+                        if (widget.conversationId != null) 'conversationId': widget.conversationId!,
+                        'personId': widget.personId,
+                        'isGroup': '0',
+                        if (widget.personImageUrl != null && widget.personImageUrl!.isNotEmpty)
+                          'personImageUrl': widget.personImageUrl!,
+                      },
+                    ).toString(),
+                  );
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Row(
+                  children: [
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 24,
+                          backgroundColor: _primary.withOpacity(0.3),
+                          backgroundImage: widget.personImageUrl != null && widget.personImageUrl!.isNotEmpty
+                              ? NetworkImage(widget.personImageUrl!)
+                              : null,
+                          child: widget.personImageUrl == null || widget.personImageUrl!.isEmpty
+                              ? const Icon(Icons.person, color: _textMuted, size: 28)
+                              : null,
+                        ),
+                        if (_isOnline == true)
+                          Positioned(
+                            bottom: 2,
+                            right: 2,
+                            child: Container(
+                              width: 14,
+                              height: 14,
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            widget.personName,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: _textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _isOnline == true ? 'En ligne' : 'Hors ligne',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: _isOnline == true ? Colors.green.shade700 : _textMuted,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  _isOnline == true ? 'En ligne' : 'Hors ligne',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: _isOnline == true ? Colors.green.shade700 : _textMuted,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
+          const SizedBox(width: 4),
           IconButton(
             onPressed: () => _initiateCall(context, false),
             icon: const Icon(Icons.call, color: _textPrimary, size: 26),

@@ -26,16 +26,17 @@ class FamilyShellScreen extends StatelessWidget {
     );
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: navigationShell,
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Color(0x0F000000),
               blurRadius: 10,
-              offset: const Offset(0, -2),
+              offset: Offset(0, -2),
             ),
           ],
         ),

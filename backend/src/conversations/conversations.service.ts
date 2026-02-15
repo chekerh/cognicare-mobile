@@ -16,6 +16,10 @@ import {
   ConversationSegment,
 } from './conversation.schema';
 import { Message, MessageDocument } from './message.schema';
+import {
+  ConversationSetting,
+  ConversationSettingDocument,
+} from './conversation-setting.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { CallsGateway } from '../calls/calls.gateway';
 
@@ -26,6 +30,8 @@ export class ConversationsService {
     private readonly conversationModel: Model<ConversationDocument>,
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,
+    @InjectModel(ConversationSetting.name)
+    private readonly conversationSettingModel: Model<ConversationSettingDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
     private readonly configService: ConfigService,
@@ -86,7 +92,11 @@ export class ConversationsService {
     const uid = new Types.ObjectId(userId);
     const docs = await this.conversationModel
       .find({
-        $or: [{ user: uid }, { otherUserId: uid }],
+        $or: [
+          { user: uid },
+          { otherUserId: uid },
+          { participants: uid },
+        ],
       })
       .sort({ updatedAt: -1 })
       .lean()
@@ -104,14 +114,16 @@ export class ConversationsService {
       timeAgo?: string;
       imageUrl?: string;
       unread?: boolean;
+      participants?: { toString(): string }[];
     };
-    // One row per thread: prefer doc where user = current user (so id is theirs)
+    // One row per thread; for groups there is one doc per conversation
     const byThread = new Map<string, Doc>();
     for (const c of docs as Doc[]) {
       const tid = (c.threadId ?? c._id)?.toString() ?? c._id.toString();
       const existing = byThread.get(tid);
+      const isGroup = c.participants && c.participants.length > 0;
       const isMine = c.user?.toString() === userId;
-      if (!existing || (isMine && existing.user?.toString() !== userId))
+      if (!existing || (isGroup && !existing.participants) || (isMine && existing.user?.toString() !== userId))
         byThread.set(tid, c);
     }
     const uniqueDocs = Array.from(byThread.values());
@@ -156,6 +168,26 @@ export class ConversationsService {
     }
 
     return uniqueDocs.map((c) => {
+      const isGroup = c.participants && c.participants.length > 0;
+      if (isGroup) {
+        const participantIds = (c.participants ?? []).map((p) => p.toString());
+        const segment: ConversationSegment = (c.segment as ConversationSegment) ?? 'families';
+        return {
+          id: c._id.toString(),
+          otherUserId: undefined,
+          name: c.name ?? 'Groupe',
+          subtitle: c.subtitle ?? `${participantIds.length} participants`,
+          lastMessage: c.lastMessage
+            ? this.decryptMessage(c.lastMessage)
+            : undefined,
+          timeAgo: c.timeAgo,
+          imageUrl: typeof c.imageUrl === 'string' ? c.imageUrl : '',
+          unread: c.unread,
+          segment,
+          isGroup: true,
+          participantIds,
+        };
+      }
       const userStr = c.user?.toString();
       const otherUserIdStr = c.otherUserId?.toString();
       const isCurrentInUser = userStr === userId;
@@ -311,7 +343,11 @@ export class ConversationsService {
       .exec();
     if (!conv) throw new NotFoundException('Conversation not found');
     const uid = new Types.ObjectId(userId);
-    if (!conv.user.equals(uid) && !conv.otherUserId?.equals(uid)) {
+    const isParticipant =
+      conv.user?.equals(uid) ||
+      conv.otherUserId?.equals(uid) ||
+      (conv.participants?.some((p: Types.ObjectId) => p.equals(uid)) ?? false);
+    if (!isParticipant) {
       throw new ForbiddenException('Not a participant');
     }
     const threadId = conv.threadId ?? conv._id;
@@ -389,10 +425,15 @@ export class ConversationsService {
     const conv = await this.conversationModel.findById(conversationId).exec();
     if (!conv) throw new NotFoundException('Conversation not found');
     const uid = new Types.ObjectId(userId);
-    if (!conv.user.equals(uid) && !conv.otherUserId?.equals(uid)) {
+    const isParticipant =
+      conv.user?.equals(uid) ||
+      conv.otherUserId?.equals(uid) ||
+      (conv.participants?.some((p) => p.equals(uid)) ?? false);
+    if (!isParticipant) {
       throw new ForbiddenException('Not a participant');
     }
     const threadId = conv.threadId ?? conv._id;
+    const isGroup = conv.participants && conv.participants.length > 0;
     const encryptedText = this.encryptMessage(text);
     const created = await this.messageModel.create({
       threadId,
@@ -402,18 +443,28 @@ export class ConversationsService {
       ...(attachmentType && { attachmentType }),
     });
     const timeAgo = formatTimeAgo(new Date());
-    await this.conversationModel
-      .updateMany(
-        { $or: [{ _id: conv._id }, { threadId }] },
-        { lastMessage: encryptedText, timeAgo, updatedAt: new Date() },
-      )
-      .exec();
+    if (isGroup) {
+      await this.conversationModel
+        .updateOne(
+          { _id: conv._id },
+          { lastMessage: encryptedText, timeAgo, updatedAt: new Date() },
+        )
+        .exec();
+    } else {
+      await this.conversationModel
+        .updateMany(
+          { $or: [{ _id: conv._id }, { threadId }] },
+          { lastMessage: encryptedText, timeAgo, updatedAt: new Date() },
+        )
+        .exec();
+    }
 
-    // Emit message:new to recipient for in-app notification
-    const recipientId = conv.user.equals(uid)
-      ? conv.otherUserId?.toString()
-      : conv.user?.toString();
-    if (recipientId) {
+    // Emit message:new to other participants for in-app notification
+    const recipientIds = isGroup
+      ? (conv.participants ?? []).filter((p) => !p.equals(uid)).map((p) => p.toString())
+      : [conv.user.equals(uid) ? conv.otherUserId?.toString() : conv.user?.toString()].filter(Boolean);
+    for (const recipientId of recipientIds) {
+      if (!recipientId) continue;
       const sender = await this.userModel
         .findById(uid)
         .select('fullName')
@@ -444,12 +495,217 @@ export class ConversationsService {
     const conv = await this.conversationModel.findById(conversationId).exec();
     if (!conv) throw new NotFoundException('Conversation not found');
     const uid = new Types.ObjectId(userId);
+    const isGroup = conv.participants && conv.participants.length > 0;
+    if (isGroup) {
+      const inGroup = conv.participants?.some((p) => p.equals(uid)) ?? false;
+      if (!inGroup) throw new ForbiddenException('Not a participant');
+      const updated = (conv.participants ?? []).filter((p) => !p.equals(uid));
+      if (updated.length === 0) {
+        await this.conversationModel.findByIdAndDelete(conversationId).exec();
+      } else {
+        conv.participants = updated;
+        await conv.save();
+      }
+      return;
+    }
     if (!conv.user.equals(uid) && !conv.otherUserId?.equals(uid)) {
       throw new ForbiddenException('Not a participant');
     }
     const threadId = conv.threadId ?? conv._id;
-    // Delete all conversation rows for this thread (both sides) so it disappears for everyone.
     await this.conversationModel.deleteMany({ threadId }).exec();
+  }
+
+  /** Create a group conversation. Creator + participantIds are the initial members. */
+  async createGroup(
+    userId: string,
+    name: string,
+    participantIds: string[],
+  ): Promise<{
+    id: string;
+    name: string;
+    segment: string;
+    participantIds: string[];
+  }> {
+    const uid = new Types.ObjectId(userId);
+    const allIds = [uid, ...participantIds.map((id) => new Types.ObjectId(id))];
+    const uniqueIds = [...new Set(allIds.map((o) => o.toString()))].map(
+      (id) => new Types.ObjectId(id),
+    );
+    if (uniqueIds.length < 2) {
+      throw new BadRequestException(
+        'Un groupe doit avoir au moins 2 participants (vous + au moins une autre personne).',
+      );
+    }
+    const [created] = await this.conversationModel.create([
+      {
+        name: name.trim() || 'Groupe',
+        segment: 'families',
+        participants: uniqueIds,
+        lastMessage: '',
+        timeAgo: '',
+      },
+    ]);
+    return {
+      id: created._id.toString(),
+      name: created.name,
+      segment: created.segment,
+      participantIds: uniqueIds.map((o) => o.toString()),
+    };
+  }
+
+  /** Get conversation settings for a user (autoSavePhotos, muted). */
+  async getSettings(
+    conversationId: string,
+    userId: string,
+  ): Promise<{ autoSavePhotos: boolean; muted: boolean }> {
+    const uid = new Types.ObjectId(userId);
+    const cid = new Types.ObjectId(conversationId);
+    const setting = await this.conversationSettingModel
+      .findOne({ userId: uid, conversationId: cid })
+      .lean()
+      .exec();
+    return {
+      autoSavePhotos: setting?.autoSavePhotos ?? false,
+      muted: setting?.muted ?? false,
+    };
+  }
+
+  /** Update conversation settings (autoSavePhotos, muted). */
+  async updateSettings(
+    conversationId: string,
+    userId: string,
+    updates: { autoSavePhotos?: boolean; muted?: boolean },
+  ): Promise<{ autoSavePhotos: boolean; muted: boolean }> {
+    await this.ensureParticipant(conversationId, userId);
+    const uid = new Types.ObjectId(userId);
+    const cid = new Types.ObjectId(conversationId);
+    const updated = await this.conversationSettingModel
+      .findOneAndUpdate(
+        { userId: uid, conversationId: cid },
+        { $set: updates },
+        { new: true, upsert: true },
+      )
+      .lean()
+      .exec();
+    return {
+      autoSavePhotos: updated?.autoSavePhotos ?? false,
+      muted: updated?.muted ?? false,
+    };
+  }
+
+  private async ensureParticipant(
+    conversationId: string,
+    userId: string,
+  ): Promise<void> {
+    const conv = await this.conversationModel.findById(conversationId).exec();
+    if (!conv) throw new NotFoundException('Conversation not found');
+    const uid = new Types.ObjectId(userId);
+    const isParticipant =
+      conv.user?.equals(uid) ||
+      conv.otherUserId?.equals(uid) ||
+      (conv.participants?.some((p) => p.equals(uid)) ?? false);
+    if (!isParticipant) {
+      throw new ForbiddenException('Not a participant');
+    }
+  }
+
+  /** Get media (images, voice) shared in the conversation. */
+  async getMedia(
+    conversationId: string,
+    userId: string,
+  ): Promise<
+    Array<{
+      id: string;
+      attachmentUrl: string;
+      attachmentType: string;
+      text: string;
+      createdAt: string;
+      senderId: string;
+    }>
+  > {
+    await this.ensureParticipant(conversationId, userId);
+    const conv = await this.conversationModel.findById(conversationId).lean().exec();
+    if (!conv) throw new NotFoundException('Conversation not found');
+    const threadId = conv.threadId ?? conv._id;
+    const messages = await this.messageModel
+      .find({ threadId, attachmentUrl: { $exists: true, $ne: '' } })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+    return messages.map((m: any) => ({
+      id: m._id.toString(),
+      attachmentUrl: m.attachmentUrl ?? '',
+      attachmentType: m.attachmentType ?? 'image',
+      text: this.decryptMessage(m.text),
+      createdAt: m.createdAt,
+      senderId: m.senderId.toString(),
+    }));
+  }
+
+  /** Search messages in conversation by text (decrypts and filters). */
+  async searchMessages(
+    conversationId: string,
+    userId: string,
+    q: string,
+  ): Promise<
+    Array<{
+      id: string;
+      senderId: string;
+      text: string;
+      createdAt: string;
+      attachmentUrl?: string;
+      attachmentType?: string;
+    }>
+  > {
+    await this.ensureParticipant(conversationId, userId);
+    const conv = await this.conversationModel.findById(conversationId).lean().exec();
+    if (!conv) throw new NotFoundException('Conversation not found');
+    const threadId = conv.threadId ?? conv._id;
+    const messages = await this.messageModel
+      .find({ threadId })
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec();
+    const lower = (q ?? '').trim().toLowerCase();
+    if (!lower) return [];
+    return messages
+      .filter((m: any) => {
+        const text = this.decryptMessage(m.text);
+        return text.toLowerCase().includes(lower);
+      })
+      .map((m: any) => ({
+        id: m._id.toString(),
+        senderId: m.senderId.toString(),
+        text: this.decryptMessage(m.text),
+        createdAt: m.createdAt,
+        attachmentUrl: m.attachmentUrl,
+        attachmentType: m.attachmentType,
+      }));
+  }
+
+  /** Add a member to an existing group. Caller must be in the group. */
+  async addMemberToGroup(
+    conversationId: string,
+    userId: string,
+    newParticipantId: string,
+  ): Promise<{ participantIds: string[] }> {
+    const conv = await this.conversationModel.findById(conversationId).exec();
+    if (!conv) throw new NotFoundException('Conversation not found');
+    if (!conv.participants?.length) {
+      throw new BadRequestException('Cette conversation n\'est pas un groupe.');
+    }
+    const uid = new Types.ObjectId(userId);
+    const newId = new Types.ObjectId(newParticipantId);
+    const isInGroup = conv.participants.some((p) => p.equals(uid));
+    if (!isInGroup) {
+      throw new ForbiddenException('Seuls les membres du groupe peuvent ajouter des participants.');
+    }
+    if (conv.participants.some((p) => p.equals(newId))) {
+      return { participantIds: conv.participants.map((p) => p.toString()) };
+    }
+    conv.participants = [...conv.participants, newId];
+    await conv.save();
+    return { participantIds: conv.participants.map((p) => p.toString()) };
   }
 }
 

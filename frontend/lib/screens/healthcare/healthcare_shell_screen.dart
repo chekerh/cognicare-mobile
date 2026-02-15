@@ -25,6 +25,7 @@ class HealthcareShellScreen extends StatelessWidget {
     final currentIndex = _indexFromPath(path);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: navigationShell,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

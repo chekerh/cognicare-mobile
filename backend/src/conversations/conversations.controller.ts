@@ -5,7 +5,9 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
+  Query,
   Request,
   UseGuards,
   UseInterceptors,
@@ -49,6 +51,105 @@ export class ConversationsController {
       otherUserId,
       role,
     );
+  }
+
+  @Post('groups')
+  @ApiOperation({ summary: 'Create a group conversation (e.g. family group)' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', description: 'Group name' },
+        participantIds: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'User IDs to add (creator is added automatically)',
+        },
+      },
+      required: ['name', 'participantIds'],
+    },
+  })
+  async createGroup(
+    @Request() req: any,
+    @Body() body: { name: string; participantIds: string[] },
+  ) {
+    const userId = req.user.id as string;
+    const name = typeof body?.name === 'string' ? body.name.trim() : 'Groupe';
+    const participantIds = Array.isArray(body?.participantIds)
+      ? body.participantIds.filter((id) => typeof id === 'string')
+      : [];
+    return this.conversationsService.createGroup(userId, name, participantIds);
+  }
+
+  @Post(':id/members')
+  @ApiOperation({ summary: 'Add a member to a group conversation' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { userId: { type: 'string' } },
+      required: ['userId'],
+    },
+  })
+  async addMemberToGroup(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() body: { userId: string },
+  ) {
+    const currentUserId = req.user.id as string;
+    const newParticipantId = body?.userId;
+    if (!newParticipantId || typeof newParticipantId !== 'string') {
+      throw new BadRequestException('userId is required');
+    }
+    return this.conversationsService.addMemberToGroup(
+      id,
+      currentUserId,
+      newParticipantId,
+    );
+  }
+
+  @Get(':id/settings')
+  @ApiOperation({ summary: 'Get conversation settings (autoSavePhotos, muted)' })
+  async getSettings(@Request() req: any, @Param('id') id: string) {
+    const userId = req.user.id as string;
+    return this.conversationsService.getSettings(id, userId);
+  }
+
+  @Patch(':id/settings')
+  @ApiOperation({ summary: 'Update conversation settings' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        autoSavePhotos: { type: 'boolean' },
+        muted: { type: 'boolean' },
+      },
+    },
+  })
+  async updateSettings(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() body: { autoSavePhotos?: boolean; muted?: boolean },
+  ) {
+    const userId = req.user.id as string;
+    return this.conversationsService.updateSettings(id, userId, body);
+  }
+
+  @Get(':id/media')
+  @ApiOperation({ summary: 'Get media (images, voice) in conversation' })
+  async getMedia(@Request() req: any, @Param('id') id: string) {
+    const userId = req.user.id as string;
+    return this.conversationsService.getMedia(id, userId);
+  }
+
+  @Get(':id/search')
+  @ApiOperation({ summary: 'Search messages in conversation' })
+  async searchMessages(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Query('q') q: string,
+  ) {
+    const userId = req.user.id as string;
+    return this.conversationsService.searchMessages(id, userId, q ?? '');
   }
 
   @Get(':id/messages')

@@ -16,6 +16,9 @@ import '../screens/family/family_member_dashboard_screen.dart';
 import '../screens/family/family_feed_screen.dart';
 import '../screens/family/family_families_screen.dart';
 import '../screens/family/family_group_chat_screen.dart';
+import '../screens/family/create_group_screen.dart';
+import '../screens/family/conversation_settings_screen.dart';
+import '../screens/family/theme_selection_screen.dart';
 import '../screens/family/family_private_chat_screen.dart';
 import '../screens/family/family_market_screen.dart';
 import '../screens/family/matching_game_screen.dart';
@@ -539,12 +542,18 @@ GoRouter createAppRouter(AuthProvider authProvider) {
             final name = state.uri.queryParameters['name'] ?? 'Family Group';
             final members = int.tryParse(state.uri.queryParameters['members'] ?? '5') ?? 5;
             final id = state.uri.queryParameters['id'];
+            final isGroup = state.uri.queryParameters['isGroup'] == '1';
             return FamilyGroupChatScreen(
               groupName: name,
               memberCount: members,
               groupId: id?.isEmpty == true ? null : id,
+              isGroup: isGroup,
             );
           },
+        ),
+        GoRoute(
+          path: 'create-group',
+          builder: (context, state) => const CreateGroupScreen(),
         ),
         GoRoute(
           path: 'private-chat',
@@ -558,6 +567,31 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               personName: name,
               personImageUrl: imageUrl?.isEmpty == true ? null : imageUrl,
               conversationId: conversationId?.isEmpty == true ? null : conversationId,
+            );
+          },
+        ),
+        GoRoute(
+          path: 'theme-selection',
+          builder: (context, state) => const ThemeSelectionScreen(),
+        ),
+        GoRoute(
+          path: 'conversation-settings',
+          builder: (context, state) {
+            final title = state.uri.queryParameters['title'] ?? 'Conversation';
+            final conversationId = state.uri.queryParameters['conversationId'];
+            final personId = state.uri.queryParameters['personId'];
+            final groupId = state.uri.queryParameters['groupId'];
+            final isGroup = state.uri.queryParameters['isGroup'] == '1';
+            final personImageUrl = state.uri.queryParameters['personImageUrl'];
+            final memberCount = int.tryParse(state.uri.queryParameters['memberCount'] ?? '0') ?? 0;
+            return ConversationSettingsScreen(
+              title: title,
+              conversationId: conversationId?.isEmpty == true ? null : conversationId,
+              personId: personId?.isEmpty == true ? null : personId,
+              groupId: groupId?.isEmpty == true ? null : groupId,
+              isGroup: isGroup,
+              personImageUrl: personImageUrl?.isEmpty == true ? null : personImageUrl,
+              memberCount: memberCount,
             );
           },
         ),

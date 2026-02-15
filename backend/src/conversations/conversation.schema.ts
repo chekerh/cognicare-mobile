@@ -43,9 +43,13 @@ export class Conversation {
   @Prop({ type: Types.ObjectId })
   threadId?: Types.ObjectId;
 
-  /** Other participant (for real messaging) */
+  /** Other participant (for 1-1 messaging) */
   @Prop({ type: Types.ObjectId, ref: User.name })
   otherUserId?: Types.ObjectId;
+
+  /** For group conversations: all participant user ids (including creator) */
+  @Prop({ type: [Types.ObjectId], ref: User.name })
+  participants?: Types.ObjectId[];
 }
 
 export const ConversationSchema = SchemaFactory.createForClass(Conversation);

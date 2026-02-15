@@ -23,6 +23,7 @@ class VolunteerShellScreen extends StatelessWidget {
     final currentIndex = _indexFromPath(GoRouterState.of(context).uri.path);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: navigationShell,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

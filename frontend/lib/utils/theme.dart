@@ -109,4 +109,182 @@ class AppTheme {
       ),
     );
   }
+
+  /// Couleur principale associée à chaque thème (écran de sélection).
+  static Color primaryForThemeId(String? id) {
+    switch (id) {
+      case 'amour':
+        return const Color(0xFF9B3D7A);
+      case 'saint_valentin':
+        return const Color(0xFF9B59B6);
+      case 'simpsons':
+        return const Color(0xFFFFD93D);
+      case 'football':
+        return const Color(0xFF2D5016);
+      case 'brat':
+        return const Color(0xFF39FF14);
+      case 'je_taime':
+        return const Color(0xFFFF69B4);
+      case 'cool_crew':
+        return const Color(0xFF1E3A5F);
+      case 'hivernal':
+        return const Color(0xFF2C3E50);
+      case 'shape_friends':
+        return const Color(0xFF74B9FF);
+      default:
+        return primary;
+    }
+  }
+
+  /// Fond de la zone de discussion (comme Messenger) selon le thème choisi.
+  /// À utiliser comme decoration du Container qui contient la liste des messages.
+  static BoxDecoration chatBackgroundForThemeId(String? id) {
+    switch (id) {
+      case 'amour':
+        return BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF6B2D5C).withOpacity(0.25),
+              const Color(0xFF9B3D7A).withOpacity(0.2),
+            ],
+          ),
+        );
+      case 'saint_valentin':
+        return BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF9B59B6).withOpacity(0.22),
+              const Color(0xFFE8DAEF),
+            ],
+          ),
+        );
+      case 'simpsons':
+        return BoxDecoration(
+          color: const Color(0xFFFFD93D).withOpacity(0.2),
+        );
+      case 'football':
+        return BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF2D5016).withOpacity(0.2),
+              const Color(0xFFD5F5E3),
+            ],
+          ),
+        );
+      case 'brat':
+        return BoxDecoration(
+          color: const Color(0xFF0D0D0D).withOpacity(0.08),
+        );
+      case 'je_taime':
+        return BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFFFF69B4).withOpacity(0.2),
+              const Color(0xFFFFB6C1).withOpacity(0.3),
+            ],
+          ),
+        );
+      case 'cool_crew':
+        return BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF1E3A5F).withOpacity(0.2),
+              const Color(0xFFEBF5FB),
+            ],
+          ),
+        );
+      case 'hivernal':
+        return BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF2C3E50).withOpacity(0.18),
+              const Color(0xFFEDF2F7),
+            ],
+          ),
+        );
+      case 'shape_friends':
+        return BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF74B9FF).withOpacity(0.2),
+              const Color(0xFF81ECEC).withOpacity(0.2),
+              const Color(0xFF55EFC4).withOpacity(0.15),
+            ],
+          ),
+        );
+      default:
+        return BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+        );
+    }
+  }
+
+  /// Thème Material complet pour un id (appliqué à toute l'app).
+  static ThemeData themeForId(String? id) {
+    final primaryColor = primaryForThemeId(id);
+    final bg = primaryColor.withOpacity(0.08);
+    return ThemeData(
+      primaryColor: primaryColor,
+      scaffoldBackgroundColor: bg,
+      fontFamily: 'Roboto',
+      appBarTheme: AppBarTheme(
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: primaryColor,
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: primaryColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: primaryColor.withOpacity(0.5)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: primaryColor, width: 2),
+        ),
+      ),
+      colorScheme: ColorScheme.light(
+        primary: primaryColor,
+        secondary: secondary,
+        surface: Colors.white,
+        onPrimary: Colors.white,
+        onSecondary: text,
+        onSurface: text,
+      ),
+    );
+  }
 }

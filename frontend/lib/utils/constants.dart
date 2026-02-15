@@ -48,6 +48,13 @@ class AppConstants {
   static const String conversationsByParticipantEndpoint = '/api/v1/conversations/by-participant';
   static const String conversationsUploadEndpoint = '/api/v1/conversations/upload';
   static String conversationsMessagesEndpoint(String id) => '/api/v1/conversations/$id/messages';
+  static String conversationsSettingsEndpoint(String id) => '/api/v1/conversations/$id/settings';
+  static String conversationsMediaEndpoint(String id) => '/api/v1/conversations/$id/media';
+  static String conversationsSearchEndpoint(String id, String q) =>
+      '/api/v1/conversations/$id/search?q=${Uri.encodeComponent(q)}';
+  static const String usersMeBlockedEndpoint = '/api/v1/users/me/blocked';
+  static const String usersMeBlockEndpoint = '/api/v1/users/me/block';
+  static String usersMeUnblockEndpoint(String userId) => '/api/v1/users/me/block/$userId';
 
   // Availabilities (bénévoles)
   static const String availabilitiesEndpoint = '/api/v1/availabilities';
@@ -132,7 +139,10 @@ class AppConstants {
   static const String familyFeedRoute = '/family/feed';
   static const String familyFamiliesRoute = '/family/families';
   static const String familyGroupChatRoute = '/family/group-chat';
+  static const String familyCreateGroupRoute = '/family/create-group';
   static const String familyPrivateChatRoute = '/family/private-chat';
+  static const String familyConversationSettingsRoute = '/family/conversation-settings';
+  static const String familyThemeSelectionRoute = '/family/theme-selection';
   static const String familyMarketRoute = '/family/market';
   static const String familyProfileRoute = '/family/profile';
   static const String familyCreatePostRoute = '/family/create-post';

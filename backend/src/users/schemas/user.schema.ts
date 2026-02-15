@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type UserDocument = User & Document;
 
@@ -69,6 +69,10 @@ export class User {
   /** Last time the user was active (login or presence ping). Used for "online" status. */
   @Prop()
   lastSeenAt?: Date;
+
+  /** User IDs that this user has blocked (no messages, no new conversation). */
+  @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
+  blockedUserIds?: Types.ObjectId[];
 
   createdAt?: Date;
   updatedAt?: Date;

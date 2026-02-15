@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { User, UserDocument } from './schemas/user.schema';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -91,6 +91,42 @@ export class UsersService {
     role: 'family' | 'doctor' | 'volunteer' | 'admin',
   ): Promise<User[]> {
     return this.userModel.find({ role }).select('-passwordHash').exec();
+  }
+
+  /** Block a user (add to blockedUserIds). Cannot block self. */
+  async blockUser(currentUserId: string, targetUserId: string): Promise<void> {
+    if (currentUserId === targetUserId) {
+      throw new BadRequestException('You cannot block yourself');
+    }
+    const currentId = new Types.ObjectId(currentUserId);
+    const targetId = new Types.ObjectId(targetUserId);
+    const target = await this.userModel.findById(targetId).exec();
+    if (!target) {
+      throw new NotFoundException('User to block not found');
+    }
+    await this.userModel
+      .findByIdAndUpdate(currentId, { $addToSet: { blockedUserIds: targetId } })
+      .exec();
+  }
+
+  /** Unblock a user (remove from blockedUserIds). */
+  async unblockUser(currentUserId: string, targetUserId: string): Promise<void> {
+    const currentId = new Types.ObjectId(currentUserId);
+    const targetId = new Types.ObjectId(targetUserId);
+    await this.userModel
+      .findByIdAndUpdate(currentId, { $pull: { blockedUserIds: targetId } })
+      .exec();
+  }
+
+  /** Get list of blocked user IDs for the current user. */
+  async getBlockedUserIds(userId: string): Promise<string[]> {
+    const user = await this.userModel
+      .findById(userId)
+      .select('blockedUserIds')
+      .lean()
+      .exec();
+    const ids = (user as any)?.blockedUserIds ?? [];
+    return ids.map((id: Types.ObjectId) => id.toString());
   }
 
   /** List other family users (for starting conversations). Excludes current user. */
