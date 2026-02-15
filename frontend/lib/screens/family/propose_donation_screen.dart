@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/donation_service.dart';
+import '../../services/geocoding_service.dart';
+import '../../widgets/location_map_widget.dart';
 
 const Color _primary = Color(0xFFA3D9E2);
 const Color _primaryDark = Color(0xFF7FBAC4);
@@ -22,7 +24,7 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _locationController = TextEditingController(text: 'Paris 15e, Javel');
+  final _locationController = TextEditingController(text: 'Ariana, Tunisie');
 
   final List<File> _photos = [];
   static const int _maxPhotos = 5;
@@ -30,9 +32,19 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
   int _conditionIndex = 1; // 0=Neuf, 1=Très bon état, 2=Bon état
   bool _isSubmitting = false;
   final ImagePicker _picker = ImagePicker();
+  double? _mapLat;
+  double? _mapLng;
+  bool _mapLoading = false;
+  final GeocodingService _geocoding = GeocodingService();
 
   static const List<String> _categories = ['Vêtements', 'Mobilier', "Matériel d'éveil"];
   static const List<String> _conditions = ['Neuf', 'Très bon état', 'Bon état'];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _geocodeLocation());
+  }
 
   @override
   void dispose() {
@@ -40,6 +52,34 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
     _descriptionController.dispose();
     _locationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _geocodeLocation() async {
+    final address = _locationController.text.trim();
+    if (address.isEmpty) return;
+    setState(() {
+      _mapLoading = true;
+      _mapLat = null;
+      _mapLng = null;
+    });
+    final result = await _geocoding.geocode(address);
+    if (!mounted) return;
+    setState(() {
+      _mapLoading = false;
+      _mapLat = result?.latitude;
+      _mapLng = result?.longitude;
+    });
+    if (result == null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Adresse introuvable. Essayez une adresse plus précise (ex: Ariana, Tunisie ou Paris, France)',
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
   }
 
   Future<void> _pickPhotos() async {
@@ -426,22 +466,25 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
           const SizedBox(height: 12),
           InkWell(
             onTap: () {
-              // Sélecteur localisation : dialogue pour modifier ville/quartier (carte à intégrer si besoin)
               showDialog(
                 context: context,
                 builder: (ctx) => AlertDialog(
                   title: const Text('Localisation'),
                   content: TextField(
                     controller: _locationController,
-                    decoration: const InputDecoration(labelText: 'Ville ou quartier'),
+                    decoration: const InputDecoration(
+                      labelText: 'Ville ou quartier',
+                      hintText: 'Ex: Ariana, Paris 15e, Lyon...',
+                    ),
                     onSubmitted: (v) => Navigator.pop(ctx),
                   ),
                   actions: [
                     TextButton(onPressed: () => Navigator.pop(ctx), child: Text(loc.cancel)),
                     TextButton(
-                      onPressed: () {
-                        setState(() {});
+                      onPressed: () async {
                         Navigator.pop(ctx);
+                        await _geocodeLocation();
+                        if (mounted) setState(() {});
                       },
                       child: const Text('OK'),
                     ),
@@ -467,38 +510,60 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: SizedBox(
-              height: 96,
-              child: Container(
-                color: Colors.grey.shade200,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Icon(Icons.map_outlined, size: 48, color: Colors.grey.shade400),
-                    Center(
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: _primary.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: Center(
-                          child: Container(
-                            width: 12,
-                            height: 12,
-                            decoration: const BoxDecoration(color: _primary, shape: BoxShape.circle),
-                          ),
-                        ),
+          Builder(
+            builder: (context) {
+              if (_mapLoading) {
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    height: 200,
+                    child: Container(
+                      color: Colors.grey.shade200,
+                      alignment: Alignment.center,
+                      child: const Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 12),
+                          Text('Chargement de la carte...', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
+                );
+              }
+              if (_mapLat != null && _mapLng != null) {
+                return LocationMapWidget(
+                  latitude: _mapLat!,
+                  longitude: _mapLng!,
+                  height: 200,
+                  borderRadius: BorderRadius.circular(12),
+                );
+              }
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  height: 200,
+                  child: InkWell(
+                    onTap: _geocodeLocation,
+                    child: Container(
+                      color: Colors.grey.shade200,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.map_outlined, size: 48, color: Colors.grey.shade400),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Appuyez pour afficher la carte',
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ],
       ),
