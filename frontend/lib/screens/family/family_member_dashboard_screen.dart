@@ -212,11 +212,6 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
             ),
           ],
         ),
-            Positioned(
-              top: 0,
-              right: 16,
-              child: _buildDarkModeButton(context),
-            ),
           ],
         ),
       ),
@@ -864,23 +859,6 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
     );
   }
 
-  Widget _buildDarkModeButton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8, right: 8),
-      child: Material(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(24),
-        child: InkWell(
-          onTap: () {},
-          borderRadius: BorderRadius.circular(24),
-          child: const Padding(
-            padding: EdgeInsets.all(10),
-            child: Icon(Icons.dark_mode_rounded, color: Colors.white, size: 24),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _Card extends StatelessWidget {

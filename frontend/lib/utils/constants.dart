@@ -157,6 +157,11 @@ class AppConstants {
   // PayPal
   static const String paypalCreateOrderEndpoint = '/api/v1/paypal/create-order';
   static String paypalOrderStatusEndpoint(String orderId) => '/api/v1/paypal/order-status?orderId=$orderId';
+
+  // Notifications (feed centre de notifications)
+  static const String notificationsEndpoint = '/api/v1/notifications';
+  static String notificationMarkReadEndpoint(String id) => '/api/v1/notifications/$id/read';
+  static const String notificationsReadAllEndpoint = '/api/v1/notifications/read-all';
   static const String familyChildProfileSetupRoute = '/family/child-profile-setup';
   static const String familyVolunteerProfileRoute = '/family/volunteer-profile';
   static const String familyChildModeRoute = '/family/child-mode';

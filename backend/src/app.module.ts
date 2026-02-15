@@ -24,6 +24,7 @@ import { CallsModule } from './calls/calls.module';
 import { EngagementModule } from './engagement/engagement.module';
 import { DonationsModule } from './donations/donations.module';
 import { PaypalModule } from './paypal/paypal.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { PaypalModule } from './paypal/paypal.module';
     EngagementModule,
     DonationsModule,
     PaypalModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
