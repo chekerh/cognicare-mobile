@@ -87,6 +87,7 @@ class NotificationService {
     required String preview,
   }) async {
     if (!_initialized) await initialize();
+    debugPrint('🔔 [NOTIF] Affichage notification message: $senderName - $preview');
     await _plugin.show(
       2,
       senderName,
