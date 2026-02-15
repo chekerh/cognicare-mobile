@@ -77,6 +77,7 @@ export class DonationsService {
       location: dto.location,
       latitude: dto.latitude,
       longitude: dto.longitude,
+      suitableAge: dto.suitableAge ?? '',
       isOffer: dto.isOffer ?? true,
       imageUrls: dto.imageUrls ?? [],
     });
@@ -115,6 +116,7 @@ export class DonationsService {
       location: string;
       latitude?: number;
       longitude?: number;
+      suitableAge?: string;
       isOffer: boolean;
       imageUrls: string[];
       imageUrl: string;
@@ -173,6 +175,7 @@ export class DonationsService {
       location: d.location ?? '',
       latitude: d.latitude,
       longitude: d.longitude,
+      suitableAge: d.suitableAge ?? '',
       isOffer: d.isOffer ?? true,
       imageUrls: d.imageUrls ?? [],
       imageUrl: (d.imageUrls && d.imageUrls[0]) || '',

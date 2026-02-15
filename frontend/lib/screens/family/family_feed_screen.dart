@@ -659,6 +659,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               'donationId': d.id,
               'latitude': d.latitude,
               'longitude': d.longitude,
+              'suitableAge': d.suitableAge,
             });
           },
         ),

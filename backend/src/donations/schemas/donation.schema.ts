@@ -34,6 +34,10 @@ export class Donation {
   @Prop({ type: Number })
   longitude?: number;
 
+  /** Âge adapté pour les vêtements / équipements (ex: "0-2 ans", "3-5 ans") */
+  @Prop({ default: '' })
+  suitableAge: string;
+
   /** true = offre (Je donne), false = demande (Je recherche) */
   @Prop({ default: true })
   isOffer: boolean;

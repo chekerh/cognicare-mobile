@@ -31,6 +31,7 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
   static const int _maxPhotos = 5;
   int _categoryIndex = -1; // -1 = non sélectionné, 0=Vêtements, 1=Mobilier, 2=Éveil
   int _conditionIndex = 1; // 0=Neuf, 1=Très bon état, 2=Bon état
+  int _suitableAgeIndex = -1; // -1 = non sélectionné
   bool _isSubmitting = false;
   final ImagePicker _picker = ImagePicker();
   double? _mapLat;
@@ -40,6 +41,7 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
 
   static const List<String> _categories = ['Vêtements', 'Mobilier', "Matériel d'éveil"];
   static const List<String> _conditions = ['Neuf', 'Très bon état', 'Bon état'];
+  static const List<String> _suitableAges = ['Tous âges', '0-2 ans', '3-5 ans', '6-9 ans', '10-12 ans', '12+ ans'];
 
   @override
   void initState() {
@@ -140,6 +142,7 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
         isOffer: true,
         latitude: _mapLat,
         longitude: _mapLng,
+        suitableAge: _suitableAgeIndex >= 0 ? _suitableAges[_suitableAgeIndex] : null,
       );
     } catch (e) {
       setState(() => _isSubmitting = false);
@@ -402,6 +405,40 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
                   ),
                   child: Text(
                     _conditions[i],
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                      color: selected ? _primary : Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 20),
+          const Text('Âge adapté', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
+          const SizedBox(height: 8),
+          Text(
+            'Pour qui ces vêtements ou équipements sont adaptés (optionnel)',
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(_suitableAges.length, (i) {
+              final selected = _suitableAgeIndex == i;
+              return GestureDetector(
+                onTap: () => setState(() => _suitableAgeIndex = i),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: selected ? _primary.withOpacity(0.1) : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: selected ? _primary : const Color(0xFFE2E8F0)),
+                  ),
+                  child: Text(
+                    _suitableAges[i],
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: selected ? FontWeight.bold : FontWeight.w500,

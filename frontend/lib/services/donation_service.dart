@@ -61,6 +61,7 @@ class DonationService {
     bool isOffer = true,
     double? latitude,
     double? longitude,
+    String? suitableAge,
   }) async {
     final body = <String, dynamic>{
       'title': title,
@@ -75,18 +76,28 @@ class DonationService {
       body['latitude'] = latitude;
       body['longitude'] = longitude;
     }
+    if (suitableAge != null && suitableAge.isNotEmpty) {
+      body['suitableAge'] = suitableAge;
+    }
     final response = await _client.post(
       Uri.parse('${AppConstants.baseUrl}${AppConstants.donationsEndpoint}'),
       headers: await _headers(),
       body: jsonEncode(body),
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
+      String message = 'Échec: ${response.statusCode}';
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;
-        throw Exception(err['message'] ?? 'Échec de la création du don');
-      } catch (_) {
-        throw Exception('Échec: ${response.statusCode}');
-      }
+        final m = err['message'];
+        if (m != null) {
+          if (m is List) {
+            message = (m as List).map((e) => e.toString()).join(', ');
+          } else {
+            message = m.toString();
+          }
+        }
+      } catch (_) {}
+      throw Exception(message);
     }
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     return Donation.fromJson(data);

@@ -1,7 +1,11 @@
+import 'dart:math' show cos, sin, sqrt, asin;
+
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/geocoding_service.dart';
 import '../../utils/constants.dart';
 import '../../widgets/location_map_widget.dart';
 
@@ -10,9 +14,18 @@ const Color _textDark = Color(0xFF111418);
 const Color _textMuted = Color(0xFF64748B);
 const Color _bgLight = Color(0xFFF0F7FF);
 
+/// Distance en mètres entre deux points (formule de Haversine).
+double _haversineKm(double lat1, double lon1, double lat2, double lon2) {
+  const p = 0.017453292519943295; // pi/180
+  final a = 0.5 -
+      cos((lat2 - lat1) * p) / 2 +
+      cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
+  return 12742 * asin(sqrt(a)); // 2 * R = 12742 km
+}
+
 /// Page détail d'une annonce de don — design aligné sur le HTML fourni.
-class DonationDetailScreen extends StatelessWidget {
-  const DonationDetailScreen({super.key, this.title, this.description, this.fullDescription, this.conditionIndex = 0, this.categoryIndex = 0, this.imageUrl = '', this.location = '', this.distanceText, this.donorName, this.donorAvatarUrl, this.donorRating, this.latitude, this.longitude});
+class DonationDetailScreen extends StatefulWidget {
+  const DonationDetailScreen({super.key, this.title, this.description, this.fullDescription, this.conditionIndex = 0, this.categoryIndex = 0, this.imageUrl = '', this.location = '', this.distanceText, this.donorName, this.donorAvatarUrl, this.donorRating, this.latitude, this.longitude, this.suitableAge});
 
   final String? title;
   final String? description;
@@ -27,6 +40,7 @@ class DonationDetailScreen extends StatelessWidget {
   final double? donorRating;
   final double? latitude;
   final double? longitude;
+  final String? suitableAge;
 
   static Map<String, dynamic> _extraFromState(GoRouterState state) {
     final extra = state.extra as Map<String, dynamic>?;
@@ -49,7 +63,77 @@ class DonationDetailScreen extends StatelessWidget {
       donorRating: (e['donorRating'] as num?)?.toDouble(),
       latitude: (e['latitude'] as num?)?.toDouble(),
       longitude: (e['longitude'] as num?)?.toDouble(),
+      suitableAge: e['suitableAge'] as String?,
     );
+  }
+
+  @override
+  State<DonationDetailScreen> createState() => _DonationDetailScreenState();
+}
+
+class _DonationDetailScreenState extends State<DonationDetailScreen> {
+  double? _mapLat;
+  double? _mapLng;
+  String? _computedDistanceText;
+  bool _loadingMap = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initMapAndDistance();
+  }
+
+  Future<void> _initMapAndDistance() async {
+    double? lat = widget.latitude;
+    double? lng = widget.longitude;
+    if (lat == null || lng == null) {
+      if (widget.location.trim().isEmpty) {
+        if (mounted) setState(() {});
+        return;
+      }
+      setState(() => _loadingMap = true);
+      final result = await GeocodingService().geocode(widget.location);
+      if (!mounted) return;
+      setState(() => _loadingMap = false);
+      if (result != null) {
+        lat = result.latitude;
+        lng = result.longitude;
+      }
+    }
+    if (!mounted) return;
+    setState(() {
+      _mapLat = lat;
+      _mapLng = lng;
+    });
+    if (lat != null && lng != null) {
+      _computeDistance(lat, lng);
+    }
+  }
+
+  Future<void> _computeDistance(double donationLat, double donationLng) async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return;
+      }
+      if (permission == LocationPermission.deniedForever) return;
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(timeLimit: Duration(seconds: 8)),
+      ).timeout(const Duration(seconds: 10));
+      final km = _haversineKm(pos.latitude, pos.longitude, donationLat, donationLng);
+      String text;
+      if (km < 1) {
+        text = '${(km * 1000).round()} m';
+      } else if (km < 10) {
+        text = '${km.toStringAsFixed(1)} km';
+      } else {
+        text = '${km.round()} km';
+      }
+      if (mounted) setState(() => _computedDistanceText = text);
+    } catch (_) {}
   }
 
   @override
@@ -58,11 +142,10 @@ class DonationDetailScreen extends StatelessWidget {
     final conditionLabels = [loc.veryGoodCondition, loc.goodCondition, loc.likeNew];
     final conditionColors = [Colors.green, Colors.amber, Colors.green];
     final categoryLabels = [loc.all, loc.mobility, loc.earlyLearning, loc.clothing];
-    final displayDescription = (fullDescription ?? description ?? '').trim().isNotEmpty ? (fullDescription ?? description)! : (description ?? '');
-    final donor = donorName ?? 'Donateur';
-    final rating = donorRating ?? 4.9;
-    final avatarUrl = donorAvatarUrl;
-    final distance = distanceText ?? '2 km';
+    final displayDescription = (widget.fullDescription ?? widget.description ?? '').trim().isNotEmpty ? (widget.fullDescription ?? widget.description)! : (widget.description ?? '');
+    final donor = widget.donorName ?? 'Donateur';
+    final avatarUrl = widget.donorAvatarUrl;
+    final distance = _computedDistanceText ?? widget.distanceText;
 
     return Scaffold(
       backgroundColor: _bgLight,
@@ -75,7 +158,7 @@ class DonationDetailScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildImage(context, imageUrl),
+                    _buildImage(context, widget.imageUrl),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
                       child: Transform.translate(
@@ -83,18 +166,20 @@ class DonationDetailScreen extends StatelessWidget {
                         child: _buildCard(
                           context,
                           loc: loc,
-                          title: title ?? '',
+                          title: widget.title ?? '',
                           description: displayDescription,
-                          conditionLabel: conditionLabels[conditionIndex.clamp(0, 2)],
-                          conditionColor: conditionColors[conditionIndex.clamp(0, 2)],
-                          categoryLabel: categoryIndex >= 0 && categoryIndex < categoryLabels.length ? categoryLabels[categoryIndex] : loc.clothing,
+                          conditionLabel: conditionLabels[widget.conditionIndex.clamp(0, 2)],
+                          conditionColor: conditionColors[widget.conditionIndex.clamp(0, 2)],
+                          categoryLabel: widget.categoryIndex >= 0 && widget.categoryIndex < categoryLabels.length ? categoryLabels[widget.categoryIndex] : loc.clothing,
                           donorName: donor,
                           donorAvatarUrl: avatarUrl,
-                          rating: rating,
-                          location: location,
+                          location: widget.location,
                           distanceText: distance,
-                          latitude: latitude,
-                          longitude: longitude,
+                          showDistance: distance != null,
+                          suitableAge: widget.suitableAge,
+                          mapLat: _mapLat,
+                          mapLng: _mapLng,
+                          loadingMap: _loadingMap,
                         ),
                       ),
                     ),
@@ -110,9 +195,9 @@ class DonationDetailScreen extends StatelessWidget {
   }
 
   void _shareDonation() {
-    final donor = donorName ?? 'Donateur';
-    final t = title ?? '';
-    final shareText = '$t — $donor\n$location\n\n— CogniCare Le Cercle du Don';
+    final donor = widget.donorName ?? 'Donateur';
+    final t = widget.title ?? '';
+    final shareText = '$t — $donor\n${widget.location}\n\n— CogniCare Le Cercle du Don';
     Share.share(shareText, subject: t.isNotEmpty ? t : 'Annonce de don');
   }
 
@@ -206,11 +291,13 @@ class DonationDetailScreen extends StatelessWidget {
     required String categoryLabel,
     required String donorName,
     required String? donorAvatarUrl,
-    required double rating,
     required String location,
-    required String distanceText,
-    double? latitude,
-    double? longitude,
+    String? distanceText,
+    bool showDistance = true,
+    String? suitableAge,
+    double? mapLat,
+    double? mapLng,
+    bool loadingMap = false,
   }) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -262,6 +349,31 @@ class DonationDetailScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              if (suitableAge != null && suitableAge.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.child_care, color: _primary, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        suitableAge,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: _textDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 12),
@@ -323,62 +435,63 @@ class DonationDetailScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.amber.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.star, color: Colors.amber.shade700, size: 18),
-                    const SizedBox(width: 4),
-                    Text(
-                      rating.toStringAsFixed(1),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.amber.shade800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.location_on, color: _primary, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    location,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: _textDark,
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on, color: _primary, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        location,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _textDark,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              Text(
-                'À $distanceText ${loc.distanceFromYou}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
+                  ],
                 ),
               ),
+              if (showDistance && distanceText != null && distanceText.isNotEmpty)
+                Text(
+                  'À $distanceText ${loc.distanceFromYou}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 12),
-          if (latitude != null && longitude != null)
+          if (loadingMap)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: SizedBox(
+                height: 160,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2, color: _primary)),
+                      const SizedBox(height: 8),
+                      Text('Chargement de la carte...', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          else if (mapLat != null && mapLng != null)
             LocationMapWidget(
-              latitude: latitude,
-              longitude: longitude,
+              latitude: mapLat,
+              longitude: mapLng,
               height: 160,
               borderRadius: BorderRadius.circular(16),
             )
@@ -416,10 +529,10 @@ class DonationDetailScreen extends StatelessWidget {
         child: InkWell(
           onTap: () {
             context.push(AppConstants.familyDonationChatRoute, extra: {
-              'donorName': donorName ?? 'Sophie M.',
-              'donationTitle': title ?? '',
-              'donorAvatarUrl': donorAvatarUrl,
-              'donationImageUrl': imageUrl,
+              'donorName': widget.donorName ?? 'Donateur',
+              'donationTitle': widget.title ?? '',
+              'donorAvatarUrl': widget.donorAvatarUrl,
+              'donationImageUrl': widget.imageUrl,
             });
           },
           borderRadius: BorderRadius.circular(16),

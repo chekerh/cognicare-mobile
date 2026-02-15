@@ -51,5 +51,7 @@
 	<string>CogniCare can use the camera to take a photo for your post.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>CogniCare needs microphone access to record voice messages in family chat.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>CogniCare utilise votre position pour afficher la distance entre vous et le lieu de retrait du don.</string>
 </dict>
 </plist>
