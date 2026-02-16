@@ -314,7 +314,6 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   ) {
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(child: _buildFamilyChatCard()),
         SliverToBoxAdapter(child: _buildShareCard()),
         if (feedProvider.posts.isEmpty)
           SliverToBoxAdapter(

@@ -320,15 +320,12 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
   Future<void> _toggleVoicePlayback(_ChatMessage msg) async {
     if (msg.voicePath == null) return;
     final pathOrUrl = msg.voicePath!;
-    final isUrl = pathOrUrl.startsWith('http');
-    if (!isUrl && !File(pathOrUrl).existsSync()) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Fichier vocal introuvable.')),
-        );
-      }
-      return;
-    }
+    
+    // Convert relative path to full URL, or use absolute URL directly
+    final fullUrl = pathOrUrl.startsWith('http') 
+      ? pathOrUrl 
+      : AppConstants.fullImageUrl(pathOrUrl);
+    
     if (_playingMessageId == msg.id) {
       await _audioPlayer.pause();
       if (mounted) setState(() => _playingMessageId = null);
@@ -337,12 +334,17 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     if (_playingMessageId != null) {
       await _audioPlayer.stop();
     }
-    if (isUrl) {
-      await _audioPlayer.play(UrlSource(pathOrUrl));
-    } else {
-      await _audioPlayer.play(DeviceFileSource(pathOrUrl));
+    
+    try {
+      await _audioPlayer.play(UrlSource(fullUrl, mimeType: 'audio/mp4'));
+      if (mounted) setState(() => _playingMessageId = msg.id);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: Impossible de lire le message vocal')),
+        );
+      }
     }
-    if (mounted) setState(() => _playingMessageId = msg.id);
   }
 
   Future<void> _onMicTap() async {

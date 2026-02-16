@@ -6,6 +6,7 @@ import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFFA3D9E2);
 const Color _primaryDark = Color(0xFF7FBAC4);
+const Color _accentDark = Color(0xFF212121);
 
 /// Prise de Rendez-vous Expert — sélection date, créneau, type de consultation.
 class ExpertBookingScreen extends StatefulWidget {
@@ -156,7 +157,7 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Icon(Icons.verified, color: Colors.blue.shade600, size: 20),
+                    const Icon(Icons.verified, color: _accentDark, size: 20),
                   ],
                 ),
                 Text(
@@ -311,7 +312,7 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
           children: List.generate(_timeSlots.length, (i) {
             final selected = _selectedTimeIndex == i;
             return Material(
-              color: selected ? Colors.blue.shade600 : Colors.white.withOpacity(0.3),
+              color: selected ? _accentDark : Colors.white.withOpacity(0.3),
               borderRadius: BorderRadius.circular(12),
               child: InkWell(
                 onTap: () => setState(() => _selectedTimeIndex = i),
@@ -393,20 +394,20 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: selected ? Colors.blue.shade600 : Colors.transparent,
+              color: selected ? _accentDark : Colors.transparent,
               width: 2,
             ),
           ),
           child: Column(
             children: [
-              Icon(icon, color: selected ? Colors.blue.shade600 : Colors.white, size: 32),
+              Icon(icon, color: selected ? _accentDark : Colors.white, size: 32),
               const SizedBox(height: 8),
               Text(
                 label.toUpperCase(),
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: selected ? Colors.blue.shade600 : Colors.white,
+                  color: selected ? _accentDark : Colors.white,
                 ),
               ),
             ],

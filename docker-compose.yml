@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mongodb:
     image: mongo:7.0
@@ -36,6 +34,8 @@ services:
       - "3000:3000"
     depends_on:
       - mongodb
+    volumes:
+      - backend_uploads:/app/uploads
     networks:
       - cognicare-network
     healthcheck:
@@ -60,6 +60,7 @@ services:
 
 volumes:
   mongodb_data:
+  backend_uploads:
 
 networks:
   cognicare-network:
