@@ -12,6 +12,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -31,10 +32,22 @@ import { ConversationsService } from './conversations.service';
 export class ConversationsController {
   constructor(private readonly conversationsService: ConversationsService) {}
 
+  private getCurrentUserId(req: any): string {
+    const userId =
+      req?.user?.id?.toString?.() ??
+      req?.user?.sub?.toString?.() ??
+      req?.user?.userId?.toString?.() ??
+      '';
+    if (!userId) {
+      throw new UnauthorizedException('Utilisateur non authentifie');
+    }
+    return userId;
+  }
+
   @Get('inbox')
   @ApiOperation({ summary: 'Get inbox conversations for current user' })
   async getInbox(@Request() req: any) {
-    const userId = req.user.id as string;
+    const userId = this.getCurrentUserId(req);
     return this.conversationsService.findInboxForUser(userId);
   }
 
@@ -44,7 +57,7 @@ export class ConversationsController {
     @Request() req: any,
     @Param('otherUserId') otherUserId: string,
   ) {
-    const userId = req.user.id as string;
+    const userId = this.getCurrentUserId(req);
     const role = (req.user.role as string)?.toLowerCase?.();
     return this.conversationsService.getOrCreateConversation(
       userId,
@@ -73,7 +86,7 @@ export class ConversationsController {
     @Request() req: any,
     @Body() body: { name: string; participantIds: string[] },
   ) {
-    const userId = req.user.id as string;
+    const userId = this.getCurrentUserId(req);
     const name = typeof body?.name === 'string' ? body.name.trim() : 'Groupe';
     const participantIds = Array.isArray(body?.participantIds)
       ? body.participantIds.filter((id) => typeof id === 'string')
@@ -95,7 +108,7 @@ export class ConversationsController {
     @Param('id') id: string,
     @Body() body: { userId: string },
   ) {
-    const currentUserId = req.user.id as string;
+    const currentUserId = this.getCurrentUserId(req);
     const newParticipantId = body?.userId;
     if (!newParticipantId || typeof newParticipantId !== 'string') {
       throw new BadRequestException('userId is required');
@@ -110,7 +123,7 @@ export class ConversationsController {
   @Get(':id/settings')
   @ApiOperation({ summary: 'Get conversation settings (autoSavePhotos, muted)' })
   async getSettings(@Request() req: any, @Param('id') id: string) {
-    const userId = req.user.id as string;
+    const userId = this.getCurrentUserId(req);
     return this.conversationsService.getSettings(id, userId);
   }
 
@@ -130,14 +143,14 @@ export class ConversationsController {
     @Param('id') id: string,
     @Body() body: { autoSavePhotos?: boolean; muted?: boolean },
   ) {
-    const userId = req.user.id as string;
+    const userId = this.getCurrentUserId(req);
     return this.conversationsService.updateSettings(id, userId, body);
   }
 
   @Get(':id/media')
   @ApiOperation({ summary: 'Get media (images, voice) in conversation' })
   async getMedia(@Request() req: any, @Param('id') id: string) {
-    const userId = req.user.id as string;
+    const userId = this.getCurrentUserId(req);
     return this.conversationsService.getMedia(id, userId);
   }
 
@@ -148,14 +161,14 @@ export class ConversationsController {
     @Param('id') id: string,
     @Query('q') q: string,
   ) {
-    const userId = req.user.id as string;
+    const userId = this.getCurrentUserId(req);
     return this.conversationsService.searchMessages(id, userId, q ?? '');
   }
 
   @Get(':id/messages')
   @ApiOperation({ summary: 'Get messages for a conversation' })
   async getMessages(@Request() req: any, @Param('id') id: string) {
-    const userId = req.user.id as string;
+    const userId = this.getCurrentUserId(req);
     return this.conversationsService.getMessages(id, userId);
   }
 
@@ -178,7 +191,7 @@ export class ConversationsController {
     @UploadedFile() file: { buffer: Buffer; mimetype: string },
     @Body() body: { type: string },
   ) {
-    const userId = req.user.id as string;
+    const userId = this.getCurrentUserId(req);
     const type = (body?.type ?? '').toLowerCase();
     if (type !== 'image' && type !== 'voice') {
       throw new BadRequestException('type must be image or voice');
@@ -206,7 +219,7 @@ export class ConversationsController {
       attachmentType?: 'image' | 'voice' | 'call_missed';
     },
   ) {
-    const userId = req.user.id as string;
+    const userId = this.getCurrentUserId(req);
     const text = typeof body?.text === 'string' ? body.text.trim() : '';
     if (!text && !body?.attachmentUrl) {
       throw new BadRequestException('text or attachmentUrl is required');
@@ -228,7 +241,7 @@ export class ConversationsController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a conversation (both sides)' })
   async deleteConversation(@Request() req: any, @Param('id') id: string) {
-    const userId = req.user.id as string;
+    const userId = this.getCurrentUserId(req);
     await this.conversationsService.deleteConversation(id, userId);
     return { success: true };
   }

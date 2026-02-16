@@ -544,6 +544,8 @@ export class ConversationsService {
     }
     const [created] = await this.conversationModel.create([
       {
+        // `user` is required by Conversation schema; for groups, creator is owner.
+        user: uid,
         name: name.trim() || 'Groupe',
         segment: 'families',
         participants: uniqueIds,
