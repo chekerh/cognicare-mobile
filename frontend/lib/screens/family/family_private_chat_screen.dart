@@ -101,22 +101,6 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     });
   }
 
-  void _showTopNotification(String message, {bool isError = false}) {
-    final messenger = ScaffoldMessenger.of(context);
-    final screenHeight = MediaQuery.of(context).size.height;
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: isError ? const Color(0xFFB3261E) : const Color(0xFF1E293B),
-          duration: const Duration(milliseconds: 1400),
-          margin: EdgeInsets.fromLTRB(12, 0, 12, screenHeight - 150),
-        ),
-      );
-  }
-
   @override
   void initState() {
     super.initState();
@@ -474,16 +458,16 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
         await chatService.sendMessage(cid, text);
         if (!mounted) return;
         setState(() => _sending = false);
-        _showTopNotification('Message envoyé');
       } catch (e) {
         if (!mounted) return;
         setState(() {
           _messages.remove(optimistic);
           _sending = false;
         });
-        _showTopNotification(
-          e.toString().replaceFirst('Exception: ', ''),
-          isError: true,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+          ),
         );
       }
     } else {
@@ -624,7 +608,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () => context.pop(),
+              onTap: () => context.go(AppConstants.familyFamiliesRoute),
               borderRadius: BorderRadius.circular(12),
               child: const Padding(
                 padding: EdgeInsets.all(8),

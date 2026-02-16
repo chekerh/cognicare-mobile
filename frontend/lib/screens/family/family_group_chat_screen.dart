@@ -77,22 +77,6 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     });
   }
 
-  void _showTopNotification(String message, {bool isError = false}) {
-    final messenger = ScaffoldMessenger.of(context);
-    final screenHeight = MediaQuery.of(context).size.height;
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: isError ? const Color(0xFFB3261E) : const Color(0xFF1E293B),
-          duration: const Duration(milliseconds: 1400),
-          margin: EdgeInsets.fromLTRB(12, 0, 12, screenHeight - 150),
-        ),
-      );
-  }
-
   static List<_ChatMessage> _defaultLocalMessages() {
     return [
       _ChatMessage(
@@ -164,7 +148,34 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
       final cid = widget.groupId;
       if (cid == null || cid.isEmpty) return;
       if (evt.conversationId != cid) return;
-      _loadMessagesFromApi();
+      final currentUserId =
+          Provider.of<AuthProvider>(context, listen: false).user?.id;
+      final isMine = currentUserId != null && currentUserId == evt.senderId;
+      if (isMine) return;
+      final msgId = evt.messageId ?? 'ws_${DateTime.now().microsecondsSinceEpoch}';
+      final alreadyExists = _messages.any((m) => m.id == msgId);
+      if (alreadyExists) return;
+      final type = evt.attachmentType;
+      final text = (evt.text?.trim().isNotEmpty ?? false)
+          ? evt.text!.trim()
+          : (evt.preview.isNotEmpty ? evt.preview : 'Nouveau message');
+      setState(() {
+        _messages.add(
+          _ChatMessage(
+            id: msgId,
+            senderName: evt.senderName.isNotEmpty ? evt.senderName : widget.groupName,
+            senderType: _SenderType.therapist,
+            text: text,
+            time: _formatTime(evt.createdAt ?? DateTime.now()),
+            isFromRight: false,
+            hasImage: type == 'image',
+            hasVoice: type == 'voice',
+            voicePath: type == 'voice' ? evt.attachmentUrl : null,
+            imageUrl: type == 'image' ? evt.attachmentUrl : null,
+          ),
+        );
+      });
+      _scrollToBottom();
     });
   }
 
@@ -567,16 +578,16 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
           }
         });
         _scrollToBottom();
-        _showTopNotification('Message envoyé');
       } catch (e) {
         if (!mounted) return;
         setState(() {
           _sending = false;
           _messages.removeWhere((m) => m.id == optimisticId);
         });
-        _showTopNotification(
-          e.toString().replaceFirst('Exception: ', ''),
-          isError: true,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+          ),
         );
       }
     } else {
@@ -673,7 +684,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () => context.pop(),
+              onTap: () => context.go(AppConstants.familyFamiliesRoute),
               borderRadius: BorderRadius.circular(12),
               child: const Padding(
                 padding: EdgeInsets.all(8),

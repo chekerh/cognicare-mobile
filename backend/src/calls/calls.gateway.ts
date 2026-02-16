@@ -159,8 +159,12 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   emitMessageNew(
     targetUserId: string,
     payload: {
+      senderId: string;
       senderName: string;
       preview: string;
+      text?: string;
+      attachmentUrl?: string;
+      attachmentType?: 'image' | 'voice' | 'call_missed';
       conversationId: string;
       messageId?: string;
       createdAt?: string;

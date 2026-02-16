@@ -24,15 +24,23 @@ class IncomingCall {
 /// Incoming chat notification payload from WebSocket.
 class IncomingMessageEvent {
   final String conversationId;
+  final String senderId;
   final String senderName;
   final String preview;
+  final String? text;
+  final String? attachmentUrl;
+  final String? attachmentType;
   final String? messageId;
   final DateTime? createdAt;
 
   IncomingMessageEvent({
     required this.conversationId,
+    required this.senderId,
     required this.senderName,
     required this.preview,
+    this.text,
+    this.attachmentUrl,
+    this.attachmentType,
     this.messageId,
     this.createdAt,
   });
@@ -135,7 +143,11 @@ class CallService {
       debugPrint('📞 [CALL] message:new reçu: $data');
       if (data is Map) {
         final senderName = (data['senderName'] ?? 'Quelqu\'un').toString();
+        final senderId = (data['senderId'] ?? '').toString();
         final preview = (data['preview'] ?? '').toString();
+        final text = data['text']?.toString();
+        final attachmentUrl = data['attachmentUrl']?.toString();
+        final attachmentType = data['attachmentType']?.toString();
         final conversationId = (data['conversationId'] ?? '').toString();
         final messageIdRaw = data['messageId'];
         final createdAtRaw = data['createdAt'];
@@ -145,8 +157,12 @@ class CallService {
           _incomingMessageController.add(
             IncomingMessageEvent(
               conversationId: conversationId,
+              senderId: senderId,
               senderName: senderName,
               preview: preview,
+              text: text,
+              attachmentUrl: attachmentUrl,
+              attachmentType: attachmentType,
               messageId: messageIdRaw?.toString(),
               createdAt: createdAt,
             ),

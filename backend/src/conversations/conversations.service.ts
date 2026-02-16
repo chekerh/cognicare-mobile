@@ -475,8 +475,12 @@ export class ConversationsService {
       const preview =
         text.length > 80 ? text.slice(0, 77) + '...' : text;
       this.callsGateway.emitMessageNew(recipientId, {
+        senderId: uid.toString(),
         senderName,
         preview,
+        text,
+        attachmentUrl,
+        attachmentType,
         conversationId: conv._id.toString(),
         messageId: created._id.toString(),
         createdAt: (created as any).createdAt?.toISOString?.(),
