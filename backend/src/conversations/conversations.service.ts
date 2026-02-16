@@ -530,10 +530,13 @@ export class ConversationsService {
     participantIds: string[];
   }> {
     const uid = new Types.ObjectId(userId);
-    const allIds = [uid, ...participantIds.map((id) => new Types.ObjectId(id))];
-    const uniqueIds = [...new Set(allIds.map((o) => o.toString()))].map(
-      (id) => new Types.ObjectId(id),
-    );
+    const validParticipantIds = (participantIds ?? [])
+      .filter((id) => typeof id === 'string' && Types.ObjectId.isValid(id))
+      .filter((id) => id !== userId);
+    const uniqueIds = [
+      uid,
+      ...[...new Set(validParticipantIds)].map((id) => new Types.ObjectId(id)),
+    ];
     if (uniqueIds.length < 2) {
       throw new BadRequestException(
         'Un groupe doit avoir au moins 2 participants (vous + au moins une autre personne).',

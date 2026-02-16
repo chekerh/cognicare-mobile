@@ -83,17 +83,20 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     setState(() => _creating = true);
     try {
       final chatService = ChatService(getToken: () => AuthService().getStoredToken());
-      final conv = await chatService.createGroup(name, _selectedIds.toList());
+      final participantIds = _selectedIds.where((id) => id.trim().isNotEmpty).toList();
+      final conv = await chatService.createGroup(name, participantIds);
       if (!mounted) return;
       setState(() => _creating = false);
       final convId = conv['id']?.toString() ?? '';
       final convName = conv['name']?.toString() ?? name;
+      final createdParticipants =
+          (conv['participantIds'] is List ? (conv['participantIds'] as List).length : (_selectedIds.length + 1));
       context.go(
         Uri(
           path: AppConstants.familyGroupChatRoute,
           queryParameters: {
             'name': convName,
-            'members': '${_selectedIds.length + 1}',
+            'members': '$createdParticipants',
             'id': convId,
             'isGroup': '1',
           },
@@ -180,12 +183,15 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                             itemCount: _families.length,
                             itemBuilder: (context, index) {
                               final f = _families[index];
+                              final disabled = f.id.trim().isEmpty;
                               final selected = _selectedIds.contains(f.id);
                               return Card(
                                 margin: const EdgeInsets.only(bottom: 8),
                                 child: CheckboxListTile(
                                   value: selected,
-                                  onChanged: (v) {
+                                  onChanged: disabled
+                                      ? null
+                                      : (v) {
                                     setState(() {
                                       if (v == true) {
                                         _selectedIds.add(f.id);

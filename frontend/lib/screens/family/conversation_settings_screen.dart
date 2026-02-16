@@ -162,6 +162,13 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
                   title: 'Autres actions',
                   children: [
                     _SettingsTile(
+                      icon: Icons.group_add_rounded,
+                      iconColor: _textMuted,
+                      label: 'Créer un groupe',
+                      onTap: () => context.push(AppConstants.familyCreateGroupRoute),
+                      showArrow: true,
+                    ),
+                    _SettingsTile(
                       icon: Icons.photo_library_outlined,
                       iconColor: _textMuted,
                       label: 'Voir les contenus multimédias, les fichiers et les liens',

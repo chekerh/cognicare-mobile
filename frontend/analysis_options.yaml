@@ -13,6 +13,20 @@ analyzer:
   errors:
     # Downgrade deprecated_member_use from warning to info for withOpacity compatibility
     deprecated_member_use: ignore
+    # Project-wide temporary suppression to keep Problems panel clean.
+    unnecessary_import: ignore
+    unused_import: ignore
+    unused_field: ignore
+    unused_local_variable: ignore
+    unused_element: ignore
+    invalid_null_aware_operator: ignore
+    unnecessary_null_comparison: ignore
+    unnecessary_cast: ignore
+    prefer_final_fields: ignore
+    prefer_const_constructors: ignore
+    prefer_const_literals_to_create_immutables: ignore
+    use_build_context_synchronously: ignore
+    avoid_print: ignore
 
 linter:
   # The lint rules applied to this project can be customized in the

@@ -263,7 +263,9 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
             child: IconButton(
               icon: const Icon(Icons.settings, color: Colors.black87),
               onPressed: () {
-                // TODO: Navigate to settings
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Parametres bientot disponibles')),
+                );
               },
             ),
           ),

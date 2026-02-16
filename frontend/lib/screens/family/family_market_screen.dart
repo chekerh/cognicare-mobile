@@ -22,6 +22,8 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
   String? _selectedCategoryKey;
   List<MarketplaceProduct> _products = [];
   bool _loading = true;
+  final ScrollController _contentScrollController = ScrollController();
+  final GlobalKey _newArrivalsSectionKey = GlobalKey();
 
   List<String> _getCategories(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
@@ -60,6 +62,43 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    _contentScrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _showAllProducts() async {
+    final loc = AppLocalizations.of(context)!;
+    final allItems = loc.allItems;
+    if (_selectedCategoryKey != allItems) {
+      setState(() => _selectedCategoryKey = allItems);
+      await _loadProducts();
+    }
+    if (!mounted) return;
+    await Future<void>.delayed(const Duration(milliseconds: 40));
+    _scrollToSection(_newArrivalsSectionKey);
+  }
+
+  void _scrollToSection(GlobalKey key) {
+    final sectionContext = key.currentContext;
+    if (sectionContext == null || !_contentScrollController.hasClients) return;
+    final box = sectionContext.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final listBox = context.findRenderObject() as RenderBox?;
+    if (listBox == null) return;
+    final sectionTop = box.localToGlobal(Offset.zero, ancestor: listBox).dy;
+    final target = (_contentScrollController.offset + sectionTop - 12).clamp(
+      0.0,
+      _contentScrollController.position.maxScrollExtent,
+    ).toDouble();
+    _contentScrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOut,
+    );
+  }
+
   static Color _badgeToColor(String? badge) {
     if (badge == null || badge.isEmpty) return _marketPrimary;
     final b = badge.toUpperCase();
@@ -84,6 +123,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : SingleChildScrollView(
+                      controller: _contentScrollController,
                       padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,7 +288,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
               ],
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: _showAllProducts,
               child: Text(
                 loc.seeAll,
                 style: const TextStyle(
@@ -427,6 +467,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
   Widget _buildNewArrivalsSection() {
     final loc = AppLocalizations.of(context)!;
     return Column(
+      key: _newArrivalsSectionKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
