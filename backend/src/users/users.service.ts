@@ -110,7 +110,10 @@ export class UsersService {
   }
 
   /** Unblock a user (remove from blockedUserIds). */
-  async unblockUser(currentUserId: string, targetUserId: string): Promise<void> {
+  async unblockUser(
+    currentUserId: string,
+    targetUserId: string,
+  ): Promise<void> {
     const currentId = new Types.ObjectId(currentUserId);
     const targetId = new Types.ObjectId(targetUserId);
     await this.userModel
@@ -125,19 +128,30 @@ export class UsersService {
       .select('blockedUserIds')
       .lean()
       .exec();
-    const ids = (user as any)?.blockedUserIds ?? [];
+    const userWithBlocked = user as {
+      blockedUserIds?: Types.ObjectId[];
+    } | null;
+    const ids = userWithBlocked?.blockedUserIds ?? [];
     return ids.map((id: Types.ObjectId) => id.toString());
   }
 
   /** List other family users (for starting conversations). Excludes current user. */
-  async findFamilyUsers(excludeUserId: string): Promise<{ id: string; fullName: string; profilePic?: string }[]> {
+  async findFamilyUsers(
+    excludeUserId: string,
+  ): Promise<{ id: string; fullName: string; profilePic?: string }[]> {
     const users = await this.userModel
       .find({ role: 'family', _id: { $ne: excludeUserId } })
       .select('_id fullName profilePic')
       .sort({ fullName: 1 })
       .lean()
       .exec();
-    return users.map((u: any) => ({
+    return (
+      users as Array<{
+        _id: Types.ObjectId;
+        fullName?: string;
+        profilePic?: string;
+      }>
+    ).map((u) => ({
       id: u._id.toString(),
       fullName: u.fullName ?? '',
       profilePic: u.profilePic,

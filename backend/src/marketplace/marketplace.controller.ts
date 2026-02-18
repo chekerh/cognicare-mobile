@@ -136,7 +136,10 @@ export class MarketplaceController {
   @ApiOperation({ summary: 'Upload image for a product' })
   async uploadImage(
     @UploadedFile()
-    file?: { buffer: Buffer; mimetype: string },
+    file?: {
+      buffer: Buffer;
+      mimetype: string;
+    },
   ) {
     if (!file || !file.buffer)
       throw new BadRequestException('No file provided');

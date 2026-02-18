@@ -96,7 +96,10 @@ export class UsersController {
     description:
       'Returns other users with role family (excluding current user). So the current user can start a conversation with them from the Families tab.',
   })
-  @ApiResponse({ status: 200, description: 'List of family users (id, fullName, profilePic)' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of family users (id, fullName, profilePic)',
+  })
   async getFamilies(@Request() req: { user: { id: string } }) {
     return this.usersService.findFamilyUsers(req.user.id);
   }
@@ -111,7 +114,11 @@ export class UsersController {
   @Post('me/block')
   @ApiOperation({ summary: 'Block a user' })
   @ApiBody({
-    schema: { type: 'object', properties: { userId: { type: 'string' } }, required: ['userId'] },
+    schema: {
+      type: 'object',
+      properties: { userId: { type: 'string' } },
+      required: ['userId'],
+    },
   })
   @ApiResponse({ status: 201, description: 'User blocked' })
   async blockUser(

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -94,7 +95,9 @@ export class DonationsService {
       location: donation.location,
       isOffer: donation.isOffer,
       imageUrls: donation.imageUrls,
-      createdAt: (donation as any).createdAt?.toISOString() ?? new Date().toISOString(),
+      createdAt:
+        (donation as { createdAt?: Date }).createdAt?.toISOString() ??
+        new Date().toISOString(),
     };
   }
 
@@ -149,16 +152,21 @@ export class DonationsService {
       .lean()
       .exec();
 
-    const donorIds = [...new Set((docs as any[]).map((d) => d.donorId).filter(Boolean))];
-    const userIds = donorIds.map((id: any) => (id instanceof Types.ObjectId ? id : new Types.ObjectId(String(id))));
+    const donorIds = [
+      ...new Set((docs as any[]).map((d) => d.donorId).filter(Boolean)),
+    ];
+
+    const userIds = donorIds.map((id: any) =>
+      id instanceof Types.ObjectId ? id : new Types.ObjectId(String(id)),
+    );
     const users = await this.userModel
       .find({ _id: { $in: userIds } })
       .select('_id profilePic')
       .lean()
       .exec();
     const profilePicByDonorId = new Map<string, string>();
-    for (const u of users as { _id: any; profilePic?: string }[]) {
-      const id = u._id?.toString();
+    for (const u of users as { _id: Types.ObjectId; profilePic?: string }[]) {
+      const id = u._id.toString();
       if (id && u.profilePic) profilePicByDonorId.set(id, u.profilePic);
     }
 
@@ -166,7 +174,8 @@ export class DonationsService {
       id: d._id.toString(),
       donorId: d.donorId?.toString(),
       donorName: d.donorName ?? '',
-      donorProfilePic: profilePicByDonorId.get(d.donorId?.toString()) || undefined,
+      donorProfilePic:
+        profilePicByDonorId.get(d.donorId?.toString()) || undefined,
       title: d.title ?? '',
       description: d.description ?? '',
       fullDescription: d.description,

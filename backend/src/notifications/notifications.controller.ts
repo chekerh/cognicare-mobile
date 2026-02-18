@@ -65,7 +65,9 @@ export class NotificationsController {
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create a notification (for current user or from other services)' })
+  @ApiOperation({
+    summary: 'Create a notification (for current user or from other services)',
+  })
   @ApiResponse({ status: 201, description: 'Notification created' })
   async create(
     @Request() req: { user: { id: string } },

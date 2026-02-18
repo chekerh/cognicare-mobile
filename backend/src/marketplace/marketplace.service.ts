@@ -106,10 +106,7 @@ export class MarketplaceService {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Product not found');
     }
-    const product = await this.productModel
-      .findById(id)
-      .lean()
-      .exec();
+    const product = await this.productModel.findById(id).lean().exec();
     if (!product) {
       throw new NotFoundException('Product not found');
     }
@@ -155,7 +152,8 @@ export class MarketplaceService {
           rating: dto.rating,
           comment: dto.comment ?? '',
           userName,
-          ...(userProfileImageUrl != null && userProfileImageUrl !== '' && { userProfileImageUrl }),
+          ...(userProfileImageUrl != null &&
+            userProfileImageUrl !== '' && { userProfileImageUrl }),
           updatedAt: new Date(),
         },
       },

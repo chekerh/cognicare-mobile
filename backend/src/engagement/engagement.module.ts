@@ -3,9 +3,18 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { EngagementController } from './engagement.controller';
 import { EngagementService } from './engagement.service';
 import { Child, ChildSchema } from '../children/schemas/child.schema';
-import { GameSession, GameSessionSchema } from '../gamification/schemas/game-session.schema';
-import { TaskReminder, TaskReminderSchema } from '../nutrition/schemas/task-reminder.schema';
-import { ChildBadge, ChildBadgeSchema } from '../gamification/schemas/child-badge.schema';
+import {
+  GameSession,
+  GameSessionSchema,
+} from '../gamification/schemas/game-session.schema';
+import {
+  TaskReminder,
+  TaskReminderSchema,
+} from '../nutrition/schemas/task-reminder.schema';
+import {
+  ChildBadge,
+  ChildBadgeSchema,
+} from '../gamification/schemas/child-badge.schema';
 import { Badge, BadgeSchema } from '../gamification/schemas/badge.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   BadRequestException,
   Body,
@@ -32,12 +33,11 @@ import { ConversationsService } from './conversations.service';
 export class ConversationsController {
   constructor(private readonly conversationsService: ConversationsService) {}
 
-  private getCurrentUserId(req: any): string {
-    const userId =
-      req?.user?.id?.toString?.() ??
-      req?.user?.sub?.toString?.() ??
-      req?.user?.userId?.toString?.() ??
-      '';
+  private getCurrentUserId(req: {
+    user?: { id?: string; sub?: string; userId?: string };
+  }): string {
+    const user = req?.user;
+    const userId = user?.id ?? user?.sub ?? user?.userId ?? '';
     if (!userId) {
       throw new UnauthorizedException('Utilisateur non authentifie');
     }
@@ -121,7 +121,9 @@ export class ConversationsController {
   }
 
   @Get(':id/settings')
-  @ApiOperation({ summary: 'Get conversation settings (autoSavePhotos, muted)' })
+  @ApiOperation({
+    summary: 'Get conversation settings (autoSavePhotos, muted)',
+  })
   async getSettings(@Request() req: any, @Param('id') id: string) {
     const userId = this.getCurrentUserId(req);
     return this.conversationsService.getSettings(id, userId);
@@ -224,11 +226,12 @@ export class ConversationsController {
     if (!text && !body?.attachmentUrl) {
       throw new BadRequestException('text or attachmentUrl is required');
     }
-    const fallbackText = body?.attachmentType === 'call_missed'
-      ? 'Appel manqué'
-      : body?.attachmentType === 'voice'
-        ? 'Message vocal'
-        : 'Photo';
+    const fallbackText =
+      body?.attachmentType === 'call_missed'
+        ? 'Appel manqué'
+        : body?.attachmentType === 'voice'
+          ? 'Message vocal'
+          : 'Photo';
     return this.conversationsService.addMessage(
       id,
       userId,

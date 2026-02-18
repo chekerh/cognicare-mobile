@@ -96,7 +96,7 @@ export class PaypalService {
     }
     const data = (await res.json()) as {
       id: string;
-      links?: Array< { rel: string; href: string } >;
+      links?: Array<{ rel: string; href: string }>;
     };
     const approveLink = data.links?.find((l) => l.rel === 'approve');
     if (!approveLink?.href) {
@@ -108,18 +108,17 @@ export class PaypalService {
   /**
    * Capture a previously created order after the user has approved it.
    */
-  async captureOrder(orderId: string): Promise<{ status: string; id?: string }> {
+  async captureOrder(
+    orderId: string,
+  ): Promise<{ status: string; id?: string }> {
     const token = await this.getAccessToken();
-    const res = await fetch(
-      `${BASE}/v2/checkout/orders/${orderId}/capture`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+    const res = await fetch(`${BASE}/v2/checkout/orders/${orderId}/capture`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
-    );
+    });
     if (!res.ok) {
       const text = await res.text();
       throw new Error(`PayPal capture failed: ${res.status} ${text}`);

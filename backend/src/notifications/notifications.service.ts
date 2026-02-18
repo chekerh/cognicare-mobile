@@ -1,7 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Notification, NotificationDocument } from './schemas/notification.schema';
+import {
+  Notification,
+  NotificationDocument,
+} from './schemas/notification.schema';
 
 export type NotificationLean = Notification & { _id: Types.ObjectId };
 
@@ -55,7 +58,12 @@ export class NotificationsService {
 
   async createForUser(
     userId: string,
-    payload: { type: string; title: string; description?: string; data?: Record<string, unknown> },
+    payload: {
+      type: string;
+      title: string;
+      description?: string;
+      data?: Record<string, unknown>;
+    },
   ): Promise<NotificationLean> {
     const doc = await this.notificationModel.create({
       userId: new Types.ObjectId(userId),

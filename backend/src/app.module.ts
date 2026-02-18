@@ -25,6 +25,7 @@ import { EngagementModule } from './engagement/engagement.module';
 import { DonationsModule } from './donations/donations.module';
 import { PaypalModule } from './paypal/paypal.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { OrgScanAiModule } from './orgScanAi/orgScanAi.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     DonationsModule,
     PaypalModule,
     NotificationsModule,
+    OrgScanAiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -22,7 +22,9 @@ export class PaypalController {
   @Post('create-order')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Create a PayPal order; returns orderId and approvalUrl' })
+  @ApiOperation({
+    summary: 'Create a PayPal order; returns orderId and approvalUrl',
+  })
   async createOrder(
     @Request() req: { user: { id: string } },
     @Body() body: { amount: string; currencyCode?: string },
@@ -50,15 +52,20 @@ export class PaypalController {
   }
 
   @Get('complete')
-  @ApiOperation({ summary: 'PayPal redirects here after approval; we capture and redirect to app' })
+  @ApiOperation({
+    summary:
+      'PayPal redirects here after approval; we capture and redirect to app',
+  })
   async complete(
     @Query('token') token: string | undefined,
     @Res() res: Response,
   ) {
     if (!token) {
-      res.status(400).send(
-        '<html><body><p>Missing token.</p><script>setTimeout(() => window.close(), 2000);</script></body></html>',
-      );
+      res
+        .status(400)
+        .send(
+          '<html><body><p>Missing token.</p><script>setTimeout(() => window.close(), 2000);</script></body></html>',
+        );
       return;
     }
     try {
@@ -70,9 +77,11 @@ export class PaypalController {
         `<!DOCTYPE html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="2;url=${redirectUrl}"></head><body><p>Paiement réussi. Retour à l'app...</p><p><a href="${redirectUrl}">Cliquez ici si la redirection ne fonctionne pas</a></p></body></html>`,
       );
     } catch (e) {
-      res.status(500).send(
-        `<html><body><p>Erreur: ${(e as Error).message}</p></body></html>`,
-      );
+      res
+        .status(500)
+        .send(
+          `<html><body><p>Erreur: ${(e as Error).message}</p></body></html>`,
+        );
     }
   }
 
@@ -93,7 +102,7 @@ export class PaypalController {
 
   @Get('cancel')
   @ApiOperation({ summary: 'PayPal redirects here if user cancels' })
-  async cancel(@Res() res: Response) {
+  cancel(@Res() res: Response) {
     const appScheme = process.env.PAYPAL_APP_SCHEME || 'cognicare';
     const redirectUrl = `${appScheme}://paypal-success?status=cancelled`;
     res.setHeader('Content-Type', 'text/html; charset=utf-8');

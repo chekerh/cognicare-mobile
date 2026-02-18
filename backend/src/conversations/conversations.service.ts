@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument */
 import {
   Injectable,
   ForbiddenException,
@@ -92,11 +93,7 @@ export class ConversationsService {
     const uid = new Types.ObjectId(userId);
     const docs = await this.conversationModel
       .find({
-        $or: [
-          { user: uid },
-          { otherUserId: uid },
-          { participants: uid },
-        ],
+        $or: [{ user: uid }, { otherUserId: uid }, { participants: uid }],
       })
       .sort({ updatedAt: -1 })
       .lean()
@@ -123,7 +120,11 @@ export class ConversationsService {
       const existing = byThread.get(tid);
       const isGroup = c.participants && c.participants.length > 0;
       const isMine = c.user?.toString() === userId;
-      if (!existing || (isGroup && !existing.participants) || (isMine && existing.user?.toString() !== userId))
+      if (
+        !existing ||
+        (isGroup && !existing.participants) ||
+        (isMine && existing.user?.toString() !== userId)
+      )
         byThread.set(tid, c);
     }
     const uniqueDocs = Array.from(byThread.values());
@@ -171,7 +172,8 @@ export class ConversationsService {
       const isGroup = c.participants && c.participants.length > 0;
       if (isGroup) {
         const participantIds = (c.participants ?? []).map((p) => p.toString());
-        const segment: ConversationSegment = (c.segment as ConversationSegment) ?? 'families';
+        const segment: ConversationSegment =
+          (c.segment as ConversationSegment) ?? 'families';
         return {
           id: c._id.toString(),
           otherUserId: undefined,
@@ -246,7 +248,10 @@ export class ConversationsService {
         .lean()
         .exec();
       const pic = (other as { profilePic?: string } | null)?.profilePic;
-      const imageUrl = pic && String(pic).trim() !== '' ? String(pic).trim() : (conv.imageUrl ?? '');
+      const imageUrl =
+        pic && String(pic).trim() !== ''
+          ? String(pic).trim()
+          : (conv.imageUrl ?? '');
       return {
         id: conv._id.toString(),
         threadId: conv.threadId?.toString(),
@@ -272,9 +277,11 @@ export class ConversationsService {
       profilePic?: string;
     } | null;
     const otherRole = otherUserLean?.role?.toLowerCase?.();
-    const otherProfilePic = otherUserLean?.profilePic && String(otherUserLean.profilePic).trim() !== ''
-      ? String(otherUserLean.profilePic).trim()
-      : '';
+    const otherProfilePic =
+      otherUserLean?.profilePic &&
+      String(otherUserLean.profilePic).trim() !== ''
+        ? String(otherUserLean.profilePic).trim()
+        : '';
     const role = currentUserRole?.toLowerCase?.();
 
     // Segment for the user making the request (current user)
@@ -461,8 +468,14 @@ export class ConversationsService {
 
     // Emit message:new to other participants for in-app notification
     const recipientIds = isGroup
-      ? (conv.participants ?? []).filter((p) => !p.equals(uid)).map((p) => p.toString())
-      : [conv.user.equals(uid) ? conv.otherUserId?.toString() : conv.user?.toString()].filter(Boolean);
+      ? (conv.participants ?? [])
+          .filter((p) => !p.equals(uid))
+          .map((p) => p.toString())
+      : [
+          conv.user.equals(uid)
+            ? conv.otherUserId?.toString()
+            : conv.user?.toString(),
+        ].filter(Boolean);
     for (const recipientId of recipientIds) {
       if (!recipientId) continue;
       const sender = await this.userModel
@@ -471,9 +484,8 @@ export class ConversationsService {
         .lean()
         .exec();
       const senderName =
-        (sender as { fullName?: string } | null)?.fullName ?? 'Quelqu\'un';
-      const preview =
-        text.length > 80 ? text.slice(0, 77) + '...' : text;
+        (sender as { fullName?: string } | null)?.fullName ?? "Quelqu'un";
+      const preview = text.length > 80 ? text.slice(0, 77) + '...' : text;
       this.callsGateway.emitMessageNew(recipientId, {
         senderId: uid.toString(),
         senderName,
@@ -483,7 +495,7 @@ export class ConversationsService {
         attachmentType,
         conversationId: conv._id.toString(),
         messageId: created._id.toString(),
-        createdAt: (created as any).createdAt?.toISOString?.(),
+        createdAt: (created as { createdAt?: Date }).createdAt?.toISOString?.(),
       });
     }
 
@@ -491,7 +503,7 @@ export class ConversationsService {
       id: created._id.toString(),
       senderId: created.senderId.toString(),
       text,
-      createdAt: (created as any).createdAt,
+      createdAt: (created as { createdAt?: Date }).createdAt,
     };
   }
 
@@ -636,7 +648,10 @@ export class ConversationsService {
     }>
   > {
     await this.ensureParticipant(conversationId, userId);
-    const conv = await this.conversationModel.findById(conversationId).lean().exec();
+    const conv = await this.conversationModel
+      .findById(conversationId)
+      .lean()
+      .exec();
     if (!conv) throw new NotFoundException('Conversation not found');
     const threadId = conv.threadId ?? conv._id;
     const messages = await this.messageModel
@@ -644,6 +659,7 @@ export class ConversationsService {
       .sort({ createdAt: -1 })
       .lean()
       .exec();
+
     return messages.map((m: any) => ({
       id: m._id.toString(),
       attachmentUrl: m.attachmentUrl ?? '',
@@ -670,7 +686,10 @@ export class ConversationsService {
     }>
   > {
     await this.ensureParticipant(conversationId, userId);
-    const conv = await this.conversationModel.findById(conversationId).lean().exec();
+    const conv = await this.conversationModel
+      .findById(conversationId)
+      .lean()
+      .exec();
     if (!conv) throw new NotFoundException('Conversation not found');
     const threadId = conv.threadId ?? conv._id;
     const messages = await this.messageModel
@@ -680,6 +699,7 @@ export class ConversationsService {
       .exec();
     const lower = (q ?? '').trim().toLowerCase();
     if (!lower) return [];
+
     return messages
       .filter((m: any) => {
         const text = this.decryptMessage(m.text);
@@ -704,13 +724,15 @@ export class ConversationsService {
     const conv = await this.conversationModel.findById(conversationId).exec();
     if (!conv) throw new NotFoundException('Conversation not found');
     if (!conv.participants?.length) {
-      throw new BadRequestException('Cette conversation n\'est pas un groupe.');
+      throw new BadRequestException("Cette conversation n'est pas un groupe.");
     }
     const uid = new Types.ObjectId(userId);
     const newId = new Types.ObjectId(newParticipantId);
     const isInGroup = conv.participants.some((p) => p.equals(uid));
     if (!isInGroup) {
-      throw new ForbiddenException('Seuls les membres du groupe peuvent ajouter des participants.');
+      throw new ForbiddenException(
+        'Seuls les membres du groupe peuvent ajouter des participants.',
+      );
     }
     if (conv.participants.some((p) => p.equals(newId))) {
       return { participantIds: conv.participants.map((p) => p.toString()) };

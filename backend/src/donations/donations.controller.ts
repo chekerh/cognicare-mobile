@@ -11,11 +11,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { DonationsService } from './donations.service';
 import { CreateDonationDto } from './dto/create-donation.dto';
@@ -32,7 +28,10 @@ export class DonationsController {
   @ApiOperation({ summary: 'Upload image for a donation' })
   async uploadImage(
     @UploadedFile()
-    file?: { buffer: Buffer; mimetype: string },
+    file?: {
+      buffer: Buffer;
+      mimetype: string;
+    },
   ) {
     if (!file || !file.buffer)
       throw new BadRequestException('No file provided');
@@ -75,7 +74,8 @@ export class DonationsController {
     @Query('category') category?: string,
     @Query('search') search?: string,
   ) {
-    const filters: { isOffer?: boolean; category?: number; search?: string } = {};
+    const filters: { isOffer?: boolean; category?: number; search?: string } =
+      {};
     if (isOffer !== undefined && isOffer !== '') {
       filters.isOffer = isOffer === 'true';
     }

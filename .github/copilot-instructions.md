@@ -242,6 +242,9 @@ THROTTLE_LIMIT=10                      # Max requests per window
 CLOUDINARY_CLOUD_NAME=your-cloud       # Optional
 CLOUDINARY_API_KEY=your-api-key        # Optional
 CLOUDINARY_API_SECRET=your-api-secret  # Optional
+PAYPAL_CLIENT_ID=your-paypal-client-id          # Optional - for payment processing
+PAYPAL_CLIENT_SECRET=your-paypal-secret         # Optional - for payment processing
+GEMINI_API_KEY=your-gemini-api-key              # Required for orgScanAi fraud detection
 ```
 
 **Mock email service**: Set `NODE_ENV=development` to use `MailMockService` (logs to console, no SendGrid needed)
@@ -255,10 +258,14 @@ CLOUDINARY_API_SECRET=your-api-secret  # Optional
 MultiProvider(
   providers: [
     ChangeNotifierProvider.value(value: _authProvider),
+    ChangeNotifierProvider.value(value: _themeProvider),
+    ChangeNotifierProvider(create: (_) => CallProvider()),
     ChangeNotifierProvider(create: (_) => LanguageProvider()),
     ChangeNotifierProvider(create: (_) => CartProvider()),
     ChangeNotifierProvider(create: (_) => CommunityFeedProvider()),
     ChangeNotifierProvider(create: (_) => StickerBookProvider()),
+    ChangeNotifierProvider(create: (_) => ChildSecurityCodeProvider()),
+    ChangeNotifierProvider(create: (_) => ChildModeSessionProvider()),
     
     // Proxy provider - depends on AuthProvider
     ChangeNotifierProxyProvider<AuthProvider, GamificationProvider>(
@@ -266,6 +273,9 @@ MultiProvider(
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         return GamificationProvider(
           gamificationService: GamificationService(
+            getToken: () async => authProvider.accessToken,
+          ),
+          childrenService: ChildrenService(
             getToken: () async => authProvider.accessToken,
           ),
         );
@@ -465,6 +475,28 @@ Future<String> uploadImage(File imageFile) async {
 }
 ```
 
+**Available Flutter Services** (all in `lib/services/`):
+- `admin_service.dart` - Admin-specific operations
+- `auth_service.dart` - Authentication, JWT token management, secure storage
+- `availability_service.dart` - Volunteer availability slots
+- `call_service.dart` - WebSocket call signaling, Jitsi Meet integration
+- `chat_service.dart` - Real-time messaging, voice messages
+- `children_service.dart` - Child profile management
+- `community_service.dart` - Social posts, comments, likes
+- `courses_service.dart` - Volunteer training courses
+- `donation_service.dart` - Donation requests and contributions
+- `engagement_service.dart` - Child engagement metrics and dashboard
+- `gamification_service.dart` - Points, badges, achievements
+- `geocoding_service.dart` - Reverse geocoding for addresses
+- `healthcare_service.dart` - Medical records and health tracking
+- `marketplace_service.dart` - Product listings and transactions
+- `notification_service.dart` - Local notifications setup
+- `notifications_feed_service.dart` - In-app notification feed
+- `nutrition_service.dart` - Meal plans and nutrition tracking
+- `paypal_service.dart` - PayPal payment integration
+- `reminders_service.dart` - Task reminders and alerts
+- `volunteer_service.dart` - Volunteer applications and documents
+
 ### Critical Flutter Workflows
 
 **Starting development**:
@@ -500,6 +532,25 @@ static const String baseUrl = String.fromEnvironment(
 // For physical device: flutter run --dart-define=BASE_URL=http://YOUR_IP:3000
 // Backend must bind to 0.0.0.0 (not 127.0.0.1) for device access
 ```
+
+**Key Flutter Dependencies** (from [pubspec.yaml](../frontend/pubspec.yaml)):
+- `provider: ^6.1.1` - State management
+- `go_router: ^13.0.0` - Declarative routing
+- `http: ^1.2.0` + `http_parser: ^4.0.0` - HTTP client for REST API
+- `flutter_secure_storage: ^9.0.0` - Encrypted JWT token storage
+- `shared_preferences: ^2.2.2` - App settings persistence
+- `jitsi_meet_flutter_sdk: ^11.6.0` - Voice/video calls (Jitsi Meet, free, no API key)
+- `socket_io_client: ^3.0.1` - WebSocket for call signaling and real-time chat
+- `flutter_local_notifications: ^18.0.1` - Local notifications (incoming calls, messages)
+- `image_picker: ^1.0.7` - Pick images from gallery/camera
+- `file_picker: ^8.0.0+1` - Pick documents (PDF, images)
+- `path_provider: ^2.1.2` - File system paths
+- `record: ^6.2.0` - Audio recording (voice messages)
+- `audioplayers: ^6.0.0` - Audio playback (voice messages)
+- `flutter_map: ^7.0.2` + `latlong2: ^0.9.1` - OpenStreetMap integration (free, no API key)
+- `geolocator: ^13.0.2` - GPS positioning and distance calculation
+- `share_plus: ^10.0.0` - Native sharing
+- `url_launcher: ^6.2.2` - Open URLs in browser
 
 **Localization** (multi-language support):
 ```dart

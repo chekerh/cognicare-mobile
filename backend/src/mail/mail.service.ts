@@ -412,7 +412,7 @@ export class MailService {
 
     const msg = {
       to: email,
-      from: this.from as string,
+      from: this.from,
       subject: `CogniCare – You're Invited to Lead ${organizationName}`,
       html: htmlContent,
     };
@@ -422,16 +422,18 @@ export class MailService {
       console.log(`Using from address: ${this.from}`);
       console.log(`Accept URL: ${acceptUrl}`);
       console.log(`Reject URL: ${rejectUrl}`);
-      
+
       await sgMail.send(msg);
-      console.log(`✅ Org leader invitation email sent successfully to ${email}`);
+      console.log(
+        `✅ Org leader invitation email sent successfully to ${email}`,
+      );
       return true;
     } catch (err: unknown) {
       // Log detailed error for debugging
       console.error('❌ FAILED to send org leader invitation email');
       console.error(`Recipient: ${email}`);
       console.error(`Organization: ${organizationName}`);
-      
+
       if (err && typeof err === 'object' && 'code' in err) {
         console.error('SendGrid error code:', err.code);
         if ('response' in err && err.response) {
