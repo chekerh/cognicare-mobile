@@ -1116,16 +1116,12 @@ export class OrganizationService {
       throw new NotFoundException('Invitation not found or not pending');
     }
 
-    // If it's a staff invitation, we might also want to clear the token on the user
-    // especially if they were newly created (unconfirmed)
+    // If it's a staff invitation, we might also want to delete the user
+    // if they were newly created (unconfirmed) and not yet linked to anything else
     const user = await this.userModel.findById(invitation.userId);
-    if (
-      user &&
-      !user.isConfirmed &&
-      user.confirmationToken === invitation.token
-    ) {
-      user.confirmationToken = undefined;
-      await user.save();
+    if (user && !user.isConfirmed) {
+      console.log('[CANCEL] Deleting unconfirmed user associated with invitation');
+      await this.userModel.findByIdAndDelete(user._id);
     }
 
     // Mark as cancelled
