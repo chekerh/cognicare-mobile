@@ -33,8 +33,6 @@ class _Msg {
   final bool read;
   final String? attachmentUrl;
   final String? attachmentType;
-
-  final String? attachmentType;
   final int? callDuration;
 
   const _Msg({
@@ -86,7 +84,6 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   Duration _recordingDuration = Duration.zero;
   Timer? _recordingTimer;
   String? _currentRecordPath;
-  String? _playingVoiceUrl;
   String? _playingVoiceUrl;
   StreamSubscription<IncomingMessageEvent>? _incomingMessageSub;
   StreamSubscription<TypingEvent>? _typingSub;
@@ -471,9 +468,6 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
           SnackBar(content: Text(isUnauthorized ? 'Session expirée. Veuillez vous reconnecter.' : msg)),
         );
       }
-    }
-  }
-
     }
   }
 

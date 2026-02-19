@@ -87,7 +87,6 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
   Timer? _recordingTimer;
   String? _currentRecordPath;
   String? _playingVoiceUrl;
-  String? _playingVoiceUrl;
   StreamSubscription<IncomingMessageEvent>? _incomingMessageSub;
   StreamSubscription<TypingEvent>? _typingSub;
   bool _isRemoteTyping = false;
@@ -177,6 +176,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
             read: false,
             attachmentUrl: m.attachmentUrl,
             attachmentType: m.attachmentType,
+            callDuration: m.callDuration,
           );
         }).toList();
         _loading = false;
@@ -402,9 +402,6 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
-    }
-  }
-
     }
   }
 
