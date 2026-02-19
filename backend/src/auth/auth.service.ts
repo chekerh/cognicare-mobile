@@ -836,12 +836,19 @@ export class AuthService {
     user.confirmationToken = undefined;
     await user.save();
 
+    console.log(`[ACTIVATE] User ${user.email} confirmed. Linking to organization...`);
+
     // Link user to organization and update invitation status
+    // We throw error here if link fails to notify the user/frontend
     try {
       await this.organizationService.acceptInvitation(token);
+      console.log(`[ACTIVATE] Success: Joined organization for token ${token.substring(0, 10)}...`);
     } catch (error) {
-      console.error('[ACTIVATE] Failed to link to organization:', error.message);
-      // We don't throw here to ensure password setup is preserved
+      console.error(`[ACTIVATE] Error linking to organization for token ${token.substring(0, 10)}...:`, error.message);
+      // If invitation is not found but user already has organizationId, it might be already processed
+      if (!user.organizationId) {
+        throw new BadRequestException(`Password set, but failed to join organization: ${error.message}`);
+      }
     }
   }
 }

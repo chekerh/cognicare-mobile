@@ -61,7 +61,15 @@ export class OrganizationController {
   }
 
   @Get('my-organization/children')
-  @Roles('organization_leader')
+  @Roles(
+    'organization_leader',
+    'doctor',
+    'volunteer',
+    'psychologist',
+    'speech_therapist',
+    'occupational_therapist',
+    'other',
+  )
   @ApiOperation({ summary: 'Get all children in my organization' })
   async getMyChildren(@Request() req: any) {
     return await this.organizationService.getMyChildren(req.user.id as string);

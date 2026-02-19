@@ -642,13 +642,14 @@ export class OrganizationService {
     return this.getFamilies(org._id.toString());
   }
 
-  // Get leader's organization children
-  async getMyChildren(leaderId: string): Promise<Child[]> {
-    const org = await this.getOrganizationByLeader(leaderId);
-    if (!org) {
-      throw new NotFoundException('Organization not found');
+  // Get user's organization children (leader or specialist)
+  async getMyChildren(userId: string): Promise<Child[]> {
+    const user = await this.userModel.findById(userId);
+    if (!user || !user.organizationId) {
+      throw new NotFoundException('User not linked to any organization');
     }
-    return this.getAllChildren(org._id.toString());
+
+    return this.getAllChildren(user.organizationId.toString());
   }
 
   // Get leader's organization stats
@@ -946,31 +947,55 @@ export class OrganizationService {
   async acceptInvitation(
     token: string,
   ): Promise<{ message: string; organizationName: string }> {
+    console.log(`[ACCEPT] Processing invitation with token: ${token.substring(0, 10)}...`);
+
     const invitation = await this.invitationModel.findOne({
       token,
-      status: 'pending',
     });
 
     if (!invitation) {
-      throw new NotFoundException('Invitation not found or already processed');
+      console.error('[ACCEPT] Invitation not found for token');
+      throw new NotFoundException('Invitation not found');
+    }
+
+    if (invitation.status !== 'pending') {
+      console.log(`[ACCEPT] Invitation already processed: ${invitation.status}`);
+      // If it's already accepted, we can just return success to avoid blocking activation flow
+      if (invitation.status === 'accepted') {
+        const org = await this.organizationModel.findById(invitation.organizationId);
+        return {
+          message: 'Invitation already accepted',
+          organizationName: org?.name || 'Organization',
+        };
+      }
+      throw new BadRequestException(`Invitation is already ${invitation.status}`);
     }
 
     if (invitation.expiresAt < new Date()) {
       throw new BadRequestException('Invitation has expired');
     }
 
-    // Add user to organization
-    const org = await this.organizationModel.findById(
-      invitation.organizationId,
-    );
+    const orgId = invitation.organizationId;
+    const userId = invitation.userId;
+
+    if (!orgId || !userId) {
+      throw new BadRequestException('Invalid invitation data: Missing organization or user ID');
+    }
+
+    const org = await this.organizationModel.findById(orgId);
     if (!org) {
       throw new NotFoundException('Organization not found');
     }
 
-    const user = await this.userModel.findById(invitation.userId);
+    const user = await this.userModel.findById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
+    // Determine invitation type from either field
+    const effectiveType = invitation.invitationType || (invitation as any).type;
+
+    console.log(`[ACCEPT] Invitation found. Type: ${effectiveType}, User: ${user.email}, Org: ${org.name}`);
 
     // Validate user role still matches invitation type
     const staffRoles = [
@@ -982,29 +1007,30 @@ export class OrganizationService {
       'other',
     ];
 
-    if (
-      invitation.invitationType === 'staff' &&
-      !staffRoles.includes(user.role)
-    ) {
-      throw new BadRequestException(
-        `Cannot accept staff invitation. Your current role is '${user.role}', but staff members must have one of these roles: doctor, volunteer, psychologist, speech_therapist, occupational_therapist, or other.`,
-      );
-    }
-
-    if (invitation.invitationType === 'family' && user.role !== 'family') {
-      throw new BadRequestException(
-        `Cannot accept family invitation. Your current role is '${user.role}', but only users with 'family' role can be added as family members.`,
-      );
+    if (effectiveType === 'staff') {
+      if (!staffRoles.includes(user.role)) {
+        throw new BadRequestException(
+          `Cannot accept staff invitation. Your current role is '${user.role}', but staff members must have a professional role.`,
+        );
+      }
+    } else if (effectiveType === 'family') {
+      if (user.role !== 'family') {
+        throw new BadRequestException(
+          `Cannot accept family invitation. Your current role is '${user.role}', but you must have a 'family' role.`,
+        );
+      }
     }
 
     // Add to appropriate list
-    if (invitation.invitationType === 'staff') {
+    if (effectiveType === 'staff') {
       if (!org.staffIds.some((id) => id.toString() === user._id.toString())) {
         org.staffIds.push(user._id);
+        console.log(`[ACCEPT] Added user ${user._id} to staffIds`);
       }
     } else {
       if (!org.familyIds.some((id) => id.toString() === user._id.toString())) {
         org.familyIds.push(user._id);
+        console.log(`[ACCEPT] Added user ${user._id} to familyIds`);
       }
 
       // Link family's children to organization
@@ -1014,7 +1040,7 @@ export class OrganizationService {
       if (existingChildren.length > 0) {
         await this.childModel.updateMany(
           { parentId: user._id },
-          { organizationId: invitation.organizationId },
+          { organizationId: orgId },
         );
 
         // Add children to org's childrenIds
@@ -1027,16 +1053,17 @@ export class OrganizationService {
             org.childrenIds.push(child._id);
           }
         }
+        console.log(`[ACCEPT] Linked ${existingChildren.length} children to organization`);
       }
     }
 
     await org.save();
 
     // Link user to organization
-    if (invitation.organizationId) {
-      user.organizationId = invitation.organizationId.toString();
-    }
+    user.organizationId = orgId.toString();
     await user.save();
+
+    console.log(`[ACCEPT] User ${user.email} successfully linked to organization ${org.name}`);
 
     // Update invitation status
     invitation.status = 'accepted';
