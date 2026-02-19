@@ -37,7 +37,7 @@ export class ConversationsService {
     private readonly userModel: Model<UserDocument>,
     private readonly configService: ConfigService,
     private readonly callsGateway: CallsGateway,
-  ) {}
+  ) { }
 
   /** Derive a 32-byte AES key from env (MESSAGES_ENCRYPTION_KEY) or a fallback string. */
   private getEncryptionKey(): Buffer {
@@ -150,10 +150,10 @@ export class ConversationsService {
     const otherIds = otherIdStrs.map((id) => new Types.ObjectId(id));
     const users = otherIds.length
       ? await this.userModel
-          .find({ _id: { $in: otherIds } })
-          .select('role fullName profilePic')
-          .lean()
-          .exec()
+        .find({ _id: { $in: otherIds } })
+        .select('role fullName profilePic')
+        .lean()
+        .exec()
       : [];
     const roleById = new Map<string, string>();
     const nameById = new Map<string, string>();
@@ -279,7 +279,7 @@ export class ConversationsService {
     const otherRole = otherUserLean?.role?.toLowerCase?.();
     const otherProfilePic =
       otherUserLean?.profilePic &&
-      String(otherUserLean.profilePic).trim() !== ''
+        String(otherUserLean.profilePic).trim() !== ''
         ? String(otherUserLean.profilePic).trim()
         : '';
     const role = currentUserRole?.toLowerCase?.();
@@ -469,13 +469,13 @@ export class ConversationsService {
     // Emit message:new to other participants for in-app notification
     const recipientIds = isGroup
       ? (conv.participants ?? [])
-          .filter((p) => !p.equals(uid))
-          .map((p) => p.toString())
+        .filter((p) => !p.equals(uid))
+        .map((p) => p.toString())
       : [
-          conv.user.equals(uid)
-            ? conv.otherUserId?.toString()
-            : conv.user?.toString(),
-        ].filter(Boolean);
+        conv.user.equals(uid)
+          ? conv.otherUserId?.toString()
+          : conv.user?.toString(),
+      ].filter(Boolean);
     for (const recipientId of recipientIds) {
       if (!recipientId) continue;
       const sender = await this.userModel
@@ -486,6 +486,21 @@ export class ConversationsService {
       const senderName =
         (sender as { fullName?: string } | null)?.fullName ?? "Quelqu'un";
       const preview = text.length > 80 ? text.slice(0, 77) + '...' : text;
+
+      // For 1-on-1 private chats, the recipient has their own conversationId for the same threadId.
+      // We must find it so the recipient's frontend listener (filtering by conversationId) triggers.
+      let recipientConversationId = conv._id.toString();
+      if (!isGroup) {
+        const recipientConv = await this.conversationModel
+          .findOne({ user: new Types.ObjectId(recipientId), threadId })
+          .select('_id')
+          .lean()
+          .exec();
+        if (recipientConv) {
+          recipientConversationId = recipientConv._id.toString();
+        }
+      }
+
       this.callsGateway.emitMessageNew(recipientId, {
         senderId: uid.toString(),
         senderName,
@@ -493,7 +508,7 @@ export class ConversationsService {
         text,
         attachmentUrl,
         attachmentType,
-        conversationId: conv._id.toString(),
+        conversationId: recipientConversationId,
         messageId: created._id.toString(),
         createdAt: (created as { createdAt?: Date }).createdAt?.toISOString?.(),
       });
