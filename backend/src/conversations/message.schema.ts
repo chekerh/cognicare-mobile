@@ -18,8 +18,11 @@ export class Message {
   @Prop()
   attachmentUrl?: string;
 
-  @Prop({ enum: ['image', 'voice', 'call_missed'] })
-  attachmentType?: 'image' | 'voice' | 'call_missed';
+  @Prop({ enum: ['image', 'voice', 'call_missed', 'call_summary'] })
+  attachmentType?: 'image' | 'voice' | 'call_missed' | 'call_summary';
+
+  @Prop()
+  callDuration?: number;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);
