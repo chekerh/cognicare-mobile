@@ -74,6 +74,12 @@ export class User {
   @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
   blockedUserIds?: Types.ObjectId[];
 
+  @Prop({ default: true })
+  isConfirmed!: boolean;
+
+  @Prop()
+  confirmationToken?: string;
+
   createdAt?: Date;
   updatedAt?: Date;
 }

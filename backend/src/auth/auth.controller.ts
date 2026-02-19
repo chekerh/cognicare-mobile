@@ -38,13 +38,14 @@ import {
 } from './dto/verify-email.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { Public } from './decorators/public.decorator';
 import { ErrorResponseDto } from '../common/dto/error-response.dto';
 
 @ApiTags('auth')
 @Controller('auth')
 @UseGuards(ThrottlerGuard)
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('send-verification-code')
   @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 requests per minute
@@ -655,5 +656,18 @@ export class AuthController {
   ) {
     await this.authService.changeEmail(req.user.id, body.newEmail);
     return { message: 'Verification email sent to new address' };
+  }
+  @Public()
+  @Post('activate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Activate account with token',
+    description: 'Activate invited staff account and set password',
+  })
+  async activate(
+    @Body() body: { token: string; password: string },
+  ): Promise<{ message: string }> {
+    await this.authService.activateAccount(body.token, body.password);
+    return { message: 'Account activated successfully. You can now log in.' };
   }
 }

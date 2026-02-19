@@ -34,7 +34,7 @@ import { UpdateChildDto } from '../children/dto/update-child.dto';
 @Controller('organization')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class OrganizationController {
-  constructor(private readonly organizationService: OrganizationService) {}
+  constructor(private readonly organizationService: OrganizationService) { }
 
   // My Organization endpoints (uses logged-in user)
   @Get('my-organization')
@@ -347,16 +347,27 @@ export class OrganizationController {
   @Post('my-organization/staff/invite')
   @Roles('organization_leader')
   @ApiOperation({
-    summary: 'Invite an existing user to join as staff (pending approval)',
+    summary: 'Invite a new or existing user to join as staff',
   })
   async inviteStaff(
     @Request() req: any,
-    @Body() inviteUserDto: InviteUserDto,
+    @Body()
+    body: {
+      email: string;
+      fullName?: string;
+      phone?: string;
+      role?: string;
+    },
   ): Promise<{ message: string }> {
     return await this.organizationService.inviteMyUser(
       req.user.id as string,
-      inviteUserDto.email,
+      body.email,
       'staff',
+      {
+        fullName: body.fullName as string,
+        phone: body.phone,
+        role: body.role,
+      },
     );
   }
 

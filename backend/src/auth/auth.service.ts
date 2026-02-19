@@ -52,7 +52,7 @@ export class AuthService {
     private configService: ConfigService,
     private mailService: MailService,
     private organizationService: OrganizationService,
-  ) {}
+  ) { }
 
   private generateTokens(user: UserDocument) {
     const payload = {
@@ -74,11 +74,11 @@ export class AuthService {
   async signup(signupDto: SignupDto): Promise<
     | { accessToken: string; refreshToken: string; user: any }
     | {
-        requiresApproval: true;
-        message: string;
-        user: any;
-        pendingOrganization: any;
-      }
+      requiresApproval: true;
+      message: string;
+      user: any;
+      pendingOrganization: any;
+    }
   > {
     const {
       email,
@@ -228,6 +228,13 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Check if account is confirmed (Specialist invitation flow)
+    if (!user.isConfirmed) {
+      throw new UnauthorizedException(
+        'Your account is not confirmed. Please check your email and click the activation link to set your password.',
+      );
     }
 
     // Check if organization leader has pending approval
@@ -812,5 +819,21 @@ export class AuthService {
 
     // Note: Email is not updated yet. User must verify the code first.
     // You may want to add a separate endpoint to complete email change after verification.
+  }
+
+  async activateAccount(token: string, newPassword: string): Promise<void> {
+    const user = await this.userModel.findOne({ confirmationToken: token });
+    if (!user) {
+      throw new BadRequestException('Invalid or expired activation token');
+    }
+
+    // Hash new password
+    const saltRounds = 12;
+    const passwordHash = await bcrypt.hash(newPassword, saltRounds);
+
+    user.passwordHash = passwordHash;
+    user.isConfirmed = true;
+    user.confirmationToken = undefined;
+    await user.save();
   }
 }

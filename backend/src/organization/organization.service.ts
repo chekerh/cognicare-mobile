@@ -43,7 +43,7 @@ export class OrganizationService {
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     private mailService: MailService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async createOrganization(
     name: string,
@@ -791,11 +791,13 @@ export class OrganizationService {
     orgId: string,
     userEmail: string,
     invitationType: 'staff' | 'family',
+    userData?: { fullName: string; phone?: string; role?: string },
   ): Promise<{ message: string }> {
     console.log('[INVITE] Starting invitation process:', {
       orgId,
       userEmail,
       invitationType,
+      userData,
     });
 
     const org = await this.organizationModel.findById(orgId);
@@ -804,18 +806,41 @@ export class OrganizationService {
     }
 
     // Check if user exists
-    const user = await this.userModel.findOne({ email: userEmail });
-    if (!user) {
-      throw new NotFoundException('User with this email does not exist');
+    let user = await this.userModel.findOne({ email: userEmail });
+
+    // If user doesn't exist and it's a staff invitation, we create an unconfirmed user
+    if (!user && invitationType === 'staff') {
+      if (!userData || !userData.fullName || !userData.role) {
+        throw new BadRequestException(
+          'Full name and role are required to invite a new staff member',
+        );
+      }
+
+      console.log('[INVITE] Creating new unconfirmed user for staff invitation');
+      user = new this.userModel({
+        fullName: userData.fullName,
+        email: userEmail,
+        phone: userData.phone,
+        role: userData.role,
+        passwordHash: 'WILL_BE_SET_ON_CONFIRMATION', // Placeholder
+        isConfirmed: false,
+        organizationId: orgId,
+      });
+      await user.save();
+    } else if (!user) {
+      throw new NotFoundException(
+        'User with this email does not exist. Only existing users can be invited as family members currently.',
+      );
     }
 
-    console.log('[INVITE] User found:', {
+    console.log('[INVITE] User targeted:', {
       userId: user._id,
       email: user.email,
       role: user.role,
+      isConfirmed: user.isConfirmed,
     });
 
-    // Validate user role matches invitation type
+    // Validate user role matches invitation type (if user already exists with a different role)
     const staffRoles = [
       'doctor',
       'volunteer',
@@ -827,7 +852,7 @@ export class OrganizationService {
 
     if (invitationType === 'staff' && !staffRoles.includes(user.role)) {
       throw new BadRequestException(
-        `Cannot invite this user as staff. User role is '${user.role}'. Staff members must have one of these roles: doctor, volunteer, psychologist, speech_therapist, occupational_therapist, or other.`,
+        `Cannot invite this user as staff. User role is '${user.role}'. Staff members must have one of these roles: ${staffRoles.join(', ')}.`,
       );
     }
 
@@ -839,10 +864,10 @@ export class OrganizationService {
 
     // Check if user is already in the organization
     const isStaff = org.staffIds.some(
-      (id) => id.toString() === user._id.toString(),
+      (id) => id.toString() === user!._id.toString(),
     );
     const isFamily = org.familyIds.some(
-      (id) => id.toString() === user._id.toString(),
+      (id) => id.toString() === user!._id.toString(),
     );
 
     if (isStaff || isFamily) {
@@ -854,13 +879,13 @@ export class OrganizationService {
     // Check for existing pending invitation
     const existingInvitation = await this.invitationModel.findOne({
       organizationId: orgId,
-      userId: user._id,
+      userEmail: userEmail,
       status: 'pending',
     });
 
     if (existingInvitation) {
       throw new ConflictException(
-        'A pending invitation already exists for this user',
+        'A pending invitation already exists for this email',
       );
     }
 
@@ -881,22 +906,27 @@ export class OrganizationService {
 
     await invitation.save();
 
-    console.log('[INVITE] Invitation created:', {
+    // Store token on user as well for activation flow
+    user.confirmationToken = token;
+    await user.save();
+
+    console.log('[INVITE] Invitation created and token stored on user:', {
       invitationId: invitation._id,
-      token: token.substring(0, 8) + '...',
-      expiresAt: invitation.expiresAt,
+      userId: user._id,
     });
 
-    // Send email - ensure proper URL formatting
-    let baseUrl =
-      this.configService.get<string>('BACKEND_URL') || 'http://localhost:3000';
+    // Determine base URL for frontend activation page
+    // Using a separate config for dashboard URL would be ideal, falling back to BACKEND_URL
+    let dashboardUrl =
+      this.configService.get<string>('DASHBOARD_URL') ||
+      this.configService.get<string>('BACKEND_URL') ||
+      'http://localhost:3000';
 
-    // Remove trailing slash if present
-    baseUrl = baseUrl.replace(/\/$/, '');
+    dashboardUrl = dashboardUrl.replace(/\/$/, '');
 
-    // Build full URLs (global prefix 'api/v1' is already applied by NestJS)
-    const acceptUrl = `${baseUrl}/api/v1/organization/invitations/${token}/accept`;
-    const rejectUrl = `${baseUrl}/api/v1/organization/invitations/${token}/reject`;
+    // The specialist will confirm on the web dashboard
+    const activationUrl = `${dashboardUrl}/confirm-account?token=${token}`;
+    const rejectUrl = `${dashboardUrl}/reject-invitation?token=${token}`; // Minimal placeholder for now
 
     console.log('[INVITE] Sending email to:', userEmail);
 
@@ -904,7 +934,7 @@ export class OrganizationService {
       userEmail,
       org.name,
       invitationType,
-      acceptUrl,
+      activationUrl,
       rejectUrl,
     );
 
@@ -1045,6 +1075,7 @@ export class OrganizationService {
     leaderId: string,
     userEmail: string,
     invitationType: 'staff' | 'family',
+    userData?: { fullName: string; phone?: string; role?: string },
   ): Promise<{ message: string }> {
     const org = await this.getOrganizationByLeader(leaderId);
     if (!org) {
@@ -1054,6 +1085,7 @@ export class OrganizationService {
       org._id.toString(),
       userEmail,
       invitationType,
+      userData,
     );
   }
 
