@@ -11,9 +11,10 @@ import '../utils/constants.dart';
 /// Connects CallProvider on login, disconnects on logout, and navigates
 /// to CallScreen when an incoming call is received.
 class CallConnectionHandler extends StatefulWidget {
-  const CallConnectionHandler({super.key, required this.child});
+  const CallConnectionHandler({super.key, required this.child, this.router});
 
   final Widget child;
+  final GoRouter? router;
 
   @override
   State<CallConnectionHandler> createState() => _CallConnectionHandlerState();
@@ -45,17 +46,32 @@ class _CallConnectionHandlerState extends State<CallConnectionHandler> {
       if (!mounted) return;
       _callProvider.clearPendingIncoming();
       debugPrint('📞 [CALL_HANDLER] Navigation vers écran d\'appel...');
-      context.push(
-        AppConstants.callRoute,
-        extra: {
-          'channelId': call.channelId,
-          'remoteUserId': call.fromUserId,
-          'remoteUserName': call.fromUserName,
-          'isVideo': call.isVideo,
-          'isIncoming': true,
-          'incomingCall': call,
-        },
-      );
+      final r = widget.router;
+      if (r != null) {
+        r.push(
+          AppConstants.callRoute,
+          extra: {
+            'channelId': call.channelId,
+            'remoteUserId': call.fromUserId,
+            'remoteUserName': call.fromUserName,
+            'isVideo': call.isVideo,
+            'isIncoming': true,
+            'incomingCall': call,
+          },
+        );
+      } else {
+        context.push(
+          AppConstants.callRoute,
+          extra: {
+            'channelId': call.channelId,
+            'remoteUserId': call.fromUserId,
+            'remoteUserName': call.fromUserName,
+            'isVideo': call.isVideo,
+            'isIncoming': true,
+            'incomingCall': call,
+          },
+        );
+      }
     });
   }
 
