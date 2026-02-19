@@ -125,6 +125,35 @@ class ChildrenService {
     return list.map((e) => ChildModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
+  /// GET /organization/my-organization/children - for specialists
+  Future<List<ChildModel>> getOrganizationChildren() async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.organizationChildrenEndpoint}');
+    
+    print('🔍 ChildrenService - Requesting Org Children: $uri');
+    
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    
+    if (response.statusCode != 200) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to load organization children');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to load: ${response.statusCode}');
+      }
+    }
+    final list = jsonDecode(response.body) as List<dynamic>? ?? [];
+    return list.map((e) => ChildModel.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
   /// POST /children - add a child (family only).
   Future<ChildModel> addChild(AddChildDto dto) async {
     final token = await getToken();

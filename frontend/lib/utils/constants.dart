@@ -62,6 +62,7 @@ class AppConstants {
 
   // Children (family profile)
   static const String childrenEndpoint = '/api/v1/children';
+  static const String organizationChildrenEndpoint = '/api/v1/organization/my-organization/children';
 
   // Volunteers (application + documents)
   static const String volunteerApplicationEndpoint = '/api/v1/volunteers/application/me';
@@ -207,6 +208,8 @@ class AppConstants {
   static const String volunteerApplicationRoute = '/volunteer/application';
   static const String volunteerFormationsRoute = '/volunteer/formations';
   static const String coursesRoute = '/volunteer/courses';
+  static const String specialistRoute = '/specialist';
+  static const String specialistDashboardRoute = '/specialist/dashboard';
 
   // Healthcare professional sector routes (JWT-protected, role: healthcare)
   static const String healthcareRoute = '/healthcare';
@@ -240,5 +243,15 @@ class AppConstants {
     if (role == null) return false;
     final r = role.toLowerCase();
     return r == 'healthcare' || r == 'professional' || r == 'doctor';
+  }
+
+  static bool isSpecialistRole(String? role) {
+    if (role == null) return false;
+    final r = role.toLowerCase();
+    return r == 'psychologist' ||
+           r == 'speech_therapist' ||
+           r == 'occupational_therapist' ||
+           r == 'volunteer' ||
+           r == 'other';
   }
 }
