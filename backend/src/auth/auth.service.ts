@@ -835,5 +835,13 @@ export class AuthService {
     user.isConfirmed = true;
     user.confirmationToken = undefined;
     await user.save();
+
+    // Link user to organization and update invitation status
+    try {
+      await this.organizationService.acceptInvitation(token);
+    } catch (error) {
+      console.error('[ACTIVATE] Failed to link to organization:', error.message);
+      // We don't throw here to ensure password setup is preserved
+    }
   }
 }
