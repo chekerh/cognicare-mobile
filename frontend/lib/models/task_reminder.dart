@@ -37,6 +37,8 @@ class TaskReminder {
   final DateTime? updatedAt;
   final bool? completedToday;
   final DateTime? completedAt;
+  final String? verificationStatus;
+  final Map<String, dynamic>? verificationMetadata;
 
   TaskReminder({
     required this.id,
@@ -60,6 +62,8 @@ class TaskReminder {
     this.updatedAt,
     this.completedToday,
     this.completedAt,
+    this.verificationStatus,
+    this.verificationMetadata,
   });
 
   factory TaskReminder.fromJson(Map<String, dynamic> json) {
@@ -92,6 +96,8 @@ class TaskReminder {
       completedAt: json['completedAt'] != null
           ? DateTime.parse(json['completedAt'])
           : null,
+      verificationStatus: json['verificationStatus'],
+      verificationMetadata: json['verificationMetadata'],
     );
   }
 
@@ -112,6 +118,8 @@ class TaskReminder {
       'piSyncEnabled': piSyncEnabled,
       'isActive': isActive,
       'linkedNutritionPlanId': linkedNutritionPlanId,
+      'verificationStatus': verificationStatus,
+      'verificationMetadata': verificationMetadata,
     };
   }
 
@@ -175,6 +183,8 @@ class TaskReminder {
       updatedAt: updatedAt,
       completedToday: completedToday ?? this.completedToday,
       completedAt: completedAt ?? this.completedAt,
+      verificationStatus: verificationStatus ?? this.verificationStatus,
+      verificationMetadata: verificationMetadata ?? this.verificationMetadata,
     );
   }
 }

@@ -15,6 +15,8 @@ import {
 import { Child, ChildSchema } from '../children/schemas/child.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 
+import { HealthModule } from '../health/health.module';
+
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -23,9 +25,10 @@ import { User, UserSchema } from '../users/schemas/user.schema';
       { name: Child.name, schema: ChildSchema },
       { name: User.name, schema: UserSchema },
     ]),
+    HealthModule,
   ],
   controllers: [NutritionController, RemindersController],
   providers: [NutritionService, RemindersService],
   exports: [NutritionService, RemindersService],
 })
-export class NutritionModule {}
+export class NutritionModule { }

@@ -34,6 +34,7 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
   final ImagePicker _picker = ImagePicker();
   XFile? _capturedImage;
   bool _isSubmitting = false;
+  Map<String, dynamic>? _verificationResult;
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
@@ -104,7 +105,7 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
       );
 
       // Marquer la tâche comme complétée avec preuve photo
-      await remindersService.completeTaskWithProof(
+      final result = await remindersService.completeTaskWithProof(
         reminderId: widget.reminderId,
         completed: true,
         date: DateTime.now(),
@@ -113,17 +114,38 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
 
       if (!mounted) return;
 
-      // Message de succès
+      setState(() {
+        _isSubmitting = false;
+        _verificationResult = result['reminder']?['completionHistory']?.last;
+      });
+
+      // Message de succès ou d'avertissement selon le statut AI
+      final status = _verificationResult?['verificationStatus'];
+      String message = '✅ Médicament vérifié ! Bravo !';
+      Color bgColor = Colors.green;
+
+      if (status == 'UNCERTAIN') {
+        message = '⚠️ Vérification incertaine. Un spécialiste va vérifier.';
+        bgColor = Colors.orange;
+      } else if (status == 'INVALID') {
+        message = '❌ Médicament incorrect ou expiré. Attention !';
+        bgColor = Colors.red;
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Médicament vérifié ! Bravo !'),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: Text(message),
+          backgroundColor: bgColor,
           behavior: SnackBarBehavior.floating,
         ),
       );
 
-      // Retour avec succès
-      context.pop(true);
+      // On ne ferme pas tout de suite pour laisser voir le résultat AI
+      if (status == 'VALID') {
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) context.pop(true);
+        });
+      }
     } catch (e) {
       if (!mounted) return;
       
@@ -305,8 +327,7 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
                           
                           const SizedBox(height: 24),
                           
-                          // Submit button
-                          if (_capturedImage != null)
+                          if (_capturedImage != null && _verificationResult == null)
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
@@ -336,6 +357,9 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
                                 ),
                               ),
                             ),
+                          
+                          if (_verificationResult != null)
+                            _buildAIResultCard(),
                         ],
                       ),
                     ),
@@ -343,6 +367,110 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAIResultCard() {
+    final status = _verificationResult?['verificationStatus'];
+    final metadata = _verificationResult?['verificationMetadata'];
+    final reasoning = metadata?['reasoning'] ?? 'Analyse AI complétée.';
+
+    Color color;
+    IconData icon;
+    String statusTitle;
+
+    switch (status) {
+      case 'VALID':
+        color = Colors.green;
+        icon = Icons.check_circle;
+        statusTitle = 'Vérification Réussie';
+        break;
+      case 'UNCERTAIN':
+        color = Colors.orange;
+        icon = Icons.warning;
+        statusTitle = 'Vérification Incertaine';
+        break;
+      case 'INVALID':
+        color = Colors.red;
+        icon = Icons.error;
+        statusTitle = 'Médicament Invalide';
+        break;
+      default:
+        color = Colors.grey;
+        icon = Icons.help;
+        statusTitle = 'Statut Inconnu';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 24),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.3), width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 28),
+              const SizedBox(width: 12),
+              Text(
+                statusTitle,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            reasoning,
+            style: const TextStyle(
+              fontSize: 15,
+              color: Color(0xFF475569),
+              height: 1.5,
+            ),
+          ),
+          if (metadata != null) ...[
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 12),
+            _buildMetadataRow('Médicament:', metadata['medicineName'] ?? 'N/A'),
+            const SizedBox(height: 8),
+            _buildMetadataRow('Dosage:', metadata['dosage'] ?? 'N/A'),
+            const SizedBox(height: 8),
+            _buildMetadataRow('Expiration:', metadata['expiryDate'] ?? 'N/A'),
+          ],
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () => context.pop(true),
+              child: const Text('Fermer'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetadataRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+        ),
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
+        ),
+      ],
     );
   }
 

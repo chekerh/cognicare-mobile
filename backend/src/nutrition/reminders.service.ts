@@ -17,6 +17,8 @@ import { User, UserDocument } from '../users/schemas/user.schema';
 import { CreateTaskReminderDto } from './dto/create-task-reminder.dto';
 import { UpdateTaskReminderDto } from './dto/update-task-reminder.dto';
 import { CompleteTaskDto } from './dto/complete-task.dto';
+import { MedicationVerificationService } from '../health/medication-verification.service';
+import { ReminderType } from './schemas/task-reminder.schema';
 
 @Injectable()
 export class RemindersService {
@@ -25,7 +27,8 @@ export class RemindersService {
     private taskReminderModel: Model<TaskReminderDocument>,
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-  ) {}
+    private medicationVerificationService: MedicationVerificationService,
+  ) { }
 
   /**
    * Create a task reminder for a child
@@ -207,6 +210,22 @@ export class RemindersService {
         completedAt: dto.completed ? new Date() : undefined,
         proofImageUrl: proofImagePath,
       });
+    }
+
+    // Trigger AI verification if it's a medication task and has a proof image
+    if (reminder.type === ReminderType.MEDICATION && proofImagePath && dto.completed) {
+      const lastIndex = reminder.completionHistory.length - 1;
+      try {
+        const verificationResult = await this.medicationVerificationService.verifyMedication(
+          proofImagePath,
+          { title: reminder.title, description: reminder.description }
+        );
+
+        reminder.completionHistory[lastIndex].verificationStatus = verificationResult.status;
+        reminder.completionHistory[lastIndex].verificationMetadata = verificationResult.metadata;
+      } catch (error) {
+        console.error('AI Verification failed:', error);
+      }
     }
 
     await reminder.save();

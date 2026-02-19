@@ -80,6 +80,17 @@ export class TaskReminder {
         completed: Boolean,
         completedAt: Date,
         proofImageUrl: String,
+        verificationStatus: {
+          type: String,
+          enum: ['PENDING', 'VALID', 'UNCERTAIN', 'INVALID'],
+          default: 'PENDING'
+        },
+        verificationMetadata: {
+          medicineName: String,
+          dosage: String,
+          expiryDate: String,
+          reasoning: String
+        }
       },
     ],
     default: [],
@@ -89,6 +100,13 @@ export class TaskReminder {
     completed: boolean;
     completedAt?: Date;
     proofImageUrl?: string;
+    verificationStatus?: 'PENDING' | 'VALID' | 'UNCERTAIN' | 'INVALID';
+    verificationMetadata?: {
+      medicineName?: string;
+      dosage?: string;
+      expiryDate?: string;
+      reasoning?: string;
+    };
   }>;
 
   @Prop({ default: true })
