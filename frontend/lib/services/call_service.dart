@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../utils/constants.dart';
 import 'notification_service.dart';
 import 'notifications_feed_service.dart';
+
+// ─── Data classes ────────────────────────────────────────────────────
 
 /// Incoming call data from WebSocket signaling.
 class IncomingCall {
@@ -46,25 +49,47 @@ class IncomingMessageEvent {
   });
 }
 
+// ─── CallService (signaling) ─────────────────────────────────────────
+
 class CallService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   io.Socket? _socket;
   String? _userId;
+
+  // Call lifecycle streams
   final _incomingCallController = StreamController<IncomingCall>.broadcast();
   final _callAcceptedController = StreamController<String>.broadcast();
   final _callRejectedController = StreamController<void>.broadcast();
   final _callEndedController = StreamController<void>.broadcast();
   final _incomingMessageController =
       StreamController<IncomingMessageEvent>.broadcast();
+
+  // WebRTC signaling streams
+  final _remoteOfferController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  final _remoteAnswerController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  final _remoteIceCandidateController =
+      StreamController<Map<String, dynamic>>.broadcast();
+
   final NotificationsFeedService _notificationsFeedService =
       NotificationsFeedService();
 
+  // Call lifecycle
   Stream<IncomingCall> get onIncomingCall => _incomingCallController.stream;
   Stream<String> get onCallAccepted => _callAcceptedController.stream;
   Stream<void> get onCallRejected => _callRejectedController.stream;
   Stream<void> get onCallEnded => _callEndedController.stream;
   Stream<IncomingMessageEvent> get onIncomingMessage =>
       _incomingMessageController.stream;
+
+  // WebRTC signaling
+  Stream<Map<String, dynamic>> get onRemoteOffer =>
+      _remoteOfferController.stream;
+  Stream<Map<String, dynamic>> get onRemoteAnswer =>
+      _remoteAnswerController.stream;
+  Stream<Map<String, dynamic>> get onRemoteIceCandidate =>
+      _remoteIceCandidateController.stream;
 
   String get _baseUrl {
     final base = AppConstants.baseUrl.endsWith('/')
@@ -75,11 +100,6 @@ class CallService {
 
   Future<String?> _getToken() async {
     return await _storage.read(key: AppConstants.jwtTokenKey);
-  }
-
-  /// Nom de salle Jitsi à utiliser (meet.jit.si, gratuit, pas de clé).
-  static String jitsiRoomName(String channelId) {
-    return channelId.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
   }
 
   /// Connect to signaling WebSocket. Call when user logs in.
@@ -93,7 +113,8 @@ class CallService {
     _userId = userId;
     final token = await _getToken();
     if (token == null) {
-      debugPrint('📞 [CALL] ERREUR: Token null, impossible de se connecter au WebSocket');
+      debugPrint(
+          '📞 [CALL] ERREUR: Token null, impossible de se connecter au WebSocket');
       return;
     }
     debugPrint('📞 [CALL] Connexion WebSocket en cours...');
@@ -114,7 +135,10 @@ class CallService {
       debugPrint('📞 [CALL] WebSocket connecté pour userId=$userId');
     });
     _socket!.on('error', (e) => debugPrint('📞 [CALL] WebSocket error: $e'));
-    _socket!.onDisconnect((_) => debugPrint('📞 [CALL] WebSocket déconnecté'));
+    _socket!
+        .onDisconnect((_) => debugPrint('📞 [CALL] WebSocket déconnecté'));
+
+    // ─── Call lifecycle events ───
     _socket!.on('call:incoming', (data) {
       debugPrint('📞 [CALL] call:incoming reçu: $data');
       if (data is Map) {
@@ -127,8 +151,10 @@ class CallService {
       }
     });
     _socket!.on('call:accepted', (data) {
-      final channelId = data is Map ? (data['channelId'] ?? '').toString() : '';
-      debugPrint('📞 [CALL] call:accepted reçu channelId=$channelId');
+      final channelId =
+          data is Map ? (data['channelId'] ?? '').toString() : '';
+      debugPrint(
+          '📞 [CALL] call:accepted reçu channelId=$channelId');
       _callAcceptedController.add(channelId);
     });
     _socket!.on('call:rejected', (_) {
@@ -139,20 +165,46 @@ class CallService {
       debugPrint('📞 [CALL] call:ended reçu');
       _callEndedController.add(null);
     });
+
+    // ─── WebRTC signaling events ───
+    _socket!.on('webrtc:offer', (data) {
+      debugPrint('📞 [WEBRTC] offer reçu');
+      if (data is Map) {
+        _remoteOfferController.add(Map<String, dynamic>.from(data));
+      }
+    });
+    _socket!.on('webrtc:answer', (data) {
+      debugPrint('📞 [WEBRTC] answer reçu');
+      if (data is Map) {
+        _remoteAnswerController.add(Map<String, dynamic>.from(data));
+      }
+    });
+    _socket!.on('webrtc:ice-candidate', (data) {
+      debugPrint('📞 [WEBRTC] ice-candidate reçu');
+      if (data is Map) {
+        _remoteIceCandidateController
+            .add(Map<String, dynamic>.from(data));
+      }
+    });
+
+    // ─── Chat message events ───
     _socket!.on('message:new', (data) {
       debugPrint('📞 [CALL] message:new reçu: $data');
       if (data is Map) {
-        final senderName = (data['senderName'] ?? 'Quelqu\'un').toString();
+        final senderName =
+            (data['senderName'] ?? 'Quelqu\'un').toString();
         final senderId = (data['senderId'] ?? '').toString();
         final preview = (data['preview'] ?? '').toString();
         final text = data['text']?.toString();
         final attachmentUrl = data['attachmentUrl']?.toString();
         final attachmentType = data['attachmentType']?.toString();
-        final conversationId = (data['conversationId'] ?? '').toString();
+        final conversationId =
+            (data['conversationId'] ?? '').toString();
         final messageIdRaw = data['messageId'];
         final createdAtRaw = data['createdAt'];
-        final createdAt =
-            createdAtRaw != null ? DateTime.tryParse(createdAtRaw.toString()) : null;
+        final createdAt = createdAtRaw != null
+            ? DateTime.tryParse(createdAtRaw.toString())
+            : null;
         if (conversationId.isNotEmpty) {
           _incomingMessageController.add(
             IncomingMessageEvent(
@@ -168,7 +220,6 @@ class CallService {
             ),
           );
         }
-        // Save in notification center list so it appears in Notifications screen.
         _notificationsFeedService
             .createNotification(
               type: 'family_message',
@@ -194,15 +245,19 @@ class CallService {
     _userId = null;
   }
 
+  // ─── Call lifecycle methods ───
+
   void initiateCall({
     required String targetUserId,
     required String channelId,
     required bool isVideo,
     required String callerName,
   }) {
-    debugPrint('📞 [CALL] initiateCall targetUserId=$targetUserId channelId=$channelId isVideo=$isVideo socketConnected=${_socket?.connected}');
+    debugPrint(
+        '📞 [CALL] initiateCall targetUserId=$targetUserId channelId=$channelId isVideo=$isVideo socketConnected=${_socket?.connected}');
     if (_socket?.connected != true) {
-      debugPrint('📞 [CALL] ERREUR: Socket non connecté, call:initiate non envoyé!');
+      debugPrint(
+          '📞 [CALL] ERREUR: Socket non connecté, call:initiate non envoyé!');
     }
     _socket?.emit('call:initiate', {
       'targetUserId': targetUserId,
@@ -213,7 +268,8 @@ class CallService {
   }
 
   void acceptCall({required String fromUserId, required String channelId}) {
-    debugPrint('📞 [CALL] acceptCall fromUserId=$fromUserId channelId=$channelId socketConnected=${_socket?.connected}');
+    debugPrint(
+        '📞 [CALL] acceptCall fromUserId=$fromUserId channelId=$channelId socketConnected=${_socket?.connected}');
     _socket?.emit('call:accept', {
       'fromUserId': fromUserId,
       'channelId': channelId,
@@ -228,5 +284,43 @@ class CallService {
   void endCall(String targetUserId) {
     debugPrint('📞 [CALL] endCall targetUserId=$targetUserId');
     _socket?.emit('call:end', {'targetUserId': targetUserId});
+  }
+
+  // ─── WebRTC signaling methods ───
+
+  void sendOffer({
+    required String targetUserId,
+    required RTCSessionDescription sdp,
+  }) {
+    debugPrint('📞 [WEBRTC] sendOffer to=$targetUserId');
+    _socket?.emit('webrtc:offer', {
+      'targetUserId': targetUserId,
+      'sdp': sdp.sdp,
+      'type': sdp.type,
+    });
+  }
+
+  void sendAnswer({
+    required String targetUserId,
+    required RTCSessionDescription sdp,
+  }) {
+    debugPrint('📞 [WEBRTC] sendAnswer to=$targetUserId');
+    _socket?.emit('webrtc:answer', {
+      'targetUserId': targetUserId,
+      'sdp': sdp.sdp,
+      'type': sdp.type,
+    });
+  }
+
+  void sendIceCandidate({
+    required String targetUserId,
+    required RTCIceCandidate candidate,
+  }) {
+    _socket?.emit('webrtc:ice-candidate', {
+      'targetUserId': targetUserId,
+      'candidate': candidate.candidate,
+      'sdpMid': candidate.sdpMid,
+      'sdpMLineIndex': candidate.sdpMLineIndex,
+    });
   }
 }
