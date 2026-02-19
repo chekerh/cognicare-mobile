@@ -8,9 +8,9 @@ export class CallsController {
   @ApiOperation({
     summary: 'Call config check',
     description:
-      'App uses Jitsi Meet for voice/video; signaling is via WebSocket.',
+      'App uses WebRTC for peer-to-peer voice/video; signaling is via WebSocket (Socket.IO).',
   })
   checkConfig() {
-    return { provider: 'jitsi', signaling: 'websocket' };
+    return { provider: 'webrtc', signaling: 'websocket' };
   }
 }

@@ -169,6 +169,80 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  // ─── WebRTC Signaling ──────────────────────────────────────────────
+
+  @SubscribeMessage('webrtc:offer')
+  handleWebRTCOffer(
+    client: SocketWithUserId,
+    payload: { targetUserId: string; sdp: string; type: string },
+  ) {
+    if (!client.userId) return;
+    this.logger.log(
+      `[WEBRTC] offer from=${client.userId} to=${payload.targetUserId}`,
+    );
+    const sockets = userIdToSocket.get(payload.targetUserId);
+    if (sockets) {
+      for (const sid of sockets) {
+        const s = this.server.sockets.sockets.get(sid);
+        if (s)
+          s.emit('webrtc:offer', {
+            fromUserId: client.userId,
+            sdp: payload.sdp,
+            type: payload.type,
+          });
+      }
+    }
+  }
+
+  @SubscribeMessage('webrtc:answer')
+  handleWebRTCAnswer(
+    client: SocketWithUserId,
+    payload: { targetUserId: string; sdp: string; type: string },
+  ) {
+    if (!client.userId) return;
+    this.logger.log(
+      `[WEBRTC] answer from=${client.userId} to=${payload.targetUserId}`,
+    );
+    const sockets = userIdToSocket.get(payload.targetUserId);
+    if (sockets) {
+      for (const sid of sockets) {
+        const s = this.server.sockets.sockets.get(sid);
+        if (s)
+          s.emit('webrtc:answer', {
+            fromUserId: client.userId,
+            sdp: payload.sdp,
+            type: payload.type,
+          });
+      }
+    }
+  }
+
+  @SubscribeMessage('webrtc:ice-candidate')
+  handleWebRTCIceCandidate(
+    client: SocketWithUserId,
+    payload: {
+      targetUserId: string;
+      candidate: string;
+      sdpMid: string;
+      sdpMLineIndex: number;
+    },
+  ) {
+    if (!client.userId) return;
+    const sockets = userIdToSocket.get(payload.targetUserId);
+    if (sockets) {
+      for (const sid of sockets) {
+        const s = this.server.sockets.sockets.get(sid);
+        if (s)
+          s.emit('webrtc:ice-candidate', {
+            fromUserId: client.userId,
+            candidate: payload.candidate,
+            sdpMid: payload.sdpMid,
+            sdpMLineIndex: payload.sdpMLineIndex,
+          });
+      }
+    }
+  }
+
   /** Emit message:new to a user (for in-app notifications when they receive a chat message). */
   emitMessageNew(
     targetUserId: string,
