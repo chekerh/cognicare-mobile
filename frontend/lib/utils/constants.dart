@@ -1,8 +1,8 @@
 class AppConstants {
   // API Configuration
-  /// URL du backend utilisée par défaut (sans --dart-define). Modifie ici si tu changes d'hébergeur.
+  /// URL du backend - MODE LOCAL (pour tester sans Render)
   static const String productionBaseUrl = 'https://cognicare-mobile-h4ct.onrender.com';
-  /// Par défaut l'app utilise productionBaseUrl. Pour le dev local : flutter run --dart-define=BASE_URL=http://127.0.0.1:3000
+  /// Par défaut l'app utilise localhost. Pour Render : changez en 'https://cognicare-mobile-h4ct.onrender.com'
   static String get baseUrl {
     const raw = String.fromEnvironment(
       'BASE_URL',

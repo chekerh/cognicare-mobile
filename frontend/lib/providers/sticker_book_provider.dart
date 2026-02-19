@@ -30,17 +30,15 @@ class StickerBookProvider with ChangeNotifier {
   /// Nombre total de parties gagnées (tous jeux, chaque victoire compte).
   int get tasksCompletedCount => _totalTasksCompleted;
 
-  /// Nombre de stickers débloqués : les 12 premières victoires donnent un sticker chacune.
-  int get unlockedCount => _totalTasksCompleted.clamp(0, kTotalStickers);
+  /// Nombre de stickers débloqués : TOUS DÉBLOQUÉS pour l'utilisateur
+  int get unlockedCount => kTotalStickers;
 
   int get stickersEarnedToday => _stickersEarnedToday;
   int get totalStickers => kTotalStickers;
 
-  bool isUnlocked(int index) => index >= 0 && index < unlockedCount;
-  bool isUnlockedById(String stickerId) {
-    final i = kStickerDefinitions.indexWhere((s) => s.id == stickerId);
-    return i >= 0 && isUnlocked(i);
-  }
+  /// Tous les stickers sont déverrouillés par défaut
+  bool isUnlocked(int index) => true;
+  bool isUnlockedById(String stickerId) => true;
 
   /// Progression vers la prochaine récompense (Super Hero Pack) : jusqu’à 16 tâches.
   int get nextRewardTarget => kNextRewardTarget;
