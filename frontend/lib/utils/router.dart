@@ -139,6 +139,7 @@ String? _redirect(BuildContext context, GoRouterState state) {
   }
 
   // Protéger les routes healthcare : seul le rôle "healthcare" / "professional" peut y accéder
+  if (location.startsWith(AppConstants.healthcareRoute) && !AppConstants.isHealthcareRole(role)) {
     if (AppConstants.isFamilyRole(role)) return AppConstants.familyDashboardRoute;
     if (AppConstants.isVolunteerRole(role)) return AppConstants.volunteerDashboardRoute;
     if (AppConstants.isOrganizationLeaderRole(role)) return AppConstants.organizationDashboardRoute;
@@ -418,9 +419,6 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               conversationId: extra?['conversationId'],
             );
           },
-        ),
-      ],
-    ),
         ),
       ],
     ),

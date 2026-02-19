@@ -25,12 +25,12 @@ import 'services/notification_service.dart';
 
 const String _themeIdKey = 'app_theme_id';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService().initialize();
-  final prefs = await SharedPreferences.getInstance();
-  final savedThemeId = prefs.getString(_themeIdKey);
-  runZonedGuarded(() {
+void main() {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await NotificationService().initialize();
+    final prefs = await SharedPreferences.getInstance();
+    final savedThemeId = prefs.getString(_themeIdKey);
     runApp(CogniCareApp(initialThemeId: savedThemeId));
   }, (error, stack) {
     // Voice playback errors from audioplayers (e.g. 404 on Render) are already

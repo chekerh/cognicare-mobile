@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -19,52 +20,87 @@ class CallConnectionHandler extends StatefulWidget {
 }
 
 class _CallConnectionHandlerState extends State<CallConnectionHandler> {
+  String? _connectedUserId;
+  StreamSubscription<IncomingCall>? _incomingSub;
+  late CallProvider _callProvider;
+
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void initState() {
+    super.initState();
+    _callProvider = Provider.of<CallProvider>(context, listen: false);
+    // Attach listener once and keep it active
+    _incomingSub = _callProvider.service.onIncomingCall.listen(_handleIncomingCall);
+  }
+
+  void _handleIncomingCall(IncomingCall call) {
+    if (!mounted) return;
+    debugPrint(
+        '📞 [CALL_HANDLER] Appel entrant reçu! fromUserId=${call.fromUserId} fromUserName=${call.fromUserName} channelId=${call.channelId}');
+    
+    // Store pending for UI
+    _callProvider.setPendingIncoming(call);
+    
+    // Navigate to call screen after the current frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final auth = Provider.of<AuthProvider>(context, listen: false);
-      final callProvider = Provider.of<CallProvider>(context, listen: false);
-      if (auth.isAuthenticated && auth.user != null) {
-        debugPrint('📞 [CALL_HANDLER] Utilisateur connecté, connexion WebSocket userId=${auth.user!.id}');
-        callProvider.connect(auth.user!.id);
-      } else {
-        debugPrint('📞 [CALL_HANDLER] Utilisateur non connecté, déconnexion WebSocket');
-        callProvider.disconnect();
-      }
+      _callProvider.clearPendingIncoming();
+      debugPrint('📞 [CALL_HANDLER] Navigation vers écran d\'appel...');
+      context.push(
+        AppConstants.callRoute,
+        extra: {
+          'channelId': call.channelId,
+          'remoteUserId': call.fromUserId,
+          'remoteUserName': call.fromUserName,
+          'isVideo': call.isVideo,
+          'isIncoming': true,
+          'incomingCall': call,
+        },
+      );
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: Provider.of<CallProvider>(context),
-      builder: (context, _) {
-        final callProvider = Provider.of<CallProvider>(context, listen: false);
-        final pending = callProvider.pendingIncoming;
-        if (pending != null && context.mounted) {
-          debugPrint('📞 [CALL_HANDLER] Appel entrant reçu! fromUserId=${pending.fromUserId} fromUserName=${pending.fromUserName} channelId=${pending.channelId}');
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            callProvider.clearPendingIncoming();
-            if (context.mounted) {
-              debugPrint('📞 [CALL_HANDLER] Navigation vers écran d\'appel...');
-              context.push(
-                AppConstants.callRoute,
-                extra: {
-                  'channelId': pending.channelId,
-                  'remoteUserId': pending.fromUserId,
-                  'remoteUserName': pending.fromUserName,
-                  'isVideo': pending.isVideo,
-                  'isIncoming': true,
-                  'incomingCall': pending,
-                },
-              );
-            }
-          });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final auth = Provider.of<AuthProvider>(context);
+
+    if (auth.isAuthenticated && auth.user != null) {
+      final uid = auth.user!.id;
+      if (_connectedUserId != uid) {
+        _connectedUserId = uid;
+        debugPrint(
+            '📞 [CALL_HANDLER] Utilisateur connecté, connexion WebSocket userId=$uid');
+        
+        // Wrap in post-frame to avoid build exceptions
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _connectedUserId == uid) {
+            _callProvider.connect(uid);
+          }
+        });
+      }
+    } else if (_connectedUserId != null) {
+      debugPrint(
+          '📞 [CALL_HANDLER] Utilisateur déconnecté, déconnexion WebSocket');
+      final lastId = _connectedUserId;
+      _connectedUserId = null;
+      
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Only disconnect if we are still logged out
+        if (mounted && _connectedUserId == null) {
+          _callProvider.disconnect();
         }
-        return widget.child;
-      },
-    );
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _incomingSub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

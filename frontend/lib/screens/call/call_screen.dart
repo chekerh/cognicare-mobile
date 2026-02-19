@@ -110,6 +110,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           _listenForWebRTCSignaling();
         } else {
           _listenForResponse();
+          _listenForEnd();
           _listenForWebRTCSignaling();
           _startNoAnswerTimer();
         }

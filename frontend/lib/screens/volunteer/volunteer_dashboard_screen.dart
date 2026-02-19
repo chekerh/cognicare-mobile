@@ -69,7 +69,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
     });
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final list = await ChildrenService(getToken: () async => authProvider.token).getOrganizationChildren();
+      final list = await ChildrenService(getToken: () async => authProvider.accessToken).getOrganizationChildren();
       if (!mounted) return;
       setState(() {
         _children = list;
