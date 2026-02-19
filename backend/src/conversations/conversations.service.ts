@@ -370,6 +370,7 @@ export class ConversationsService {
       createdAt: (m as any).createdAt,
       attachmentUrl: (m as any).attachmentUrl,
       attachmentType: (m as any).attachmentType,
+      callDuration: (m as any).callDuration,
     }));
   }
 
@@ -427,7 +428,8 @@ export class ConversationsService {
     userId: string,
     text: string,
     attachmentUrl?: string,
-    attachmentType?: 'image' | 'voice' | 'call_missed',
+    attachmentType?: 'image' | 'voice' | 'call_missed' | 'call_summary',
+    callDuration?: number,
   ) {
     const conv = await this.conversationModel.findById(conversationId).exec();
     if (!conv) throw new NotFoundException('Conversation not found');
@@ -448,6 +450,7 @@ export class ConversationsService {
       text: encryptedText,
       ...(attachmentUrl && { attachmentUrl }),
       ...(attachmentType && { attachmentType }),
+      ...(callDuration !== undefined && { callDuration }),
     });
     const timeAgo = formatTimeAgo(new Date());
     if (isGroup) {
@@ -508,6 +511,7 @@ export class ConversationsService {
         text,
         attachmentUrl,
         attachmentType,
+        callDuration,
         conversationId: recipientConversationId,
         messageId: created._id.toString(),
         createdAt: (created as { createdAt?: Date }).createdAt?.toISOString?.(),

@@ -38,7 +38,7 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private jwtService: JwtService,
     private config: ConfigService,
-  ) {}
+  ) { }
 
   handleConnection(client: SocketWithUserId) {
     this.logger.log(`[CALL] Connexion socket client.id=${client.id}`);
@@ -243,6 +243,27 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('chat:typing')
+  handleChatTyping(
+    client: SocketWithUserId,
+    payload: { targetUserId: string; conversationId: string; isTyping: boolean },
+  ) {
+    if (!client.userId) return;
+    const sockets = userIdToSocket.get(payload.targetUserId);
+    if (sockets) {
+      for (const sid of sockets) {
+        const s = this.server.sockets.sockets.get(sid);
+        if (s) {
+          s.emit('chat:typing', {
+            userId: client.userId,
+            conversationId: payload.conversationId,
+            isTyping: payload.isTyping,
+          });
+        }
+      }
+    }
+  }
+
   /** Emit message:new to a user (for in-app notifications when they receive a chat message). */
   emitMessageNew(
     targetUserId: string,
@@ -252,7 +273,8 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       preview: string;
       text?: string;
       attachmentUrl?: string;
-      attachmentType?: 'image' | 'voice' | 'call_missed';
+      attachmentType?: 'image' | 'voice' | 'call_missed' | 'call_summary';
+      callDuration?: number;
       conversationId: string;
       messageId?: string;
       createdAt?: string;

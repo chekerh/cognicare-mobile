@@ -332,13 +332,44 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   }
 
   void _hangUp() {
+    final finalDuration = _callDuration;
+    final wasConnected = _callStatus == CallStatus.connected;
+
     _callService.endCall(widget.remoteUserId);
     _cleanup();
     if (mounted) {
       setState(() => _callStatus = CallStatus.ended);
+
+      // If call was connected, send a summary message to chat
+      if (wasConnected && widget.remoteUserId.isNotEmpty) {
+        _sendCallSummaryMessage(finalDuration);
+      }
+
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) context.pop();
       });
+    }
+  }
+
+  Future<void> _sendCallSummaryMessage(Duration duration) async {
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      if (auth.user == null || widget.remoteUserId.isEmpty) return;
+      final chatService = ChatService(
+        getToken: () async =>
+            auth.accessToken ?? await AuthService().getStoredToken(),
+      );
+      final conv =
+          await chatService.getOrCreateConversation(widget.remoteUserId);
+      final text = widget.isVideo ? 'Appel vidéo' : 'Appel vocal';
+      await chatService.sendMessage(
+        conv.id,
+        text,
+        attachmentType: 'call_summary',
+        callDuration: duration.inSeconds,
+      );
+    } catch (e) {
+      debugPrint('📞 [CALL_SCREEN] Error sending call summary: $e');
     }
   }
 
@@ -412,11 +443,12 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       final conv =
           await chatService.getOrCreateConversation(widget.remoteUserId);
       final text =
-          widget.isVideo ? 'Appel vidéo manqué' : 'Appel vocal manqué';
+          widget.isVideo ? 'Appel vidéo' : 'Appel vocal';
       await chatService.sendMessage(
         conv.id,
         text,
         attachmentType: 'call_missed',
+        callDuration: 0,
       );
     } catch (_) {}
   }

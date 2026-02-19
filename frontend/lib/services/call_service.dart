@@ -33,6 +33,7 @@ class IncomingMessageEvent {
   final String? text;
   final String? attachmentUrl;
   final String? attachmentType;
+  final int? callDuration;
   final String? messageId;
   final DateTime? createdAt;
 
@@ -44,8 +45,21 @@ class IncomingMessageEvent {
     this.text,
     this.attachmentUrl,
     this.attachmentType,
+    this.callDuration,
     this.messageId,
     this.createdAt,
+  });
+}
+
+class TypingEvent {
+  final String userId;
+  final String conversationId;
+  final bool isTyping;
+
+  TypingEvent({
+    required this.userId,
+    required this.conversationId,
+    required this.isTyping,
   });
 }
 
@@ -63,6 +77,7 @@ class CallService {
   final _callEndedController = StreamController<void>.broadcast();
   final _incomingMessageController =
       StreamController<IncomingMessageEvent>.broadcast();
+  final _typingController = StreamController<TypingEvent>.broadcast();
 
   // WebRTC signaling streams
   final _remoteOfferController =
@@ -82,6 +97,7 @@ class CallService {
   Stream<void> get onCallEnded => _callEndedController.stream;
   Stream<IncomingMessageEvent> get onIncomingMessage =>
       _incomingMessageController.stream;
+  Stream<TypingEvent> get onTyping => _typingController.stream;
 
   // WebRTC signaling
   Stream<Map<String, dynamic>> get onRemoteOffer =>
@@ -207,6 +223,10 @@ class CallService {
         final text = data['text']?.toString();
         final attachmentUrl = data['attachmentUrl']?.toString();
         final attachmentType = data['attachmentType']?.toString();
+        final callDurationRaw = data['callDuration'];
+        final callDuration = callDurationRaw != null
+            ? int.tryParse(callDurationRaw.toString())
+            : null;
         final conversationId =
             (data['conversationId'] ?? '').toString();
         final messageIdRaw = data['messageId'];
@@ -224,6 +244,7 @@ class CallService {
               text: text,
               attachmentUrl: attachmentUrl,
               attachmentType: attachmentType,
+              callDuration: callDuration,
               messageId: messageIdRaw?.toString(),
               createdAt: createdAt,
             ),
@@ -243,6 +264,16 @@ class CallService {
           senderName: senderName,
           preview: preview.isNotEmpty ? preview : 'Nouveau message',
         );
+      }
+    });
+
+    _socket!.on('chat:typing', (data) {
+      if (data is Map) {
+        _typingController.add(TypingEvent(
+          userId: (data['userId'] ?? '').toString(),
+          conversationId: (data['conversationId'] ?? '').toString(),
+          isTyping: data['isTyping'] == true,
+        ));
       }
     });
   }
@@ -333,6 +364,18 @@ class CallService {
       'candidate': candidate.candidate,
       'sdpMid': candidate.sdpMid,
       'sdpMLineIndex': candidate.sdpMLineIndex,
+    });
+  }
+
+  void sendTypingStatus({
+    required String targetUserId,
+    required String conversationId,
+    required bool isTyping,
+  }) {
+    _socket?.emit('chat:typing', {
+      'targetUserId': targetUserId,
+      'conversationId': conversationId,
+      'isTyping': isTyping,
     });
   }
 }
