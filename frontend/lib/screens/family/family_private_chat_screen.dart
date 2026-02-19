@@ -129,8 +129,12 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       if (!mounted) return;
       final cid = _conversationId;
       if (cid == null) return;
-      if (evt.conversationId != cid) return;
-      _loadMessages();
+      if (evt.conversationId != cid) {
+        debugPrint('💬 [CHAT] Event conversationId mismatch: ${evt.conversationId} != $cid');
+        return;
+      }
+      debugPrint('💬 [CHAT] Real-time message received, reloading...');
+      _loadMessages(silent: true);
     });
   }
 
@@ -166,7 +170,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       setState(() {
         _conversationId = conv.id;
       });
-      await _loadMessages();
+      await _loadMessages(silent: true);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -178,13 +182,15 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     }
   }
 
-  Future<void> _loadMessages() async {
+  Future<void> _loadMessages({bool silent = false}) async {
     final cid = _conversationId;
     if (cid == null) return;
-    setState(() {
-      _loading = true;
-      _loadError = null;
-    });
+    if (!silent) {
+      setState(() {
+        _loading = true;
+        _loadError = null;
+      });
+    }
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final currentUserId = auth.user?.id;

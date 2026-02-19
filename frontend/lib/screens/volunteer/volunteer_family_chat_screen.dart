@@ -112,18 +112,24 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       if (!mounted) return;
       final cid = _conversationId;
       if (cid == null || cid.isEmpty) return;
-      if (evt.conversationId != cid) return;
-      _loadMessagesDirect();
+      if (evt.conversationId != cid) {
+        debugPrint('💬 [VOLUNTEER_CHAT] Event conversationId mismatch: ${evt.conversationId} != $cid');
+        return;
+      }
+      debugPrint('💬 [VOLUNTEER_CHAT] Real-time message received, reloading...');
+      _loadMessagesDirect(silent: true);
     });
   }
 
-  Future<void> _loadMessagesDirect() async {
+  Future<void> _loadMessagesDirect({bool silent = false}) async {
     final cid = _conversationId;
     if (cid == null) return;
-    setState(() {
-      _loading = true;
-      _loadError = null;
-    });
+    if (!silent) {
+      setState(() {
+        _loading = true;
+        _loadError = null;
+      });
+    }
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final currentUserId = auth.user?.id;
@@ -163,11 +169,13 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     }
   }
 
-  Future<void> _resolveAndLoadMessages() async {
-    setState(() {
-      _loading = true;
-      _loadError = null;
-    });
+  Future<void> _resolveAndLoadMessages({bool silent = false}) async {
+    if (!silent) {
+      setState(() {
+        _loading = true;
+        _loadError = null;
+      });
+    }
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final currentUserId = auth.user?.id;

@@ -142,11 +142,20 @@ class CallService {
     _socket!.on('call:incoming', (data) {
       debugPrint('📞 [CALL] call:incoming reçu: $data');
       if (data is Map) {
+        final callerName = (data['fromUserName'] ?? 'Appelant').toString();
+        final isVideo = data['isVideo'] == true;
+        
+        // Show local notification for visibility
+        NotificationService().showIncomingCall(
+          callerName: callerName,
+          isVideo: isVideo,
+        );
+
         _incomingCallController.add(IncomingCall(
           fromUserId: (data['fromUserId'] ?? '').toString(),
-          fromUserName: (data['fromUserName'] ?? 'Appelant').toString(),
+          fromUserName: callerName,
           channelId: (data['channelId'] ?? '').toString(),
-          isVideo: data['isVideo'] == true,
+          isVideo: isVideo,
         ));
       }
     });
@@ -283,6 +292,9 @@ class CallService {
 
   void endCall(String targetUserId) {
     debugPrint('📞 [CALL] endCall targetUserId=$targetUserId');
+    if (kDebugMode) {
+      debugPrint('📞 [CALL] endCall stack: ${StackTrace.current}');
+    }
     _socket?.emit('call:end', {'targetUserId': targetUserId});
   }
 
