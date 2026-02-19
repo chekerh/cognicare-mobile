@@ -916,11 +916,11 @@ export class OrganizationService {
     });
 
     // Determine base URL for frontend activation page
-    // Using a separate config for dashboard URL would be ideal, falling back to BACKEND_URL
+    // Using a separate config for dashboard URL would be ideal
     let dashboardUrl =
       this.configService.get<string>('DASHBOARD_URL') ||
-      this.configService.get<string>('BACKEND_URL') ||
-      'http://localhost:3000';
+      this.configService.get<string>('FRONTEND_URL') ||
+      'http://localhost:5173'; // Default to Vite port
 
     dashboardUrl = dashboardUrl.replace(/\/$/, '');
 
@@ -1095,6 +1095,44 @@ export class OrganizationService {
       throw new NotFoundException('Organization not found');
     }
     return this.getPendingInvitations(org._id.toString());
+  }
+
+  async cancelInvitation(
+    invitationId: string,
+    leaderId: string,
+  ): Promise<{ message: string }> {
+    const org = await this.getOrganizationByLeader(leaderId);
+    if (!org) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    const invitation = await this.invitationModel.findOne({
+      _id: invitationId,
+      organizationId: org._id,
+      status: 'pending',
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found or not pending');
+    }
+
+    // If it's a staff invitation, we might also want to clear the token on the user
+    // especially if they were newly created (unconfirmed)
+    const user = await this.userModel.findById(invitation.userId);
+    if (
+      user &&
+      !user.isConfirmed &&
+      user.confirmationToken === invitation.token
+    ) {
+      user.confirmationToken = undefined;
+      await user.save();
+    }
+
+    // Mark as cancelled
+    invitation.status = 'cancelled' as any;
+    await invitation.save();
+
+    return { message: 'Invitation cancelled successfully' };
   }
 
   // Pending Organization Methods

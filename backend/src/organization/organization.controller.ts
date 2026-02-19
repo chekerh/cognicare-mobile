@@ -351,22 +351,16 @@ export class OrganizationController {
   })
   async inviteStaff(
     @Request() req: any,
-    @Body()
-    body: {
-      email: string;
-      fullName?: string;
-      phone?: string;
-      role?: string;
-    },
+    @Body() inviteUserDto: InviteUserDto,
   ): Promise<{ message: string }> {
     return await this.organizationService.inviteMyUser(
       req.user.id as string,
-      body.email,
+      inviteUserDto.email,
       'staff',
       {
-        fullName: body.fullName as string,
-        phone: body.phone,
-        role: body.role,
+        fullName: inviteUserDto.fullName as string,
+        phone: inviteUserDto.phone,
+        role: inviteUserDto.role,
       },
     );
   }
@@ -392,6 +386,16 @@ export class OrganizationController {
   @ApiOperation({ summary: 'Get all pending invitations for my organization' })
   async getMyInvitations(@Request() req: any) {
     return await this.organizationService.getMyPendingInvitations(
+      req.user.id as string,
+    );
+  }
+
+  @Delete('my-organization/invitations/:id')
+  @Roles('organization_leader')
+  @ApiOperation({ summary: 'Cancel a pending invitation' })
+  async cancelInvitation(@Request() req: any, @Param('id') id: string) {
+    return await this.organizationService.cancelInvitation(
+      id,
       req.user.id as string,
     );
   }
