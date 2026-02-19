@@ -15,6 +15,7 @@ class ChatMessageBar extends StatelessWidget {
     this.sending = false,
     this.isRecording = false,
     this.recordingDuration,
+    this.onChanged,
   });
 
   final TextEditingController controller;
@@ -23,6 +24,7 @@ class ChatMessageBar extends StatelessWidget {
   final VoidCallback? onEmojiTap;
   final VoidCallback? onVoiceTap;
   final VoidCallback? onPhotoTap;
+  final ValueChanged<String>? onChanged;
   final bool sending;
   final bool isRecording;
   final Duration? recordingDuration;
@@ -116,6 +118,7 @@ class ChatMessageBar extends StatelessWidget {
                         textCapitalization: TextCapitalization.sentences,
                         maxLines: null,
                         onSubmitted: (_) => _submit(context),
+                        onChanged: onChanged,
                       ),
                     ),
                   ],

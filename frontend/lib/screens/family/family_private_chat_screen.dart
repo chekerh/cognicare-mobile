@@ -34,6 +34,9 @@ class _Msg {
   final String? attachmentUrl;
   final String? attachmentType;
 
+  final String? attachmentType;
+  final int? callDuration;
+
   const _Msg({
     required this.text,
     required this.isMe,
@@ -41,6 +44,7 @@ class _Msg {
     this.read = false,
     this.attachmentUrl,
     this.attachmentType,
+    this.callDuration,
   });
 }
 
@@ -83,7 +87,12 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   Timer? _recordingTimer;
   String? _currentRecordPath;
   String? _playingVoiceUrl;
+  String? _playingVoiceUrl;
   StreamSubscription<IncomingMessageEvent>? _incomingMessageSub;
+  StreamSubscription<TypingEvent>? _typingSub;
+  bool _isRemoteTyping = false;
+  Timer? _typingTimer;
+  Timer? _remoteTypingTimer;
 
   void _scrollToBottom({bool animated = true}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -135,6 +144,22 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       }
       debugPrint('💬 [CHAT] Real-time message received, reloading...');
       _loadMessages(silent: true);
+    });
+
+    _typingSub?.cancel();
+    _typingSub = callProvider.service.onTyping.listen((evt) {
+      if (!mounted) return;
+      if (evt.conversationId != _conversationId || evt.userId != widget.personId) return;
+      
+      setState(() => _isRemoteTyping = evt.isTyping);
+      
+      // Auto-clear typing indicator after 5 seconds if no stop event received
+      _remoteTypingTimer?.cancel();
+      if (evt.isTyping) {
+        _remoteTypingTimer = Timer(const Duration(seconds: 5), () {
+          if (mounted) setState(() => _isRemoteTyping = false);
+        });
+      }
     });
   }
 
@@ -207,6 +232,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
             read: false,
             attachmentUrl: m.attachmentUrl,
             attachmentType: m.attachmentType,
+            callDuration: m.callDuration,
           );
         }).toList();
         _loading = false;
@@ -252,6 +278,9 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   @override
   void dispose() {
     _incomingMessageSub?.cancel();
+    _typingSub?.cancel();
+    _typingTimer?.cancel();
+    _remoteTypingTimer?.cancel();
     _recordingTimer?.cancel();
     if (_isRecording) _recorder.stop().ignore();
     _recorder.dispose();
@@ -445,6 +474,35 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     }
   }
 
+    }
+  }
+
+  void _onTypingChanged() {
+    if (_conversationId == null) return;
+    _typingTimer?.cancel();
+    
+    // Emit "typing" status
+    final callProvider = Provider.of<CallProvider>(context, listen: false);
+    callProvider.service.sendTypingStatus(
+      targetUserId: widget.personId,
+      conversationId: _conversationId!,
+      isTyping: _controller.text.isNotEmpty,
+    );
+
+    // Stop typing after 2s of inactivity
+    if (_controller.text.isNotEmpty) {
+      _typingTimer = Timer(const Duration(seconds: 2), () {
+        if (mounted) {
+           callProvider.service.sendTypingStatus(
+            targetUserId: widget.personId,
+            conversationId: _conversationId!,
+            isTyping: false,
+          );
+        }
+      });
+    }
+  }
+
   Future<void> _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
@@ -552,11 +610,12 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                           controller: _scrollController,
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                           children: [
-                            _buildDateSeparator(),
-                            const SizedBox(height: 24),
-                            ..._messages.map((m) => _buildBubble(m)),
-                          ],
-                        ),
+                             _buildDateSeparator(),
+                             const SizedBox(height: 24),
+                             ..._messages.map((m) => _buildBubble(m)),
+                             if (_isRemoteTyping) _buildTypingIndicator(),
+                           ],
+                         ),
             ),
           ),
           ChatMessageBar(
@@ -568,6 +627,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
             onPhotoTap: _onPhotoTap,
             isRecording: _isRecording,
             recordingDuration: _recordingDuration,
+            onChanged: (val) => _onTypingChanged(),
           ),
         ],
       ),
@@ -843,13 +903,21 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
-                                          msg.text,
+                                          'Appel manqué',
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: msg.isMe ? Colors.white : _textPrimary,
                                           ),
                                         ),
                                       ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      msg.text, // "Appel vocal" or "Appel vidéo"
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: msg.isMe ? Colors.white70 : _textMuted,
+                                      ),
                                     ),
                                     const SizedBox(height: 8),
                                     TextButton(
@@ -858,11 +926,58 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                                         minimumSize: Size.zero,
                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        backgroundColor: msg.isMe ? Colors.white24 : Colors.grey.shade100,
                                       ),
-                                      child: Text('Rappeler', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _primary)),
+                                      child: Text('Rappeler', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: msg.isMe ? Colors.white : _primary)),
                                     ),
                                   ],
                                 )
+                           : msg.attachmentType == 'call_summary'
+                               ? Column(
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   mainAxisSize: MainAxisSize.min,
+                                   children: [
+                                     Row(
+                                       mainAxisSize: MainAxisSize.min,
+                                       children: [
+                                         Icon(
+                                           msg.text.contains('vidéo') ? Icons.videocam : Icons.call,
+                                           color: msg.isMe ? Colors.white70 : _primary,
+                                           size: 22,
+                                         ),
+                                         const SizedBox(width: 8),
+                                         Text(
+                                           msg.text,
+                                           style: TextStyle(
+                                             fontSize: 14,
+                                             color: msg.isMe ? Colors.white : _textPrimary,
+                                           ),
+                                         ),
+                                       ],
+                                     ),
+                                     if (msg.callDuration != null && msg.callDuration! > 0) ...[
+                                       const SizedBox(height: 2),
+                                       Text(
+                                         _formatDuration(msg.callDuration!),
+                                         style: TextStyle(
+                                           fontSize: 12,
+                                           color: msg.isMe ? Colors.white70 : _textMuted,
+                                         ),
+                                       ),
+                                     ],
+                                     const SizedBox(height: 8),
+                                     TextButton(
+                                       onPressed: () => _initiateCall(context, msg.text.contains('vidéo')),
+                                       style: TextButton.styleFrom(
+                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                         minimumSize: Size.zero,
+                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                         backgroundColor: msg.isMe ? Colors.white24 : Colors.grey.shade100,
+                                       ),
+                                       child: Text('Rappeler', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: msg.isMe ? Colors.white : _primary)),
+                                     ),
+                                   ],
+                                 )
                           : Text(
                               msg.text,
                               style: TextStyle(
@@ -909,4 +1024,66 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     );
   }
 
+  String _formatDuration(int seconds) {
+    if (seconds <= 0) return "";
+    final mins = seconds ~/ 60;
+    final secs = seconds % 60;
+    if (mins > 0) {
+      return '$mins min et $secs s';
+    } else {
+      return '$secs s';
+    }
+  }
+
+  Widget _buildTypingIndicator() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          _avatar(),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+                bottomLeft: Radius.circular(4),
+                bottomRight: Radius.circular(16),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 6,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 12,
+                  height: 12,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: _primary),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'En train d\'écrire...',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _textMuted,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
