@@ -6,16 +6,16 @@ export type EmailVerificationDocument = EmailVerification & Document;
 @Schema({ timestamps: true })
 export class EmailVerification {
   @Prop({ required: true })
-  email: string;
+  email!: string;
 
   @Prop({ required: true })
-  code: string;
+  code!: string;
 
   @Prop({ required: true })
-  expiresAt: Date;
+  expiresAt!: Date;
 
   @Prop({ default: false })
-  verified: boolean;
+  verified!: boolean;
 
   createdAt?: Date;
   updatedAt?: Date;

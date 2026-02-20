@@ -327,12 +327,9 @@ export class OrgScanAiController {
     // Download PDF from Cloudinary
     let pdfBuffer: Buffer;
     try {
-      const response = await axios.get<ArrayBuffer>(
-        pendingOrg.certificateUrl as string,
-        {
-          responseType: 'arraybuffer',
-        },
-      );
+      const response = await axios.get<ArrayBuffer>(pendingOrg.certificateUrl, {
+        responseType: 'arraybuffer',
+      });
       pdfBuffer = Buffer.from(response.data);
     } catch {
       throw new BadRequestException(
@@ -346,7 +343,7 @@ export class OrgScanAiController {
       pdfBuffer,
       email: pendingOrg.leaderEmail,
       websiteDomain: undefined,
-      originalPdfPath: pendingOrg.certificateUrl as string,
+      originalPdfPath: pendingOrg.certificateUrl,
     });
 
     return {

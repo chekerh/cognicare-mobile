@@ -76,4 +76,4 @@ import { SpecializedPlansModule } from './specialized-plans/specialized-plans.mo
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

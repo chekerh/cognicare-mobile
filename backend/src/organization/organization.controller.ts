@@ -34,7 +34,7 @@ import { UpdateChildDto } from '../children/dto/update-child.dto';
 @Controller('organization')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class OrganizationController {
-  constructor(private readonly organizationService: OrganizationService) { }
+  constructor(private readonly organizationService: OrganizationService) {}
 
   // My Organization endpoints (uses logged-in user)
   @Get('my-organization')

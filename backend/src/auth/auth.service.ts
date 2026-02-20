@@ -55,7 +55,6 @@ export class AuthService {
     private organizationService: OrganizationService,
     private readonly fraudAnalysisService: FraudAnalysisService,
   ) {}
-  ) { }
 
   private generateTokens(user: UserDocument) {
     const payload = {
@@ -80,11 +79,11 @@ export class AuthService {
   ): Promise<
     | { accessToken: string; refreshToken: string; user: any }
     | {
-      requiresApproval: true;
-      message: string;
-      user: any;
-      pendingOrganization: any;
-    }
+        requiresApproval: true;
+        message: string;
+        user: any;
+        pendingOrganization: any;
+      }
   > {
     const {
       email,
@@ -903,18 +902,29 @@ export class AuthService {
     user.confirmationToken = undefined;
     await user.save();
 
-    console.log(`[ACTIVATE] User ${user.email} confirmed. Linking to organization...`);
+    console.log(
+      `[ACTIVATE] User ${user.email} confirmed. Linking to organization...`,
+    );
 
     // Link user to organization and update invitation status
     // We throw error here if link fails to notify the user/frontend
     try {
       await this.organizationService.acceptInvitation(token);
-      console.log(`[ACTIVATE] Success: Joined organization for token ${token.substring(0, 10)}...`);
-    } catch (error) {
-      console.error(`[ACTIVATE] Error linking to organization for token ${token.substring(0, 10)}...:`, error.message);
+      console.log(
+        `[ACTIVATE] Success: Joined organization for token ${token.substring(0, 10)}...`,
+      );
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      console.error(
+        `[ACTIVATE] Error linking to organization for token ${token.substring(0, 10)}...:`,
+        errorMessage,
+      );
       // If invitation is not found but user already has organizationId, it might be already processed
       if (!user.organizationId) {
-        throw new BadRequestException(`Password set, but failed to join organization: ${error.message}`);
+        throw new BadRequestException(
+          `Password set, but failed to join organization: ${errorMessage}`,
+        );
       }
     }
   }

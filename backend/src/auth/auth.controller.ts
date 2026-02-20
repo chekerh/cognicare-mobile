@@ -46,7 +46,7 @@ import { ErrorResponseDto } from '../common/dto/error-response.dto';
 @Controller('auth')
 @UseGuards(ThrottlerGuard)
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('send-verification-code')
   @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 requests per minute

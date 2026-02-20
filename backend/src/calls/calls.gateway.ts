@@ -38,7 +38,7 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private jwtService: JwtService,
     private config: ConfigService,
-  ) { }
+  ) {}
 
   handleConnection(client: SocketWithUserId) {
     this.logger.log(`[CALL] Connexion socket client.id=${client.id}`);
@@ -246,7 +246,11 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('chat:typing')
   handleChatTyping(
     client: SocketWithUserId,
-    payload: { targetUserId: string; conversationId: string; isTyping: boolean },
+    payload: {
+      targetUserId: string;
+      conversationId: string;
+      isTyping: boolean;
+    },
   ) {
     if (!client.userId) return;
     const sockets = userIdToSocket.get(payload.targetUserId);

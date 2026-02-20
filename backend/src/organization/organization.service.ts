@@ -43,7 +43,7 @@ export class OrganizationService {
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     private mailService: MailService,
     private configService: ConfigService,
-  ) { }
+  ) {}
 
   async createOrganization(
     name: string,
@@ -819,7 +819,9 @@ export class OrganizationService {
         );
       }
 
-      console.log('[INVITE] Creating new unconfirmed user for staff invitation');
+      console.log(
+        '[INVITE] Creating new unconfirmed user for staff invitation',
+      );
       user = new this.userModel({
         fullName: userData.fullName,
         email: userEmail,
@@ -867,10 +869,10 @@ export class OrganizationService {
 
     // Check if user is already in the organization
     const isStaff = org.staffIds.some(
-      (id) => id.toString() === user!._id.toString(),
+      (id) => id.toString() === user._id.toString(),
     );
     const isFamily = org.familyIds.some(
-      (id) => id.toString() === user!._id.toString(),
+      (id) => id.toString() === user._id.toString(),
     );
 
     if (isStaff || isFamily) {
@@ -949,7 +951,9 @@ export class OrganizationService {
   async acceptInvitation(
     token: string,
   ): Promise<{ message: string; organizationName: string }> {
-    console.log(`[ACCEPT] Processing invitation with token: ${token.substring(0, 10)}...`);
+    console.log(
+      `[ACCEPT] Processing invitation with token: ${token.substring(0, 10)}...`,
+    );
 
     const invitation = await this.invitationModel.findOne({
       token,
@@ -961,16 +965,22 @@ export class OrganizationService {
     }
 
     if (invitation.status !== 'pending') {
-      console.log(`[ACCEPT] Invitation already processed: ${invitation.status}`);
+      console.log(
+        `[ACCEPT] Invitation already processed: ${invitation.status}`,
+      );
       // If it's already accepted, we can just return success to avoid blocking activation flow
       if (invitation.status === 'accepted') {
-        const org = await this.organizationModel.findById(invitation.organizationId);
+        const org = await this.organizationModel.findById(
+          invitation.organizationId,
+        );
         return {
           message: 'Invitation already accepted',
           organizationName: org?.name || 'Organization',
         };
       }
-      throw new BadRequestException(`Invitation is already ${invitation.status}`);
+      throw new BadRequestException(
+        `Invitation is already ${invitation.status}`,
+      );
     }
 
     if (invitation.expiresAt < new Date()) {
@@ -981,7 +991,9 @@ export class OrganizationService {
     const userId = invitation.userId;
 
     if (!orgId || !userId) {
-      throw new BadRequestException('Invalid invitation data: Missing organization or user ID');
+      throw new BadRequestException(
+        'Invalid invitation data: Missing organization or user ID',
+      );
     }
 
     const org = await this.organizationModel.findById(orgId);
@@ -997,7 +1009,9 @@ export class OrganizationService {
     // Determine invitation type from either field
     const effectiveType = invitation.invitationType || (invitation as any).type;
 
-    console.log(`[ACCEPT] Invitation found. Type: ${effectiveType}, User: ${user.email}, Org: ${org.name}`);
+    console.log(
+      `[ACCEPT] Invitation found. Type: ${effectiveType}, User: ${user.email}, Org: ${org.name}`,
+    );
 
     // Validate user role still matches invitation type
     const staffRoles = [
@@ -1027,12 +1041,12 @@ export class OrganizationService {
     if (effectiveType === 'staff') {
       if (!org.staffIds.some((id) => id.toString() === user._id.toString())) {
         org.staffIds.push(user._id);
-        console.log(`[ACCEPT] Added user ${user._id} to staffIds`);
+        console.log(`[ACCEPT] Added user ${user._id.toString()} to staffIds`);
       }
     } else {
       if (!org.familyIds.some((id) => id.toString() === user._id.toString())) {
         org.familyIds.push(user._id);
-        console.log(`[ACCEPT] Added user ${user._id} to familyIds`);
+        console.log(`[ACCEPT] Added user ${user._id.toString()} to familyIds`);
       }
 
       // Link family's children to organization
@@ -1055,7 +1069,9 @@ export class OrganizationService {
             org.childrenIds.push(child._id);
           }
         }
-        console.log(`[ACCEPT] Linked ${existingChildren.length} children to organization`);
+        console.log(
+          `[ACCEPT] Linked ${existingChildren.length} children to organization`,
+        );
       }
     }
 
@@ -1065,7 +1081,9 @@ export class OrganizationService {
     user.organizationId = orgId.toString();
     await user.save();
 
-    console.log(`[ACCEPT] User ${user.email} successfully linked to organization ${org.name}`);
+    console.log(
+      `[ACCEPT] User ${user.email} successfully linked to organization ${org.name}`,
+    );
 
     // Update invitation status
     invitation.status = 'accepted';
@@ -1149,7 +1167,9 @@ export class OrganizationService {
     // if they were newly created (unconfirmed) and not yet linked to anything else
     const user = await this.userModel.findById(invitation.userId);
     if (user && !user.isConfirmed) {
-      console.log('[CANCEL] Deleting unconfirmed user associated with invitation');
+      console.log(
+        '[CANCEL] Deleting unconfirmed user associated with invitation',
+      );
       await this.userModel.findByIdAndDelete(user._id);
     }
 
