@@ -17,35 +17,42 @@ export class SpecializedPlansService {
     @InjectModel(SpecializedPlan.name)
     private planModel: Model<SpecializedPlanDocument>,
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
-  ) {}
+  ) { }
 
   async createPlan(
     specialistId: string,
-    organizationId: string,
+    organizationId: string | undefined,
     data: {
       childId: string;
-      type: 'PECS' | 'TEACCH';
+      type: 'PECS' | 'TEACCH' | 'SkillTracker';
       title: string;
       content: any;
     },
   ): Promise<SpecializedPlan> {
-    // Verify child belongs to organization
+    // Verify child exists
     const child = await this.childModel.findById(data.childId);
     if (!child) throw new NotFoundException('Child not found');
 
-    if (child.organizationId?.toString() !== organizationId) {
-      throw new ForbiddenException(
-        'Child does not belong to your organization',
-      );
+    // If org-linked, verify child belongs to same org
+    if (organizationId && child.organizationId) {
+      if (child.organizationId.toString() !== organizationId) {
+        throw new ForbiddenException(
+          'Child does not belong to your organization',
+        );
+      }
     }
 
-    const plan = new this.planModel({
+    const planData: any = {
       ...data,
       specialistId: new Types.ObjectId(specialistId),
-      organizationId: new Types.ObjectId(organizationId),
       childId: new Types.ObjectId(data.childId),
-    });
+    };
 
+    if (organizationId) {
+      planData.organizationId = new Types.ObjectId(organizationId);
+    }
+
+    const plan = new this.planModel(planData);
     return await plan.save();
   }
 
