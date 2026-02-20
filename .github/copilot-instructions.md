@@ -140,11 +140,38 @@ async uploadPostImage(
   return { imageUrl };
 }
 ```
-
-**Cloudinary configuration** (optional, gracefully degrades if missing):
+**PDF upload validation** (from [auth.controller.ts](../backend/src/auth/auth.controller.ts#L218)):
+```typescript
+// Organization leader signup requires PDF certificate
+if (signupDto.role === 'organization_leader') {
+  if (!certificate) throw new BadRequestException('Certificate PDF required');
+  
+  // Validate mimetype
+  if (certificate.mimetype !== 'application/pdf') {
+    throw new BadRequestException(`Certificate must be PDF (received ${certificate.mimetype})`);
+  }
+  
+  // Validate PDF magic bytes (file signature)
+  const pdfHeader = certificate.buffer.toString('utf8', 0, 5);
+  if (!pdfHeader.startsWith('%PDF-')) {
+    throw new BadRequestException(
+      'Invalid PDF file. Does not have valid PDF header. Ensure genuine PDF document.'
+    );
+  }
+  
+  // Validate file size (max 10MB)
+  const maxSize = 10 * 1024 * 1024;
+  if (certificate.size > maxSize) {
+    throw new BadRequestException(`PDF too large (${(certificate.size/1024/1024).toFixed(2)}MB). Max 10MB.`);
+  }
+}
+```
+**Cloudinary configuration** (REQUIRED for organization creation, optional for other features):
 - Requires `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` env vars
+- **CRITICAL**: Organization leader signup REQUIRES PDF certificate upload to Cloudinary - signup will fail without Cloudinary configured
 - Service checks `isConfigured()` before attempting uploads
-- If not configured, upload endpoints will fail - document this for users
+- Optional for: community post images, profile pictures, donation images (gracefully degrades)
+- Required for: organization certificates (PDF - mandatory for org leader signup)
 
 **Local file serving** (from [main.ts](../backend/src/main.ts#L21-L24)):
 ```typescript
@@ -239,9 +266,9 @@ MAIL_FROM=verified@yourdomain.com      # Must be verified in SendGrid
 BCRYPT_ROUNDS=12                       # Password hashing cost
 THROTTLE_TTL=60000                     # Rate limit window (ms)
 THROTTLE_LIMIT=10                      # Max requests per window
-CLOUDINARY_CLOUD_NAME=your-cloud       # Optional
-CLOUDINARY_API_KEY=your-api-key        # Optional
-CLOUDINARY_API_SECRET=your-api-secret  # Optional
+CLOUDINARY_CLOUD_NAME=your-cloud       # REQUIRED for organization certificate uploads, optional for general images
+CLOUDINARY_API_KEY=your-api-key        # REQUIRED for organization certificate uploads, optional for general images
+CLOUDINARY_API_SECRET=your-api-secret  # REQUIRED for organization certificate uploads, optional for general images
 PAYPAL_CLIENT_ID=your-paypal-client-id          # Optional - for payment processing
 PAYPAL_CLIENT_SECRET=your-paypal-secret         # Optional - for payment processing
 GEMINI_API_KEY=your-gemini-api-key              # Required for orgScanAi fraud detection
@@ -768,4 +795,4 @@ try {
 
 9. **Physical device testing**: Change `baseUrl` in constants.dart to host machine IP. Backend must bind to `0.0.0.0`.
 
-10. **File uploads**: Cloudinary optional - service gracefully degrades. Document missing credentials for users.
+10. **Cloudinary for organization creation**: While Cloudinary is optional for general image uploads (community posts, profiles) and service gracefully degrades, it is **REQUIRED** for organization leader signup. Organization certificate PDF upload is mandatory and uses Cloudinary. Without Cloudinary configured, organization_leader signup will fail.

@@ -21,7 +21,7 @@ export class SpecializedPlan {
   title!: string;
 
   @Prop({ type: Object })
-  content!: any; // Structured data based on type (boards or goals)
+  content!: any;
 
   @Prop({ default: 'active', enum: ['active', 'archived'] })
   status!: 'active' | 'archived';

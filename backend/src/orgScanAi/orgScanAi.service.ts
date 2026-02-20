@@ -1,13 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { PDFParse } = require('pdf-parse') as {
-  PDFParse: new (opts: { data: Buffer }) => {
-    getText: () => Promise<{ text: string }>;
-    destroy: () => Promise<void>;
-  };
-};
 import * as fs from 'fs';
+
+// pdf-parse type definition
+type PDFParseResult = {
+  text: string;
+};
+type PDFParseClass = new (options: { data: Buffer }) => {
+  getText: () => Promise<PDFParseResult>;
+  destroy: () => Promise<void>;
+};
 
 // Timeout for Gemini requests (30 seconds - compatible with Render free tier)
 const GEMINI_TIMEOUT = 30000;
@@ -33,6 +35,35 @@ export class OrgScanAiService {
   private readonly geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${this.geminiModel}:generateContent`;
 
   /**
+   * Lazy load pdf-parse class (CommonJS module)
+   */
+  private async getPdfParseClass(): Promise<PDFParseClass> {
+    try {
+      const importedModule = await import('pdf-parse');
+      const candidates = [
+        (importedModule as any).PDFParse,
+        (importedModule as any).default?.PDFParse,
+        (importedModule as any).default?.default?.PDFParse,
+        (importedModule as any).default,
+        importedModule,
+      ];
+      const pdfParseClass = candidates.find(
+        (candidate) =>
+          typeof candidate === 'function' &&
+          typeof candidate.prototype?.getText === 'function',
+      ) as PDFParseClass | undefined;
+      if (!pdfParseClass) {
+        throw new Error('pdf-parse module did not export PDFParse class');
+      }
+      return pdfParseClass;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to load pdf-parse module: ${message}`);
+      throw new Error(`PDF parser initialization failed: ${message}`);
+    }
+  }
+
+  /**
    * Extract text content from a PDF file
    * @param filePath - Path to the PDF file
    * @returns Extracted text content
@@ -40,11 +71,21 @@ export class OrgScanAiService {
   async extractText(filePath: string): Promise<string> {
     try {
       const dataBuffer = fs.readFileSync(filePath);
+      this.logger.log(
+        `Extracting text from PDF file: ${filePath} (${dataBuffer.length} bytes)`,
+      );
+      const PDFParse = await this.getPdfParseClass();
       const parser = new PDFParse({ data: dataBuffer });
-      const result = await parser.getText();
-      await parser.destroy();
-      this.logger.log(`Successfully extracted text from PDF: ${filePath}`);
-      return result.text;
+      let data: PDFParseResult;
+      try {
+        data = await parser.getText();
+      } finally {
+        await parser.destroy();
+      }
+      this.logger.log(
+        `Successfully extracted ${data.text.length} characters from PDF`,
+      );
+      return data.text;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`Failed to extract text from PDF: ${message}`);
@@ -59,11 +100,21 @@ export class OrgScanAiService {
    */
   async extractTextFromBuffer(buffer: Buffer): Promise<string> {
     try {
+      this.logger.log(
+        `Extracting text from PDF buffer (${buffer.length} bytes)`,
+      );
+      const PDFParse = await this.getPdfParseClass();
       const parser = new PDFParse({ data: buffer });
-      const result = await parser.getText();
-      await parser.destroy();
-      this.logger.log('Successfully extracted text from PDF buffer');
-      return result.text;
+      let data: PDFParseResult;
+      try {
+        data = await parser.getText();
+      } finally {
+        await parser.destroy();
+      }
+      this.logger.log(
+        `Successfully extracted ${data.text.length} characters from PDF`,
+      );
+      return data.text;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`Failed to extract text from buffer: ${message}`);

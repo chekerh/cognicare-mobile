@@ -137,6 +137,25 @@ export class AuthService {
     // Delete the verification record
     await this.emailVerificationModel.deleteOne({ email });
 
+    // For organization leaders, check if there's a previously rejected application
+    if (userData.role === 'organization_leader') {
+      const rejectedOrg = await this.pendingOrganizationModel
+        .findOne({
+          leaderEmail: email,
+          status: 'rejected',
+        })
+        .sort({ createdAt: -1 });
+
+      if (rejectedOrg) {
+        const reason =
+          rejectedOrg.rejectionReason ||
+          'Not specified. Please contact support for details.';
+        throw new BadRequestException(
+          `A previous organization application from this email was rejected. Reason: ${reason}. Please contact support if you believe this is an error.`,
+        );
+      }
+    }
+
     // Hash password
     const saltRounds = 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
@@ -329,6 +348,21 @@ export class AuthService {
           pendingOrg ? 'YES' : 'NO',
         );
 
+        // Debug: Check ALL pending orgs for this user
+        const allPendingOrgs = await this.pendingOrganizationModel.find({
+          requestedBy: user._id,
+        });
+        console.log(
+          '[LOGIN] All pending orgs for user:',
+          allPendingOrgs.length,
+        );
+        if (allPendingOrgs.length > 0) {
+          console.log(
+            '[LOGIN] Pending org statuses:',
+            allPendingOrgs.map((org) => org.status),
+          );
+        }
+
         if (pendingOrg) {
           throw new UnauthorizedException(
             'Your organization request is pending approval. You will receive an email notification once your request is reviewed.',
@@ -347,10 +381,43 @@ export class AuthService {
           '[LOGIN] Rejected organization found:',
           rejectedOrg ? 'YES' : 'NO',
         );
+        console.log('[LOGIN] User ID being checked:', String(user._id));
+        console.log(
+          '[LOGIN] Query criteria:',
+          JSON.stringify({
+            requestedBy: String(user._id),
+            status: 'rejected',
+          }),
+        );
 
         if (rejectedOrg) {
+          const reason =
+            rejectedOrg.rejectionReason ||
+            'Not specified. Please contact support for more details.';
           throw new UnauthorizedException(
-            `Your organization request was rejected. Reason: ${rejectedOrg.rejectionReason || 'Not specified'}`,
+            `Your organization request was rejected. Reason: ${reason}. You cannot log in with this account.`,
+          );
+        }
+
+        // Also check by email (in case user account was deleted and recreated)
+        const rejectedByEmail = await this.pendingOrganizationModel
+          .findOne({
+            leaderEmail: user.email,
+            status: 'rejected',
+          })
+          .sort({ createdAt: -1 });
+
+        console.log(
+          '[LOGIN] Rejected organization by email found:',
+          rejectedByEmail ? 'YES' : 'NO',
+        );
+
+        if (rejectedByEmail) {
+          const reason =
+            rejectedByEmail.rejectionReason ||
+            'Not specified. Please contact support for more details.';
+          throw new UnauthorizedException(
+            `Your organization request was rejected. Reason: ${reason}. You cannot log in with this account. If you believe this is an error, please contact support.`,
           );
         }
 

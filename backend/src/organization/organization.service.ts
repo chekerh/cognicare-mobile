@@ -1248,6 +1248,14 @@ export class OrganizationService {
       .sort({ createdAt: -1 });
   }
 
+  async getReviewedOrganizations(): Promise<PendingOrganization[]> {
+    return this.pendingOrganizationModel
+      .find({ status: { $in: ['approved', 'rejected'] } })
+      .populate('requestedBy', 'fullName email')
+      .populate('reviewedBy', 'fullName email')
+      .sort({ reviewedAt: -1 });
+  }
+
   async reviewOrganization(
     requestId: string,
     adminId: string,
@@ -1329,6 +1337,137 @@ export class OrganizationService {
         message: 'Organization request rejected',
       };
     }
+  }
+
+  async reReviewOrganization(
+    requestId: string,
+    adminId: string,
+    decision: 'approved' | 'rejected',
+    rejectionReason?: string,
+  ): Promise<{ message: string; organization?: Organization }> {
+    const pendingOrg = await this.pendingOrganizationModel.findById(requestId);
+
+    if (!pendingOrg) {
+      throw new NotFoundException('Organization request not found');
+    }
+
+    if (pendingOrg.status === 'pending') {
+      throw new BadRequestException(
+        'Use the regular review endpoint for pending requests',
+      );
+    }
+
+    const user = await this.userModel.findOne({
+      email: pendingOrg.leaderEmail,
+    });
+
+    // If changing from rejected to approved
+    if (pendingOrg.status === 'rejected' && decision === 'approved') {
+      // Check if user still exists, if not create new one
+      const targetUser = user;
+      if (!targetUser) {
+        // User was deleted, need to recreate (admin should handle this separately)
+        throw new BadRequestException(
+          'User account was deleted. Please create a new organization invitation for this user.',
+        );
+      }
+
+      // Check if organization already exists
+      const existingOrg = await this.organizationModel.findOne({
+        leaderId: targetUser._id,
+      });
+
+      if (existingOrg) {
+        throw new BadRequestException(
+          'User already has an approved organization',
+        );
+      }
+
+      // Create the organization
+      const newOrg = await this.createOrganization(
+        pendingOrg.organizationName,
+        targetUser._id.toString(),
+        pendingOrg.certificateUrl,
+      );
+
+      // Update user's organizationId
+      targetUser.organizationId = newOrg._id.toString();
+      await targetUser.save();
+
+      // Update pending request
+      pendingOrg.status = 'approved';
+      pendingOrg.reviewedBy = new Types.ObjectId(adminId);
+      pendingOrg.reviewedAt = new Date();
+      pendingOrg.organizationId = newOrg._id;
+      pendingOrg.rejectionReason = undefined;
+      await pendingOrg.save();
+
+      // Send approval email
+      try {
+        await this.mailService.sendOrganizationApproved(
+          targetUser.email,
+          pendingOrg.organizationName,
+          targetUser.fullName,
+        );
+      } catch (error) {
+        console.error('Failed to send organization approved email:', error);
+      }
+
+      return {
+        message: 'Organization approved successfully after re-review',
+        organization: newOrg,
+      };
+    }
+
+    // If changing from approved to rejected
+    if (pendingOrg.status === 'approved' && decision === 'rejected') {
+      // Find and delete the organization
+      if (pendingOrg.organizationId) {
+        const org = await this.organizationModel.findById(
+          pendingOrg.organizationId,
+        );
+        if (org) {
+          // Remove organizationId from all users
+          await this.userModel.updateMany(
+            { organizationId: org._id.toString() },
+            { $unset: { organizationId: '' } },
+          );
+
+          // Delete organization
+          await this.organizationModel.findByIdAndDelete(org._id);
+        }
+      }
+
+      // Update pending request
+      pendingOrg.status = 'rejected';
+      pendingOrg.reviewedBy = new Types.ObjectId(adminId);
+      pendingOrg.reviewedAt = new Date();
+      pendingOrg.rejectionReason = rejectionReason;
+      pendingOrg.organizationId = undefined;
+      await pendingOrg.save();
+
+      // Send rejection email if user exists
+      if (user) {
+        try {
+          await this.mailService.sendOrganizationRejected(
+            user.email,
+            pendingOrg.organizationName,
+            user.fullName,
+            rejectionReason,
+          );
+        } catch (error) {
+          console.error('Failed to send organization rejected email:', error);
+        }
+      }
+
+      return {
+        message: 'Organization rejected successfully after re-review',
+      };
+    }
+
+    throw new BadRequestException(
+      'Invalid re-review decision or status combination',
+    );
   }
 
   async getUserPendingOrganization(
@@ -1544,6 +1683,344 @@ export class OrganizationService {
 
     invitation.status = 'rejected';
     await invitation.save();
+  }
+
+  // Admin: Change organization leader
+  async changeOrganizationLeader(
+    orgId: string,
+    newLeaderEmail: string,
+  ): Promise<OrganizationDocument> {
+    const org = await this.organizationModel.findById(orgId);
+    if (!org) throw new NotFoundException('Organization not found');
+
+    const newLeader = await this.userModel.findOne({ email: newLeaderEmail });
+    if (!newLeader) {
+      throw new NotFoundException('User with this email not found');
+    }
+
+    if (org.leaderId && org.leaderId.toString() === newLeader._id.toString()) {
+      throw new BadRequestException('This user is already the leader');
+    }
+
+    // Unlink old leader from org
+    if (org.leaderId) {
+      await this.userModel.findByIdAndUpdate(org.leaderId, {
+        $unset: { organizationId: '' },
+      });
+    }
+
+    // Link new leader to org
+    await this.userModel.findByIdAndUpdate(newLeader._id, {
+      organizationId: orgId,
+      role: 'organization_leader',
+    });
+
+    org.leaderId = newLeader._id as any;
+    await org.save();
+
+    return (await this.organizationModel
+      .findById(orgId)
+      .populate('leaderId', 'fullName email')) as OrganizationDocument;
+  }
+
+  // Admin: Get all families
+  async adminGetAllFamilies(): Promise<unknown[]> {
+    return await this.userModel.aggregate([
+      { $match: { role: 'family' } },
+      {
+        $lookup: {
+          from: 'children',
+          localField: '_id',
+          foreignField: 'parentId',
+          as: '_children',
+        },
+      },
+      {
+        $lookup: {
+          from: 'organizations',
+          localField: 'organizationId',
+          foreignField: '_id',
+          as: '_org',
+        },
+      },
+      {
+        $addFields: {
+          childCount: { $size: '$_children' },
+          organizationId: { $arrayElemAt: ['$_org', 0] },
+        },
+      },
+      {
+        $project: {
+          _children: 0,
+          _org: 0,
+          passwordHash: 0,
+          refreshToken: 0,
+        },
+      },
+      { $sort: { createdAt: -1 } },
+    ]);
+  }
+
+  // Admin: Get children for a specific family
+  async adminGetFamilyChildren(familyId: string): Promise<Child[]> {
+    const family = await this.userModel.findById(familyId);
+    if (!family) throw new NotFoundException('Family not found');
+    if (family.role !== 'family')
+      throw new BadRequestException('User is not a family member');
+    return await this.childModel.find({
+      parentId: new Types.ObjectId(familyId),
+    });
+  }
+
+  // Admin: Create a new family member
+  async adminCreateFamily(dto: {
+    fullName: string;
+    email: string;
+    password: string;
+    phone?: string;
+    organizationId?: string;
+  }): Promise<User> {
+    const existing = await this.userModel.findOne({ email: dto.email });
+    if (existing) throw new ConflictException('Email already exists');
+
+    const hashedPassword = await bcrypt.hash(dto.password, 12);
+
+    const family = await this.userModel.create({
+      fullName: dto.fullName,
+      email: dto.email,
+      phone: dto.phone,
+      passwordHash: hashedPassword,
+      role: 'family',
+      organizationId: dto.organizationId || undefined,
+    });
+
+    if (dto.organizationId) {
+      await this.organizationModel.findByIdAndUpdate(dto.organizationId, {
+        $addToSet: { familyIds: family._id },
+      });
+    }
+
+    return family;
+  }
+
+  // Admin: Update a family member
+  async adminUpdateFamily(
+    familyId: string,
+    updateDto: { fullName?: string; email?: string; phone?: string },
+  ): Promise<User> {
+    const family = await this.userModel.findById(familyId);
+    if (!family) throw new NotFoundException('Family not found');
+    if (family.role !== 'family')
+      throw new BadRequestException('User is not a family member');
+
+    if (updateDto.fullName) family.fullName = updateDto.fullName;
+    if (updateDto.email) family.email = updateDto.email;
+    if (updateDto.phone !== undefined) family.phone = updateDto.phone;
+
+    await family.save();
+    return family;
+  }
+
+  // Admin: Delete a family member and all their children
+  async adminDeleteFamily(familyId: string): Promise<{ message: string }> {
+    const family = await this.userModel.findById(familyId);
+    if (!family) throw new NotFoundException('Family not found');
+    if (family.role !== 'family')
+      throw new BadRequestException('User is not a family member');
+
+    // Delete all children belonging to this family
+    const children = await this.childModel.find({
+      parentId: new Types.ObjectId(familyId),
+    });
+    const childIds = children.map((c) => c._id);
+    await this.childModel.deleteMany({
+      parentId: new Types.ObjectId(familyId),
+    });
+
+    // Unlink from organization
+    if (family.organizationId) {
+      await this.organizationModel.findByIdAndUpdate(family.organizationId, {
+        $pull: {
+          familyIds: family._id,
+          childrenIds: { $in: childIds },
+        },
+      });
+    }
+
+    await this.userModel.findByIdAndDelete(familyId);
+    return {
+      message: 'Family and all associated children deleted successfully',
+    };
+  }
+
+  // Admin: Assign a family to an organization
+  async adminAssignFamilyToOrg(
+    familyId: string,
+    orgId: string,
+  ): Promise<{ message: string }> {
+    const family = await this.userModel.findById(familyId);
+    if (!family) throw new NotFoundException('Family not found');
+    if (family.role !== 'family')
+      throw new BadRequestException('User is not a family member');
+
+    const org = await this.organizationModel.findById(orgId);
+    if (!org) throw new NotFoundException('Organization not found');
+
+    // Remove from previous org if any
+    if (family.organizationId) {
+      const prevOrgId = family.organizationId.toString();
+      const prevChildren = await this.childModel.find({
+        parentId: family._id,
+      });
+      const prevChildIds = prevChildren.map((c) => c._id);
+
+      await this.organizationModel.findByIdAndUpdate(prevOrgId, {
+        $pull: { familyIds: family._id },
+      });
+      await this.organizationModel.findByIdAndUpdate(prevOrgId, {
+        $pull: { childrenIds: { $in: prevChildIds } },
+      });
+      await this.childModel.updateMany(
+        { parentId: family._id },
+        { $unset: { organizationId: '' } },
+      );
+    }
+
+    // Link family to new org
+    family.organizationId = orgId;
+    await family.save();
+
+    if (!org.familyIds.some((id) => id.toString() === family._id.toString())) {
+      org.familyIds.push(family._id);
+    }
+
+    // Link children
+    const children = await this.childModel.find({ parentId: family._id });
+    if (children.length > 0) {
+      await this.childModel.updateMany(
+        { parentId: family._id },
+        { organizationId: new Types.ObjectId(orgId) },
+      );
+      for (const child of children) {
+        if (
+          !org.childrenIds.some((id) => id.toString() === child._id.toString())
+        ) {
+          org.childrenIds.push(child._id);
+        }
+      }
+    }
+
+    await org.save();
+    return { message: 'Family assigned to organization successfully' };
+  }
+
+  // Admin: Remove a family from its current organization
+  async adminRemoveFamilyFromOrg(
+    familyId: string,
+  ): Promise<{ message: string }> {
+    const family = await this.userModel.findById(familyId);
+    if (!family) throw new NotFoundException('Family not found');
+    if (family.role !== 'family')
+      throw new BadRequestException('User is not a family member');
+    if (!family.organizationId) {
+      throw new BadRequestException(
+        'Family is not assigned to any organization',
+      );
+    }
+
+    const orgId = family.organizationId.toString();
+    await this.removeFamily(orgId, familyId);
+    return { message: 'Family removed from organization successfully' };
+  }
+
+  // Admin: Add a child to a family
+  async adminAddChildToFamily(
+    familyId: string,
+    addChildDto: AddChildDto,
+  ): Promise<Child> {
+    const family = await this.userModel.findById(familyId);
+    if (!family) throw new NotFoundException('Family not found');
+    if (family.role !== 'family')
+      throw new BadRequestException('User is not a family member');
+
+    const child = await this.childModel.create({
+      fullName: addChildDto.fullName,
+      dateOfBirth: new Date(addChildDto.dateOfBirth),
+      gender: addChildDto.gender,
+      diagnosis: addChildDto.diagnosis,
+      medicalHistory: addChildDto.medicalHistory,
+      allergies: addChildDto.allergies,
+      medications: addChildDto.medications,
+      notes: addChildDto.notes,
+      parentId: new Types.ObjectId(familyId),
+      organizationId: family.organizationId
+        ? new Types.ObjectId(family.organizationId.toString())
+        : undefined,
+    });
+
+    // Link child to family
+    await this.userModel.findByIdAndUpdate(familyId, {
+      $addToSet: { childrenIds: child._id },
+    });
+
+    // Link child to organization
+    if (family.organizationId) {
+      await this.organizationModel.findByIdAndUpdate(family.organizationId, {
+        $addToSet: { childrenIds: child._id },
+      });
+    }
+
+    return child;
+  }
+
+  // Admin: Update a child
+  async adminUpdateChild(
+    childId: string,
+    updateChildDto: UpdateChildDto,
+  ): Promise<Child> {
+    const child = await this.childModel.findById(childId);
+    if (!child) throw new NotFoundException('Child not found');
+
+    if (updateChildDto.fullName) child.fullName = updateChildDto.fullName;
+    if (updateChildDto.dateOfBirth)
+      child.dateOfBirth = new Date(updateChildDto.dateOfBirth);
+    if (updateChildDto.gender) child.gender = updateChildDto.gender;
+    if (updateChildDto.diagnosis !== undefined)
+      child.diagnosis = updateChildDto.diagnosis;
+    if (updateChildDto.medicalHistory !== undefined)
+      child.medicalHistory = updateChildDto.medicalHistory;
+    if (updateChildDto.allergies !== undefined)
+      child.allergies = updateChildDto.allergies;
+    if (updateChildDto.medications !== undefined)
+      child.medications = updateChildDto.medications;
+    if (updateChildDto.notes !== undefined) child.notes = updateChildDto.notes;
+
+    await child.save();
+    return child;
+  }
+
+  // Admin: Delete a child
+  async adminDeleteChild(
+    familyId: string,
+    childId: string,
+  ): Promise<{ message: string }> {
+    const child = await this.childModel.findById(childId);
+    if (!child) throw new NotFoundException('Child not found');
+
+    // Remove from family's childrenIds
+    await this.userModel.findByIdAndUpdate(familyId, {
+      $pull: { childrenIds: new Types.ObjectId(childId) },
+    });
+
+    // Remove from organization's childrenIds
+    if (child.organizationId) {
+      await this.organizationModel.findByIdAndUpdate(child.organizationId, {
+        $pull: { childrenIds: new Types.ObjectId(childId) },
+      });
+    }
+
+    await this.childModel.findByIdAndDelete(childId);
+    return { message: 'Child deleted successfully' };
   }
 
   // Cancel org leader invitation (admin)
