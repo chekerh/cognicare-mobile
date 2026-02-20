@@ -32,13 +32,13 @@ export class ConfirmImportDto {
     description: 'Column mappings confirmed by the user',
     type: [ConfirmedMappingDto],
   })
-  @Transform(({ value }) => {
+  @Transform(({ value }): ConfirmedMappingDto[] => {
     const parsed = typeof value === 'string' ? JSON.parse(value) : value;
     return Array.isArray(parsed)
       ? parsed.map((item: Record<string, unknown>) =>
           plainToInstance(ConfirmedMappingDto, item),
         )
-      : parsed;
+      : [];
   })
   @IsArray()
   @ValidateNested({ each: true })
