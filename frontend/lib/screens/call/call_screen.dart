@@ -72,6 +72,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   Duration _callDuration = Duration.zero;
   Timer? _durationTimer;
   Timer? _noAnswerTimer;
+  bool _isEnding = false; // Guard for double-hangup/pop
 
   // Subscriptions
   StreamSubscription? _acceptedSub;
@@ -94,6 +95,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _callService = Provider.of<CallProvider>(context, listen: false).service;
     _isVideoEnabled = widget.isVideo;
     _pulseController = AnimationController(
       vsync: this,
@@ -102,8 +104,6 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _callService =
-          Provider.of<CallProvider>(context, listen: false).service;
       _initRenderers().then((_) {
         if (widget.isIncoming && widget.incomingCall != null) {
           _listenForEnd();
@@ -141,7 +141,12 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Appel refusé')));
         Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) context.pop();
+          if (mounted && context.mounted && !_isEnding) {
+             _isEnding = true;
+             if (GoRouter.of(context).canPop()) {
+               context.pop();
+             }
+          }
         });
       }
     });
@@ -325,34 +330,68 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   }
 
   void _rejectCall() {
+    if (_isEnding) return;
+    _isEnding = true;
+    debugPrint('📞 [CALL_SCREEN] _rejectCall()');
     if (widget.incomingCall != null) {
       _callService.rejectCall(widget.incomingCall!.fromUserId);
     }
-    context.pop();
+    if (mounted && context.mounted) {
+      if (GoRouter.of(context).canPop()) {
+        context.pop();
+      }
+    }
   }
 
   void _hangUp() {
+    if (_isEnding) {
+      debugPrint('📞 [CALL_SCREEN] _hangUp ignored (already ending)');
+      return;
+    }
+    _isEnding = true;
+    
+    debugPrint('📞 [CALL_SCREEN] _hangUp() - Status was: $_callStatus');
+    
     final finalDuration = _callDuration;
-    final wasConnected = _callStatus == CallStatus.connected;
+    final statusAtHangup = _callStatus;
+    
+    // Set status immediately to avoid recursive calls from callbacks
+    setState(() => _callStatus = CallStatus.ended);
 
-    _callService.endCall(widget.remoteUserId);
+    try {
+      _callService.endCall(widget.remoteUserId);
+    } catch (e) {
+      debugPrint('📞 [CALL_SCREEN] Error calling endCall: $e');
+    }
     _cleanup();
+    
     if (mounted) {
-      setState(() => _callStatus = CallStatus.ended);
-
       // If call was connected, send a summary message to chat
-      if (wasConnected && widget.remoteUserId.isNotEmpty) {
+      if (statusAtHangup == CallStatus.connected && widget.remoteUserId.isNotEmpty) {
         _sendCallSummaryMessage(finalDuration);
+      } 
+      // If call was NOT connected and it's a call WE initiated, it's a "missed" call for the other side
+      else if (!widget.isIncoming && 
+               (statusAtHangup == CallStatus.ringing || statusAtHangup == CallStatus.connecting) &&
+               widget.remoteUserId.isNotEmpty) {
+         _addMissedCallMessage();
       }
 
       Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) context.pop();
+        if (mounted && context.mounted) {
+          if (GoRouter.of(context).canPop()) {
+            context.pop();
+          } else {
+            debugPrint('⚠️ [CALL_SCREEN] Nothing to pop, navigation skipped');
+          }
+        }
       });
     }
   }
 
   Future<void> _sendCallSummaryMessage(Duration duration) async {
     try {
+      if (!mounted) return;
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.user == null || widget.remoteUserId.isEmpty) return;
       final chatService = ChatService(
@@ -433,9 +472,14 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
 
   Future<void> _addMissedCallMessage() async {
     try {
+      if (!mounted) return;
+      debugPrint('📞 [CALL_SCREEN] _addMissedCallMessage() for ${widget.remoteUserId}');
       final auth =
           Provider.of<AuthProvider>(context, listen: false);
-      if (auth.user == null || widget.remoteUserId.isEmpty) return;
+      if (auth.user == null || widget.remoteUserId.isEmpty) {
+        debugPrint('⚠️ [CALL_SCREEN] Skipped missed call message: user=${auth.user?.id}, remote=${widget.remoteUserId}');
+        return;
+      }
       final chatService = ChatService(
         getToken: () async =>
             auth.accessToken ?? await AuthService().getStoredToken(),
@@ -450,7 +494,10 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         attachmentType: 'call_missed',
         callDuration: 0,
       );
-    } catch (_) {}
+      debugPrint('✅ [CALL_SCREEN] Missed call message sent');
+    } catch (e) {
+      debugPrint('❌ [CALL_SCREEN] Error sending missed call message: $e');
+    }
   }
 
   void _cleanup() {
@@ -554,7 +601,12 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 32),
               FilledButton.icon(
-                onPressed: () => context.pop(),
+                onPressed: () {
+                  if (!_isEnding && GoRouter.of(context).canPop()) {
+                    _isEnding = true;
+                    context.pop();
+                  }
+                },
                 icon: const Icon(Icons.arrow_back),
                 label: const Text('Retour'),
                 style: FilledButton.styleFrom(
