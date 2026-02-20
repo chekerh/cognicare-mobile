@@ -203,8 +203,8 @@ class CallService {
       }
     });
     _socket!.on('webrtc:ice-candidate', (data) {
-      debugPrint('📞 [WEBRTC] ice-candidate reçu');
       if (data is Map) {
+        debugPrint('📞 [WEBRTC] ice-candidate reçu de=${data['fromUserId']} candidate=${data['candidate']}');
         _remoteIceCandidateController
             .add(Map<String, dynamic>.from(data));
       }
@@ -357,6 +357,11 @@ class CallService {
     required String targetUserId,
     required RTCIceCandidate candidate,
   }) {
+    if (candidate.candidate == null) {
+       debugPrint('📞 [WEBRTC] end-of-gathering candidate skip');
+       return;
+    }
+    debugPrint('📞 [WEBRTC] sendIceCandidate to=$targetUserId');
     _socket?.emit('webrtc:ice-candidate', {
       'targetUserId': targetUserId,
       'candidate': candidate.candidate,
