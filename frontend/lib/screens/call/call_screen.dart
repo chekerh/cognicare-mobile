@@ -108,7 +108,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       if (!mounted) return;
       _initRenderers().then((_) {
         // Initialize speakerphone early for iOS/Android
-        if (kIsWeb == false && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.Android)) {
+        if (kIsWeb == false && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.android)) {
            Helper.setSpeakerphoneOn(_isSpeakerOn);
         }
         
@@ -844,65 +844,69 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
         ),
       ),
-        // Hidden renderer for audio call to ensure tracks are active
-        if (!isVideoCall)
-          SizedBox(
-            width: 1,
-            height: 1,
-            child: Opacity(
-              opacity: 0.01,
-              child: RTCVideoView(_remoteRenderer),
+      child: Stack(
+        children: [
+          // Hidden renderer for audio call to ensure tracks are active
+          if (!widget.isVideo)
+            SizedBox(
+              width: 1,
+              height: 1,
+              child: Opacity(
+                opacity: 0.01,
+                child: RTCVideoView(_remoteRenderer),
+              ),
+            ),
+          
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedBuilder(
+                  animation: _pulseController,
+                  builder: (context, child) {
+                    final scale = _callStatus == CallStatus.connected
+                        ? 1.0
+                        : 1.0 + _pulseController.value * 0.06;
+                    return Transform.scale(
+                      scale: scale,
+                      child: CircleAvatar(
+                        radius: 60,
+                        backgroundColor: _primary.withOpacity(0.3),
+                        child: Text(
+                          widget.remoteUserName.isNotEmpty
+                              ? widget.remoteUserName[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            fontSize: 48,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  widget.remoteUserName,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _statusText,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.white.withOpacity(0.6),
+                  ),
+                ),
+              ],
             ),
           ),
-        
-        Center(
-          child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedBuilder(
-              animation: _pulseController,
-              builder: (context, child) {
-                final scale = _callStatus == CallStatus.connected
-                    ? 1.0
-                    : 1.0 + _pulseController.value * 0.06;
-                return Transform.scale(
-                  scale: scale,
-                  child: CircleAvatar(
-                    radius: 60,
-                    backgroundColor: _primary.withOpacity(0.3),
-                    child: Text(
-                      widget.remoteUserName.isNotEmpty
-                          ? widget.remoteUserName[0].toUpperCase()
-                          : '?',
-                      style: const TextStyle(
-                        fontSize: 48,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-            Text(
-              widget.remoteUserName,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _statusText,
-              style: TextStyle(
-                fontSize: 15,
-                color: Colors.white.withOpacity(0.6),
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
