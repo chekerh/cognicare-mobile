@@ -22,6 +22,8 @@ const Map<String, dynamic> _iceServers = {
     {'urls': 'stun:stun.l.google.com:19302'},
     {'urls': 'stun:stun1.l.google.com:19302'},
     {'urls': 'stun:stun2.l.google.com:19302'},
+    {'urls': 'stun:stun3.l.google.com:19302'},
+    {'urls': 'stun:stun4.l.google.com:19302'},
   ]
 };
 
@@ -105,6 +107,11 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _initRenderers().then((_) {
+        // Initialize speakerphone early for iOS/Android
+        if (kIsWeb == false && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.Android)) {
+           Helper.setSpeakerphoneOn(_isSpeakerOn);
+        }
+        
         if (widget.isIncoming && widget.incomingCall != null) {
           _listenForEnd();
           _listenForWebRTCSignaling();
@@ -206,14 +213,21 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     });
 
     _iceSub = _callService.onRemoteIceCandidate.listen((data) async {
+      if (!mounted) return;
+      if (data['candidate'] == null) {
+        debugPrint('📞 [CALL_SCREEN] Remote end-of-candidates received');
+        return;
+      }
       final candidate = RTCIceCandidate(
         data['candidate'],
         data['sdpMid'],
         data['sdpMLineIndex'],
       );
       if (_remoteDescriptionSet && _peerConnection != null) {
+        debugPrint('📞 [CALL_SCREEN] Adding candidate to PC');
         await _peerConnection!.addCandidate(candidate);
       } else {
+        debugPrint('📞 [CALL_SCREEN] Queuing candidate');
         _pendingIceCandidates.add(candidate);
       }
     });
@@ -246,6 +260,10 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
 
     // ICE candidate callback
     _peerConnection!.onIceCandidate = (candidate) {
+      if (candidate.candidate == null) {
+        debugPrint('📞 [WEBRTC] Local end-of-gathering');
+        return;
+      }
       _callService.sendIceCandidate(
         targetUserId: widget.remoteUserId,
         candidate: candidate,
@@ -286,6 +304,14 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         default:
           break;
       }
+    };
+
+    _peerConnection!.onIceGatheringState = (state) {
+      debugPrint('📞 [WEBRTC] iceGatheringState=$state');
+    };
+
+    _peerConnection!.onSignalingState = (state) {
+      debugPrint('📞 [WEBRTC] signalingState=$state');
     };
 
     _peerConnection!.onIceConnectionState = (state) {
@@ -818,8 +844,19 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
         ),
       ),
-      child: Center(
-        child: Column(
+        // Hidden renderer for audio call to ensure tracks are active
+        if (!isVideoCall)
+          SizedBox(
+            width: 1,
+            height: 1,
+            child: Opacity(
+              opacity: 0.01,
+              child: RTCVideoView(_remoteRenderer),
+            ),
+          ),
+        
+        Center(
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             AnimatedBuilder(
