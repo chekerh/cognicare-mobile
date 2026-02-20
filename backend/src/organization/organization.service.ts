@@ -48,6 +48,7 @@ export class OrganizationService {
   async createOrganization(
     name: string,
     leaderId: string,
+    certificateUrl?: string,
   ): Promise<OrganizationDocument> {
     const newOrg = new this.organizationModel({
       name,
@@ -55,6 +56,7 @@ export class OrganizationService {
       staffIds: [],
       familyIds: [],
       childrenIds: [],
+      certificateUrl,
     });
     return newOrg.save();
   }
@@ -1163,6 +1165,7 @@ export class OrganizationService {
     organizationName: string,
     leaderId: string,
     description?: string,
+    certificateUrl?: string,
   ): Promise<PendingOrganization> {
     const user = await this.userModel.findById(leaderId);
     if (!user) {
@@ -1197,6 +1200,7 @@ export class OrganizationService {
       leaderEmail: user.email,
       leaderFullName: user.fullName,
       description,
+      certificateUrl,
       status: 'pending',
     });
 
@@ -1248,10 +1252,11 @@ export class OrganizationService {
     }
 
     if (decision === 'approved') {
-      // Create the organization
+      // Create the organization with certificate URL from pending request
       const newOrg = await this.createOrganization(
         pendingOrg.organizationName,
         pendingOrg.requestedBy.toString(),
+        pendingOrg.certificateUrl,
       );
 
       // Update user's organizationId
@@ -1313,6 +1318,12 @@ export class OrganizationService {
       requestedBy: userId,
       status: 'pending',
     });
+  }
+
+  async getPendingOrganizationById(
+    pendingOrgId: string,
+  ): Promise<PendingOrganizationDocument | null> {
+    return this.pendingOrganizationModel.findById(pendingOrgId);
   }
 
   // Admin: Get all organizations

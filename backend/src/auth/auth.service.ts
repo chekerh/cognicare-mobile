@@ -33,6 +33,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { MailService } from '../mail/mail.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { OrganizationService } from '../organization/organization.service';
+import { FraudAnalysisService } from '../orgScanAi/fraud-analysis.service';
 
 @Injectable()
 export class AuthService {
@@ -52,6 +53,8 @@ export class AuthService {
     private configService: ConfigService,
     private mailService: MailService,
     private organizationService: OrganizationService,
+    private readonly fraudAnalysisService: FraudAnalysisService,
+  ) {}
   ) { }
 
   private generateTokens(user: UserDocument) {
@@ -71,7 +74,10 @@ export class AuthService {
     return bcrypt.hash(refreshToken, saltRounds);
   }
 
-  async signup(signupDto: SignupDto): Promise<
+  async signup(
+    signupDto: SignupDto,
+    certificatePdfBuffer?: Buffer,
+  ): Promise<
     | { accessToken: string; refreshToken: string; user: any }
     | {
       requiresApproval: true;
@@ -148,12 +154,43 @@ export class AuthService {
     // If role is organization_leader, create pending organization request
     let pendingOrganization: any = null;
     if (userData.role === 'organization_leader') {
+      // Certificate PDF is required for organization leaders
+      if (!certificatePdfBuffer) {
+        throw new BadRequestException(
+          'Organization registration certificate (PDF) is required for organization leaders',
+        );
+      }
+
       const orgName = organizationName || `${user.fullName}'s Organization`;
+
+      // Upload certificate PDF to Cloudinary
+      let certificateUrl: string;
+      try {
+        console.log('[SIGNUP] Uploading certificate PDF to Cloudinary');
+        certificateUrl = await this.cloudinary.uploadRawBuffer(
+          certificatePdfBuffer,
+          {
+            folder: 'organization-certificates',
+            publicId: `cert_${user._id.toString()}_${Date.now()}`,
+            resourceType: 'raw',
+          },
+        );
+        console.log('[SIGNUP] Certificate uploaded:', certificateUrl);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        console.error('[SIGNUP] Failed to upload certificate:', errorMessage);
+        throw new BadRequestException(
+          'Failed to upload organization certificate. Please try again.',
+        );
+      }
+
       pendingOrganization =
         await this.organizationService.createPendingOrganization(
           orgName,
           user._id.toString(),
           organizationDescription,
+          certificateUrl,
         );
 
       console.log(
@@ -161,12 +198,42 @@ export class AuthService {
       );
       console.log('[SIGNUP] Pending organization ID:', pendingOrganization._id);
 
+      // Trigger AI fraud analysis with certificate PDF
+      try {
+        console.log('[SIGNUP] Triggering AI fraud analysis for certificate');
+        const analysisInput = {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+          organizationId: pendingOrganization._id.toString(),
+          pdfBuffer: certificatePdfBuffer,
+          email: user.email,
+          websiteDomain: undefined, // Optional field
+          originalPdfPath: certificateUrl,
+        };
+        const fraudAnalysis =
+          await this.fraudAnalysisService.analyzeOrganization(analysisInput);
+
+        console.log(
+          '[SIGNUP] Fraud analysis completed. Risk level:',
+          fraudAnalysis.level,
+          'Score:',
+          fraudAnalysis.fraudRisk,
+        );
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        console.error(
+          '[SIGNUP] Failed to perform fraud analysis:',
+          errorMessage,
+        );
+        // Don't fail signup if fraud analysis fails - admin can review manually
+      }
+
       // For organization leaders, do NOT log them in until admin approves
       // Return a special response indicating they need to wait for approval
       return {
         requiresApproval: true,
         message:
-          'Your organization request has been submitted successfully. Please wait for admin approval. You will receive an email notification once your request is reviewed.',
+          'Your organization request has been submitted successfully. An AI-powered fraud detection system has analyzed your certificate. Please wait for admin approval. You will receive an email notification once your request is reviewed.',
         user: {
           id: user._id,
           fullName: user.fullName,

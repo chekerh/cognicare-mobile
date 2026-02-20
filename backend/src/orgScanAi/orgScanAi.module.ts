@@ -10,11 +10,16 @@ import {
   FraudAnalysis,
   FraudAnalysisSchema,
 } from './schemas/fraud-analysis.schema';
+import {
+  PendingOrganization,
+  PendingOrganizationSchema,
+} from '../organization/schemas/pending-organization.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: FraudAnalysis.name, schema: FraudAnalysisSchema },
+      { name: PendingOrganization.name, schema: PendingOrganizationSchema },
     ]),
   ],
   controllers: [OrgScanAiController],

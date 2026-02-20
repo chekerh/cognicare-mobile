@@ -10,8 +10,11 @@ import {
   UseGuards,
   Request,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import {
   ApiTags,
   ApiOperation,
@@ -27,6 +30,11 @@ import { OrgScanAiService } from './orgScanAi.service';
 import { FraudAnalysisService } from './fraud-analysis.service';
 import { SimilarityService } from './similarity.service';
 import {
+  PendingOrganization,
+  PendingOrganizationDocument,
+} from '../organization/schemas/pending-organization.schema';
+import axios from 'axios';
+import {
   AnalyzeOrganizationDto,
   ReviewAnalysisDto,
   FraudAnalysisResponse,
@@ -40,6 +48,8 @@ export class OrgScanAiController {
     private readonly orgScanAiService: OrgScanAiService,
     private readonly fraudAnalysisService: FraudAnalysisService,
     private readonly similarityService: SimilarityService,
+    @InjectModel(PendingOrganization.name)
+    private readonly pendingOrganizationModel: Model<PendingOrganizationDocument>,
   ) {}
 
   @Post('analyze')
@@ -227,7 +237,7 @@ export class OrgScanAiController {
       gemini: {
         configured: geminiConfigured,
         available: geminiHealthy,
-        model: 'gemini-1.5-flash',
+        model: 'gemma-3-4b-it',
       },
       similarity: {
         available: similarityReady,
@@ -283,6 +293,73 @@ export class OrgScanAiController {
       analysis: result.analysis,
       riskScore: result.riskScore,
       riskLevel,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Post('rescan/:pendingOrgId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Rescan certificate for a pending organization',
+    description:
+      'Downloads the certificate from Cloudinary and re-runs AI fraud analysis for a pending organization',
+  })
+  @ApiResponse({ status: 200, type: FraudAnalysisResponse })
+  async rescanPendingOrganization(
+    @Param('pendingOrgId') pendingOrgId: string,
+  ): Promise<FraudAnalysisResponse> {
+    // Fetch pending organization
+    const pendingOrg: PendingOrganizationDocument | null =
+      await this.pendingOrganizationModel.findById(pendingOrgId);
+
+    if (!pendingOrg) {
+      throw new NotFoundException('Pending organization not found');
+    }
+
+    if (!pendingOrg.certificateUrl) {
+      throw new BadRequestException(
+        'No certificate URL found for this organization',
+      );
+    }
+
+    // Download PDF from Cloudinary
+    let pdfBuffer: Buffer;
+    try {
+      const response = await axios.get<ArrayBuffer>(
+        pendingOrg.certificateUrl as string,
+        {
+          responseType: 'arraybuffer',
+        },
+      );
+      pdfBuffer = Buffer.from(response.data);
+    } catch {
+      throw new BadRequestException(
+        'Failed to download certificate from Cloudinary',
+      );
+    }
+
+    // Perform fraud analysis
+    const result = await this.fraudAnalysisService.analyzeOrganization({
+      organizationId: pendingOrgId,
+      pdfBuffer,
+      email: pendingOrg.leaderEmail,
+      websiteDomain: undefined,
+      originalPdfPath: pendingOrg.certificateUrl as string,
+    });
+
+    return {
+      organizationId: result.organizationId,
+      analysisId: result.analysisId,
+      fraudRisk: result.fraudRisk,
+      level: result.level,
+      flags: result.flags,
+      similarityScore: result.similarityScore,
+      similarityRisk: result.similarityRisk,
+      extractedFields: result.extractedFields,
+      documentInconsistencyScore: result.documentInconsistencyScore,
+      domainRiskScore: result.domainRiskScore,
       timestamp: new Date().toISOString(),
     };
   }
