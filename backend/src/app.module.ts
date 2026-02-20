@@ -26,6 +26,7 @@ import { DonationsModule } from './donations/donations.module';
 import { PaypalModule } from './paypal/paypal.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { OrgScanAiModule } from './orgScanAi/orgScanAi.module';
+import { ImportModule } from './import/import.module';
 
 import { SpecializedPlansModule } from './specialized-plans/specialized-plans.module';
 
@@ -71,6 +72,7 @@ import { SpecializedPlansModule } from './specialized-plans/specialized-plans.mo
     PaypalModule,
     NotificationsModule,
     OrgScanAiModule,
+    ImportModule,
     SpecializedPlansModule,
   ],
   controllers: [AppController],
