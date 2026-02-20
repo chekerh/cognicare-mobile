@@ -25,7 +25,7 @@ export class RemindersService {
     private taskReminderModel: Model<TaskReminderDocument>,
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-  ) {}
+  ) { }
 
   /**
    * Create a task reminder for a child
@@ -321,7 +321,7 @@ export class RemindersService {
       throw new ForbiddenException('User not found');
     }
 
-    const isParent = child.parentId.toString() === userId;
+    const isParent = child.parentId?.toString() === userId;
     const isHealthcare = [
       'doctor',
       'psychologist',

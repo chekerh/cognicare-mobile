@@ -21,7 +21,7 @@ export class NutritionService {
     private nutritionPlanModel: Model<NutritionPlanDocument>,
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-  ) {}
+  ) { }
 
   /**
    * Create a nutrition plan for a child
@@ -40,7 +40,7 @@ export class NutritionService {
       throw new ForbiddenException('User not found');
     }
 
-    const isParent = child.parentId.toString() === userId;
+    const isParent = child.parentId?.toString() === userId;
     const isHealthcare = [
       'doctor',
       'psychologist',
@@ -142,7 +142,7 @@ export class NutritionService {
       throw new ForbiddenException('User not found');
     }
 
-    const isParent = child.parentId.toString() === userId;
+    const isParent = child.parentId?.toString() === userId;
     const isHealthcare = [
       'doctor',
       'psychologist',

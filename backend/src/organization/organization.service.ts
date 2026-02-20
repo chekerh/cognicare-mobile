@@ -43,7 +43,7 @@ export class OrganizationService {
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     private mailService: MailService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async createOrganization(
     name: string,
@@ -528,7 +528,7 @@ export class OrganizationService {
     const child = await this.childModel.findById(childId);
     if (!child) throw new NotFoundException('Child not found');
 
-    if (child.parentId.toString() !== familyId) {
+    if (child.parentId?.toString() !== familyId) {
       throw new BadRequestException('Child does not belong to this family');
     }
 
@@ -586,7 +586,7 @@ export class OrganizationService {
     const child = await this.childModel.findById(childId);
     if (!child) throw new NotFoundException('Child not found');
 
-    if (child.parentId.toString() !== familyId) {
+    if (child.parentId?.toString() !== familyId) {
       throw new BadRequestException('Child does not belong to this family');
     }
 
