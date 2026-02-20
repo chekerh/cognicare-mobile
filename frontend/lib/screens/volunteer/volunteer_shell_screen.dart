@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../utils/constants.dart';
 
 const Color _navPrimary = Color(0xFFA4D9E5);
 const Color _navInactive = Color(0xFF94A3B8);
@@ -20,7 +23,9 @@ class VolunteerShellScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentIndex = _indexFromPath(GoRouterState.of(context).uri.path);
+    final user = Provider.of<AuthProvider>(context).user;
+    final role = user?.role;
+    final currentIndex = _indexFromPath(GoRouterState.of(context).uri.path, role);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -57,13 +62,16 @@ class VolunteerShellScreen extends StatelessWidget {
     );
   }
 
-  int _indexFromPath(String path) {
+  int _indexFromPath(String path, String? role) {
     if (path.endsWith('/dashboard')) return 0;
     if (path.endsWith('/agenda')) return 1;
     if (path.endsWith('/formations') || path == '/volunteer' || path == '/volunteer/') return 2;
     if (path.endsWith('/messages')) return 3;
     if (path.endsWith('/profile')) return 4;
-    return 2;
+    
+    // Default branch for /volunteer or unknown
+    if (AppConstants.isSpecialistRole(role)) return 0; // Dashboard (Accueil) for specialists
+    return 2; // Formations hub for regular volunteers
   }
 
   Widget _navItem(

@@ -34,7 +34,7 @@ import { UpdateChildDto } from '../children/dto/update-child.dto';
 @Controller('organization')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class OrganizationController {
-  constructor(private readonly organizationService: OrganizationService) {}
+  constructor(private readonly organizationService: OrganizationService) { }
 
   // My Organization endpoints (uses logged-in user)
   @Get('my-organization')
@@ -61,7 +61,15 @@ export class OrganizationController {
   }
 
   @Get('my-organization/children')
-  @Roles('organization_leader')
+  @Roles(
+    'organization_leader',
+    'doctor',
+    'volunteer',
+    'psychologist',
+    'speech_therapist',
+    'occupational_therapist',
+    'other',
+  )
   @ApiOperation({ summary: 'Get all children in my organization' })
   async getMyChildren(@Request() req: any) {
     return await this.organizationService.getMyChildren(req.user.id as string);
@@ -347,7 +355,7 @@ export class OrganizationController {
   @Post('my-organization/staff/invite')
   @Roles('organization_leader')
   @ApiOperation({
-    summary: 'Invite an existing user to join as staff (pending approval)',
+    summary: 'Invite a new or existing user to join as staff',
   })
   async inviteStaff(
     @Request() req: any,
@@ -357,6 +365,11 @@ export class OrganizationController {
       req.user.id as string,
       inviteUserDto.email,
       'staff',
+      {
+        fullName: inviteUserDto.fullName as string,
+        phone: inviteUserDto.phone,
+        role: inviteUserDto.role,
+      },
     );
   }
 
@@ -381,6 +394,16 @@ export class OrganizationController {
   @ApiOperation({ summary: 'Get all pending invitations for my organization' })
   async getMyInvitations(@Request() req: any) {
     return await this.organizationService.getMyPendingInvitations(
+      req.user.id as string,
+    );
+  }
+
+  @Delete('my-organization/invitations/:id')
+  @Roles('organization_leader')
+  @ApiOperation({ summary: 'Cancel a pending invitation' })
+  async cancelInvitation(@Request() req: any, @Param('id') id: string) {
+    return await this.organizationService.cancelInvitation(
+      id,
       req.user.id as string,
     );
   }

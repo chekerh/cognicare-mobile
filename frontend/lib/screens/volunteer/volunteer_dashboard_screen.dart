@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import '../../models/user.dart' as app_user;
 import '../../providers/auth_provider.dart';
 import '../../services/healthcare_service.dart';
+import '../../services/children_service.dart';
 import '../../utils/constants.dart';
+import '../../utils/theme.dart';
 
 const Color _primary = Color(0xFF89CFF0);
 
@@ -46,10 +48,40 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
   bool _healthcareLoading = false;
   String? _healthcareError;
 
+  List<ChildModel>? _children;
+  bool _childrenLoading = false;
+  String? _childrenError;
+
   @override
   void initState() {
     super.initState();
     _loadHealthcare();
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    if (AppConstants.isSpecialistRole(user?.role)) {
+      _loadChildren();
+    }
+  }
+
+  Future<void> _loadChildren() async {
+    setState(() {
+      _childrenLoading = true;
+      _childrenError = null;
+    });
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final list = await ChildrenService(getToken: () async => authProvider.accessToken).getOrganizationChildren();
+      if (!mounted) return;
+      setState(() {
+        _children = list;
+        _childrenLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _childrenError = e.toString().replaceFirst('Exception: ', '');
+        _childrenLoading = false;
+      });
+    }
   }
 
   Future<void> _loadHealthcare() async {
@@ -78,6 +110,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context).user;
+    final userRole = user?.role;
     final userName = (user?.fullName ?? '').split(' ').firstOrNull ?? 'Julien';
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.white,
@@ -93,12 +126,14 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context, userName),
+            _buildHeader(context, userName, userRole),
             Expanded(
               child: CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(child: _buildStatsCards()),
                   SliverToBoxAdapter(child: _buildSkillsSection(context)),
+                  if (AppConstants.isSpecialistRole(userRole))
+                    SliverToBoxAdapter(child: _buildPatientsSection(context)),
                   SliverToBoxAdapter(child: _buildHealthcareSection(context)),
                   SliverToBoxAdapter(child: _buildPlanningSection(context)),
                   const SliverToBoxAdapter(child: SizedBox(height: 100)),
@@ -111,7 +146,80 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, String userName) {
+  Widget _buildPatientsSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Mes Patients',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+          ),
+          const SizedBox(height: 12),
+          if (_childrenLoading)
+            const Center(child: CircularProgressIndicator())
+          else if (_childrenError != null)
+            Text('Erreur: $_childrenError', style: const TextStyle(color: Colors.red))
+          else if (_children == null || _children!.isEmpty)
+            Text(
+              'Aucun patient trouvé dans votre organisation.',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _children!.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final child = _children![index];
+                return _buildPatientCard(context, child);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPatientCard(BuildContext context, ChildModel child) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade100),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: _primary.withOpacity(0.1),
+            child: const Icon(Icons.child_care, color: _primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  child.fullName,
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                ),
+                Text(
+                  'DN: ${child.dateOfBirth}',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right, color: Colors.grey),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, String userName, String? userRole) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
       color: Colors.white,
@@ -129,7 +237,12 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey.shade600),
                   ),
                   const SizedBox(height: 4),
-                  const Text('Bénévole', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                  Text(
+                    AppConstants.isSpecialistRole(userRole) 
+                        ? _roleToSpecializationLabel(userRole!)
+                        : 'Bénévole', 
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))
+                  ),
                 ],
               ),
               Row(

@@ -27,6 +27,8 @@ import { PaypalModule } from './paypal/paypal.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { OrgScanAiModule } from './orgScanAi/orgScanAi.module';
 
+import { SpecializedPlansModule } from './specialized-plans/specialized-plans.module';
+
 @Module({
   imports: [
     // Configuration module
@@ -69,8 +71,9 @@ import { OrgScanAiModule } from './orgScanAi/orgScanAi.module';
     PaypalModule,
     NotificationsModule,
     OrgScanAiModule,
+    SpecializedPlansModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

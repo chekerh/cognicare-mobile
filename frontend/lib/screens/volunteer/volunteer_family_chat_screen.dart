@@ -28,6 +28,7 @@ class _Msg {
   final bool read;
   final String? attachmentUrl;
   final String? attachmentType;
+  final int? callDuration;
 
   const _Msg({
     required this.text,
@@ -36,6 +37,7 @@ class _Msg {
     this.read = false,
     this.attachmentUrl,
     this.attachmentType,
+    this.callDuration,
   });
 }
 
@@ -86,6 +88,10 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
   String? _currentRecordPath;
   String? _playingVoiceUrl;
   StreamSubscription<IncomingMessageEvent>? _incomingMessageSub;
+  StreamSubscription<TypingEvent>? _typingSub;
+  bool _isRemoteTyping = false;
+  Timer? _typingTimer;
+  Timer? _remoteTypingTimer;
 
   @override
   void initState() {
@@ -112,18 +118,39 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       if (!mounted) return;
       final cid = _conversationId;
       if (cid == null || cid.isEmpty) return;
-      if (evt.conversationId != cid) return;
-      _loadMessagesDirect();
+      if (evt.conversationId != cid) {
+        debugPrint('💬 [VOLUNTEER_CHAT] Event conversationId mismatch: ${evt.conversationId} != $cid');
+        return;
+      }
+      debugPrint('💬 [VOLUNTEER_CHAT] Real-time message received, reloading...');
+      _loadMessagesDirect(silent: true);
+    });
+
+    _typingSub?.cancel();
+    _typingSub = callProvider.service.onTyping.listen((evt) {
+      if (!mounted) return;
+      if (evt.conversationId != _conversationId || evt.userId != widget.familyId) return;
+
+      setState(() => _isRemoteTyping = evt.isTyping);
+
+      _remoteTypingTimer?.cancel();
+      if (evt.isTyping) {
+        _remoteTypingTimer = Timer(const Duration(seconds: 5), () {
+          if (mounted) setState(() => _isRemoteTyping = false);
+        });
+      }
     });
   }
 
-  Future<void> _loadMessagesDirect() async {
+  Future<void> _loadMessagesDirect({bool silent = false}) async {
     final cid = _conversationId;
     if (cid == null) return;
-    setState(() {
-      _loading = true;
-      _loadError = null;
-    });
+    if (!silent) {
+      setState(() {
+        _loading = true;
+        _loadError = null;
+      });
+    }
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final currentUserId = auth.user?.id;
@@ -149,6 +176,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
             read: false,
             attachmentUrl: m.attachmentUrl,
             attachmentType: m.attachmentType,
+            callDuration: m.callDuration,
           );
         }).toList();
         _loading = false;
@@ -163,11 +191,13 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     }
   }
 
-  Future<void> _resolveAndLoadMessages() async {
-    setState(() {
-      _loading = true;
-      _loadError = null;
-    });
+  Future<void> _resolveAndLoadMessages({bool silent = false}) async {
+    if (!silent) {
+      setState(() {
+        _loading = true;
+        _loadError = null;
+      });
+    }
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final currentUserId = auth.user?.id;
@@ -196,6 +226,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
             read: false,
             attachmentUrl: m.attachmentUrl,
             attachmentType: m.attachmentType,
+            callDuration: m.callDuration,
           );
         }).toList();
         _loading = false;
@@ -234,6 +265,9 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
   @override
   void dispose() {
     _incomingMessageSub?.cancel();
+    _typingSub?.cancel();
+    _typingTimer?.cancel();
+    _remoteTypingTimer?.cancel();
     _recordingTimer?.cancel();
     if (_isRecording) _recorder.stop().ignore();
     _recorder.dispose();
@@ -371,6 +405,32 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     }
   }
 
+  void _onTypingChanged() {
+    if (_conversationId == null) return;
+    _typingTimer?.cancel();
+
+    // Emit "typing" status
+    final callProvider = Provider.of<CallProvider>(context, listen: false);
+    callProvider.service.sendTypingStatus(
+      targetUserId: widget.familyId,
+      conversationId: _conversationId!,
+      isTyping: _controller.text.isNotEmpty,
+    );
+
+    // Stop typing after 2s of inactivity
+    if (_controller.text.isNotEmpty) {
+      _typingTimer = Timer(const Duration(seconds: 2), () {
+        if (mounted) {
+           callProvider.service.sendTypingStatus(
+            targetUserId: widget.familyId,
+            conversationId: _conversationId!,
+            isTyping: false,
+          );
+        }
+      });
+    }
+  }
+
   Future<void> _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
@@ -471,11 +531,12 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                             bottom: 24,
                           ),
                           children: [
-                            _buildDateSeparator(),
-                            const SizedBox(height: 24),
-                            ..._messages.map((m) => _buildBubble(m)),
-                          ],
-                        ),
+                             _buildDateSeparator(),
+                             const SizedBox(height: 24),
+                             ..._messages.map((m) => _buildBubble(m)),
+                             if (_isRemoteTyping) _buildTypingIndicator(),
+                           ],
+                         ),
             ),
           ),
           ChatMessageBar(
@@ -487,6 +548,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
             onPhotoTap: _onPhotoTap,
             isRecording: _isRecording,
             recordingDuration: _recordingDuration,
+            onChanged: (val) => _onTypingChanged(),
           ),
         ],
       ),
@@ -700,37 +762,93 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                               ),
                             )
                           : msg.attachmentType == 'call_missed'
-                              ? Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.call_missed,
-                                          color: msg.isMe ? Colors.white70 : Colors.red.shade400,
-                                          size: 22,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          msg.text,
-                                          style: TextStyle(fontSize: 14, color: msg.isMe ? Colors.white : _textPrimary),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    TextButton(
-                                      onPressed: () => _initiateCall(context, msg.text.contains('vidéo')),
-                                      style: TextButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                        minimumSize: Size.zero,
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                      ),
-                                      child: Text('Rappeler', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _primary)),
-                                    ),
-                                  ],
-                                )
+                               ? Column(
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   mainAxisSize: MainAxisSize.min,
+                                   children: [
+                                     Row(
+                                       mainAxisSize: MainAxisSize.min,
+                                       children: [
+                                         Icon(
+                                           Icons.call_missed,
+                                           color: msg.isMe ? Colors.white70 : Colors.red.shade400,
+                                           size: 22,
+                                         ),
+                                         const SizedBox(width: 8),
+                                         Text(
+                                           'Appel manqué',
+                                           style: TextStyle(fontSize: 14, color: msg.isMe ? Colors.white : _textPrimary, fontWeight: FontWeight.bold),
+                                         ),
+                                       ],
+                                     ),
+                                     const SizedBox(height: 2),
+                                     Text(
+                                       msg.text, // "Appel vocal" or "Appel vidéo"
+                                       style: TextStyle(
+                                         fontSize: 12,
+                                         color: msg.isMe ? Colors.white70 : _textMuted,
+                                       ),
+                                     ),
+                                     const SizedBox(height: 8),
+                                     TextButton(
+                                       onPressed: () => _initiateCall(context, msg.text.contains('vidéo')),
+                                       style: TextButton.styleFrom(
+                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                         minimumSize: Size.zero,
+                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                         backgroundColor: msg.isMe ? Colors.white24 : Colors.grey.shade100,
+                                       ),
+                                       child: Text('Rappeler', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: msg.isMe ? Colors.white : _primary)),
+                                     ),
+                                   ],
+                                 )
+                           : msg.attachmentType == 'call_summary'
+                               ? Column(
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   mainAxisSize: MainAxisSize.min,
+                                   children: [
+                                     Row(
+                                       mainAxisSize: MainAxisSize.min,
+                                       children: [
+                                         Icon(
+                                           msg.text.contains('vidéo') ? Icons.videocam : Icons.call,
+                                           color: msg.isMe ? Colors.white70 : _primary,
+                                           size: 22,
+                                         ),
+                                         const SizedBox(width: 8),
+                                         Text(
+                                           msg.text,
+                                           style: TextStyle(
+                                             fontSize: 14,
+                                             color: msg.isMe ? Colors.white : _textPrimary,
+                                             fontWeight: FontWeight.bold,
+                                           ),
+                                         ),
+                                       ],
+                                     ),
+                                     if (msg.callDuration != null && msg.callDuration! > 0) ...[
+                                       const SizedBox(height: 2),
+                                       Text(
+                                         _formatDuration(msg.callDuration!),
+                                         style: TextStyle(
+                                           fontSize: 12,
+                                           color: msg.isMe ? Colors.white70 : _textMuted,
+                                         ),
+                                       ),
+                                     ],
+                                     const SizedBox(height: 8),
+                                     TextButton(
+                                       onPressed: () => _initiateCall(context, msg.text.contains('vidéo')),
+                                       style: TextButton.styleFrom(
+                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                         minimumSize: Size.zero,
+                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                         backgroundColor: msg.isMe ? Colors.white24 : Colors.grey.shade100,
+                                       ),
+                                       child: Text('Rappeler', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: msg.isMe ? Colors.white : _primary)),
+                                     ),
+                                   ],
+                                 )
                           : Text(
                               msg.text,
                               style: TextStyle(fontSize: 14, color: msg.isMe ? Colors.white : _textPrimary, height: 1.4),
@@ -780,4 +898,66 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     );
   }
 
+  String _formatDuration(int seconds) {
+    if (seconds <= 0) return "";
+    final mins = seconds ~/ 60;
+    final secs = seconds % 60;
+    if (mins > 0) {
+      return '$mins min et $secs s';
+    } else {
+      return '$secs s';
+    }
+  }
+
+  Widget _buildTypingIndicator() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          _avatar(),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+                bottomLeft: Radius.circular(4),
+                bottomRight: Radius.circular(16),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 6,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(
+                  width: 12,
+                  height: 12,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: _primary),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'En train d\'écrire...',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _textMuted,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -25,12 +25,12 @@ import 'services/notification_service.dart';
 
 const String _themeIdKey = 'app_theme_id';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService().initialize();
-  final prefs = await SharedPreferences.getInstance();
-  final savedThemeId = prefs.getString(_themeIdKey);
-  runZonedGuarded(() {
+void main() {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await NotificationService().initialize();
+    final prefs = await SharedPreferences.getInstance();
+    final savedThemeId = prefs.getString(_themeIdKey);
     runApp(CogniCareApp(initialThemeId: savedThemeId));
   }, (error, stack) {
     // Voice playback errors from audioplayers (e.g. 404 on Render) are already
@@ -118,16 +118,20 @@ class _CogniCareAppState extends State<CogniCareApp> {
         builder: (_, auth, __) => Consumer<LanguageProvider>(
           builder: (context, languageProvider, child) => PresencePinger(
             isAuthenticated: auth.isAuthenticated,
-            child: CallConnectionHandler(
-              child: MaterialApp.router(
-                title: 'CogniCare',
-                theme: AppTheme.lightTheme,
-                routerConfig: _router,
-                localizationsDelegates: AppLocalizations.localizationsDelegates,
-                supportedLocales: AppLocalizations.supportedLocales,
-                locale: languageProvider.locale,
-                debugShowCheckedModeBanner: false,
-              ),
+            child: MaterialApp.router(
+              title: 'CogniCare',
+              theme: AppTheme.lightTheme,
+              routerConfig: _router,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: languageProvider.locale,
+              debugShowCheckedModeBanner: false,
+              builder: (context, child) {
+                return CallConnectionHandler(
+                  child: child!,
+                  router: _router,
+                );
+              },
             ),
           ),
         ),

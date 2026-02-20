@@ -10,6 +10,7 @@ class ChatMessage {
   final DateTime createdAt;
   final String? attachmentUrl;
   final String? attachmentType;
+  final int? callDuration;
 
   ChatMessage({
     required this.id,
@@ -18,6 +19,7 @@ class ChatMessage {
     required this.createdAt,
     this.attachmentUrl,
     this.attachmentType,
+    this.callDuration,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -30,6 +32,7 @@ class ChatMessage {
           : DateTime.now(),
       attachmentUrl: json['attachmentUrl'] as String?,
       attachmentType: json['attachmentType'] as String?,
+      callDuration: json['callDuration'] as int?,
     );
   }
 }
@@ -259,6 +262,7 @@ class ChatService {
     String text, {
     String? attachmentUrl,
     String? attachmentType,
+    int? callDuration,
   }) async {
     final token = await getToken();
     if (token == null || token.isEmpty) {
@@ -270,6 +274,7 @@ class ChatService {
     final body = <String, dynamic>{'text': text};
     if (attachmentUrl != null) body['attachmentUrl'] = attachmentUrl;
     if (attachmentType != null) body['attachmentType'] = attachmentType;
+    if (callDuration != null) body['callDuration'] = callDuration;
     final response = await _client.post(
       uri,
       headers: {

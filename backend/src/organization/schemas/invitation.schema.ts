@@ -28,10 +28,10 @@ export class Invitation {
 
   @Prop({
     required: true,
-    enum: ['pending', 'accepted', 'rejected', 'expired'],
+    enum: ['pending', 'accepted', 'rejected', 'expired', 'cancelled'],
     default: 'pending',
   })
-  status!: 'pending' | 'accepted' | 'rejected' | 'expired';
+  status!: 'pending' | 'accepted' | 'rejected' | 'expired' | 'cancelled';
 
   @Prop({ required: true })
   token!: string;

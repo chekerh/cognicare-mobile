@@ -43,7 +43,7 @@ export class OrganizationService {
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     private mailService: MailService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   async createOrganization(
     name: string,
@@ -644,13 +644,14 @@ export class OrganizationService {
     return this.getFamilies(org._id.toString());
   }
 
-  // Get leader's organization children
-  async getMyChildren(leaderId: string): Promise<Child[]> {
-    const org = await this.getOrganizationByLeader(leaderId);
-    if (!org) {
-      throw new NotFoundException('Organization not found');
+  // Get user's organization children (leader or specialist)
+  async getMyChildren(userId: string): Promise<Child[]> {
+    const user = await this.userModel.findById(userId);
+    if (!user || !user.organizationId) {
+      throw new NotFoundException('User not linked to any organization');
     }
-    return this.getAllChildren(org._id.toString());
+
+    return this.getAllChildren(user.organizationId.toString());
   }
 
   // Get leader's organization stats
@@ -793,11 +794,13 @@ export class OrganizationService {
     orgId: string,
     userEmail: string,
     invitationType: 'staff' | 'family',
+    userData?: { fullName: string; phone?: string; role?: string },
   ): Promise<{ message: string }> {
     console.log('[INVITE] Starting invitation process:', {
       orgId,
       userEmail,
       invitationType,
+      userData,
     });
 
     const org = await this.organizationModel.findById(orgId);
@@ -806,18 +809,41 @@ export class OrganizationService {
     }
 
     // Check if user exists
-    const user = await this.userModel.findOne({ email: userEmail });
-    if (!user) {
-      throw new NotFoundException('User with this email does not exist');
+    let user = await this.userModel.findOne({ email: userEmail });
+
+    // If user doesn't exist and it's a staff invitation, we create an unconfirmed user
+    if (!user && invitationType === 'staff') {
+      if (!userData || !userData.fullName || !userData.role) {
+        throw new BadRequestException(
+          'Full name and role are required to invite a new staff member',
+        );
+      }
+
+      console.log('[INVITE] Creating new unconfirmed user for staff invitation');
+      user = new this.userModel({
+        fullName: userData.fullName,
+        email: userEmail,
+        phone: userData.phone,
+        role: userData.role,
+        passwordHash: 'WILL_BE_SET_ON_CONFIRMATION', // Placeholder
+        isConfirmed: false,
+        organizationId: orgId,
+      });
+      await user.save();
+    } else if (!user) {
+      throw new NotFoundException(
+        'User with this email does not exist. Only existing users can be invited as family members currently.',
+      );
     }
 
-    console.log('[INVITE] User found:', {
+    console.log('[INVITE] User targeted:', {
       userId: user._id,
       email: user.email,
       role: user.role,
+      isConfirmed: user.isConfirmed,
     });
 
-    // Validate user role matches invitation type
+    // Validate user role matches invitation type (if user already exists with a different role)
     const staffRoles = [
       'doctor',
       'volunteer',
@@ -829,7 +855,7 @@ export class OrganizationService {
 
     if (invitationType === 'staff' && !staffRoles.includes(user.role)) {
       throw new BadRequestException(
-        `Cannot invite this user as staff. User role is '${user.role}'. Staff members must have one of these roles: doctor, volunteer, psychologist, speech_therapist, occupational_therapist, or other.`,
+        `Cannot invite this user as staff. User role is '${user.role}'. Staff members must have one of these roles: ${staffRoles.join(', ')}.`,
       );
     }
 
@@ -841,10 +867,10 @@ export class OrganizationService {
 
     // Check if user is already in the organization
     const isStaff = org.staffIds.some(
-      (id) => id.toString() === user._id.toString(),
+      (id) => id.toString() === user!._id.toString(),
     );
     const isFamily = org.familyIds.some(
-      (id) => id.toString() === user._id.toString(),
+      (id) => id.toString() === user!._id.toString(),
     );
 
     if (isStaff || isFamily) {
@@ -856,13 +882,13 @@ export class OrganizationService {
     // Check for existing pending invitation
     const existingInvitation = await this.invitationModel.findOne({
       organizationId: orgId,
-      userId: user._id,
+      userEmail: userEmail,
       status: 'pending',
     });
 
     if (existingInvitation) {
       throw new ConflictException(
-        'A pending invitation already exists for this user',
+        'A pending invitation already exists for this email',
       );
     }
 
@@ -883,22 +909,27 @@ export class OrganizationService {
 
     await invitation.save();
 
-    console.log('[INVITE] Invitation created:', {
+    // Store token on user as well for activation flow
+    user.confirmationToken = token;
+    await user.save();
+
+    console.log('[INVITE] Invitation created and token stored on user:', {
       invitationId: invitation._id,
-      token: token.substring(0, 8) + '...',
-      expiresAt: invitation.expiresAt,
+      userId: user._id,
     });
 
-    // Send email - ensure proper URL formatting
-    let baseUrl =
-      this.configService.get<string>('BACKEND_URL') || 'http://localhost:3000';
+    // Determine base URL for frontend activation page
+    // Using a separate config for dashboard URL would be ideal
+    let dashboardUrl =
+      this.configService.get<string>('DASHBOARD_URL') ||
+      this.configService.get<string>('FRONTEND_URL') ||
+      'http://localhost:5173'; // Default to Vite port
 
-    // Remove trailing slash if present
-    baseUrl = baseUrl.replace(/\/$/, '');
+    dashboardUrl = dashboardUrl.replace(/\/$/, '');
 
-    // Build full URLs (global prefix 'api/v1' is already applied by NestJS)
-    const acceptUrl = `${baseUrl}/api/v1/organization/invitations/${token}/accept`;
-    const rejectUrl = `${baseUrl}/api/v1/organization/invitations/${token}/reject`;
+    // The specialist will confirm on the web dashboard
+    const activationUrl = `${dashboardUrl}/confirm-account?token=${token}`;
+    const rejectUrl = `${dashboardUrl}/reject-invitation?token=${token}`; // Minimal placeholder for now
 
     console.log('[INVITE] Sending email to:', userEmail);
 
@@ -906,7 +937,7 @@ export class OrganizationService {
       userEmail,
       org.name,
       invitationType,
-      acceptUrl,
+      activationUrl,
       rejectUrl,
     );
 
@@ -918,31 +949,55 @@ export class OrganizationService {
   async acceptInvitation(
     token: string,
   ): Promise<{ message: string; organizationName: string }> {
+    console.log(`[ACCEPT] Processing invitation with token: ${token.substring(0, 10)}...`);
+
     const invitation = await this.invitationModel.findOne({
       token,
-      status: 'pending',
     });
 
     if (!invitation) {
-      throw new NotFoundException('Invitation not found or already processed');
+      console.error('[ACCEPT] Invitation not found for token');
+      throw new NotFoundException('Invitation not found');
+    }
+
+    if (invitation.status !== 'pending') {
+      console.log(`[ACCEPT] Invitation already processed: ${invitation.status}`);
+      // If it's already accepted, we can just return success to avoid blocking activation flow
+      if (invitation.status === 'accepted') {
+        const org = await this.organizationModel.findById(invitation.organizationId);
+        return {
+          message: 'Invitation already accepted',
+          organizationName: org?.name || 'Organization',
+        };
+      }
+      throw new BadRequestException(`Invitation is already ${invitation.status}`);
     }
 
     if (invitation.expiresAt < new Date()) {
       throw new BadRequestException('Invitation has expired');
     }
 
-    // Add user to organization
-    const org = await this.organizationModel.findById(
-      invitation.organizationId,
-    );
+    const orgId = invitation.organizationId;
+    const userId = invitation.userId;
+
+    if (!orgId || !userId) {
+      throw new BadRequestException('Invalid invitation data: Missing organization or user ID');
+    }
+
+    const org = await this.organizationModel.findById(orgId);
     if (!org) {
       throw new NotFoundException('Organization not found');
     }
 
-    const user = await this.userModel.findById(invitation.userId);
+    const user = await this.userModel.findById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
+    // Determine invitation type from either field
+    const effectiveType = invitation.invitationType || (invitation as any).type;
+
+    console.log(`[ACCEPT] Invitation found. Type: ${effectiveType}, User: ${user.email}, Org: ${org.name}`);
 
     // Validate user role still matches invitation type
     const staffRoles = [
@@ -954,29 +1009,30 @@ export class OrganizationService {
       'other',
     ];
 
-    if (
-      invitation.invitationType === 'staff' &&
-      !staffRoles.includes(user.role)
-    ) {
-      throw new BadRequestException(
-        `Cannot accept staff invitation. Your current role is '${user.role}', but staff members must have one of these roles: doctor, volunteer, psychologist, speech_therapist, occupational_therapist, or other.`,
-      );
-    }
-
-    if (invitation.invitationType === 'family' && user.role !== 'family') {
-      throw new BadRequestException(
-        `Cannot accept family invitation. Your current role is '${user.role}', but only users with 'family' role can be added as family members.`,
-      );
+    if (effectiveType === 'staff') {
+      if (!staffRoles.includes(user.role)) {
+        throw new BadRequestException(
+          `Cannot accept staff invitation. Your current role is '${user.role}', but staff members must have a professional role.`,
+        );
+      }
+    } else if (effectiveType === 'family') {
+      if (user.role !== 'family') {
+        throw new BadRequestException(
+          `Cannot accept family invitation. Your current role is '${user.role}', but you must have a 'family' role.`,
+        );
+      }
     }
 
     // Add to appropriate list
-    if (invitation.invitationType === 'staff') {
+    if (effectiveType === 'staff') {
       if (!org.staffIds.some((id) => id.toString() === user._id.toString())) {
         org.staffIds.push(user._id);
+        console.log(`[ACCEPT] Added user ${user._id} to staffIds`);
       }
     } else {
       if (!org.familyIds.some((id) => id.toString() === user._id.toString())) {
         org.familyIds.push(user._id);
+        console.log(`[ACCEPT] Added user ${user._id} to familyIds`);
       }
 
       // Link family's children to organization
@@ -986,7 +1042,7 @@ export class OrganizationService {
       if (existingChildren.length > 0) {
         await this.childModel.updateMany(
           { parentId: user._id },
-          { organizationId: invitation.organizationId },
+          { organizationId: orgId },
         );
 
         // Add children to org's childrenIds
@@ -999,16 +1055,17 @@ export class OrganizationService {
             org.childrenIds.push(child._id);
           }
         }
+        console.log(`[ACCEPT] Linked ${existingChildren.length} children to organization`);
       }
     }
 
     await org.save();
 
     // Link user to organization
-    if (invitation.organizationId) {
-      user.organizationId = invitation.organizationId.toString();
-    }
+    user.organizationId = orgId.toString();
     await user.save();
+
+    console.log(`[ACCEPT] User ${user.email} successfully linked to organization ${org.name}`);
 
     // Update invitation status
     invitation.status = 'accepted';
@@ -1047,6 +1104,7 @@ export class OrganizationService {
     leaderId: string,
     userEmail: string,
     invitationType: 'staff' | 'family',
+    userData?: { fullName: string; phone?: string; role?: string },
   ): Promise<{ message: string }> {
     const org = await this.getOrganizationByLeader(leaderId);
     if (!org) {
@@ -1056,6 +1114,7 @@ export class OrganizationService {
       org._id.toString(),
       userEmail,
       invitationType,
+      userData,
     );
   }
 
@@ -1065,6 +1124,40 @@ export class OrganizationService {
       throw new NotFoundException('Organization not found');
     }
     return this.getPendingInvitations(org._id.toString());
+  }
+
+  async cancelInvitation(
+    invitationId: string,
+    leaderId: string,
+  ): Promise<{ message: string }> {
+    const org = await this.getOrganizationByLeader(leaderId);
+    if (!org) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    const invitation = await this.invitationModel.findOne({
+      _id: invitationId,
+      organizationId: org._id,
+      status: 'pending',
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found or not pending');
+    }
+
+    // If it's a staff invitation, we might also want to delete the user
+    // if they were newly created (unconfirmed) and not yet linked to anything else
+    const user = await this.userModel.findById(invitation.userId);
+    if (user && !user.isConfirmed) {
+      console.log('[CANCEL] Deleting unconfirmed user associated with invitation');
+      await this.userModel.findByIdAndDelete(user._id);
+    }
+
+    // Mark as cancelled
+    invitation.status = 'cancelled' as any;
+    await invitation.save();
+
+    return { message: 'Invitation cancelled successfully' };
   }
 
   // Pending Organization Methods
