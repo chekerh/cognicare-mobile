@@ -45,7 +45,7 @@ export class ChildrenService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Organization.name)
     private organizationModel: Model<OrganizationDocument>,
-  ) {}
+  ) { }
 
   /**
    * Get children for a family. Secured: only the family (parent) or org leader can list.
@@ -149,7 +149,52 @@ export class ChildrenService {
       allergies: child.allergies,
       medications: child.medications,
       notes: child.notes,
-      parentId: child.parentId.toString(),
+      parentId: child.parentId?.toString(),
+    };
+  }
+
+  // ── Specialist Private Children ──
+
+  async findBySpecialistId(specialistId: string) {
+    const children = (await this.childModel
+      .find({ specialistId: new Types.ObjectId(specialistId) })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec()) as ChildLean[];
+
+    return children.map((c) => ({
+      _id: c._id?.toString() ?? '',
+      fullName: c.fullName ?? '',
+      dateOfBirth:
+        c.dateOfBirth instanceof Date
+          ? c.dateOfBirth.toISOString().slice(0, 10)
+          : (c.dateOfBirth ?? ''),
+      gender: c.gender ?? '',
+      diagnosis: c.diagnosis,
+      notes: c.notes,
+    }));
+  }
+
+  async createForSpecialist(specialistId: string, dto: AddChildDto) {
+    const child = await this.childModel.create({
+      fullName: dto.fullName.trim(),
+      dateOfBirth: new Date(dto.dateOfBirth),
+      gender: dto.gender,
+      diagnosis: dto.diagnosis?.trim(),
+      medicalHistory: dto.medicalHistory?.trim(),
+      allergies: dto.allergies?.trim(),
+      medications: dto.medications?.trim(),
+      notes: dto.notes?.trim(),
+      specialistId: new Types.ObjectId(specialistId),
+    });
+
+    return {
+      _id: child._id.toString(),
+      fullName: child.fullName,
+      dateOfBirth: child.dateOfBirth,
+      gender: child.gender,
+      diagnosis: child.diagnosis,
+      notes: child.notes,
     };
   }
 }
