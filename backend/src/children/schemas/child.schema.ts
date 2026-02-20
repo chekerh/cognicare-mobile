@@ -32,11 +32,14 @@ export class Child {
   @Prop()
   notes?: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  parentId!: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  parentId?: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'Organization' })
   organizationId?: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  specialistId?: Types.ObjectId;
 
   @Prop()
   profilePic?: string;

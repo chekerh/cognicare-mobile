@@ -11,11 +11,11 @@ export class SpecializedPlan {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   specialistId!: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'Organization', required: true })
-  organizationId!: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Organization' })
+  organizationId?: Types.ObjectId;
 
-  @Prop({ required: true, enum: ['PECS', 'TEACCH'] })
-  type!: 'PECS' | 'TEACCH';
+  @Prop({ required: true, enum: ['PECS', 'TEACCH', 'SkillTracker'] })
+  type!: 'PECS' | 'TEACCH' | 'SkillTracker';
 
   @Prop({ required: true })
   title!: string;
