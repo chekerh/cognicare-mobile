@@ -108,12 +108,18 @@ export class OrganizationService {
     });
   }
 
-  async getStaff(orgId: string): Promise<User[]> {
-    const org = await this.organizationModel
-      .findById(orgId)
-      .populate('staffIds');
-    if (!org) throw new NotFoundException('Organization not found');
-    return org.staffIds as any as User[];
+  async getStaff(orgId: string, page = 1, limit = 50): Promise<User[]> {
+    const skip = (page - 1) * limit;
+    return this.userModel
+      .find({
+        organizationId: orgId,
+        role: { $ne: 'family' },
+        deletedAt: null,
+      })
+      .sort({ fullName: 1 })
+      .skip(skip)
+      .limit(limit)
+      .exec();
   }
 
   async addFamily(orgId: string, familyEmail: string): Promise<User> {
@@ -196,20 +202,32 @@ export class OrganizationService {
     });
   }
 
-  async getFamilies(orgId: string): Promise<User[]> {
-    const org = await this.organizationModel
-      .findById(orgId)
-      .populate('familyIds');
-    if (!org) throw new NotFoundException('Organization not found');
-    return org.familyIds as any as User[];
+  async getFamilies(orgId: string, page = 1, limit = 50): Promise<User[]> {
+    const skip = (page - 1) * limit;
+    return this.userModel
+      .find({
+        organizationId: orgId,
+        role: 'family',
+        deletedAt: null,
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .exec();
   }
 
-  async getAllChildren(orgId: string): Promise<Child[]> {
-    const org = await this.organizationModel
-      .findById(orgId)
-      .populate('childrenIds');
-    if (!org) throw new NotFoundException('Organization not found');
-    return org.childrenIds as any as Child[];
+  async getAllChildren(orgId: string, page = 1, limit = 50): Promise<Child[]> {
+    const skip = (page - 1) * limit;
+    return this.childModel
+      .find({
+        organizationId: new Types.ObjectId(orgId),
+        deletedAt: null,
+      })
+      .populate('parentId', 'fullName email')
+      .sort({ fullName: 1 })
+      .skip(skip)
+      .limit(limit)
+      .exec();
   }
 
   async getOrganizationStats(orgId: string): Promise<{
@@ -218,22 +236,36 @@ export class OrganizationService {
     totalChildren: number;
     staffByRole: Record<string, number>;
   }> {
-    const org = await this.organizationModel
-      .findById(orgId)
-      .populate('staffIds');
-    if (!org) throw new NotFoundException('Organization not found');
+    const [totalStaff, totalFamilies, totalChildren, staff] = await Promise.all([
+      this.userModel.countDocuments({
+        organizationId: orgId,
+        role: { $ne: 'family' },
+        deletedAt: null,
+      }),
+      this.userModel.countDocuments({
+        organizationId: orgId,
+        role: 'family',
+        deletedAt: null,
+      }),
+      this.childModel.countDocuments({
+        organizationId: new Types.ObjectId(orgId),
+        deletedAt: null,
+      }),
+      this.userModel
+        .find({ organizationId: orgId, role: { $ne: 'family' }, deletedAt: null })
+        .select('role')
+        .exec(),
+    ]);
 
-    const staff = org.staffIds as any as User[];
     const staffByRole: Record<string, number> = {};
-
-    staff.forEach((member: User) => {
+    staff.forEach((member) => {
       staffByRole[member.role] = (staffByRole[member.role] || 0) + 1;
     });
 
     return {
-      totalStaff: org.staffIds.length,
-      totalFamilies: org.familyIds.length,
-      totalChildren: org.childrenIds.length,
+      totalStaff,
+      totalFamilies,
+      totalChildren,
       staffByRole,
     };
   }
@@ -241,6 +273,7 @@ export class OrganizationService {
   async createStaffMember(
     orgId: string,
     createStaffDto: CreateStaffDto,
+    requesterId?: string,
   ): Promise<User> {
     const org = await this.organizationModel.findById(orgId);
     if (!org) throw new NotFoundException('Organization not found');
@@ -270,6 +303,8 @@ export class OrganizationService {
       passwordHash,
       role: createStaffDto.role,
       organizationId: orgId,
+      addedByOrganizationId: orgId,
+      lastModifiedBy: requesterId,
     });
 
     await staff.save();
@@ -296,6 +331,7 @@ export class OrganizationService {
     orgId: string,
     staffId: string,
     updateStaffDto: UpdateStaffDto,
+    requesterId?: string,
   ): Promise<User> {
     const org = await this.organizationModel.findById(orgId);
     if (!org) throw new NotFoundException('Organization not found');
@@ -344,16 +380,21 @@ export class OrganizationService {
       staff.role = updateStaffDto.role as any;
     }
 
+    if (requesterId) {
+      staff.lastModifiedBy = requesterId;
+    }
+
     await staff.save();
     return staff;
   }
 
   async createFamilyMember(
-    orgId: string,
+    orgId: string | null,
     createFamilyDto: CreateFamilyDto,
+    requesterId?: string,
   ): Promise<{ family: User; children: Child[] }> {
-    const org = await this.organizationModel.findById(orgId);
-    if (!org) throw new NotFoundException('Organization not found');
+    const org = orgId ? await this.organizationModel.findById(orgId) : null;
+    if (orgId && !org) throw new NotFoundException('Organization not found');
 
     // Check if user already exists
     const existingUser = await this.userModel.findOne({
@@ -373,14 +414,20 @@ export class OrganizationService {
       phone: createFamilyDto.phone,
       passwordHash,
       role: 'family',
-      organizationId: orgId,
+      organizationId: orgId || undefined,
+      specialistId: !orgId ? requesterId : undefined,
+      addedByOrganizationId: orgId || undefined,
+      addedBySpecialistId: !orgId ? requesterId : undefined,
+      lastModifiedBy: requesterId,
       childrenIds: [],
     });
 
     await family.save();
 
-    // Add to organization
-    org.familyIds.push(family._id);
+    // Add to organization if linked
+    if (org) {
+      org.familyIds.push(family._id);
+    }
 
     // Create children if provided
     const children: Child[] = [];
@@ -396,20 +443,26 @@ export class OrganizationService {
           medications: childDto.medications,
           notes: childDto.notes,
           parentId: family._id,
-          organizationId: new Types.ObjectId(orgId),
+          organizationId: orgId ? new Types.ObjectId(orgId) : undefined,
+          specialistId: !orgId && requesterId ? new Types.ObjectId(requesterId) : undefined,
+          addedByOrganizationId: orgId ? new Types.ObjectId(orgId) : undefined,
+          addedBySpecialistId: !orgId && requesterId ? new Types.ObjectId(requesterId) : undefined,
+          lastModifiedBy: requesterId ? new Types.ObjectId(requesterId) : undefined,
         });
 
         await child.save();
         children.push(child);
 
-        // Add to organization's children
-        org.childrenIds.push(child._id);
+        // Add to organization's children if linked
+        if (org) {
+          org.childrenIds.push(child._id);
+        }
       }
-
-      await family.save();
     }
 
-    await org.save();
+    if (org) {
+      await org.save();
+    }
 
     return { family, children };
   }
@@ -418,6 +471,7 @@ export class OrganizationService {
     orgId: string,
     familyId: string,
     updateFamilyDto: UpdateFamilyDto,
+    requesterId?: string,
   ): Promise<User> {
     const org = await this.organizationModel.findById(orgId);
     if (!org) throw new NotFoundException('Organization not found');

@@ -8,11 +8,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Child, ChildDocument } from './schemas/child.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
-import {
-  Organization,
-  OrganizationDocument,
-} from '../organization/schemas/organization.schema';
+import { Organization, OrganizationDocument } from '../organization/schemas/organization.schema';
+import { OrganizationService } from '../organization/organization.service';
 import { AddChildDto } from './dto/add-child.dto';
+import { CreateFamilyDto } from '../organization/dto/create-family.dto';
 
 interface UserLean {
   _id?: Types.ObjectId;
@@ -45,6 +44,7 @@ export class ChildrenService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Organization.name)
     private organizationModel: Model<OrganizationDocument>,
+    private organizationService: OrganizationService,
   ) { }
 
   /**
@@ -126,6 +126,8 @@ export class ChildrenService {
       notes: dto.notes?.trim(),
       parentId: family._id,
       organizationId: family.organizationId,
+      addedByOrganizationId: family.organizationId,
+      lastModifiedBy: new Types.ObjectId(requesterId),
     });
 
     if (family.organizationId) {
@@ -186,6 +188,8 @@ export class ChildrenService {
       medications: dto.medications?.trim(),
       notes: dto.notes?.trim(),
       specialistId: new Types.ObjectId(specialistId),
+      addedBySpecialistId: new Types.ObjectId(specialistId),
+      lastModifiedBy: new Types.ObjectId(specialistId),
     });
 
     return {
@@ -196,5 +200,9 @@ export class ChildrenService {
       diagnosis: child.diagnosis,
       notes: child.notes,
     };
+  }
+
+  async createPrivateFamily(specialistId: string, dto: CreateFamilyDto) {
+    return this.organizationService.createFamilyMember(null, dto, specialistId);
   }
 }

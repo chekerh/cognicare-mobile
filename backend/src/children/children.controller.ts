@@ -13,6 +13,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { ChildrenService } from './children.service';
 import { AddChildDto } from './dto/add-child.dto';
+import { CreateFamilyDto } from '../organization/dto/create-family.dto';
 
 @ApiTags('children')
 @Controller('children')
@@ -79,6 +80,25 @@ export class ChildrenController {
   @ApiOperation({ summary: 'Add a private child (specialist only)' })
   async addSpecialistChild(@Request() req: any, @Body() body: AddChildDto) {
     return this.childrenService.createForSpecialist(
+      req.user.id as string,
+      body,
+    );
+  }
+
+  @Post('specialist/add-family')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'psychologist',
+    'speech_therapist',
+    'occupational_therapist',
+    'doctor',
+    'volunteer',
+    'other',
+  )
+  @ApiOperation({ summary: 'Add a private family and their children (specialist only)' })
+  async addSpecialistFamily(@Request() req: any, @Body() body: CreateFamilyDto) {
+    return this.childrenService.createPrivateFamily(
       req.user.id as string,
       body,
     );

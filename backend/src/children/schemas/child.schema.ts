@@ -41,11 +41,24 @@ export class Child {
   @Prop({ type: Types.ObjectId, ref: 'User' })
   specialistId?: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  lastModifiedBy?: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Organization' })
+  addedByOrganizationId?: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  addedBySpecialistId?: Types.ObjectId;
+
   @Prop()
-  profilePic?: string;
+  deletedAt?: Date;
 
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export const ChildSchema = SchemaFactory.createForClass(Child);
+
+ChildSchema.index({ organizationId: 1, deletedAt: 1 });
+ChildSchema.index({ specialistId: 1, deletedAt: 1 });
+ChildSchema.index({ parentId: 1, deletedAt: 1 });
