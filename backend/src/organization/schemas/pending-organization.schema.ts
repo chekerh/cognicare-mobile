@@ -20,6 +20,9 @@ export class PendingOrganization {
   @Prop()
   description?: string;
 
+  @Prop()
+  certificateUrl?: string;
+
   @Prop({
     type: String,
     enum: ['pending', 'approved', 'rejected'],

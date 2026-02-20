@@ -27,6 +27,7 @@ import {
   FamilyMemberSchema,
 } from './schemas/family-member.schema';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
+import { OrgScanAiModule } from '../orgScanAi/orgScanAi.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
     MailModule,
     OrganizationModule,
     CloudinaryModule,
+    OrgScanAiModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
