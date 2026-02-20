@@ -592,6 +592,15 @@ export class OrganizationController {
     return await this.organizationService.getAllPendingOrganizations();
   }
 
+  @Get('admin/reviewed-requests')
+  @Roles('admin')
+  @ApiOperation({
+    summary: 'Get all reviewed (approved/rejected) organization requests (Admin only)',
+  })
+  async getReviewedOrganizationRequests() {
+    return await this.organizationService.getReviewedOrganizations();
+  }
+
   @Post('admin/review/:requestId')
   @Roles('admin')
   @ApiOperation({ summary: 'Review pending organization request (Admin only)' })
@@ -601,6 +610,24 @@ export class OrganizationController {
     @Request() req: any,
   ) {
     return await this.organizationService.reviewOrganization(
+      requestId,
+      req.user.id as string,
+      reviewDto.decision,
+      reviewDto.rejectionReason,
+    );
+  }
+
+  @Post('admin/re-review/:requestId')
+  @Roles('admin')
+  @ApiOperation({
+    summary: 'Re-review previously reviewed organization request (Admin only)',
+  })
+  async reReviewOrganizationRequest(
+    @Param('requestId') requestId: string,
+    @Body() reviewDto: ReviewOrganizationDto,
+    @Request() req: any,
+  ) {
+    return await this.organizationService.reReviewOrganization(
       requestId,
       req.user.id as string,
       reviewDto.decision,

@@ -217,8 +217,28 @@ export class AuthController {
           'Organization registration certificate (PDF) is required for organization leaders',
         );
       }
+
+      // Validate mimetype
       if (certificate.mimetype !== 'application/pdf') {
-        throw new BadRequestException('Certificate must be a PDF file');
+        throw new BadRequestException(
+          `Certificate must be a PDF file (received ${certificate.mimetype})`,
+        );
+      }
+
+      // Validate PDF magic bytes (file signature)
+      const pdfHeader = certificate.buffer.toString('utf8', 0, 5);
+      if (!pdfHeader.startsWith('%PDF-')) {
+        throw new BadRequestException(
+          'Invalid PDF file. The uploaded file does not have a valid PDF header. Please ensure you are uploading a genuine PDF document.',
+        );
+      }
+
+      // Validate file size (max 10MB for PDFs)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (certificate.size > maxSize) {
+        throw new BadRequestException(
+          `Certificate PDF file is too large (${(certificate.size / 1024 / 1024).toFixed(2)}MB). Maximum allowed size is 10MB.`,
+        );
       }
     }
 

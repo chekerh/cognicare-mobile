@@ -14,13 +14,17 @@ import {
   PendingOrganization,
   PendingOrganizationSchema,
 } from '../organization/schemas/pending-organization.schema';
+import { User, UserSchema } from '../users/schemas/user.schema';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: FraudAnalysis.name, schema: FraudAnalysisSchema },
       { name: PendingOrganization.name, schema: PendingOrganizationSchema },
+      { name: User.name, schema: UserSchema },
     ]),
+    CloudinaryModule,
   ],
   controllers: [OrgScanAiController],
   providers: [

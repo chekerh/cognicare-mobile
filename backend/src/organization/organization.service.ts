@@ -1248,6 +1248,14 @@ export class OrganizationService {
       .sort({ createdAt: -1 });
   }
 
+  async getReviewedOrganizations(): Promise<PendingOrganization[]> {
+    return this.pendingOrganizationModel
+      .find({ status: { $in: ['approved', 'rejected'] } })
+      .populate('requestedBy', 'fullName email')
+      .populate('reviewedBy', 'fullName email')
+      .sort({ reviewedAt: -1 });
+  }
+
   async reviewOrganization(
     requestId: string,
     adminId: string,
@@ -1329,6 +1337,137 @@ export class OrganizationService {
         message: 'Organization request rejected',
       };
     }
+  }
+
+  async reReviewOrganization(
+    requestId: string,
+    adminId: string,
+    decision: 'approved' | 'rejected',
+    rejectionReason?: string,
+  ): Promise<{ message: string; organization?: Organization }> {
+    const pendingOrg = await this.pendingOrganizationModel.findById(requestId);
+
+    if (!pendingOrg) {
+      throw new NotFoundException('Organization request not found');
+    }
+
+    if (pendingOrg.status === 'pending') {
+      throw new BadRequestException(
+        'Use the regular review endpoint for pending requests',
+      );
+    }
+
+    const user = await this.userModel.findOne({
+      email: pendingOrg.leaderEmail,
+    });
+
+    // If changing from rejected to approved
+    if (pendingOrg.status === 'rejected' && decision === 'approved') {
+      // Check if user still exists, if not create new one
+      const targetUser = user;
+      if (!targetUser) {
+        // User was deleted, need to recreate (admin should handle this separately)
+        throw new BadRequestException(
+          'User account was deleted. Please create a new organization invitation for this user.',
+        );
+      }
+
+      // Check if organization already exists
+      const existingOrg = await this.organizationModel.findOne({
+        leaderId: targetUser._id,
+      });
+
+      if (existingOrg) {
+        throw new BadRequestException(
+          'User already has an approved organization',
+        );
+      }
+
+      // Create the organization
+      const newOrg = await this.createOrganization(
+        pendingOrg.organizationName,
+        targetUser._id.toString(),
+        pendingOrg.certificateUrl,
+      );
+
+      // Update user's organizationId
+      targetUser.organizationId = newOrg._id.toString();
+      await targetUser.save();
+
+      // Update pending request
+      pendingOrg.status = 'approved';
+      pendingOrg.reviewedBy = new Types.ObjectId(adminId);
+      pendingOrg.reviewedAt = new Date();
+      pendingOrg.organizationId = newOrg._id;
+      pendingOrg.rejectionReason = undefined;
+      await pendingOrg.save();
+
+      // Send approval email
+      try {
+        await this.mailService.sendOrganizationApproved(
+          targetUser.email,
+          pendingOrg.organizationName,
+          targetUser.fullName,
+        );
+      } catch (error) {
+        console.error('Failed to send organization approved email:', error);
+      }
+
+      return {
+        message: 'Organization approved successfully after re-review',
+        organization: newOrg,
+      };
+    }
+
+    // If changing from approved to rejected
+    if (pendingOrg.status === 'approved' && decision === 'rejected') {
+      // Find and delete the organization
+      if (pendingOrg.organizationId) {
+        const org = await this.organizationModel.findById(
+          pendingOrg.organizationId,
+        );
+        if (org) {
+          // Remove organizationId from all users
+          await this.userModel.updateMany(
+            { organizationId: org._id.toString() },
+            { $unset: { organizationId: '' } },
+          );
+
+          // Delete organization
+          await this.organizationModel.findByIdAndDelete(org._id);
+        }
+      }
+
+      // Update pending request
+      pendingOrg.status = 'rejected';
+      pendingOrg.reviewedBy = new Types.ObjectId(adminId);
+      pendingOrg.reviewedAt = new Date();
+      pendingOrg.rejectionReason = rejectionReason;
+      pendingOrg.organizationId = undefined;
+      await pendingOrg.save();
+
+      // Send rejection email if user exists
+      if (user) {
+        try {
+          await this.mailService.sendOrganizationRejected(
+            user.email,
+            pendingOrg.organizationName,
+            user.fullName,
+            rejectionReason,
+          );
+        } catch (error) {
+          console.error('Failed to send organization rejected email:', error);
+        }
+      }
+
+      return {
+        message: 'Organization rejected successfully after re-review',
+      };
+    }
+
+    throw new BadRequestException(
+      'Invalid re-review decision or status combination',
+    );
   }
 
   async getUserPendingOrganization(
