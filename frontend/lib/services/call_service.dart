@@ -134,9 +134,7 @@ class CallService {
       return;
     }
     debugPrint('📞 [CALL] Connexion WebSocket en cours...');
-    final wsUrl = _baseUrl
-        .replaceFirst('https://', 'https://')
-        .replaceFirst('http://', 'http://');
+    final wsUrl = _baseUrl;
     _socket = io.io(
       wsUrl,
       io.OptionBuilder()
