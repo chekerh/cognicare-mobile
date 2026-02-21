@@ -627,6 +627,13 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     );
   }
 
+  String _formatDuration(int seconds) {
+    if (seconds < 60) return '$seconds s';
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '${m}m ${s.toString().padLeft(2, '0')}s';
+  }
+
   void _initiateCall(BuildContext context, bool isVideo) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final caller = auth.user;
@@ -816,17 +823,28 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                                            size: 22,
                                          ),
                                          const SizedBox(width: 8),
-                                         Text(
-                                           msg.text,
-                                           style: TextStyle(
-                                             fontSize: 14,
-                                             color: msg.isMe ? Colors.white : _textPrimary,
-                                             fontWeight: FontWeight.bold,
-                                           ),
-                                         ),
-                                       ],
-                                     ),
-                                     if (msg.callDuration != null && msg.callDuration! > 0) ...[
+                                          Text(
+                                            msg.text.startsWith('Appel ') ? msg.text : 'Transcription de l\'appel',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: msg.isMe ? Colors.white : _textPrimary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      if (!msg.text.startsWith('Appel ')) ...[
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          msg.text,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: msg.isMe ? Colors.white.withOpacity(0.9) : _textPrimary.withOpacity(0.8),
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                      ],
+                                      if (msg.callDuration != null && msg.callDuration! > 0) ...[
                                        const SizedBox(height: 2),
                                        Text(
                                          _formatDuration(msg.callDuration!),

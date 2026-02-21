@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { CallsController } from './calls.controller';
 import { CallsService } from './calls.service';
 import { CallsGateway } from './calls.gateway';
+import { TranscriptionService } from './transcription.service';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { CallsGateway } from './calls.gateway';
     }),
   ],
   controllers: [CallsController],
-  providers: [CallsService, CallsGateway],
-  exports: [CallsService, CallsGateway],
+  providers: [CallsService, CallsGateway, TranscriptionService],
+  exports: [CallsService, CallsGateway, TranscriptionService],
 })
-export class CallsModule {}
+export class CallsModule { }

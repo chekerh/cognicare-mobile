@@ -63,6 +63,20 @@ class TypingEvent {
   });
 }
 
+class TranscriptionEvent {
+  final String fromUserId;
+  final String text;
+  final bool isFinal;
+  final String channelId;
+
+  TranscriptionEvent({
+    required this.fromUserId,
+    required this.text,
+    required this.isFinal,
+    required this.channelId,
+  });
+}
+
 // ─── CallService (signaling) ─────────────────────────────────────────
 
 class CallService {
@@ -78,6 +92,7 @@ class CallService {
   final _incomingMessageController =
       StreamController<IncomingMessageEvent>.broadcast();
   final _typingController = StreamController<TypingEvent>.broadcast();
+  final _transcriptionController = StreamController<TranscriptionEvent>.broadcast();
 
   // WebRTC signaling streams
   final _remoteOfferController =
@@ -98,6 +113,7 @@ class CallService {
   Stream<IncomingMessageEvent> get onIncomingMessage =>
       _incomingMessageController.stream;
   Stream<TypingEvent> get onTyping => _typingController.stream;
+  Stream<TranscriptionEvent> get onTranscription => _transcriptionController.stream;
 
   // WebRTC signaling
   Stream<Map<String, dynamic>> get onRemoteOffer =>
@@ -274,6 +290,17 @@ class CallService {
         ));
       }
     });
+
+    _socket!.on('call:transcription', (data) {
+      if (data is Map) {
+        _transcriptionController.add(TranscriptionEvent(
+          fromUserId: (data['fromUserId'] ?? '').toString(),
+          text: (data['text'] ?? '').toString(),
+          isFinal: data['isFinal'] == true,
+          channelId: (data['channelId'] ?? '').toString(),
+        ));
+      }
+    });
   }
 
   void disconnect() {
@@ -379,6 +406,18 @@ class CallService {
       'targetUserId': targetUserId,
       'conversationId': conversationId,
       'isTyping': isTyping,
+    });
+  }
+
+  void sendAudioChunk({
+    required String targetUserId,
+    required List<int> chunk,
+    required String channelId,
+  }) {
+    _socket?.emit('call:audio_chunk', {
+      'targetUserId': targetUserId,
+      'chunk': chunk,
+      'channelId': channelId,
     });
   }
 }
