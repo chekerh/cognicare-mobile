@@ -6,7 +6,7 @@ export type MessageDocument = Message & Document;
 
 @Schema({ timestamps: true })
 export class Message {
-  @Prop({ type: Types.ObjectId, required: true })
+  @Prop({ type: Types.ObjectId, required: true, index: true })
   threadId: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })

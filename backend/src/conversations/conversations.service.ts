@@ -23,6 +23,7 @@ import {
 } from './conversation-setting.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { CallsGateway } from '../calls/calls.gateway';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class ConversationsService {
@@ -38,6 +39,8 @@ export class ConversationsService {
     private readonly configService: ConfigService,
     private readonly callsGateway: CallsGateway,
   ) { }
+
+  private readonly logger = new Logger(ConversationsService.name);
 
   private _encryptionKey: Buffer | null = null;
 
@@ -56,12 +59,12 @@ export class ConversationsService {
     const key = this.getEncryptionKey();
     const iv = crypto.randomBytes(12);
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-    const encrypted = Buffer.concat([
-      cipher.update(plaintext, 'utf8'),
-      cipher.final(),
-    ]);
+    const encrypted = cipher.update(plaintext, 'utf8');
+    const finalEncrypted = Buffer.concat([encrypted, cipher.final()]);
     const tag = cipher.getAuthTag();
-    return Buffer.concat([iv, tag, encrypted]).toString('base64');
+    const result = Buffer.concat([iv, tag, finalEncrypted]).toString('base64');
+    // this.logger.debug(`Message encrypted: length=${result.length}`);
+    return result;
   }
 
   /**
@@ -87,8 +90,9 @@ export class ConversationsService {
         decipher.final(),
       ]);
       return decrypted.toString('utf8');
-    } catch {
+    } catch (e) {
       // Old messages stored in plaintext or invalid data: just return as-is
+      this.logger.warn(`Decryption failed, assuming plaintext: ${e.message}`);
       return possiblyEncrypted;
     }
   }
