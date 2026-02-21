@@ -87,9 +87,17 @@ export class SpecializedPlansService {
     childId: string,
     orgId: string | undefined,
   ): Promise<SpecializedPlan[]> {
-    const filter: Record<string, unknown> = { childId, status: 'active' };
+    const filter: Record<string, unknown> = {
+      childId: new Types.ObjectId(childId),
+      status: 'active',
+    };
     if (orgId) {
-      filter.organizationId = new Types.ObjectId(orgId);
+      // Include plans that belong to this org OR have no org (legacy/private plans for this child)
+      filter.$or = [
+        { organizationId: new Types.ObjectId(orgId) },
+        { organizationId: { $exists: false } },
+        { organizationId: null },
+      ];
     } else {
       filter.$or = [
         { organizationId: { $exists: false } },
