@@ -1,4 +1,4 @@
-import { Prop, Schema, SchemaFactory, index } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { User } from '../users/schemas/user.schema';
 
@@ -11,8 +11,6 @@ export type ConversationSegment =
   | 'healthcare';
 
 @Schema({ timestamps: true })
-@index({ user: 1, updatedAt: -1 })
-@index({ otherUserId: 1, updatedAt: -1 })
 export class Conversation {
   @Prop({ type: Types.ObjectId, ref: User.name, required: true, index: true })
   user: Types.ObjectId;
@@ -55,3 +53,7 @@ export class Conversation {
 }
 
 export const ConversationSchema = SchemaFactory.createForClass(Conversation);
+
+// Add compound indexes for optimized sorting
+ConversationSchema.index({ user: 1, updatedAt: -1 });
+ConversationSchema.index({ otherUserId: 1, updatedAt: -1 });
