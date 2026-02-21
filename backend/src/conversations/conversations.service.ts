@@ -265,7 +265,9 @@ export class ConversationsService {
         threadId: conv.threadId?.toString(),
         name: conv.name,
         subtitle: conv.subtitle,
-        lastMessage: conv.lastMessage,
+        lastMessage: conv.lastMessage
+          ? this.decryptMessage(conv.lastMessage)
+          : '',
         timeAgo: conv.timeAgo,
         imageUrl,
         unread: conv.unread,
@@ -343,7 +345,9 @@ export class ConversationsService {
       threadId: created.threadId?.toString(),
       name: created.name,
       subtitle: created.subtitle,
-      lastMessage: created.lastMessage,
+      lastMessage: created.lastMessage
+        ? this.decryptMessage(created.lastMessage)
+        : '',
       timeAgo: created.timeAgo,
       imageUrl: otherProfilePic,
       unread: created.unread,

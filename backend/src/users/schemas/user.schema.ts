@@ -19,6 +19,7 @@ export class User {
 
   @Prop({
     required: true,
+    index: true,
     enum: [
       'family',
       'doctor',
