@@ -12,12 +12,12 @@ export class CreatePlanDto {
 
   @ApiProperty({
     description: 'Type of specialized plan',
-    enum: ['PECS', 'TEACCH', 'SkillTracker'],
+    enum: ['PECS', 'TEACCH', 'SkillTracker', 'Activity'],
     example: 'PECS',
   })
   @IsNotEmpty()
-  @IsEnum(['PECS', 'TEACCH', 'SkillTracker'])
-  type!: 'PECS' | 'TEACCH' | 'SkillTracker';
+  @IsEnum(['PECS', 'TEACCH', 'SkillTracker', 'Activity'])
+  type!: 'PECS' | 'TEACCH' | 'SkillTracker' | 'Activity';
 
   @ApiProperty({
     description: 'Title of the plan',

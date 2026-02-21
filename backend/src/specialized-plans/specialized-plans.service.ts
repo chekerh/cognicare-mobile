@@ -24,7 +24,7 @@ export class SpecializedPlansService {
     organizationId: string | undefined,
     data: {
       childId: string;
-      type: 'PECS' | 'TEACCH' | 'SkillTracker';
+      type: 'PECS' | 'TEACCH' | 'SkillTracker' | 'Activity';
       title: string;
       content: any;
     },
@@ -58,10 +58,19 @@ export class SpecializedPlansService {
 
   async getPlansByChild(
     childId: string,
-    orgId: string,
+    orgId: string | undefined,
   ): Promise<SpecializedPlan[]> {
+    const filter: Record<string, unknown> = { childId, status: 'active' };
+    if (orgId) {
+      filter.organizationId = new Types.ObjectId(orgId);
+    } else {
+      filter.$or = [
+        { organizationId: { $exists: false } },
+        { organizationId: null },
+      ];
+    }
     return this.planModel
-      .find({ childId, organizationId: orgId, status: 'active' })
+      .find(filter)
       .sort({ createdAt: -1 });
   }
 

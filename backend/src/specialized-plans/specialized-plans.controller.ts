@@ -54,7 +54,7 @@ export class SpecializedPlansController {
   )
   @ApiOperation({ summary: 'Get all active plans for a specific child' })
   async getByChild(
-    @Request() req: { user: { organizationId: string } },
+    @Request() req: { user: { organizationId?: string } },
     @Param('childId') childId: string,
   ) {
     return await this.plansService.getPlansByChild(
