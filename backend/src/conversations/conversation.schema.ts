@@ -57,3 +57,4 @@ export const ConversationSchema = SchemaFactory.createForClass(Conversation);
 // Add compound indexes for optimized sorting
 ConversationSchema.index({ user: 1, updatedAt: -1 });
 ConversationSchema.index({ otherUserId: 1, updatedAt: -1 });
+ConversationSchema.index({ participants: 1, updatedAt: -1 });

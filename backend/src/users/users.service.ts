@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -14,6 +15,7 @@ import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private mailService: MailService,
@@ -162,12 +164,15 @@ export class UsersService {
   async findVolunteerUsers(): Promise<
     { id: string; fullName: string; profilePic?: string }[]
   > {
+    const start = Date.now();
     const users = await this.userModel
       .find({ role: 'volunteer' })
       .select('_id fullName profilePic')
       .sort({ fullName: 1 })
+      .limit(100)
       .lean()
       .exec();
+    this.logger.log(`findVolunteerUsers query took ${Date.now() - start}ms`);
     return (
       users as Array<{
         _id: Types.ObjectId;

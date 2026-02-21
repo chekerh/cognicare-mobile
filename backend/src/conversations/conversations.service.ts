@@ -98,14 +98,20 @@ export class ConversationsService {
   }
 
   async findInboxForUser(userId: string) {
-    const uid = new Types.ObjectId(userId);
+    const start = Date.now();
     const docs = await this.conversationModel
       .find({
-        $or: [{ user: uid }, { otherUserId: uid }, { participants: uid }],
+        $or: [
+          { user: new Types.ObjectId(userId) },
+          { otherUserId: new Types.ObjectId(userId) },
+          { participants: new Types.ObjectId(userId) },
+        ],
       })
       .sort({ updatedAt: -1 })
+      .limit(100)
       .lean()
       .exec();
+    this.logger.log(`findInboxForUser query took ${Date.now() - start}ms for userId: ${userId}`);
 
     type Doc = {
       user?: { toString(): string };
@@ -456,6 +462,7 @@ export class ConversationsService {
     const threadId = conv.threadId ?? conv._id;
     const isGroup = conv.participants && conv.participants.length > 0;
     const encryptedText = this.encryptMessage(text);
+    this.logger.log(`[ENCRYPTION CHECK] Thread: ${threadId}, Plaintext Length: ${text?.length}, Encrypted Length: ${encryptedText?.length}`);
     const created = await this.messageModel.create({
       threadId,
       senderId: uid,
