@@ -8,7 +8,11 @@ import {
   Body,
   UseGuards,
   Request,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { SpecializedPlansService } from './specialized-plans.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -22,6 +26,25 @@ import { CreatePlanDto } from './dto/create-plan.dto';
 @ApiBearerAuth()
 export class SpecializedPlansController {
   constructor(private readonly plansService: SpecializedPlansService) {}
+
+  @Post('upload-image')
+  @Roles(
+    'psychologist',
+    'speech_therapist',
+    'occupational_therapist',
+    'doctor',
+    'volunteer',
+  )
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Upload image for PECS card' })
+  async uploadImage(
+    @UploadedFile()
+    file?: { buffer: Buffer; mimetype: string },
+  ) {
+    if (!file?.buffer) throw new BadRequestException('No file provided');
+    const imageUrl = await this.plansService.uploadImage(file);
+    return { imageUrl };
+  }
 
   @Post()
   @Roles(

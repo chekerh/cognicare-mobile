@@ -10,6 +10,10 @@ import {
   SpecializedPlanDocument,
 } from './schemas/specialized-plan.schema';
 import { Child, ChildDocument } from '../children/schemas/child.schema';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import * as path from 'path';
+import * as fs from 'fs/promises';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class SpecializedPlansService {
@@ -17,7 +21,30 @@ export class SpecializedPlansService {
     @InjectModel(SpecializedPlan.name)
     private planModel: Model<SpecializedPlanDocument>,
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
+    private cloudinary: CloudinaryService,
   ) { }
+
+  async uploadImage(file: { buffer: Buffer; mimetype: string }): Promise<string> {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
+    const m = (file.mimetype ?? '').toLowerCase();
+    const mimetype = !m || m === 'application/octet-stream' ? 'image/jpeg' : m;
+    if (!allowed.includes(mimetype) && !mimetype.startsWith('image/')) {
+      throw new ForbiddenException('Invalid file type. Use JPEG, PNG or WebP.');
+    }
+    if (this.cloudinary.isConfigured()) {
+      const publicId = `pecs-${crypto.randomUUID()}`;
+      return this.cloudinary.uploadBuffer(file.buffer, {
+        folder: 'cognicare/pecs',
+        publicId,
+      });
+    }
+    const uploadsDir = path.join(process.cwd(), 'uploads', 'pecs');
+    await fs.mkdir(uploadsDir, { recursive: true });
+    const ext = mimetype === 'image/png' ? 'png' : mimetype === 'image/webp' ? 'webp' : 'jpg';
+    const filename = `${crypto.randomUUID()}.${ext}`;
+    await fs.writeFile(path.join(uploadsDir, filename), file.buffer);
+    return `/uploads/pecs/${filename}`;
+  }
 
   async createPlan(
     specialistId: string,
