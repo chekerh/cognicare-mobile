@@ -104,17 +104,12 @@ class FamilyUser {
 }
 
 class ChatService {
-  final http.Client _client;
-  final Future<String?> Function() getToken;
-
-  ChatService({
-    http.Client? client,
-    required this.getToken,
-  }) : _client = client ?? http.Client();
+  final _client = http.Client();
+  ChatService();
 
   /// Liste des autres familles avec qui l'utilisateur peut ouvrir une conversation.
   Future<List<FamilyUser>> getFamiliesToContact() async {
-    final token = await getToken();
+    final token = await AuthService().getStoredToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
       '${AppConstants.baseUrl}${AppConstants.usersFamiliesEndpoint}',
@@ -125,7 +120,7 @@ class ChatService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-    );
+    ).timeout(const Duration(seconds: 20));
     if (response.statusCode != 200) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;
@@ -142,7 +137,7 @@ class ChatService {
   }
 
   Future<List<InboxConversation>> getInbox() async {
-    final token = await getToken();
+    final token = await AuthService().getStoredToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
       '${AppConstants.baseUrl}${AppConstants.conversationsInboxEndpoint}',
@@ -153,7 +148,7 @@ class ChatService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-    );
+    ).timeout(const Duration(seconds: 20));
     if (response.statusCode != 200) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;
@@ -171,7 +166,7 @@ class ChatService {
 
   /// Get or create conversation with [otherUserId]. Returns conversation (with id and threadId).
   Future<InboxConversation> getOrCreateConversation(String otherUserId) async {
-    final token = await getToken();
+    final token = await AuthService().getStoredToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
       '${AppConstants.baseUrl}${AppConstants.conversationsByParticipantEndpoint}/$otherUserId',
@@ -182,7 +177,7 @@ class ChatService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-    );
+    ).timeout(const Duration(seconds: 20));
     if (response.statusCode != 200) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;
@@ -197,7 +192,7 @@ class ChatService {
   }
 
   Future<List<ChatMessage>> getMessages(String conversationId) async {
-    final token = await getToken();
+    final token = await AuthService().getStoredToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
       '${AppConstants.baseUrl}${AppConstants.conversationsMessagesEndpoint(conversationId)}',
@@ -208,7 +203,7 @@ class ChatService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-    );
+    ).timeout(const Duration(seconds: 20));
     if (response.statusCode != 200) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;
@@ -226,7 +221,7 @@ class ChatService {
 
   /// Upload attachment (image or voice). Returns the URL to use in sendMessage.
   Future<String> uploadAttachment(File file, String type) async {
-    final token = await getToken();
+    final token = await AuthService().getStoredToken();
     if (token == null || token.isEmpty) {
       throw Exception('Session expirée. Veuillez vous reconnecter.');
     }
@@ -264,7 +259,7 @@ class ChatService {
     String? attachmentType,
     int? callDuration,
   }) async {
-    final token = await getToken();
+    final token = await AuthService().getStoredToken();
     if (token == null || token.isEmpty) {
       throw Exception('Session expirée. Veuillez vous reconnecter.');
     }
@@ -275,14 +270,16 @@ class ChatService {
     if (attachmentUrl != null) body['attachmentUrl'] = attachmentUrl;
     if (attachmentType != null) body['attachmentType'] = attachmentType;
     if (callDuration != null) body['callDuration'] = callDuration;
-    final response = await _client.post(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(body),
-    );
+    final response = await _client
+        .post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 20));
     if (response.statusCode == 401) throw Exception('Unauthorized');
     if (response.statusCode != 200 && response.statusCode != 201) {
       try {
@@ -302,19 +299,21 @@ class ChatService {
     String name,
     List<String> participantIds,
   ) async {
-    final token = await getToken();
+    final token = await AuthService().getStoredToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
       '${AppConstants.baseUrl}/api/v1/conversations/groups',
     );
-    final response = await _client.post(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({'name': name, 'participantIds': participantIds}),
-    );
+    final response = await _client
+        .post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode({'name': name, 'participantIds': participantIds}),
+        )
+        .timeout(const Duration(seconds: 20));
     if (response.statusCode != 200 && response.statusCode != 201) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;
@@ -358,18 +357,20 @@ class ChatService {
   }
 
   Future<void> deleteConversation(String conversationId) async {
-    final token = await getToken();
+    final token = await AuthService().getStoredToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
       '${AppConstants.baseUrl}/api/v1/conversations/$conversationId',
     );
-    final response = await _client.delete(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+    final response = await _client
+        .delete(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        )
+        .timeout(const Duration(seconds: 20));
     if (response.statusCode != 200 && response.statusCode != 204) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;
@@ -526,18 +527,20 @@ class ChatService {
 
   /// Get list of blocked user IDs.
   Future<List<String>> getBlockedUserIds() async {
-    final token = await getToken();
+    final token = await AuthService().getStoredToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
       '${AppConstants.baseUrl}${AppConstants.usersMeBlockedEndpoint}',
     );
-    final response = await _client.get(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+    final response = await _client
+        .get(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        )
+        .timeout(const Duration(seconds: 20));
     if (response.statusCode != 200) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;

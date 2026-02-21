@@ -10,14 +10,14 @@ import '../models/user.dart';
 import '../utils/constants.dart';
 
 class AuthService {
+  static final AuthService _instance = AuthService._internal();
+  factory AuthService() => _instance;
+  AuthService._internal()
+      : _client = http.Client(),
+        _storage = const FlutterSecureStorage();
+
   final http.Client _client;
   final FlutterSecureStorage _storage;
-
-  AuthService({
-    http.Client? client,
-    FlutterSecureStorage? storage,
-  })  : _client = client ?? http.Client(),
-        _storage = storage ?? const FlutterSecureStorage();
 
   /// Lightweight ping to warm up the backend (useful on cold starts).
   Future<void> pingBackend() async {
@@ -76,7 +76,7 @@ class AuthService {
               'password': password,
             }),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final authResponse = AuthResponse.fromJson(jsonDecode(response.body));

@@ -141,7 +141,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
 
   Future<void> _openChatWithVolunteer(BuildContext context, _VolunteerCardData v) async {
     try {
-      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final chatService = ChatService();
       final conv = await chatService.getOrCreateConversation(v.id);
       if (!mounted) return;
       final uri = Uri(

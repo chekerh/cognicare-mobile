@@ -186,7 +186,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     });
     try {
       final chatService =
-          ChatService(getToken: () async => Provider.of<AuthProvider>(context, listen: false).accessToken ?? await AuthService().getStoredToken());
+          ChatService();
       final conv = await chatService.getOrCreateConversation(widget.personId);
       if (!mounted) return;
       setState(() {
@@ -216,7 +216,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final currentUserId = auth.user?.id;
-      final chatService = ChatService(getToken: () async => Provider.of<AuthProvider>(context, listen: false).accessToken ?? await AuthService().getStoredToken());
+      final chatService = ChatService();
       final list = await chatService.getMessages(cid);
       if (!mounted) return;
       setState(() {
@@ -512,7 +512,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       _controller.clear();
       _scrollToBottom();
       try {
-        final chatService = ChatService(getToken: () async => Provider.of<AuthProvider>(context, listen: false).accessToken ?? await AuthService().getStoredToken());
+        final chatService = ChatService();
         await chatService.sendMessage(cid, text);
         if (!mounted) return;
         setState(() => _sending = false);
@@ -628,12 +628,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     );
   }
 
-  String _formatDuration(int seconds) {
-    if (seconds < 60) return '$seconds s';
-    final m = seconds ~/ 60;
-    final s = seconds % 60;
-    return '${m}m ${s.toString().padLeft(2, '0')}s';
-  }
+
 
   void _initiateCall(BuildContext context, bool isVideo) {
     final auth = Provider.of<AuthProvider>(context, listen: false);

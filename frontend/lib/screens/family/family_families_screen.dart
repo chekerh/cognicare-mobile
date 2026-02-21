@@ -64,7 +64,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
       _inboxError = null;
     });
     try {
-      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final chatService = ChatService();
       final list = await chatService.getInbox();
       if (!mounted) return;
       setState(() {
@@ -100,7 +100,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
       _familiesError = null;
     });
     try {
-      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final chatService = ChatService();
       final list = await chatService.getFamiliesToContact();
       if (!mounted) return;
       setState(() {
@@ -119,7 +119,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
 
   Future<void> _openChatWithFamily(BuildContext context, FamilyUser family) async {
     try {
-      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final chatService = ChatService();
       final conv = await chatService.getOrCreateConversation(family.id);
       if (!context.mounted) return;
       context.push(
@@ -311,7 +311,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
   }
 
   Widget _buildContent() {
-    if (_inboxLoading) {
+    if (_inboxLoading || (_selectedTab == 0 && _inboxConversations != null && _inboxConversations!.where((c) => c.segment == 'families').isEmpty && _familiesLoading)) {
       return const Center(child: CircularProgressIndicator());
     }
     if (_inboxError != null) {
@@ -434,35 +434,38 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
             border: Border.all(color: Colors.grey.shade100),
           ),
           clipBehavior: Clip.antiAlias,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'Familles avec qui communiquer',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: _textPrimary,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Familles avec qui communiquer',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: _textPrimary,
+                    ),
                   ),
                 ),
-              ),
-              ...families.asMap().entries.map((entry) {
-                final f = entry.value;
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (entry.key > 0) Divider(height: 1, color: Colors.grey.shade100),
-                    _FamilyContactTile(
-                      family: f,
-                      onTap: () => _openChatWithFamily(context, f),
-                    ),
-                  ],
-                );
-              }),
-            ],
+                ...families.asMap().entries.map((entry) {
+                  final f = entry.value;
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (entry.key > 0)
+                        Divider(height: 1, color: Colors.grey.shade100),
+                      _FamilyContactTile(
+                        family: f,
+                        onTap: () => _openChatWithFamily(context, f),
+                      ),
+                    ],
+                  );
+                }),
+              ],
+            ),
           ),
         );
       }
@@ -543,7 +546,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
             onDismissed: (_) async {
               final id = c.conversationId ?? c.id;
               final chatService =
-                  ChatService(getToken: () => AuthService().getStoredToken());
+                  ChatService();
               try {
                 await chatService.deleteConversation(id);
               } catch (_) {

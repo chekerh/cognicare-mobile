@@ -627,12 +627,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     );
   }
 
-  String _formatDuration(int seconds) {
-    if (seconds < 60) return '$seconds s';
-    final m = seconds ~/ 60;
-    final s = seconds % 60;
-    return '${m}m ${s.toString().padLeft(2, '0')}s';
-  }
+
 
   void _initiateCall(BuildContext context, bool isVideo) {
     final auth = Provider.of<AuthProvider>(context, listen: false);

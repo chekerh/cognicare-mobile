@@ -57,7 +57,7 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
       _loadError = null;
     });
     try {
-      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final chatService = ChatService();
       final list = await chatService.getInbox();
       if (!mounted) return;
       setState(() {
@@ -300,7 +300,7 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
       onDismissed: (_) async {
         final id = c.conversationId ?? c.id;
         final chatService =
-            ChatService(getToken: () => AuthService().getStoredToken());
+            ChatService();
         try {
           await chatService.deleteConversation(id);
         } catch (_) {
