@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../utils/constants.dart';
+import 'package:cognicare_frontend/services/auth_service.dart';
 
 class VolunteerAvailability {
   final String id;
@@ -42,13 +43,14 @@ class VolunteerAvailability {
 }
 
 class AvailabilityService {
+  final AuthService _authService;
   final http.Client _client;
-  final Future<String?> Function() getToken;
 
   AvailabilityService({
     http.Client? client,
-    required this.getToken,
-  }) : _client = client ?? http.Client();
+    AuthService? authService,
+  })  : _client = client ?? http.Client(),
+        _authService = authService ?? AuthService();
 
   /// List availabilities for family home (no auth required for GET for-families).
   Future<List<VolunteerAvailability>> listForFamilies() async {
@@ -82,7 +84,7 @@ class AvailabilityService {
     String recurrence = 'weekly',
     bool recurrenceOn = true,
   }) async {
-    final token = await getToken();
+    final token = await _authService.getStoredToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
       '${AppConstants.baseUrl}${AppConstants.availabilitiesEndpoint}',

@@ -74,7 +74,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
       _volunteerError = null;
     });
     try {
-      final service = AvailabilityService(getToken: () => AuthService().getStoredToken());
+      final service = AvailabilityService();
       final list = await service.listForFamilies();
       if (!mounted) return;
       setState(() {

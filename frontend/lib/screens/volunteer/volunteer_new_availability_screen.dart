@@ -88,7 +88,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
         final day = d.day.toString().padLeft(2, '0');
         return '$y-$m-$day';
       }).toList();
-      final service = AvailabilityService(getToken: () => AuthService().getStoredToken());
+      final service = AvailabilityService();
       await service.create(
         dates: dates,
         startTime: _formatTime(_startTime),

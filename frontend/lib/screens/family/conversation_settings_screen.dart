@@ -45,11 +45,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
   bool _muted = false;
   bool _loadingSettings = true;
 
-  ChatService get _chatService => ChatService(
-        getToken: () async =>
-            Provider.of<AuthProvider>(context, listen: false).accessToken ??
-            await AuthService().getStoredToken(),
-      );
+  ChatService get _chatService => ChatService();
 
   @override
   void initState() {

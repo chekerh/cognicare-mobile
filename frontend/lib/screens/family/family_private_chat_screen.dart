@@ -371,9 +371,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       });
       if (voicePath != null && File(voicePath).existsSync()) {
         final file = File(voicePath);
-        final chatService = ChatService(
-          getToken: () async => Provider.of<AuthProvider>(context, listen: false).accessToken ?? await AuthService().getStoredToken(),
-        );
+        final chatService = ChatService();
         setState(() => _sending = true);
         try {
           final url = await chatService.uploadAttachment(file, 'voice');
@@ -417,9 +415,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       if (picked == null || !mounted) return;
       final file = File(picked.path);
       // Priorité au token stocké pour éviter 401 si AuthProvider pas encore rechargé
-      final chatService = ChatService(
-        getToken: () async => await AuthService().getStoredToken() ?? Provider.of<AuthProvider>(context, listen: false).accessToken,
-      );
+      final chatService = ChatService();
       setState(() => _sending = true);
       try {
         final url = await chatService.uploadAttachment(file, 'image');

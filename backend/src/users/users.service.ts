@@ -17,7 +17,7 @@ export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private mailService: MailService,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const { email, password, ...userData } = createUserDto;
@@ -141,6 +141,29 @@ export class UsersService {
   ): Promise<{ id: string; fullName: string; profilePic?: string }[]> {
     const users = await this.userModel
       .find({ role: 'family', _id: { $ne: excludeUserId } })
+      .select('_id fullName profilePic')
+      .sort({ fullName: 1 })
+      .lean()
+      .exec();
+    return (
+      users as Array<{
+        _id: Types.ObjectId;
+        fullName?: string;
+        profilePic?: string;
+      }>
+    ).map((u) => ({
+      id: u._id.toString(),
+      fullName: u.fullName ?? '',
+      profilePic: u.profilePic,
+    }));
+  }
+
+  /** List volunteer users. */
+  async findVolunteerUsers(): Promise<
+    { id: string; fullName: string; profilePic?: string }[]
+  > {
+    const users = await this.userModel
+      .find({ role: 'volunteer' })
       .select('_id fullName profilePic')
       .sort({ fullName: 1 })
       .lean()

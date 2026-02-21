@@ -480,10 +480,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       if (!mounted) return;
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.user == null || widget.remoteUserId.isEmpty) return;
-      final chatService = ChatService(
-        getToken: () async =>
-            auth.accessToken ?? await AuthService().getStoredToken(),
-      );
+      final chatService = ChatService();
       final conv =
           await chatService.getOrCreateConversation(widget.remoteUserId);
       final text = widget.isVideo ? 'Appel vidéo' : 'Appel vocal';
@@ -566,10 +563,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         debugPrint('⚠️ [CALL_SCREEN] Skipped missed call message: user=${auth.user?.id}, remote=${widget.remoteUserId}');
         return;
       }
-      final chatService = ChatService(
-        getToken: () async =>
-            auth.accessToken ?? await AuthService().getStoredToken(),
-      );
+      final chatService = ChatService();
       final conv =
           await chatService.getOrCreateConversation(widget.remoteUserId);
       final text =

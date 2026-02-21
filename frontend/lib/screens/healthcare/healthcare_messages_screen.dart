@@ -58,9 +58,7 @@ class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
     });
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final chatService = ChatService(
-        getToken: () async => authProvider.accessToken ?? await AuthService().getStoredToken(),
-      );
+      final chatService = ChatService();
       final list = await chatService.getInbox();
       if (!mounted) return;
       setState(() {

@@ -57,8 +57,35 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
   List<FamilyUser>? _familiesToContact;
   bool _familiesLoading = false;
   String? _familiesError;
+  List<FamilyUser>? _volunteersToContact;
+  bool _volunteersLoading = false;
+  String? _volunteersError;
 
   Future<void> _loadInbox() async {
+    final chatService = ChatService();
+    
+    // Load from cache first
+    try {
+      final cached = await chatService.getCachedInbox();
+      if (cached.isNotEmpty && mounted) {
+        setState(() {
+          _inboxConversations = cached
+              .map((e) => _Conversation(
+                    id: e.id,
+                    name: e.name,
+                    subtitle: e.subtitle,
+                    lastMessage: e.lastMessage,
+                    timeAgo: e.timeAgo,
+                    imageUrl: e.imageUrl,
+                    unread: e.unread,
+                    conversationId: e.id,
+                    segment: e.segment,
+                  ))
+              .toList();
+        });
+      }
+    } catch (_) {}
+
     setState(() {
       _inboxLoading = true;
       _inboxError = null;
@@ -95,6 +122,19 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
 
   Future<void> _loadFamiliesToContact() async {
     if (_familiesLoading || _familiesToContact != null) return;
+    
+    final chatService = ChatService();
+
+    // Load from cache first
+    try {
+      final cached = await chatService.getCachedFamiliesToContact();
+      if (cached.isNotEmpty && mounted) {
+        setState(() {
+          _familiesToContact = cached;
+        });
+      }
+    } catch (_) {}
+
     setState(() {
       _familiesLoading = true;
       _familiesError = null;
@@ -113,6 +153,42 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
       setState(() {
         _familiesLoading = false;
         _familiesError = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  }
+
+  Future<void> _loadVolunteersToContact() async {
+    if (_volunteersLoading || _volunteersToContact != null) return;
+    
+    final chatService = ChatService();
+
+    // Load from cache first
+    try {
+      final cached = await chatService.getCachedVolunteers();
+      if (cached.isNotEmpty && mounted) {
+        setState(() {
+          _volunteersToContact = cached;
+        });
+      }
+    } catch (_) {}
+
+    setState(() {
+      _volunteersLoading = true;
+      _volunteersError = null;
+    });
+    try {
+      final list = await chatService.getVolunteers();
+      if (!mounted) return;
+      setState(() {
+        _volunteersToContact = list;
+        _volunteersLoading = false;
+        _volunteersError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _volunteersLoading = false;
+        _volunteersError = e.toString().replaceFirst('Exception: ', '');
       });
     }
   }
@@ -208,15 +284,19 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Conversations',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: _textPrimary,
-              letterSpacing: -0.5,
+          const Flexible(
+            child: Text(
+              'Conversations',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: _textPrimary,
+                letterSpacing: -0.5,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
+          const SizedBox(width: 8),
           Material(
             color: Colors.grey.shade100,
             borderRadius: BorderRadius.circular(999),
@@ -289,14 +369,17 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
               ),
             ),
           ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: active ? _primary : _textMuted,
-              letterSpacing: 0.015,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: active ? _primary : _textMuted,
+                letterSpacing: 0.015,
+              ),
             ),
           ),
         ),
@@ -311,7 +394,11 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
   }
 
   Widget _buildContent() {
-    if (_inboxLoading || (_selectedTab == 0 && _inboxConversations != null && _inboxConversations!.where((c) => c.segment == 'families').isEmpty && _familiesLoading)) {
+    final hasInboxData = _inboxConversations != null;
+    final hasFamiliesToContactData = _familiesToContact != null;
+    final hasVolunteersToContactData = _volunteersToContact != null;
+
+    if (_inboxLoading && !hasInboxData) {
       return const Center(child: CircularProgressIndicator());
     }
     if (_inboxError != null) {
@@ -374,9 +461,12 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
         if (_familiesToContact == null && !_familiesLoading) {
           WidgetsBinding.instance.addPostFrameCallback((_) => _loadFamiliesToContact());
         }
-        if (_familiesLoading) {
+        
+        final showFamiliesSpinner = _familiesLoading && !hasFamiliesToContactData;
+        if (showFamiliesSpinner) {
           return const Center(child: CircularProgressIndicator());
         }
+
         if (_familiesError != null) {
           return Center(
             child: Padding(
@@ -399,6 +489,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
             ),
           );
         }
+
         final families = _familiesToContact ?? [];
         if (families.isEmpty) {
           return Center(
@@ -419,6 +510,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
             ),
           );
         }
+
         return Container(
           margin: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -434,38 +526,149 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
             border: Border.all(color: Colors.grey.shade100),
           ),
           clipBehavior: Clip.antiAlias,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'Familles avec qui communiquer',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: _textPrimary,
-                    ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Familles avec qui communiquer',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: _textPrimary,
                   ),
                 ),
-                ...families.asMap().entries.map((entry) {
-                  final f = entry.value;
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (entry.key > 0)
-                        Divider(height: 1, color: Colors.grey.shade100),
-                      _FamilyContactTile(
-                        family: f,
-                        onTap: () => _openChatWithFamily(context, f),
-                      ),
-                    ],
-                  );
-                }),
-              ],
+              ),
+              Expanded(
+                child: ListView.separated(
+                  padding: EdgeInsets.zero,
+                  itemCount: families.length,
+                  separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
+                  itemBuilder: (_, i) {
+                    final f = families[i];
+                    return _FamilyContactTile(
+                      family: f,
+                      onTap: () => _openChatWithFamily(context, f),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+      } else if (_selectedTab == 1) {
+        if (_volunteersToContact == null && !_volunteersLoading) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _loadVolunteersToContact());
+        }
+        
+        final showVolunteersSpinner = _volunteersLoading && !hasVolunteersToContactData;
+        if (showVolunteersSpinner) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (_volunteersError != null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _volunteersError!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14, color: _textMuted),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: _loadVolunteersToContact,
+                    child: const Text('Réessayer'),
+                  ),
+                ],
+              ),
             ),
+          );
+        }
+
+        final volunteers = _volunteersToContact ?? [];
+        if (volunteers.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.volunteer_activism_outlined, size: 64, color: Colors.grey.shade400),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Aucun bénévole disponible pour le moment.\nVos conversations apparaîtront ici.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Container(
+          margin: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+            border: Border.all(color: Colors.grey.shade100),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Bénévoles avec qui communiquer',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: _textPrimary,
+                  ),
+                ),
+              ),
+              ListView.separated(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: volunteers.length,
+                separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
+                itemBuilder: (context, index) {
+                  final vol = volunteers[index];
+                  return _FamilyContactTile(
+                    family: vol,
+                    onTap: () {
+                      context.push(
+                        Uri(
+                          path: AppConstants.familyPrivateChatRoute,
+                          queryParameters: {
+                            'personId': vol.id,
+                            'personName': vol.fullName,
+                            if (vol.profilePic != null) 'personImageUrl': vol.profilePic!,
+                          },
+                        ).toString(),
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
           ),
         );
       }
@@ -477,12 +680,10 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
             children: [
               Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.shade400),
               const SizedBox(height: 16),
-              Text(
-                _selectedTab == 1
-                    ? 'Aucune conversation avec des bénévoles.'
-                    : 'Aucune conversation avec les professionnels de santé.',
+              const Text(
+                'Aucune conversation avec les professionnels de santé.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                style: TextStyle(fontSize: 16, color: _textMuted),
               ),
             ],
           ),
@@ -577,9 +778,7 @@ class _FamilyContactTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageUrl = family.profilePic != null && family.profilePic!.isNotEmpty
-        ? (family.profilePic!.startsWith('http')
-            ? family.profilePic!
-            : '${AppConstants.baseUrl}${family.profilePic}')
+        ? AppConstants.fullImageUrl(family.profilePic!)
         : '';
     return InkWell(
       onTap: onTap,
