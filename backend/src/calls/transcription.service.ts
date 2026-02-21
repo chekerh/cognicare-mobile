@@ -63,7 +63,9 @@ export class TranscriptionService implements OnModuleInit {
             return {
                 write: (chunk: Buffer) => {
                     if (connection.getReadyState() === 1) { // 1 = OPEN
-                        connection.send(chunk);
+                        // Deepgram expects ArrayBuffer, Blob, or string
+                        const arrayBuffer = chunk.buffer.slice(chunk.byteOffset, chunk.byteOffset + chunk.byteLength);
+                        connection.send(arrayBuffer);
                     }
                 },
                 end: () => {
