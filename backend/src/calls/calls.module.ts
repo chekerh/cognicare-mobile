@@ -1,14 +1,16 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { CallsController } from './calls.controller';
 import { CallsService } from './calls.service';
 import { CallsGateway } from './calls.gateway';
 import { TranscriptionService } from './transcription.service';
+import { ConversationsModule } from '../conversations/conversations.module';
 
 @Module({
   imports: [
     ConfigModule,
+    forwardRef(() => ConversationsModule),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
