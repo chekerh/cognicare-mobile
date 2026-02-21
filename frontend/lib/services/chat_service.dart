@@ -207,7 +207,7 @@ class ChatService {
   Future<List<FamilyUser>> getVolunteers() async {
     final token = await AuthService().getStoredToken();
     final response = await _client.get(
-      Uri.parse('${AppConstants.apiBaseUrl}/users/volunteers'),
+      Uri.parse('${AppConstants.baseUrl}/users/volunteers'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

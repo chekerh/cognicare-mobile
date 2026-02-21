@@ -558,7 +558,6 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
             ],
           ),
         );
-      }
       } else if (_selectedTab == 1) {
         if (_volunteersToContact == null && !_volunteersLoading) {
           WidgetsBinding.instance.addPostFrameCallback((_) => _loadVolunteersToContact());
