@@ -185,7 +185,9 @@ export class ProgressAiService {
       );
     } catch (e) {
       if (e instanceof NotFoundException || e instanceof ForbiddenException) throw e;
-      this.logger.warn(`buildContext failed: ${(e as Error)?.message}`);
+      this.logger.warn(
+        `buildContext failed for childId=${childId} userId=${userId}: ${(e as Error)?.message}`,
+      );
       return this.fallbackRecommendationResult();
     }
     const planTypeFilter = options?.planType;
@@ -200,7 +202,9 @@ export class ProgressAiService {
     try {
       llmResult = await this.llmService.generateRecommendations(contextForPrompt, prefs);
     } catch (e) {
-      this.logger.warn(`LLM generateRecommendations failed: ${(e as Error)?.message}`);
+      this.logger.warn(
+        `LLM generateRecommendations failed childId=${childId} userId=${userId}: ${(e as Error)?.message}`,
+      );
       return this.fallbackRecommendationResult();
     }
     const recommendationId = crypto.randomUUID();

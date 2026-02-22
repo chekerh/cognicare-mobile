@@ -14,6 +14,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AdminGuard } from '../auth/admin.guard';
+import { Public } from '../auth/decorators/public.decorator';
 import { ProgressAiService } from './progress-ai.service';
 import { RecommendationFeedbackDto } from './dto/recommendation-feedback.dto';
 import { UpdateSpecialistPreferencesDto } from './dto/update-preferences.dto';
@@ -26,6 +27,17 @@ import { SubmitParentFeedbackDto } from './dto/parent-feedback.dto';
 @ApiBearerAuth()
 export class ProgressAiController {
   constructor(private readonly progressAiService: ProgressAiService) {}
+
+  @Get('health')
+  @Public()
+  @ApiOperation({ summary: 'Progress AI health check (no auth)' })
+  getHealth(): { configured: boolean; apiKeySet: boolean } {
+    const apiKeySet = !!process.env.GEMINI_API_KEY;
+    return {
+      configured: apiKeySet,
+      apiKeySet,
+    };
+  }
 
   @Get('child/:childId/recommendations')
   @Roles(

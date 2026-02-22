@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { ProgressContext } from './progress-context.service';
 
-const GEMINI_TIMEOUT = 30000;
+const GEMINI_TIMEOUT = 10000;
 
 interface GeminiContent {
   parts: Array<{ text: string }>;
@@ -36,8 +36,11 @@ export class LlmService {
   private readonly logger = new Logger(LlmService.name);
   private readonly apiKey = process.env.GEMINI_API_KEY;
   private readonly model =
-    process.env.PROGRESS_AI_MODEL?.trim() || 'gemini-1.5-flash';
-  private readonly url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent`;
+    process.env.PROGRESS_AI_MODEL?.trim() || 'gemini-2.0-flash';
+  private readonly fallbackModels = ['gemini-1.5-flash'];
+  private getModelUrl(model: string) {
+    return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+  }
 
   async generateRecommendations(
     context: ProgressContext,
@@ -165,25 +168,46 @@ Rules:
       });
     }
 
-    try {
-      const response = await axios.post<GeminiResponse>(
-        `${this.url}?key=${this.apiKey}`,
-        {
-          contents: [{ parts: [{ text: prompt }] }],
-        },
-        {
-          timeout: GEMINI_TIMEOUT,
-          headers: { 'Content-Type': 'application/json' },
-        },
-      );
-      const text =
-        response.data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-      if (!text) throw new Error('Empty response from LLM');
-      return text;
-    } catch (err: any) {
-      this.logger.error(`LLM call failed: ${err?.message ?? err}`);
-      throw err;
+    const modelsToTry = [this.model, ...this.fallbackModels.filter((m) => m !== this.model)];
+
+    for (const model of modelsToTry) {
+      const url = this.getModelUrl(model);
+      try {
+        const response = await axios.post<GeminiResponse>(
+          `${url}?key=${this.apiKey}`,
+          {
+            contents: [{ parts: [{ text: prompt }] }],
+          },
+          {
+            timeout: GEMINI_TIMEOUT,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
+        const text =
+          response.data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+        if (!text) throw new Error('Empty response from LLM');
+        if (model !== this.model) {
+          this.logger.log(`Used fallback model: ${model}`);
+        }
+        return text;
+      } catch (err: any) {
+        const status = err?.response?.status;
+        const msg = err?.message ?? String(err);
+        this.logger.warn(`Model ${model} failed: ${msg} (status: ${status})`);
+
+        if (status === 404) {
+          continue;
+        }
+        throw err;
+      }
     }
+
+    this.logger.error(
+      `All models failed (404). Tried: ${modelsToTry.join(', ')}. Set PROGRESS_AI_MODEL in .env to a valid model.`,
+    );
+    throw new Error(
+      'Gemini API: model not found (404). Check PROGRESS_AI_MODEL and API key at https://ai.google.dev/gemini-api/docs',
+    );
   }
 
   private parseResponse(raw: string): LlmRecommendation {

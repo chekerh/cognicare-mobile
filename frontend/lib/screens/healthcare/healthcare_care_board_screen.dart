@@ -62,6 +62,8 @@ class HealthcareCareBoardScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _patientHeader(name, diag, ageStr),
+            const SizedBox(height: 16),
+            _quickActions(context),
             const SizedBox(height: 20),
             _teamSection(context),
             const SizedBox(height: 20),
@@ -85,6 +87,50 @@ class HealthcareCareBoardScreen extends StatelessWidget {
         backgroundColor: _primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
+    );
+  }
+
+  Widget _quickActions(BuildContext context) {
+    if (patientId == null || patientName == null) return const SizedBox.shrink();
+    return Row(
+      children: [
+        Expanded(
+          child: FilledButton.icon(
+            onPressed: () => context.push(
+              AppConstants.healthcareProgressAiRecommendationsRoute(patientId!),
+              extra: {'childName': patientName},
+            ),
+            icon: const Icon(Icons.auto_awesome, size: 18),
+            label: const Text('Recommandations IA'),
+            style: FilledButton.styleFrom(
+              backgroundColor: _primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: () => context.push(
+              '${AppConstants.healthcareProtocolEditorRoute}?patientId=$patientId&patientName=${Uri.encodeComponent(patientName!)}',
+            ),
+            icon: const Icon(Icons.edit_document, size: 18),
+            label: const Text('Protocole'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              side: const BorderSide(color: _primary),
+              foregroundColor: _primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

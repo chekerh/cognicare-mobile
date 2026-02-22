@@ -41,8 +41,10 @@ Use this guide to verify AI recommendations, parent feedback, specialist prefere
 **If something fails**
 
 - 403 on `/healthcare/*`: ensure backend allows your role (psychologist, speech_therapist, etc.) for Progress AI and specialized-plans endpoints.
-- Empty recommendations: child must have at least one active plan and the backend LLM must be configured (e.g. OpenAI key).
+- Empty recommendations: child must have at least one active plan and the backend LLM must be configured (e.g. GEMINI_API_KEY).
 - Filters empty: backend `GET /organization/my-organization/children-with-plans` must return `planTypes` and `needAttention`.
+- **404 from Gemini API**: If backend logs show `LLM call failed: Request failed with status code 404`, the model may not be available for your API key. Add `PROGRESS_AI_MODEL=gemini-1.5-flash` (or `gemini-2.0-flash`, `gemini-2.5-flash`) to backend `.env` and restart. Ensure Generative Language API is enabled in Google AI Studio and the API key has no restrictive quotas.
+- **Progress AI health**: `GET /api/v1/progress-ai/health` (no auth) returns `{ configured, apiKeySet }` to verify Gemini is configured.
 
 ---
 
