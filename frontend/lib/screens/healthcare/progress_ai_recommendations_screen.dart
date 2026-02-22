@@ -555,8 +555,8 @@ class _ProgressAiRecommendationsScreenState
                   try {
                     await service.updatePreferences(
                       focusPlanTypes: focusTypes,
-                      summaryLength: summaryLength as 'short' | 'detailed',
-                      frequency: frequency as 'every_session' | 'weekly',
+                      summaryLength: summaryLength,
+                      frequency: frequency,
                       planTypeWeights: weights,
                     );
                     if (mounted) {
