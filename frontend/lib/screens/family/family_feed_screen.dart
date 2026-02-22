@@ -72,7 +72,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   @override
   void initState() {
     super.initState();
-    _marketplaceProductsFuture = MarketplaceService().getMyProducts(limit: 6);
+    _marketplaceProductsFuture = MarketplaceService().getProducts(limit: 6);
     _loadHealthcareUsers();
     _loadDonations();
   }

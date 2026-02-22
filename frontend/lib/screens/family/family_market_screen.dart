@@ -28,13 +28,22 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
 
   List<String> _getCategories(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    return [loc.allItems, loc.sensory, loc.motorSkills, loc.cognitive];
+    return [
+      loc.allItems,
+      loc.clothing,
+      loc.games,
+      loc.sensory,
+      loc.motorSkills,
+      loc.cognitive,
+    ];
   }
 
   /// Map display category label to API category value.
   String _categoryToApi(String displayCategory) {
     final loc = AppLocalizations.of(context)!;
     if (displayCategory == loc.allItems) return 'all';
+    if (displayCategory == loc.clothing) return 'clothing';
+    if (displayCategory == loc.games) return 'games';
     if (displayCategory == loc.sensory) return 'sensory';
     if (displayCategory == loc.motorSkills) return 'motor';
     if (displayCategory == loc.cognitive) return 'cognitive';
@@ -47,9 +56,9 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
         : 'all';
     setState(() => _loading = true);
     try {
-      // Uniquement les produits ajoutés par l'utilisateur connecté
+      // Produits du catalogue API (vêtements, jeux, produits cognitifs)
       final list = await MarketplaceService()
-          .getMyProducts(limit: 50, category: category);
+          .getProducts(limit: 50, category: category);
       if (mounted) {
         setState(() {
           _products = list;
@@ -153,15 +162,6 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final added =
-              await context.push<bool>(AppConstants.familyAddProductRoute);
-          if (added == true && mounted) _loadProducts();
-        },
-        backgroundColor: _accentColor,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
