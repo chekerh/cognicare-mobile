@@ -31,6 +31,12 @@ import {
   LlmPreferences,
   LlmRecommendation,
 } from './llm.service';
+import {
+  TaskReminder,
+  TaskReminderDocument,
+} from '../nutrition/schemas/task-reminder.schema';
+import { RemindersService } from '../nutrition/reminders.service';
+import { SpecializedPlansService } from '../specialized-plans/specialized-plans.service';
 
 export interface AdminSummary {
   planCountByType: Record<string, number>;
@@ -80,7 +86,7 @@ export class ProgressAiService {
     private remindersService: RemindersService,
     private specializedPlansService: SpecializedPlansService,
     private llmService: LlmService,
-  ) {}
+  ) { }
 
   async verifySpecialistOrOrgAccessToChild(
     childId: string,
@@ -177,8 +183,8 @@ export class ProgressAiService {
       summary: llmResult.summary,
       recommendations: planTypeFilter
         ? llmResult.recommendations.filter(
-            (r) => r.planType === planTypeFilter,
-          )
+          (r) => r.planType === planTypeFilter,
+        )
         : llmResult.recommendations,
       milestones: llmResult.milestones,
       predictions: llmResult.predictions,
@@ -471,9 +477,9 @@ export class ProgressAiService {
 
     const ageYears = child.dateOfBirth
       ? Math.max(
-          0,
-          new Date().getFullYear() - new Date(child.dateOfBirth).getFullYear(),
-        )
+        0,
+        new Date().getFullYear() - new Date(child.dateOfBirth).getFullYear(),
+      )
       : 0;
     const summary = await this.llmService.generateParentSummary(period, {
       childAgeYears: ageYears,

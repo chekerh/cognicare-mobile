@@ -705,13 +705,13 @@ export class OrganizationService {
   }
 
   // Get user's organization children (leader or specialist)
-  async getMyChildren(userId: string): Promise<Child[]> {
+  async getMyChildren(userId: string): Promise<ChildDocument[]> {
     const user = await this.userModel.findById(userId);
     if (!user || !user.organizationId) {
       throw new NotFoundException('User not linked to any organization');
     }
 
-    return this.getAllChildren(user.organizationId.toString());
+    return this.getAllChildren(user.organizationId.toString()) as any;
   }
 
   /**
@@ -733,7 +733,7 @@ export class OrganizationService {
     const orgId = (await this.userModel.findById(userId).select('organizationId').lean())?.organizationId;
     if (!children.length) return [];
 
-    const childIds = children.map((c) => c._id);
+    const childIds = children.map((c) => (c as any)._id || (c as any).id);
     const filter: Record<string, unknown> = {
       childId: { $in: childIds },
       status: 'active',
@@ -754,8 +754,9 @@ export class OrganizationService {
     const planTypesByChild = new Map<string, Set<string>>();
     const minProgressByChild = new Map<string, number>();
     for (const c of children) {
-      planTypesByChild.set(c._id.toString(), new Set());
-      minProgressByChild.set(c._id.toString(), 100);
+      const cid = ((c as any)._id || (c as any).id).toString();
+      planTypesByChild.set(cid, new Set());
+      minProgressByChild.set(cid, 100);
     }
     for (const p of plans as Array<{ childId: { toString(): string }; type: string; content?: any }>) {
       const cid = p.childId?.toString?.() ?? p.childId;
@@ -770,7 +771,7 @@ export class OrganizationService {
     }
 
     return children.map((c) => {
-      const cid = c._id.toString();
+      const cid = ((c as any)._id || (c as any).id).toString();
       const planTypes = Array.from(planTypesByChild.get(cid) ?? []);
       const minP = minProgressByChild.get(cid) ?? 100;
       const needAttention = planTypes.length > 0 && minP < 30;
