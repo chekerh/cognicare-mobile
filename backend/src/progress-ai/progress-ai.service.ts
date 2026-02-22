@@ -17,6 +17,10 @@ import {
   ParentFeedbackRequest,
   ParentFeedbackRequestDocument,
 } from './schemas/parent-feedback-request.schema';
+import {
+  ParentFeedback,
+  ParentFeedbackDocument,
+} from './schemas/parent-feedback.schema';
 import { Child, ChildDocument } from '../children/schemas/child.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import {
@@ -82,6 +86,8 @@ export class ProgressAiService {
     private planModel: Model<SpecializedPlanDocument>,
     @InjectModel(ParentFeedbackRequest.name)
     private parentFeedbackRequestModel: Model<ParentFeedbackRequestDocument>,
+    @InjectModel(ParentFeedback.name)
+    private parentFeedbackModel: Model<ParentFeedbackDocument>,
     @InjectModel(TaskReminder.name)
     private taskReminderModel: Model<TaskReminderDocument>,
     private remindersService: RemindersService,
@@ -463,6 +469,55 @@ export class ProgressAiService {
       status: 'pending',
     });
     return await doc.save();
+  }
+
+  /**
+   * Submit parent feedback (rating + comment) for a child.
+   * Verifies child.parentId === parentUserId.
+   */
+  async submitParentFeedback(
+    childId: string,
+    parentUserId: string,
+    payload: { rating: number; comment?: string; planType?: string },
+  ): Promise<ParentFeedback> {
+    const child = await this.childModel.findById(childId).lean().exec();
+    if (!child) throw new NotFoundException('Child not found');
+    if ((child as any).parentId?.toString() !== parentUserId) {
+      throw new ForbiddenException('Not authorized to submit feedback for this child');
+    }
+    const doc = new this.parentFeedbackModel({
+      childId: new Types.ObjectId(childId),
+      parentId: new Types.ObjectId(parentUserId),
+      rating: payload.rating,
+      comment: payload.comment,
+      planType: payload.planType,
+    });
+    return await doc.save();
+  }
+
+  /**
+   * Get recent parent feedback for a child (for display in parent UI).
+   * Verifies child.parentId === parentUserId.
+   */
+  async getParentFeedback(
+    childId: string,
+    parentUserId: string,
+    limit: number = 10,
+  ): Promise<ParentFeedback[]> {
+    const child = await this.childModel.findById(childId).lean().exec();
+    if (!child) throw new NotFoundException('Child not found');
+    if ((child as any).parentId?.toString() !== parentUserId) {
+      throw new ForbiddenException('Not authorized to view feedback for this child');
+    }
+    return await this.parentFeedbackModel
+      .find({
+        childId: new Types.ObjectId(childId),
+        parentId: new Types.ObjectId(parentUserId),
+      })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean()
+      .exec() as ParentFeedback[];
   }
 
   /**

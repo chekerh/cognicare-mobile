@@ -12,6 +12,10 @@ import {
   ParentFeedbackRequest,
   ParentFeedbackRequestSchema,
 } from './schemas/parent-feedback-request.schema';
+import {
+  ParentFeedback,
+  ParentFeedbackSchema,
+} from './schemas/parent-feedback.schema';
 import { Child, ChildSchema } from '../children/schemas/child.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import {
@@ -34,6 +38,7 @@ import { NutritionModule } from '../nutrition/nutrition.module';
     MongooseModule.forFeature([
       { name: RecommendationFeedback.name, schema: RecommendationFeedbackSchema },
       { name: ParentFeedbackRequest.name, schema: ParentFeedbackRequestSchema },
+      { name: ParentFeedback.name, schema: ParentFeedbackSchema },
       { name: Child.name, schema: ChildSchema },
       { name: User.name, schema: UserSchema },
       { name: Organization.name, schema: OrganizationSchema },

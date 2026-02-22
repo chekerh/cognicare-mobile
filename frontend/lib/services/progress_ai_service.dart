@@ -354,4 +354,70 @@ class ProgressAiService {
     }
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
+
+  /// POST progress-ai/child/:childId/parent-feedback
+  Future<Map<String, dynamic>> submitParentFeedback({
+    required String childId,
+    required int rating,
+    String? comment,
+    String? planType,
+  }) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      AppConstants.baseUrl + AppConstants.progressAiParentFeedbackEndpoint(childId),
+    );
+    final body = <String, dynamic>{
+      'rating': rating,
+    };
+    if (comment != null && comment.isNotEmpty) body['comment'] = comment;
+    if (planType != null && planType.isNotEmpty) body['planType'] = planType;
+    final response = await _client.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(body),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to submit feedback');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to submit: ${response.statusCode}');
+      }
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  /// GET progress-ai/child/:childId/parent-feedback?limit=10
+  Future<List<Map<String, dynamic>>> getParentFeedback(String childId, {int limit = 10}) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      AppConstants.baseUrl +
+          AppConstants.progressAiParentFeedbackEndpoint(childId) +
+          '?limit=$limit',
+    );
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode != 200) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to load feedback');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to load: ${response.statusCode}');
+      }
+    }
+    final list = jsonDecode(response.body) as List<dynamic>? ?? [];
+    return list.map((e) => e as Map<String, dynamic>).toList();
+  }
 }

@@ -18,6 +18,7 @@ import { ProgressAiService } from './progress-ai.service';
 import { RecommendationFeedbackDto } from './dto/recommendation-feedback.dto';
 import { UpdateSpecialistPreferencesDto } from './dto/update-preferences.dto';
 import { RequestParentFeedbackDto } from './dto/request-parent-feedback.dto';
+import { SubmitParentFeedbackDto } from './dto/parent-feedback.dto';
 
 @ApiTags('Progress AI')
 @Controller('progress-ai')
@@ -209,6 +210,42 @@ export class ProgressAiController {
         message: dto.message,
         planType: dto.planType,
       },
+    );
+  }
+
+  @Post('child/:childId/parent-feedback')
+  @Roles('family')
+  @ApiOperation({ summary: 'Submit parent feedback (rating + comment) for a child' })
+  async submitParentFeedback(
+    @Request() req: { user: { id: string } },
+    @Param('childId') childId: string,
+    @Body() dto: SubmitParentFeedbackDto,
+  ) {
+    return await this.progressAiService.submitParentFeedback(
+      childId,
+      req.user.id,
+      {
+        rating: dto.rating,
+        comment: dto.comment,
+        planType: dto.planType,
+      },
+    );
+  }
+
+  @Get('child/:childId/parent-feedback')
+  @Roles('family')
+  @ApiOperation({ summary: 'Get recent parent feedback entries for a child' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum number of entries (default: 10)' })
+  async getParentFeedback(
+    @Request() req: { user: { id: string } },
+    @Param('childId') childId: string,
+    @Query('limit') limit?: string,
+  ) {
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+    return await this.progressAiService.getParentFeedback(
+      childId,
+      req.user.id,
+      limitNum,
     );
   }
 }

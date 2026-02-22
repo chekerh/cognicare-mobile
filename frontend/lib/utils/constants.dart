@@ -163,6 +163,8 @@ class AppConstants {
   static String progressAiParentSummaryEndpoint(String childId,
           {String period = 'week'}) =>
       '/api/v1/progress-ai/child/$childId/parent-summary?period=$period';
+  static String progressAiParentFeedbackEndpoint(String childId) =>
+      '/api/v1/progress-ai/child/$childId/parent-feedback';
   static const String progressAiActivitySuggestionsEndpoint =
       '/api/v1/progress-ai/activity-suggestions';
 
