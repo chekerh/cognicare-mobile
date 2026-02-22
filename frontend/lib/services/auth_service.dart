@@ -66,10 +66,12 @@ class AuthService {
   }
 
   Future<AuthResponse> login(String email, String password) async {
+    final loginUrl = '${AppConstants.baseUrl}${AppConstants.loginEndpoint}';
     try {
+      print('DEBUG: Attempting login at: $loginUrl');
       final response = await _client
           .post(
-            Uri.parse('${AppConstants.baseUrl}${AppConstants.loginEndpoint}'),
+            Uri.parse(loginUrl),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
               'email': email,
@@ -78,15 +80,18 @@ class AuthService {
           )
           .timeout(const Duration(seconds: 15));
 
+      print('DEBUG: Login response status: ${response.statusCode}');
       if (response.statusCode == 200 || response.statusCode == 201) {
         final authResponse = AuthResponse.fromJson(jsonDecode(response.body));
         await _storeAuthData(authResponse);
         return authResponse;
       } else {
+        print('DEBUG: Login failed body: ${response.body}');
         final error = jsonDecode(response.body);
         throw Exception(error['message'] ?? 'Login failed');
       }
     } catch (e) {
+      print('DEBUG: Login catch error: $e');
       throw Exception('Network error during login: $e');
     }
   }

@@ -58,10 +58,10 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
     super.dispose();
   }
 
-  Future<void> _capturePhoto() async {
+  Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? photo = await _picker.pickImage(
-        source: ImageSource.camera,
+        source: source,
         preferredCameraDevice: CameraDevice.front,
         imageQuality: 70,
       );
@@ -75,7 +75,7 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la capture: $e'),
+            content: Text('Erreur lors de la sélection: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -111,6 +111,8 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
         date: DateTime.now(),
         proofImagePath: _capturedImage!.path,
       );
+      
+      debugPrint('Verification Result: $result');
 
       if (!mounted) return;
 
@@ -121,10 +123,13 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
 
       // Message de succès ou d'avertissement selon le statut AI
       final status = _verificationResult?['verificationStatus'];
-      String message = '✅ Médicament vérifié ! Bravo !';
-      Color bgColor = Colors.green;
+      String message = 'Analyse du médicament terminée';
+      Color bgColor = Colors.blueGrey;
 
-      if (status == 'UNCERTAIN') {
+      if (status == 'VALID') {
+        message = '✅ Médicament vérifié ! Bravo !';
+        bgColor = Colors.green;
+      } else if (status == 'UNCERTAIN') {
         message = '⚠️ Vérification incertaine. Un spécialiste va vérifier.';
         bgColor = Colors.orange;
       } else if (status == 'INVALID') {
@@ -140,12 +145,10 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
         ),
       );
 
-      // On ne ferme pas tout de suite pour laisser voir le résultat AI
-      if (status == 'VALID') {
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) context.pop(true);
-        });
-      }
+      // On ne ferme plus automatiquement (Supprimé Future.delayed)
+      // car l'utilisateur veut lire les métadonnées (nom, dosage, expiration)
+      // affichées dans la carte de résultat.
+      // Il cliquera sur "Fermer" manuellement.
     } catch (e) {
       if (!mounted) return;
       
@@ -403,54 +406,89 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
 
     return Container(
       margin: const EdgeInsets.only(top: 24),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3), width: 2),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: color.withOpacity(0.2), width: 1.5),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon, color: color, size: 28),
-              const SizedBox(width: 12),
-              Text(
-                statusTitle,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: color,
-                ),
-              ),
-            ],
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 40),
           ),
           const SizedBox(height: 16),
           Text(
-            reasoning,
-            style: const TextStyle(
-              fontSize: 15,
-              color: Color(0xFF475569),
-              height: 1.5,
+            statusTitle,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: color,
             ),
           ),
-          if (metadata != null) ...[
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 12),
-            _buildMetadataRow('Médicament:', metadata['medicineName'] ?? 'N/A'),
-            const SizedBox(height: 8),
-            _buildMetadataRow('Dosage:', metadata['dosage'] ?? 'N/A'),
-            const SizedBox(height: 8),
-            _buildMetadataRow('Expiration:', metadata['expiryDate'] ?? 'N/A'),
+          const SizedBox(height: 12),
+          Text(
+            reasoning,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Color(0xFF1E293B),
+              height: 1.6,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          if (status != 'VALID' && metadata != null) ...[
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _backgroundColor,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                children: [
+                  _buildMetadataRow('Médicament lue:', metadata['medicineName'] ?? 'Non détecté'),
+                  const SizedBox(height: 8),
+                  _buildMetadataRow('Dosage:', metadata['dosage'] ?? 'Non détecté'),
+                  const SizedBox(height: 8),
+                  _buildMetadataRow('Expiration:', metadata['expiryDate'] ?? 'Non visible'),
+                ],
+              ),
+            ),
           ],
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
-            child: TextButton(
+            child: ElevatedButton(
               onPressed: () => context.pop(true),
-              child: const Text('Fermer'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: color,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                status == 'VALID' ? 'Confirmer et Fermer' : 'Compris et Fermer',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ),
         ],
@@ -544,62 +582,86 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
   }
 
   Widget _buildCaptureButton() {
-    return GestureDetector(
-      onTap: _capturePhoto,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(40),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: _primary,
-            width: 2,
-            style: BorderStyle.solid,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: _primary.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Container(
-              width: 80,
-              height: 80,
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: () => _pickImage(ImageSource.camera),
+            child: Container(
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: _primary.withOpacity(0.15),
-                shape: BoxShape.circle,
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: _primary, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: _primary.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
-              child:                 const Icon(
-                  Icons.camera_alt,
-                  size: 40,
-                  color: _primaryDark,
+              child: Column(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: _primary.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.camera_alt, size: 30, color: _primaryDark),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Appareil',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _slate800),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Prendre une photo',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Appuyez pour ouvrir l\'appareil photo',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: GestureDetector(
+            onTap: () => _pickImage(ImageSource.gallery),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: _primary, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: _primary.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: _primary.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.photo_library, size: 30, color: _primaryDark),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Galerie',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _slate800),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -632,7 +694,7 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
           children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: _capturePhoto,
+                onPressed: () => _pickImage(ImageSource.camera),
                 icon: const Icon(Icons.refresh),
                 label: const Text('Reprendre'),
                 style: OutlinedButton.styleFrom(

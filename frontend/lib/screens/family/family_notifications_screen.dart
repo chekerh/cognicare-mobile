@@ -90,6 +90,8 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
         return (label: 'HEALTH UPDATE', icon: Icons.favorite, color: const Color(0xFF059669), alert: false);
       case 'order_confirmed':
         return (label: 'PAIEMENT CONFIRMÉ', icon: Icons.check_circle, color: const Color(0xFF059669), alert: false);
+      case 'routine_reminder':
+        return (label: 'ROUTINE', icon: Icons.alarm, color: const Color(0xFF0EA5E9), alert: false);
       default:
         return (label: type.toUpperCase(), icon: Icons.notifications, color: _textMuted, alert: false);
     }

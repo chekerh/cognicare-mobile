@@ -5,6 +5,8 @@ import {
   Notification,
   NotificationDocument,
 } from './schemas/notification.schema';
+import { ChildrenService } from '../children/children.service';
+import { RemindersService } from '../nutrition/reminders.service';
 
 export type NotificationLean = Notification & { _id: Types.ObjectId };
 
@@ -13,7 +15,9 @@ export class NotificationsService {
   constructor(
     @InjectModel(Notification.name)
     private readonly notificationModel: Model<NotificationDocument>,
-  ) {}
+    private readonly childrenService: ChildrenService,
+    private readonly remindersService: RemindersService,
+  ) { }
 
   async listForUser(userId: string, limit = 50): Promise<NotificationLean[]> {
     const list = await this.notificationModel
@@ -74,5 +78,53 @@ export class NotificationsService {
       data: payload.data ?? undefined,
     });
     return doc.toObject() as NotificationLean;
+  }
+
+  async syncRoutineReminders(userId: string): Promise<void> {
+    const children = await this.childrenService.findByFamilyId(userId, userId);
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+
+    for (const child of children) {
+      const reminders = await this.remindersService.getTodayReminders(child.id, userId);
+
+      for (const reminder of reminders) {
+        if (reminder.times && reminder.times.length > 0) {
+          for (const timeStr of reminder.times) {
+            const [hour, minute] = timeStr.split(':').map(Number);
+
+            // Si l'heure est passée
+            if (hour < currentHour || (hour === currentHour && minute <= currentMinute)) {
+              // Vérifier si une notification existe déjà pour ce rappel à cette heure précise aujourd'hui
+              const todayStart = new Date();
+              todayStart.setHours(0, 0, 0, 0);
+
+              const exists = await this.notificationModel.findOne({
+                userId: new Types.ObjectId(userId),
+                type: 'routine_reminder',
+                'data.reminderId': reminder.id,
+                'data.time': timeStr,
+                createdAt: { $gte: todayStart }
+              }).exec();
+
+              if (!exists) {
+                await this.createForUser(userId, {
+                  type: 'routine_reminder',
+                  title: reminder.title,
+                  description: reminder.description || `C'est l'heure de votre tâche : ${reminder.title}`,
+                  data: {
+                    reminderId: reminder.id,
+                    time: timeStr,
+                    childId: child.id,
+                    childName: child.fullName
+                  }
+                });
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

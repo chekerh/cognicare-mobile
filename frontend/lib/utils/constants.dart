@@ -6,7 +6,7 @@ class AppConstants {
   static String get baseUrl {
     const raw = String.fromEnvironment(
       'BASE_URL',
-      defaultValue: 'https://cognicare-mobile-h4ct.onrender.com',
+      defaultValue: 'https://cognicare-mobile-h4ct.onrender.com', // Render (production team) — pour revenir en local: --dart-define=BASE_URL=http://127.0.0.1:3000
     );
     final fromEnv = raw.endsWith('/') ? raw.substring(0, raw.length - 1) : raw;
     return fromEnv;

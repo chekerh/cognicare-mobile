@@ -74,12 +74,13 @@ export class CreateTaskReminderDto {
   frequency!: ReminderFrequency;
 
   @ApiPropertyOptional({
-    description: 'Specific time for the reminder (HH:MM format)',
-    example: '08:00',
+    description: 'Specific times for the reminder (HH:MM format)',
+    example: ['08:00', '14:30'],
   })
   @IsOptional()
-  @IsString()
-  time?: string;
+  @IsArray()
+  @IsString({ each: true })
+  times?: string[];
 
   @ApiPropertyOptional({
     description: 'Interval in minutes (for interval frequency)',
@@ -117,14 +118,6 @@ export class CreateTaskReminderDto {
   @IsBoolean()
   vibrationEnabled?: boolean;
 
-  @ApiPropertyOptional({
-    description: 'Sync with Raspberry Pi for physical reminders',
-    example: false,
-    default: false,
-  })
-  @IsOptional()
-  @IsBoolean()
-  piSyncEnabled?: boolean;
 
   @ApiPropertyOptional({
     description: 'Link to nutrition plan ID if applicable',

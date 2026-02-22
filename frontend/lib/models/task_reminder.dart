@@ -25,12 +25,11 @@ class TaskReminder {
   final String? icon;
   final String? color;
   final ReminderFrequency frequency;
-  final String? time;
+  final List<String> times;
   final int? intervalMinutes;
   final List<String> daysOfWeek;
   final bool soundEnabled;
   final bool vibrationEnabled;
-  final bool piSyncEnabled;
   final bool isActive;
   final String? linkedNutritionPlanId;
   final DateTime? createdAt;
@@ -50,12 +49,11 @@ class TaskReminder {
     this.icon,
     this.color,
     required this.frequency,
-    this.time,
+    required this.times,
     this.intervalMinutes,
     required this.daysOfWeek,
     required this.soundEnabled,
     required this.vibrationEnabled,
-    required this.piSyncEnabled,
     required this.isActive,
     this.linkedNutritionPlanId,
     this.createdAt,
@@ -77,13 +75,12 @@ class TaskReminder {
       icon: json['icon'],
       color: json['color'],
       frequency: _reminderFrequencyFromString(json['frequency']),
-      time: json['time'],
+      times: (json['times'] as List<dynamic>?)?.cast<String>() ?? [],
       intervalMinutes: json['intervalMinutes'],
       daysOfWeek:
           (json['daysOfWeek'] as List<dynamic>?)?.cast<String>() ?? [],
       soundEnabled: json['soundEnabled'] ?? true,
       vibrationEnabled: json['vibrationEnabled'] ?? true,
-      piSyncEnabled: json['piSyncEnabled'] ?? false,
       isActive: json['isActive'] ?? true,
       linkedNutritionPlanId: json['linkedNutritionPlanId'],
       createdAt: json['createdAt'] != null
@@ -110,12 +107,11 @@ class TaskReminder {
       'icon': icon,
       'color': color,
       'frequency': frequency.name,
-      'time': time,
+      'times': times,
       'intervalMinutes': intervalMinutes,
       'daysOfWeek': daysOfWeek,
       'soundEnabled': soundEnabled,
       'vibrationEnabled': vibrationEnabled,
-      'piSyncEnabled': piSyncEnabled,
       'isActive': isActive,
       'linkedNutritionPlanId': linkedNutritionPlanId,
       'verificationStatus': verificationStatus,
@@ -160,6 +156,8 @@ class TaskReminder {
   TaskReminder copyWith({
     bool? completedToday,
     DateTime? completedAt,
+    String? verificationStatus,
+    Map<String, dynamic>? verificationMetadata,
   }) {
     return TaskReminder(
       id: id,
@@ -171,12 +169,11 @@ class TaskReminder {
       icon: icon,
       color: color,
       frequency: frequency,
-      time: time,
+      times: times,
       intervalMinutes: intervalMinutes,
       daysOfWeek: daysOfWeek,
       soundEnabled: soundEnabled,
       vibrationEnabled: vibrationEnabled,
-      piSyncEnabled: piSyncEnabled,
       isActive: isActive,
       linkedNutritionPlanId: linkedNutritionPlanId,
       createdAt: createdAt,

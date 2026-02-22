@@ -115,4 +115,22 @@ class RemindersService {
       throw Exception(error['message'] ?? 'Failed to complete task with proof');
     }
   }
+
+  Future<void> deleteReminder(String reminderId) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+
+    final response = await http.delete(
+      Uri.parse('${AppConstants.baseUrl}${AppConstants.reminderEndpoint(reminderId)}'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      final error = jsonDecode(response.body) as Map<String, dynamic>;
+      throw Exception(error['message'] ?? 'Failed to delete reminder');
+    }
+  }
 }

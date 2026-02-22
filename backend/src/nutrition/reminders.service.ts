@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -22,6 +23,7 @@ import { ReminderType } from './schemas/task-reminder.schema';
 
 @Injectable()
 export class RemindersService {
+  private readonly logger = new Logger(RemindersService.name);
   constructor(
     @InjectModel(TaskReminder.name)
     private taskReminderModel: Model<TaskReminderDocument>,
@@ -92,7 +94,7 @@ export class RemindersService {
 
     const reminders = await this.taskReminderModel
       .find({ childId: new Types.ObjectId(childId), isActive: true })
-      .sort({ time: 1 })
+      .sort({ 'times.0': 1 }) // Classer par le premier horaire
       .exec();
 
     const today = new Date();
@@ -161,6 +163,7 @@ export class RemindersService {
     await this.verifyAccess(reminder.childId.toString(), userId);
 
     const completionDate = new Date(dto.date);
+    completionDate.setUTCHours(0, 0, 0, 0); // Normalize to UTC midnight
     const dateStr = completionDate.toISOString().split('T')[0];
 
     let proofImagePath: string | undefined;
@@ -191,6 +194,7 @@ export class RemindersService {
         (h) => h.date.toISOString().split('T')[0] === dateStr,
       ) ?? -1;
 
+    let targetIndex = -1;
     if (existingIndex >= 0 && reminder.completionHistory) {
       // Update existing
       reminder.completionHistory[existingIndex] = {
@@ -199,6 +203,7 @@ export class RemindersService {
         completedAt: dto.completed ? new Date() : undefined,
         proofImageUrl: proofImagePath,
       };
+      targetIndex = existingIndex;
     } else {
       // Add new
       if (!reminder.completionHistory) {
@@ -210,21 +215,35 @@ export class RemindersService {
         completedAt: dto.completed ? new Date() : undefined,
         proofImageUrl: proofImagePath,
       });
+      targetIndex = reminder.completionHistory.length - 1;
     }
 
     // Trigger AI verification if it's a medication task and has a proof image
-    if (reminder.type === ReminderType.MEDICATION && proofImagePath && dto.completed) {
-      const lastIndex = reminder.completionHistory.length - 1;
+    this.logger.log(`Checking verification: type=${reminder.type}, hasPath=${!!proofImagePath}, completed=${dto.completed}`);
+
+    if (reminder.type === ReminderType.MEDICATION && proofImagePath && dto.completed && targetIndex >= 0) {
       try {
         const verificationResult = await this.medicationVerificationService.verifyMedication(
           proofImagePath,
           { title: reminder.title, description: reminder.description }
         );
 
-        reminder.completionHistory[lastIndex].verificationStatus = verificationResult.status;
-        reminder.completionHistory[lastIndex].verificationMetadata = verificationResult.metadata;
+        reminder.completionHistory[targetIndex].verificationStatus = verificationResult.status;
+        reminder.completionHistory[targetIndex].verificationMetadata = {
+          ...verificationResult.metadata,
+          reasoning: verificationResult.reasoning
+        };
+        reminder.markModified('completionHistory');
+        this.logger.log(`Verification saved: status=${verificationResult.status} for index ${targetIndex}`);
       } catch (error) {
-        console.error('AI Verification failed:', error);
+        this.logger.error('AI Verification failed:', error);
+        if (reminder.completionHistory[targetIndex]) {
+          reminder.completionHistory[targetIndex].verificationStatus = 'UNCERTAIN';
+          reminder.completionHistory[targetIndex].verificationMetadata = {
+            reasoning: 'L\'analyse automatique a échoué. Un humain doit vérifier la photo.'
+          };
+        }
+        reminder.markModified('completionHistory');
       }
     }
 
@@ -367,14 +386,21 @@ export class RemindersService {
       icon: reminder.icon,
       color: reminder.color,
       frequency: reminder.frequency,
-      time: reminder.time,
+      times: reminder.times,
       intervalMinutes: reminder.intervalMinutes,
       daysOfWeek: reminder.daysOfWeek,
       soundEnabled: reminder.soundEnabled,
       vibrationEnabled: reminder.vibrationEnabled,
-      piSyncEnabled: reminder.piSyncEnabled,
       isActive: reminder.isActive,
       linkedNutritionPlanId: reminder.linkedNutritionPlanId?.toString(),
+      completionHistory: reminder.completionHistory?.map(c => ({
+        date: c.date,
+        completed: c.completed,
+        completedAt: c.completedAt,
+        proofImageUrl: c.proofImageUrl,
+        verificationStatus: c.verificationStatus,
+        verificationMetadata: c.verificationMetadata,
+      })),
       createdAt: reminder.createdAt,
       updatedAt: reminder.updatedAt,
     };

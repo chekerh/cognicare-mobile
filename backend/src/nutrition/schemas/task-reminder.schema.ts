@@ -53,8 +53,8 @@ export class TaskReminder {
   })
   frequency!: ReminderFrequency;
 
-  @Prop() // For specific time reminders (e.g., "08:00", "14:30")
-  time?: string;
+  @Prop({ type: [String], default: [] }) // For specific time reminders (e.g., ["08:00", "14:30"])
+  times?: string[];
 
   @Prop() // For interval reminders (in minutes)
   intervalMinutes?: number;
@@ -69,8 +69,6 @@ export class TaskReminder {
   @Prop({ default: true })
   vibrationEnabled!: boolean;
 
-  @Prop({ default: false })
-  piSyncEnabled!: boolean; // Sync with Raspberry Pi for physical reminders
 
   // Completion tracking
   @Prop({
@@ -89,7 +87,10 @@ export class TaskReminder {
           medicineName: String,
           dosage: String,
           expiryDate: String,
-          reasoning: String
+          reasoning: String,
+          isExpired: Boolean,
+          manufacturer: String,
+          fda_generic_name: String,
         }
       },
     ],
@@ -106,6 +107,9 @@ export class TaskReminder {
       dosage?: string;
       expiryDate?: string;
       reasoning?: string;
+      isExpired?: boolean;
+      manufacturer?: string;
+      fda_generic_name?: string;
     };
   }>;
 

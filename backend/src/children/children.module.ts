@@ -19,5 +19,6 @@ import { ChildrenController } from './children.controller';
   ],
   controllers: [ChildrenController],
   providers: [ChildrenService],
+  exports: [ChildrenService],
 })
-export class ChildrenModule {}
+export class ChildrenModule { }

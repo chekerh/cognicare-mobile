@@ -129,7 +129,139 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
     ),
   ];
 
-  Future<void> _createReminderFromTemplate(ReminderTemplate template) async {
+  // État pour la tâche en cours de configuration
+  String _customTitle = '';
+  String _customIcon = '📝';
+  List<TimeOfDay> _selectedTimes = [const TimeOfDay(hour: 8, minute: 0)];
+
+  Future<void> _showConfigDialog(ReminderTemplate template, {bool isCustom = false}) async {
+    _customTitle = isCustom ? '' : template.title;
+    _customIcon = isCustom ? '📝' : template.icon;
+    _selectedTimes = template.time != null 
+        ? [TimeOfDay(
+            hour: int.parse(template.time!.split(':')[0]), 
+            minute: int.parse(template.time!.split(':')[1])
+          )]
+        : [TimeOfDay.now()];
+
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            top: 32,
+            left: 24,
+            right: 24,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  isCustom ? 'Nouvelle Tâche' : 'Configurer ${template.title}',
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 24),
+                if (isCustom) ...[
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Nom de la tâche',
+                      prefixIcon: const Icon(Icons.edit_note),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    onChanged: (val) => _customTitle = val,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                const Text('Horaires de notification', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    ..._selectedTimes.asMap().entries.map((entry) => Chip(
+                      label: Text(entry.value.format(context)),
+                      onDeleted: () {
+                        setModalState(() {
+                          _selectedTimes.removeAt(entry.key);
+                        });
+                      },
+                      deleteIcon: const Icon(Icons.close, size: 16),
+                      backgroundColor: _primary.withOpacity(0.2),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    )),
+                    ActionChip(
+                      avatar: const Icon(Icons.add, size: 16),
+                      label: const Text('Ajouter'),
+                      onPressed: () async {
+                        final time = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (time != null) {
+                          setModalState(() {
+                            _selectedTimes.add(time);
+                          });
+                        }
+                      },
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _selectedTimes.isEmpty ? null : () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryDark,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: const Text('Confirmer et Créer', style: TextStyle(fontWeight: FontWeight.w700)),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (result == true) {
+      _saveReminder(template, isCustom);
+    }
+  }
+
+  Future<void> _saveReminder(ReminderTemplate template, bool isCustom) async {
+    if (isCustom && _customTitle.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez donner un nom à la tâche')),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -140,19 +272,23 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
         getToken: () async => authProvider.accessToken,
       );
 
+      final List<String> timesStr = _selectedTimes.map((t) {
+        final hour = t.hour.toString().padLeft(2, '0');
+        final minute = t.minute.toString().padLeft(2, '0');
+        return '$hour:$minute';
+      }).toList();
+
       final reminderData = {
         'childId': widget.childId,
-        'type': template.type.name,
-        'title': template.title,
-        'description': template.description.isNotEmpty ? template.description : null,
-        'icon': template.icon,
+        'type': isCustom ? 'custom' : template.type.name,
+        'title': isCustom ? _customTitle : template.title,
+        'description': isCustom ? null : (template.description.isNotEmpty ? template.description : null),
+        'icon': isCustom ? _customIcon : template.icon,
         'color': '#${template.color.value.toRadixString(16).substring(2).toUpperCase()}',
         'frequency': template.frequency.name,
-        if (template.time != null) 'time': template.time,
-        if (template.intervalMinutes != null) 'intervalMinutes': template.intervalMinutes,
+        'times': timesStr,
         'soundEnabled': true,
         'vibrationEnabled': true,
-        'piSyncEnabled': template.type == ReminderType.water || template.type == ReminderType.medication,
         'daysOfWeek': [],
       };
 
@@ -162,27 +298,18 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('✅ "${template.title}" ajouté avec succès !'),
+          content: Text('✅ "${isCustom ? _customTitle : template.title}" ajouté !'),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
         ),
       );
 
-      // Retour avec succès
       context.pop(true);
     } catch (e) {
       if (!mounted) return;
-      
-      setState(() {
-        _isLoading = false;
-      });
-
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur : $e'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text('Erreur : $e'), backgroundColor: Colors.red),
       );
     }
   }
@@ -259,19 +386,18 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
                           const SizedBox(height: 16),
                           
                           // Templates grid
-                          GridView.builder(
+                          GridView.count(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                              childAspectRatio: 0.85,
-                            ),
-                            itemCount: _templates.length,
-                            itemBuilder: (context, index) {
-                              return _buildTemplateCard(_templates[index]);
-                            },
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 0.85,
+                            children: [
+                              // Bouton Tâche Personnalisée
+                              _buildCustomTaskCard(),
+                              ..._templates.map((t) => _buildTemplateCard(t)),
+                            ],
                           ),
                           
                           const SizedBox(height: 100),
@@ -332,9 +458,23 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
     );
   }
 
-  Widget _buildTemplateCard(ReminderTemplate template) {
+  Widget _buildCustomTaskCard() {
+    return _buildTemplateCard(
+      const ReminderTemplate(
+        title: 'Tâche Personnalisée',
+        description: 'Libre choix',
+        icon: '📝',
+        type: ReminderType.custom,
+        frequency: ReminderFrequency.daily,
+        color: _primaryDark,
+      ),
+      isCustom: true,
+    );
+  }
+
+  Widget _buildTemplateCard(ReminderTemplate template, {bool isCustom = false}) {
     return GestureDetector(
-      onTap: () => _createReminderFromTemplate(template),
+      onTap: () => _showConfigDialog(template, isCustom: isCustom),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,

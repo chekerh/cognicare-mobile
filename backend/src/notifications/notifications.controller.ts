@@ -26,7 +26,7 @@ import { CreateNotificationDto } from './dto/create-notification.dto';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
 export class NotificationsController {
-  constructor(private readonly notifications: NotificationsService) {}
+  constructor(private readonly notifications: NotificationsService) { }
 
   @Get()
   @ApiOperation({ summary: 'List notifications for the current user' })
@@ -39,6 +39,10 @@ export class NotificationsController {
     const limitNum = limit
       ? Math.min(100, Math.max(1, parseInt(limit, 10) || 50))
       : 50;
+
+    // Sync routine reminders with persistent feed
+    await this.notifications.syncRoutineReminders(req.user.id);
+
     const list = await this.notifications.listForUser(req.user.id, limitNum);
     const unreadCount = await this.notifications.countUnread(req.user.id);
     return { notifications: list, unreadCount };

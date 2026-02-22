@@ -46,7 +46,6 @@ import '../screens/family/community_member_profile_screen.dart';
 import '../screens/family/engagement_dashboard_screen.dart';
 import '../screens/family/family_volunteer_profile_screen.dart';
 import '../screens/family/child_daily_routine_screen.dart';
-import '../screens/family/reminder_notification_screen.dart';
 import '../screens/family/create_reminder_screen.dart';
 import '../screens/family/medicine_verification_screen.dart';
 import '../screens/volunteer/volunteer_dashboard_screen.dart';
@@ -676,19 +675,6 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               reminderId: extra?['reminderId'] as String? ?? '',
               taskTitle: extra?['taskTitle'] as String? ?? 'Take Medicine',
               taskDescription: extra?['taskDescription'] as String?,
-            );
-          },
-        ),
-        GoRoute(
-          path: 'reminder-notification',
-          builder: (context, state) {
-            final extra = state.extra as Map<String, dynamic>?;
-            return ReminderNotificationScreen(
-              taskTitle: extra?['taskTitle'] as String? ?? '',
-              taskDescription: extra?['taskDescription'] as String?,
-              icon: extra?['icon'] as String? ?? '📅',
-              time: extra?['time'] as String?,
-              reminderId: extra?['reminderId'] as String? ?? '',
             );
           },
         ),
