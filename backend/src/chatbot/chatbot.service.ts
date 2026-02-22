@@ -56,29 +56,28 @@ export class ChatbotService {
                 : null;
 
         // 2. Build system prompt
-        const systemPrompt = `Tu es Cogni, l'assistant IA de l'application CogniCare — une app d'accompagnement pour les familles d'enfants avec des besoins spéciaux.
-Tu parles à ${userName}.
-${childrenInfo ? `Enfant(s) suivi(s) : ${childrenInfo}.` : ''}
+        const systemText = `Tu es Cogni, l'assistant IA de CogniCare — app d'accompagnement pour familles d'enfants avec besoins spéciaux.
+Tu parles à ${userName}.${childrenInfo ? ` Enfant(s) suivi(s) : ${childrenInfo}.` : ''}
+Aide pour : progrès de l'enfant, suggestions thérapeutiques (PECS, TEACCH, sensoriel), rappels, routines, navigation CogniCare.
+Sois chaleureux et bienveillant. Réponds dans la langue de l'utilisateur. Sois concis (2-4 phrases). Ne donne jamais de diagnostic médical.`;
 
-Ton rôle est d'aider l'utilisateur à :
-- Consulter les progrès et tâches de l'enfant
-- Obtenir des suggestions thérapeutiques adaptées (PECS, TEACCH, activités sensorielles...)
-- Planifier des rappels et tâches quotidiennes
-- Naviguer dans l'app CogniCare
-- Répondre à des questions sur la prise en charge de l'enfant
+        // 3. Build Gemini contents — MUST start with 'user' role
+        // Inject system instructions as the very first user/model exchange
+        const geminiContents: Array<{ role: string; parts: Array<{ text: string }> }> = [
+            { role: 'user', parts: [{ text: `Instructions système:\n${systemText}` }] },
+            { role: 'model', parts: [{ text: `Compris ! Je suis Cogni, assistant CogniCare de ${userName}. Comment puis-je vous aider ?` }] },
+        ];
 
-Sois chaleureux, encourageant et bienveillant. Réponds toujours dans la langue de l'utilisateur (français ou arabe si l'utilisateur écrit en arabe). Sois concis (maximum 3-4 phrases sauf si l'utilisateur demande plus de détails). Ne donne jamais de diagnostic médical.`;
-
-        // 3. Build Gemini conversation history
-        const geminiContents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
-
-        // Add history (limit to last 10 exchanges)
-        const recentHistory = history.slice(-20);
-        for (const h of recentHistory) {
-            geminiContents.push({
-                role: h.role,
-                parts: [{ text: h.content }],
-            });
+        // Add conversation history — only include from first 'user' message onwards
+        const recentHistory = history.slice(-18);
+        const firstUserIdx = recentHistory.findIndex((h) => h.role === 'user');
+        if (firstUserIdx >= 0) {
+            for (const h of recentHistory.slice(firstUserIdx)) {
+                geminiContents.push({
+                    role: h.role,
+                    parts: [{ text: h.content }],
+                });
+            }
         }
 
         // Add current user message
@@ -89,16 +88,13 @@ Sois chaleureux, encourageant et bienveillant. Réponds toujours dans la langue 
 
         if (!this.apiKey) {
             this.logger.warn('GEMINI_API_KEY not set; returning placeholder');
-            return `Bonjour ${userName} ! Je suis Cogni, votre assistant CogniCare. La clé API Gemini n'est pas configurée. Contactez l'administrateur.`;
+            return `${userName}, la clé API Gemini n'est pas configurée. Contactez l'administrateur.`;
         }
 
         try {
             const response = await axios.post(
                 `${this.url}?key=${this.apiKey}`,
                 {
-                    system_instruction: {
-                        parts: [{ text: systemPrompt }],
-                    },
                     contents: geminiContents,
                     generationConfig: {
                         maxOutputTokens: 512,
@@ -113,7 +109,11 @@ Sois chaleureux, encourageant et bienveillant. Réponds toujours dans la langue 
 
             const text: string =
                 response.data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-            if (!text) throw new Error('Empty response from Gemini');
+            if (!text) {
+                const reason = response.data?.candidates?.[0]?.finishReason ?? 'unknown';
+                this.logger.error(`Gemini empty response, finishReason: ${reason}`);
+                throw new Error(`Empty response, finishReason: ${reason}`);
+            }
             return text.trim();
         } catch (err: any) {
             this.logger.error(`Chatbot Gemini call failed: ${err?.message ?? err}`);
