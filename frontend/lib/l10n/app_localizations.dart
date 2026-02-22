@@ -787,6 +787,12 @@ abstract class AppLocalizations {
   String helloUser(Object userName);
   String get familyMemberRole;
   String get playWithLeo;
+
+  @override
+  String get progressSummary;
+
+  @override
+  String get progressSummaryDesc;
   String get launchPlayTherapy;
   String get routineAndReminders;
   String get viewChildDailyTasks;

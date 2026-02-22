@@ -483,17 +483,17 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Résumé de progrès',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.progressSummary,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: _slate800,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Progression par plan et tâches complétées',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.progressSummaryDesc,
+                      style: const TextStyle(
                         fontSize: 14,
                         color: _slate500,
                       ),

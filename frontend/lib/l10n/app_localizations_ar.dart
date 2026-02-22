@@ -1572,6 +1572,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get playWithLeo => 'اللعب مع Cogni';
 
   @override
+  String get progressSummary => 'ملخص التقدم';
+
+  @override
+  String get progressSummaryDesc => 'التقدم حسب الخطة والمهام المكتملة';
+
+  @override
   String get launchPlayTherapy => 'بدء جلسة علاج عن طريق اللعب';
 
   @override

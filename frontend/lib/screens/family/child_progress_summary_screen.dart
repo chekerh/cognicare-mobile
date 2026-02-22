@@ -5,6 +5,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/children_service.dart';
 import '../../services/reminders_service.dart';
 import '../../services/progress_ai_service.dart';
+import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFFA3D9E5);
 const Color _slate800 = Color(0xFF1E293B);
@@ -130,7 +131,7 @@ class _ChildProgressSummaryScreenState extends State<ChildProgressSummaryScreen>
       appBar: AppBar(
         title: Text(widget.childName != null
             ? 'Progrès – ${widget.childName}'
-            : 'Résumé de progrès'),
+            : AppLocalizations.of(context)!.progressSummary),
         backgroundColor: _primary,
         foregroundColor: _slate800,
         leading: IconButton(
