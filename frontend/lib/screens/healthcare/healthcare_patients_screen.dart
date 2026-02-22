@@ -458,7 +458,6 @@ class _PatientCard extends StatelessWidget {
                   ],
                 ),
               ),
-<<<<<<< Updated upstream
             ],
             const SizedBox(height: 16),
             Row(
@@ -467,29 +466,9 @@ class _PatientCard extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: () => context.push(
                       '${AppConstants.healthcareCareBoardRoute}?patientId=$patientId&patientName=${Uri.encodeComponent(name)}',
-=======
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => context.push(
-                        '${AppConstants.healthcareCareBoardRoute}?patientId=$patientId&patientName=${Uri.encodeComponent(name)}',
-                      ),
-                      icon: const Icon(Icons.description_outlined, size: 18),
-                      label: Text(AppLocalizations.of(context)!.detailsLabel),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primary,
-                        foregroundColor: const Color(0xFF1E293B),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
->>>>>>> Stashed changes
                     ),
                     icon: const Icon(Icons.description_outlined, size: 18),
-                    label: const Text('Détails'),
+                    label: Text(AppLocalizations.of(context)!.detailsLabel),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _primary,
                       foregroundColor: const Color(0xFF1E293B),
