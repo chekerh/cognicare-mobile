@@ -14,7 +14,7 @@ export interface ChatMessage {
 export class ChatbotService {
     private readonly logger = new Logger(ChatbotService.name);
     private readonly apiKey = process.env.GEMINI_API_KEY;
-    private readonly model = 'gemini-1.5-flash';
+    private readonly model = 'gemini-2.0-flash';
     private readonly url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent`;
 
     constructor(
