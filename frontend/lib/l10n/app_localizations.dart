@@ -791,10 +791,8 @@ abstract class AppLocalizations {
   String get familyMemberRole;
   String get playWithLeo;
 
-  @override
   String get progressSummary;
 
-  @override
   String get progressSummaryDesc;
   String get launchPlayTherapy;
   String get routineAndReminders;
