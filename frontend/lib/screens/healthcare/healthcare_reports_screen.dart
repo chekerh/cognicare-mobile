@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFFA2D9E7);
@@ -24,7 +23,7 @@ class HealthcareReportsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.reportsLabel,
+                      'Rapports',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -33,7 +32,7 @@ class HealthcareReportsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      AppLocalizations.of(context)!.reportsDescription,
+                      'Résumés IA et analyses comparatives',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey.shade600,
@@ -43,24 +42,26 @@ class HealthcareReportsScreen extends StatelessWidget {
                     _card(
                       context,
                       icon: Icons.insights,
-                      title: AppLocalizations.of(context)!.aiComparativeAnalysisLabel,
-                      subtitle: AppLocalizations.of(context)!.aiComparativeAnalysisSubtitle,
-                      onTap: () => context.push(AppConstants.healthcareComparativeRoute),
+                      title: 'Analyse Comparative IA',
+                      subtitle:
+                          'Comparer les métriques cognitives de deux patients',
+                      onTap: () =>
+                          context.push(AppConstants.healthcareComparativeRoute),
                     ),
                     const SizedBox(height: 16),
                     _card(
                       context,
                       icon: Icons.analytics,
-                      title: AppLocalizations.of(context)!.medicalReportsLabel,
-                      subtitle: AppLocalizations.of(context)!.medicalReportsSubtitle,
+                      title: 'Rapports médicaux',
+                      subtitle: 'Consulter les rapports générés',
                       onTap: () {},
                     ),
                     const SizedBox(height: 16),
                     _card(
                       context,
                       icon: Icons.summarize,
-                      title: AppLocalizations.of(context)!.lastAiSummariesLabel,
-                      subtitle: AppLocalizations.of(context)!.lastAiSummariesSubtitle,
+                      title: 'Derniers résumés IA',
+                      subtitle: 'Résumés hebdomadaires et alertes',
                       onTap: () {},
                     ),
                     const SizedBox(height: 100),

@@ -65,18 +65,21 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
   List<_ChatMessage> _defaultMessages() {
     return [
       const _ChatMessage(
-        text: 'Bonjour ! Le lit médicalisé est toujours disponible pour votre mari. Quand souhaiteriez-vous passer le récupérer au Cercle ?',
+        text:
+            'Bonjour ! Le lit médicalisé est toujours disponible pour votre mari. Quand souhaiteriez-vous passer le récupérer au Cercle ?',
         isMe: false,
         time: '09:41',
       ),
       const _ChatMessage(
-        text: 'Bonjour Marie, merci infiniment ! Serait-il possible de passer ce samedi vers 10h ?',
+        text:
+            'Bonjour Marie, merci infiniment ! Serait-il possible de passer ce samedi vers 10h ?',
         isMe: true,
         time: '09:43',
         read: true,
       ),
       const _ChatMessage(
-        text: 'Samedi 10h me convient parfaitement. Je vous envoie l\'adresse exacte et le code d\'accès pour le garage.',
+        text:
+            'Samedi 10h me convient parfaitement. Je vous envoie l\'adresse exacte et le code d\'accès pour le garage.',
         isMe: false,
         time: '09:45',
       ),
@@ -100,7 +103,8 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
     final now = DateTime.now();
-    final time = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final time =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
     setState(() {
       _messages.add(_ChatMessage(text: text, isMe: true, time: time));
     });
@@ -121,7 +125,8 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
             Expanded(
               child: ListView(
                 controller: _scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 children: [
                   _buildDateSeparator(loc),
                   const SizedBox(height: 16),
@@ -135,12 +140,14 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
               hintText: loc.writeMessage,
               onVoiceTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(loc.featureComingSoonVoice)),
+                  const SnackBar(
+                      content: Text('Message vocal — bientôt disponible')),
                 );
               },
               onPhotoTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(loc.featureComingSoonPhoto)),
+                  const SnackBar(
+                      content: Text('Envoi de photo — bientôt disponible')),
                 );
               },
             ),
@@ -177,14 +184,17 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
                     CircleAvatar(
                       radius: 20,
                       backgroundColor: Colors.grey.shade200,
-                      backgroundImage: widget.donorAvatarUrl != null && widget.donorAvatarUrl!.isNotEmpty
+                      backgroundImage: widget.donorAvatarUrl != null &&
+                              widget.donorAvatarUrl!.isNotEmpty
                           ? NetworkImage(widget.donorAvatarUrl!)
                           : null,
-                      child: widget.donorAvatarUrl == null || widget.donorAvatarUrl!.isEmpty
+                      child: widget.donorAvatarUrl == null ||
+                              widget.donorAvatarUrl!.isEmpty
                           ? const Icon(Icons.person, color: Colors.grey)
                           : null,
                     ),
-                    if (widget.donationImageUrl != null && widget.donationImageUrl!.isNotEmpty)
+                    if (widget.donationImageUrl != null &&
+                        widget.donationImageUrl!.isNotEmpty)
                       Positioned(
                         bottom: -4,
                         right: -4,
@@ -201,7 +211,8 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
                             child: Image.network(
                               widget.donationImageUrl!,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 14),
+                              errorBuilder: (_, __, ___) =>
+                                  const Icon(Icons.image, size: 14),
                             ),
                           ),
                         ),
@@ -241,7 +252,8 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
           ),
           IconButton(
             onPressed: () {},
-            icon: Icon(Icons.videocam_outlined, color: Colors.grey.shade600, size: 24),
+            icon: Icon(Icons.videocam_outlined,
+                color: Colors.grey.shade600, size: 24),
           ),
           IconButton(
             onPressed: () {},
@@ -280,12 +292,14 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
-        mainAxisAlignment: msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Flexible(
             child: Column(
-              crossAxisAlignment: msg.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  msg.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 Container(
                   padding: const EdgeInsets.all(14),
@@ -304,7 +318,9 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
                         offset: const Offset(0, 2),
                       ),
                     ],
-                    border: msg.isMe ? null : Border.all(color: Colors.grey.shade200),
+                    border: msg.isMe
+                        ? null
+                        : Border.all(color: Colors.grey.shade200),
                   ),
                   child: Text(
                     msg.text,
@@ -321,7 +337,8 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
                   children: [
                     Text(
                       msg.time,
-                      style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                      style:
+                          TextStyle(fontSize: 10, color: Colors.grey.shade500),
                     ),
                     if (msg.isMe && msg.read) ...[
                       const SizedBox(width: 4),
@@ -369,7 +386,8 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
                         height: 128,
                         color: Colors.grey.shade200,
                         child: Center(
-                          child: Icon(Icons.map_outlined, size: 48, color: Colors.grey.shade400),
+                          child: Icon(Icons.map_outlined,
+                              size: 48, color: Colors.grey.shade400),
                         ),
                       ),
                       Padding(
@@ -388,7 +406,8 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
                             const SizedBox(height: 4),
                             Text(
                               '12 Rue de la Fédération, 75015',
-                              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey.shade600),
                             ),
                           ],
                         ),
@@ -408,5 +427,4 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
       ),
     );
   }
-
 }

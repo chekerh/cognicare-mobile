@@ -6,7 +6,8 @@ import 'package:http/http.dart' as http;
 class GeocodingService {
   final http.Client _client = http.Client();
   static const String _photonUrl = 'https://photon.komoot.io/api/';
-  static const String _nominatimUrl = 'https://nominatim.openstreetmap.org/search';
+  static const String _nominatimUrl =
+      'https://nominatim.openstreetmap.org/search';
 
   static const _userAgent = 'CogniCare/1.0 (donation-app)';
 
@@ -47,9 +48,15 @@ class GeocodingService {
         final city = props?['city'] as String?;
         final state = props?['state'] as String?;
         final country = props?['country'] as String?;
-        final parts = [name, city, state, country].where((e) => e != null && e.toString().isNotEmpty).toSet().toList();
+        final parts = [name, city, state, country]
+            .where((e) => e != null && e.toString().isNotEmpty)
+            .toSet()
+            .toList();
         final display = parts.join(', ');
-        results.add(GeocodingResult(latitude: lat, longitude: lng, displayName: display.isNotEmpty ? display : query));
+        results.add(GeocodingResult(
+            latitude: lat,
+            longitude: lng,
+            displayName: display.isNotEmpty ? display : query));
       }
       return results;
     } catch (_) {
@@ -57,7 +64,8 @@ class GeocodingService {
     }
   }
 
-  Future<List<GeocodingResult>> _searchNominatimSuggestions(String query) async {
+  Future<List<GeocodingResult>> _searchNominatimSuggestions(
+      String query) async {
     try {
       final uri = Uri.parse(_nominatimUrl).replace(
         queryParameters: {'q': query, 'format': 'json', 'limit': '6'},
@@ -95,7 +103,8 @@ class GeocodingService {
     final trimmed = address.trim();
     if (trimmed.isEmpty) return null;
 
-    final result = await _geocodePhoton(trimmed) ?? await _geocodeNominatim(trimmed);
+    final result =
+        await _geocodePhoton(trimmed) ?? await _geocodeNominatim(trimmed);
     return result;
   }
 
@@ -105,7 +114,8 @@ class GeocodingService {
       final uri = Uri.parse(_photonUrl).replace(
         queryParameters: {'q': query, 'limit': '1'},
       );
-      final response = await _client.get(uri).timeout(const Duration(seconds: 10));
+      final response =
+          await _client.get(uri).timeout(const Duration(seconds: 10));
       if (response.statusCode != 200) return null;
       final json = jsonDecode(response.body) as Map<String, dynamic>?;
       final features = json?['features'] as List<dynamic>?;
@@ -118,7 +128,9 @@ class GeocodingService {
       final lat = (coords[1] as num).toDouble();
       final name = props?['name'] as String?;
       final country = props?['country'] as String?;
-      final display = [name, country].where((e) => e != null && e.toString().isNotEmpty).join(', ');
+      final display = [name, country]
+          .where((e) => e != null && e.toString().isNotEmpty)
+          .join(', ');
       return GeocodingResult(
         latitude: lat,
         longitude: lng,

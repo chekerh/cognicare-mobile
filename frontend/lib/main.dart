@@ -85,7 +85,8 @@ class _CogniCareAppState extends State<CogniCareApp> {
         ChangeNotifierProvider(create: (_) => ChildModeSessionProvider()),
         ChangeNotifierProxyProvider<AuthProvider, GamificationProvider>(
           create: (context) {
-            final authProvider = Provider.of<AuthProvider>(context, listen: false);
+            final authProvider =
+                Provider.of<AuthProvider>(context, listen: false);
             final gamificationService = GamificationService(
               getToken: () async => authProvider.accessToken,
             );
@@ -128,8 +129,8 @@ class _CogniCareAppState extends State<CogniCareApp> {
               debugShowCheckedModeBanner: false,
               builder: (context, child) {
                 return CallConnectionHandler(
-                  child: child!,
                   router: _router,
+                  child: child!,
                 );
               },
             ),
@@ -161,7 +162,8 @@ class _PresencePingerState extends State<PresencePinger> {
 
   void _startTimer() {
     _timer?.cancel();
-    AuthService().updatePresence(); // Ping once so we're online right after login
+    AuthService()
+        .updatePresence(); // Ping once so we're online right after login
     _timer = Timer.periodic(const Duration(minutes: 2), (_) async {
       await AuthService().updatePresence();
     });

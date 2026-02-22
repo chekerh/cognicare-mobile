@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFFA7DBE6);
 const Color _primaryDark = Color(0xFF8FC9D6);
@@ -38,7 +37,7 @@ class FamilyVolunteerProfileScreen extends StatefulWidget {
     if (extra == null) {
       return const FamilyVolunteerProfileScreen(
         volunteerId: '',
-        volunteerName: '',
+        volunteerName: 'Bénévole',
         avatarUrl: '',
         specialization: '',
       );
@@ -46,7 +45,7 @@ class FamilyVolunteerProfileScreen extends StatefulWidget {
     final skills = extra['skills'] as List<dynamic>?;
     return FamilyVolunteerProfileScreen(
       volunteerId: extra['id'] as String? ?? '',
-      volunteerName: extra['name'] as String? ?? '',
+      volunteerName: extra['name'] as String? ?? 'Bénévole',
       avatarUrl: extra['avatarUrl'] as String? ?? '',
       specialization: extra['specialization'] as String? ?? '',
       location: extra['location'] as String?,
@@ -58,10 +57,12 @@ class FamilyVolunteerProfileScreen extends StatefulWidget {
   }
 
   @override
-  State<FamilyVolunteerProfileScreen> createState() => _FamilyVolunteerProfileScreenState();
+  State<FamilyVolunteerProfileScreen> createState() =>
+      _FamilyVolunteerProfileScreenState();
 }
 
-class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScreen> {
+class _FamilyVolunteerProfileScreenState
+    extends State<FamilyVolunteerProfileScreen> {
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 2));
   int _selectedTimeIndex = 1; // 0 or 1
 
@@ -71,22 +72,29 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
   ];
 
   List<DateTime> _getWeekDays() {
-    final start = _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
+    final start =
+        _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1));
     return List.generate(7, (i) => start.add(Duration(days: i)));
   }
 
   List<String> get _skills {
-    if (widget.skills != null && widget.skills!.isNotEmpty) return widget.skills!;
-    return widget.specialization.split('&').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+    if (widget.skills != null && widget.skills!.isNotEmpty) {
+      return widget.skills!;
+    }
+    return widget.specialization
+        .split('&')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
   }
 
-  String _about(AppLocalizations loc) {
-    return widget.about ?? loc.defaultVolunteerAboutText;
+  String get _about {
+    return widget.about ??
+        'Bénévole expérimenté. J\'aime créer un environnement bienveillant où chaque enfant se sent écouté et soutenu.';
   }
 
   @override
   Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
     final topPadding = MediaQuery.paddingOf(context).top;
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
     final weekDays = _getWeekDays();
@@ -100,18 +108,30 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
               padding: EdgeInsets.fromLTRB(24, topPadding + 8, 24, 32),
               decoration: const BoxDecoration(
                 color: _primary,
-                borderRadius: BorderRadius.only(bottomLeft: Radius.circular(32), bottomRight: Radius.circular(32)),
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2))],
+                borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(32),
+                    bottomRight: Radius.circular(32)),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 8,
+                      offset: Offset(0, 2))
+                ],
               ),
               child: Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _headerButton(icon: Icons.arrow_back_ios_new, onTap: () => context.pop()),
-                      Text(
-                        widget.volunteerName.isEmpty ? loc.volunteerProfileTitle : widget.volunteerName,
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _slate800),
+                      _headerButton(
+                          icon: Icons.arrow_back_ios_new,
+                          onTap: () => context.pop()),
+                      const Text(
+                        'Profil bénévole',
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: _slate800),
                       ),
                       _headerButton(icon: Icons.more_horiz, onTap: () {}),
                     ],
@@ -131,7 +151,8 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
                             width: 96,
                             height: 96,
                             color: _primaryDark,
-                            child: const Icon(Icons.person, color: Colors.white, size: 48),
+                            child: const Icon(Icons.person,
+                                color: Colors.white, size: 48),
                           ),
                         ),
                       ),
@@ -146,7 +167,8 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
                           ),
-                          child: const Icon(Icons.check, color: Colors.white, size: 14),
+                          child: const Icon(Icons.check,
+                              color: Colors.white, size: 14),
                         ),
                       ),
                     ],
@@ -154,20 +176,27 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
                   const SizedBox(height: 16),
                   Text(
                     widget.volunteerName,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: _slate800),
+                    style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: _slate800),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     widget.specialization,
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: _slate800.withOpacity(0.8)),
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: _slate800.withOpacity(0.8)),
                   ),
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _badge(Icons.star, '${widget.rating} (${widget.reviewCount})'),
+                      _badge(Icons.star,
+                          '${widget.rating} (${widget.reviewCount})'),
                       const SizedBox(width: 8),
-                      _badge(Icons.verified_user, loc.verifiedLabel),
+                      _badge(Icons.verified_user, 'Vérifié'),
                     ],
                   ),
                 ],
@@ -181,14 +210,15 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
                 const SizedBox(height: 24),
                 _sectionCard(
                   icon: Icons.info_outline,
-                  title: loc.aboutSectionLabel,
+                  title: 'À propos',
                   child: Text(
-                    _about(loc),
-                    style: const TextStyle(fontSize: 15, color: _slate600, height: 1.5),
+                    _about,
+                    style: const TextStyle(
+                        fontSize: 15, color: _slate600, height: 1.5),
                   ),
                 ),
                 const SizedBox(height: 24),
-                _sectionTitle(Icons.psychology, loc.verifiedSkillsLabel),
+                _sectionTitle(Icons.psychology, 'Compétences vérifiées'),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
@@ -207,12 +237,25 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
                         children: [
                           Text(
                             _monthYear(_selectedDate),
-                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _slate800),
+                            style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: _slate800),
                           ),
                           Row(
                             children: [
-                              IconButton(icon: const Icon(Icons.chevron_left, color: _slate500), onPressed: () => setState(() => _selectedDate = _selectedDate.subtract(const Duration(days: 7)))),
-                              IconButton(icon: const Icon(Icons.chevron_right, color: _slate500), onPressed: () => setState(() => _selectedDate = _selectedDate.add(const Duration(days: 7)))),
+                              IconButton(
+                                  icon: const Icon(Icons.chevron_left,
+                                      color: _slate500),
+                                  onPressed: () => setState(() =>
+                                      _selectedDate = _selectedDate
+                                          .subtract(const Duration(days: 7)))),
+                              IconButton(
+                                  icon: const Icon(Icons.chevron_right,
+                                      color: _slate500),
+                                  onPressed: () => setState(() =>
+                                      _selectedDate = _selectedDate
+                                          .add(const Duration(days: 7)))),
                             ],
                           ),
                         ],
@@ -222,7 +265,8 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: weekDays.map((d) {
-                            final isSelected = d.day == _selectedDate.day && d.month == _selectedDate.month;
+                            final isSelected = d.day == _selectedDate.day &&
+                                d.month == _selectedDate.month;
                             return Padding(
                               padding: const EdgeInsets.only(right: 12),
                               child: GestureDetector(
@@ -231,15 +275,32 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
                                   width: 56,
                                   height: 72,
                                   decoration: BoxDecoration(
-                                    color: isSelected ? _primary : Colors.grey.shade100,
+                                    color: isSelected
+                                        ? _primary
+                                        : Colors.grey.shade100,
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: isSelected ? _primary : Colors.grey.shade300),
+                                    border: Border.all(
+                                        color: isSelected
+                                            ? _primary
+                                            : Colors.grey.shade300),
                                   ),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Text(_dayShort(d.weekday), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isSelected ? _slate800 : _slate500)),
-                                      Text('${d.day}', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isSelected ? _slate800 : _slate600)),
+                                      Text(_dayShort(d.weekday),
+                                          style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: isSelected
+                                                  ? _slate800
+                                                  : _slate500)),
+                                      Text('${d.day}',
+                                          style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: isSelected
+                                                  ? _slate800
+                                                  : _slate600)),
                                     ],
                                   ),
                                 ),
@@ -249,24 +310,40 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Text(loc.volunteerAvailableSlots, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _slate500)),
+                      const Text('Créneaux disponibles',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: _slate500)),
                       const SizedBox(height: 8),
                       Row(
                         children: List.generate(_defaultTimeSlots.length, (i) {
                           final selected = _selectedTimeIndex == i;
                           return Expanded(
                             child: Padding(
-                              padding: EdgeInsets.only(right: i < _defaultTimeSlots.length - 1 ? 8 : 0),
+                              padding: EdgeInsets.only(
+                                  right:
+                                      i < _defaultTimeSlots.length - 1 ? 8 : 0),
                               child: OutlinedButton(
-                                onPressed: () => setState(() => _selectedTimeIndex = i),
+                                onPressed: () =>
+                                    setState(() => _selectedTimeIndex = i),
                                 style: OutlinedButton.styleFrom(
-                                  backgroundColor: selected ? _primary.withOpacity(0.15) : null,
-                                  foregroundColor: selected ? _slate800 : _slate600,
-                                  side: BorderSide(color: selected ? _primary : Colors.grey.shade300),
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  backgroundColor: selected
+                                      ? _primary.withOpacity(0.15)
+                                      : null,
+                                  foregroundColor:
+                                      selected ? _slate800 : _slate600,
+                                  side: BorderSide(
+                                      color: selected
+                                          ? _primary
+                                          : Colors.grey.shade300),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
                                 ),
-                                child: Text(_defaultTimeSlots[i], style: const TextStyle(fontSize: 13)),
+                                child: Text(_defaultTimeSlots[i],
+                                    style: const TextStyle(fontSize: 13)),
                               ),
                             ),
                           );
@@ -287,17 +364,22 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
           child: ElevatedButton.icon(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(loc.volunteerBookingConfirmed(widget.volunteerName)), behavior: SnackBarBehavior.floating),
+                SnackBar(
+                    content: Text(
+                        'Réservation confirmée avec ${widget.volunteerName}'),
+                    behavior: SnackBarBehavior.floating),
               );
               context.pop();
             },
             icon: const Icon(Icons.calendar_today, size: 20),
-            label: Text(loc.volunteerConfirmBooking, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            label: const Text('Confirmer la réservation',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
               backgroundColor: _primary,
               foregroundColor: _slate800,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               elevation: 2,
             ),
           ),
@@ -313,7 +395,10 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(999),
-        child: SizedBox(width: 40, height: 40, child: Icon(icon, color: _slate800, size: 22)),
+        child: SizedBox(
+            width: 40,
+            height: 40,
+            child: Icon(icon, color: _slate800, size: 22)),
       ),
     );
   }
@@ -330,7 +415,9 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
         children: [
           Icon(icon, size: 16, color: _slate800),
           const SizedBox(width: 6),
-          Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _slate800)),
+          Text(text,
+              style: const TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w600, color: _slate800)),
         ],
       ),
     );
@@ -341,18 +428,26 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
       children: [
         Icon(icon, color: _primary, size: 22),
         const SizedBox(width: 8),
-        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _slate800)),
+        Text(title,
+            style: const TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold, color: _slate800)),
       ],
     );
   }
 
-  Widget _sectionCard({required IconData icon, required String title, required Widget child}) {
+  Widget _sectionCard(
+      {required IconData icon, required String title, required Widget child}) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -361,7 +456,11 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
             children: [
               Icon(icon, color: _primary, size: 22),
               const SizedBox(width: 8),
-              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _slate800)),
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: _slate800)),
             ],
           ),
           const SizedBox(height: 12),
@@ -379,7 +478,9 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: _primary.withOpacity(0.3)),
       ),
-      child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _slate800)),
+      child: Text(label,
+          style: const TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w600, color: _slate800)),
     );
   }
 
@@ -389,7 +490,20 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
   }
 
   String _monthYear(DateTime d) {
-    const m = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    const m = [
+      'Janvier',
+      'Février',
+      'Mars',
+      'Avril',
+      'Mai',
+      'Juin',
+      'Juillet',
+      'Août',
+      'Septembre',
+      'Octobre',
+      'Novembre',
+      'Décembre'
+    ];
     return '${m[d.month - 1]} ${d.year}';
   }
 }

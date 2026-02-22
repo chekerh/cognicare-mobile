@@ -128,11 +128,13 @@ class AdminService {
   }
 
   /// List volunteer applications (admin). Optional [status]: pending, approved, denied.
-  Future<List<Map<String, dynamic>>> getVolunteerApplications({String? status}) async {
+  Future<List<Map<String, dynamic>>> getVolunteerApplications(
+      {String? status}) async {
     try {
       final token = await _getToken();
       if (token == null) throw Exception('No authentication token found');
-      var url = '${AppConstants.baseUrl}${AppConstants.volunteerApplicationsAdminEndpoint}';
+      var url =
+          '${AppConstants.baseUrl}${AppConstants.volunteerApplicationsAdminEndpoint}';
       if (status != null && status.isNotEmpty) {
         url += '?status=$status';
       }
@@ -157,7 +159,8 @@ class AdminService {
       final token = await _getToken();
       if (token == null) throw Exception('No authentication token found');
       final response = await _client.get(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.volunteerApplicationAdminEndpoint(id)}'),
+        Uri.parse(
+            '${AppConstants.baseUrl}${AppConstants.volunteerApplicationAdminEndpoint(id)}'),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (response.statusCode != 200) {
@@ -171,11 +174,13 @@ class AdminService {
   }
 
   /// List course enrollments (admin). Optional [userId] to filter by volunteer.
-  Future<List<Map<String, dynamic>>> getVolunteerCourseEnrollments({String? userId}) async {
+  Future<List<Map<String, dynamic>>> getVolunteerCourseEnrollments(
+      {String? userId}) async {
     try {
       final token = await _getToken();
       if (token == null) throw Exception('No authentication token found');
-      var url = '${AppConstants.baseUrl}${AppConstants.coursesAdminEnrollmentsEndpoint}';
+      var url =
+          '${AppConstants.baseUrl}${AppConstants.coursesAdminEnrollmentsEndpoint}';
       if (userId != null && userId.isNotEmpty) {
         url += '?userId=$userId';
       }
@@ -208,7 +213,8 @@ class AdminService {
         body['deniedReason'] = deniedReason;
       }
       final response = await _client.patch(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.volunteerApplicationReviewEndpoint(applicationId)}'),
+        Uri.parse(
+            '${AppConstants.baseUrl}${AppConstants.volunteerApplicationReviewEndpoint(applicationId)}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -231,7 +237,8 @@ class AdminService {
       final token = await _getToken();
       if (token == null) throw Exception('No authentication token found');
       final response = await _client.get(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.progressAiAdminSummaryEndpoint}'),
+        Uri.parse(
+            '${AppConstants.baseUrl}${AppConstants.progressAiAdminSummaryEndpoint}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

@@ -14,7 +14,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
-  
+
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
@@ -139,7 +139,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+                              Icon(Icons.error_outline,
+                                  color: Colors.red.shade700, size: 20),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -249,7 +250,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.security, color: Colors.blue.shade700, size: 20),
+                            Icon(Icons.security,
+                                color: Colors.blue.shade700, size: 20),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(

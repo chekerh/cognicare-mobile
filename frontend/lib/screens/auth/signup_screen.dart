@@ -180,7 +180,8 @@ class _SignupScreenState extends State<SignupScreen> {
         fullName: _fullNameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text,
-        phone: _phoneController.text.isEmpty ? null : _phoneController.text.trim(),
+        phone:
+            _phoneController.text.isEmpty ? null : _phoneController.text.trim(),
         role: _selectedRole,
         verificationCode: _verificationCodeController.text.trim(),
       );
@@ -259,7 +260,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     child: const SizedBox(
                       width: 40,
                       height: 40,
-                      child: Icon(Icons.arrow_back_ios_new, color: AppTheme.text, size: 20),
+                      child: Icon(Icons.arrow_back_ios_new,
+                          color: AppTheme.text, size: 20),
                     ),
                   ),
                 ),
@@ -273,7 +275,10 @@ class _SignupScreenState extends State<SignupScreen> {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [_authPrimary.withOpacity(0.2), _authPrimary.withOpacity(0.05)],
+                        colors: [
+                          _authPrimary.withOpacity(0.2),
+                          _authPrimary.withOpacity(0.05)
+                        ],
                       ),
                       shape: BoxShape.circle,
                       boxShadow: [
@@ -302,9 +307,11 @@ class _SignupScreenState extends State<SignupScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.favorite, color: _authPrimary, size: 48),
+                            const Icon(Icons.favorite,
+                                color: _authPrimary, size: 48),
                             const SizedBox(height: 4),
-                            Icon(Icons.volunteer_activism, color: Colors.green.shade400, size: 28),
+                            Icon(Icons.volunteer_activism,
+                                color: Colors.green.shade400, size: 28),
                           ],
                         ),
                       ),
@@ -345,7 +352,9 @@ class _SignupScreenState extends State<SignupScreen> {
                   icon: Icons.person,
                   hint: localizations.fullNameLabel,
                   validator: (v) {
-                    if (v == null || v.isEmpty) return localizations.fullNameRequired;
+                    if (v == null || v.isEmpty) {
+                      return localizations.fullNameRequired;
+                    }
                     return null;
                   },
                 ),
@@ -358,8 +367,11 @@ class _SignupScreenState extends State<SignupScreen> {
                   hint: localizations.emailLabel,
                   keyboardType: TextInputType.emailAddress,
                   validator: (v) {
-                    if (v == null || v.isEmpty) return localizations.emailRequired;
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
+                    if (v == null || v.isEmpty) {
+                      return localizations.emailRequired;
+                    }
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(v)) {
                       return localizations.emailInvalid;
                     }
                     return null;
@@ -372,8 +384,12 @@ class _SignupScreenState extends State<SignupScreen> {
                     children: [
                       Expanded(
                         child: _authButton(
-                          onPressed: _isSendingCode || _codeSent ? null : _sendVerificationCode,
-                          label: _codeSent ? localizations.codeSentButton : localizations.sendCodeButton,
+                          onPressed: _isSendingCode || _codeSent
+                              ? null
+                              : _sendVerificationCode,
+                          label: _codeSent
+                              ? localizations.codeSentButton
+                              : localizations.sendCodeButton,
                           isLoading: _isSendingCode && !_codeSent,
                           icon: _codeSent ? Icons.check : Icons.email,
                         ),
@@ -381,10 +397,13 @@ class _SignupScreenState extends State<SignupScreen> {
                       if (_codeSent) ...[
                         const SizedBox(width: 8),
                         TextButton(
-                          onPressed: _isSendingCode ? null : _sendVerificationCode,
+                          onPressed:
+                              _isSendingCode ? null : _sendVerificationCode,
                           child: Text(
                             localizations.resendButton,
-                            style: const TextStyle(color: _authPrimary, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                                color: _authPrimary,
+                                fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],
@@ -416,7 +435,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   ],
                 ] else ...[
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: Colors.green.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -424,7 +444,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.check_circle, color: Colors.green.shade700, size: 22),
+                        Icon(Icons.check_circle,
+                            color: Colors.green.shade700, size: 22),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -462,14 +483,19 @@ class _SignupScreenState extends State<SignupScreen> {
                   obscureText: _obscurePassword,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                       color: Colors.grey.shade400,
                       size: 22,
                     ),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
                   ),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return localizations.passwordRequired;
+                    if (v == null || v.isEmpty) {
+                      return localizations.passwordRequired;
+                    }
                     if (v.length < 6) return localizations.passwordTooShort;
                     return null;
                   },
@@ -482,8 +508,12 @@ class _SignupScreenState extends State<SignupScreen> {
                   hint: localizations.confirmPasswordLabel,
                   obscureText: true,
                   validator: (v) {
-                    if (v == null || v.isEmpty) return localizations.confirmPasswordRequired;
-                    if (v != _passwordController.text) return localizations.passwordsDontMatch;
+                    if (v == null || v.isEmpty) {
+                      return localizations.confirmPasswordRequired;
+                    }
+                    if (v != _passwordController.text) {
+                      return localizations.passwordsDontMatch;
+                    }
                     return null;
                   },
                 ),
@@ -494,9 +524,11 @@ class _SignupScreenState extends State<SignupScreen> {
                   children: [
                     Checkbox(
                       value: _acceptTerms,
-                      onChanged: (value) => setState(() => _acceptTerms = value ?? false),
+                      onChanged: (value) =>
+                          setState(() => _acceptTerms = value ?? false),
                       activeColor: _authPrimary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4)),
                     ),
                     Expanded(
                       child: Padding(
@@ -543,7 +575,8 @@ class _SignupScreenState extends State<SignupScreen> {
                         ? const SizedBox(
                             width: 24,
                             height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
                           )
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -616,7 +649,8 @@ class _SignupScreenState extends State<SignupScreen> {
             ? const SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Colors.white),
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -625,7 +659,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     Icon(icon, size: 20),
                     const SizedBox(width: 8),
                   ],
-                  Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  Text(label,
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
                 ],
               ),
       ),
@@ -654,7 +689,8 @@ class _SignupScreenState extends State<SignupScreen> {
           contentPadding: EdgeInsets.symmetric(vertical: 12),
         ),
         icon: Icon(Icons.expand_more, color: Colors.grey.shade400),
-        items: ['family', 'doctor', 'volunteer', 'organization_leader'].map((role) {
+        items: ['family', 'doctor', 'volunteer', 'organization_leader']
+            .map((role) {
           return DropdownMenuItem(
             value: role,
             child: Row(
@@ -716,8 +752,10 @@ class _SignupScreenState extends State<SignupScreen> {
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
           errorBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.w500),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          hintStyle: TextStyle(
+              color: Colors.grey.shade400, fontWeight: FontWeight.w500),
         ),
         style: const TextStyle(
           color: AppTheme.text,

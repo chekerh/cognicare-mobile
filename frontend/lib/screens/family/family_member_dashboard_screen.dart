@@ -24,6 +24,7 @@ const Color _slate400 = Color(0xFF94A3B8);
 const Color _slate300 = Color(0xFFCBD5E1);
 const Color _green100 = Color(0xFFDCFCE7);
 const Color _green600 = Color(0xFF16A34A);
+
 /// Même gris foncé que "Commande Confirmée" (boutons, icônes d'accent)
 const Color _accentColor = Color(0xFF212121);
 
@@ -50,10 +51,12 @@ class FamilyMemberDashboardScreen extends StatefulWidget {
   const FamilyMemberDashboardScreen({super.key});
 
   @override
-  State<FamilyMemberDashboardScreen> createState() => _FamilyMemberDashboardScreenState();
+  State<FamilyMemberDashboardScreen> createState() =>
+      _FamilyMemberDashboardScreenState();
 }
 
-class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScreen> {
+class _FamilyMemberDashboardScreenState
+    extends State<FamilyMemberDashboardScreen> {
   List<_VolunteerCardData>? _volunteerCards;
   bool _loadingVolunteers = false;
   String? _volunteerError;
@@ -61,7 +64,8 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkChildProfileComplete());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _checkChildProfileComplete());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<GamificationProvider>().initialize();
     });
@@ -79,7 +83,6 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
       if (!mounted) return;
       setState(() {
         _volunteerCards = list.map((a) {
-          final l10n = AppLocalizations.of(context)!;
           final dateStr = a.dates.isNotEmpty
               ? a.dates.length == 1
                   ? a.dates.first
@@ -94,7 +97,9 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
             id: a.volunteerId,
             name: a.volunteerName,
             avatarUrl: avatarUrl,
-            specialization: dateStr.isNotEmpty ? 'Disponible $dateStr, $timeStr' : 'Disponible $timeStr',
+            specialization: dateStr.isNotEmpty
+                ? 'Disponible $dateStr, $timeStr'
+                : 'Disponible $timeStr',
             location: '',
           );
         }).toList();
@@ -140,7 +145,8 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
     );
   }
 
-  Future<void> _openChatWithVolunteer(BuildContext context, _VolunteerCardData v) async {
+  Future<void> _openChatWithVolunteer(
+      BuildContext context, _VolunteerCardData v) async {
     try {
       final chatService = ChatService();
       final conv = await chatService.getOrCreateConversation(v.id);
@@ -187,34 +193,34 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
         child: Stack(
           children: [
             CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: _buildHeader(context, userName),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: _buildHeader(context, userName),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      const SizedBox(height: 8),
+                      _buildPlayWithLeoCard(context),
+                      const SizedBox(height: 24),
+                      _buildDailyRoutineCard(context),
+                      const SizedBox(height: 24),
+                      _buildProgressSummaryCard(context),
+                      const SizedBox(height: 24),
+                      _buildProgressSection(context),
+                      const SizedBox(height: 24),
+                      _buildTwoColumnCards(context),
+                      const SizedBox(height: 24),
+                      _buildVolunteersSection(context),
+                      const SizedBox(height: 24),
+                      _buildRecentActivityCard(context),
+                      const SizedBox(height: 100),
+                    ]),
+                  ),
+                ),
+              ],
             ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const SizedBox(height: 8),
-                  _buildPlayWithLeoCard(context),
-                  const SizedBox(height: 24),
-                  _buildDailyRoutineCard(context),
-                  const SizedBox(height: 24),
-                  _buildProgressSummaryCard(context),
-                  const SizedBox(height: 24),
-                  _buildProgressSection(context),
-                  const SizedBox(height: 24),
-                  _buildTwoColumnCards(context),
-                  const SizedBox(height: 24),
-                  _buildVolunteersSection(context),
-                  const SizedBox(height: 24),
-                  _buildRecentActivityCard(context),
-                  const SizedBox(height: 100),
-                ]),
-              ),
-            ),
-          ],
-        ),
           ],
         ),
       ),
@@ -232,7 +238,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                AppLocalizations.of(context)!.helloUser(userName),
+                'Bonjour, $userName 👋',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -240,9 +246,9 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                AppLocalizations.of(context)!.familyMemberRole,
-                style: const TextStyle(
+              const Text(
+                'Membre de la famille',
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
                   color: _slate800,
@@ -260,7 +266,8 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                 width: 48,
                 height: 48,
                 alignment: Alignment.center,
-                child: const Icon(Icons.notifications_rounded, color: _slate800, size: 24),
+                child: const Icon(Icons.notifications_rounded,
+                    color: _slate800, size: 24),
               ),
             ),
           ),
@@ -285,25 +292,26 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                   color: _primary,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(Icons.smart_toy_rounded, color: Colors.white, size: 32),
+                child: const Icon(Icons.smart_toy_rounded,
+                    color: Colors.white, size: 32),
               ),
               const SizedBox(width: 16),
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.playWithLeo,
-                      style: const TextStyle(
+                      'Jouer avec Cogni',
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: _slate800,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
-                      AppLocalizations.of(context)!.launchPlayTherapy,
-                      style: const TextStyle(
+                      'Lancer une session de thérapie ludique',
+                      style: TextStyle(
                         fontSize: 14,
                         color: _slate500,
                       ),
@@ -311,7 +319,8 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios_rounded, color: _primary, size: 18),
+              const Icon(Icons.arrow_forward_ios_rounded,
+                  color: _primary, size: 18),
             ],
           ),
         ),
@@ -328,22 +337,23 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
               getToken: () => AuthService().getStoredToken(),
             );
             final children = await childrenService.getChildren();
-            
+
             if (!mounted) return;
-            
+
             if (children.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(AppLocalizations.of(context)!.pleaseAddChildProfileFirst),
+                const SnackBar(
+                  content:
+                      Text('Veuillez d\'abord ajouter un profil d\'enfant'),
                   backgroundColor: Colors.orange,
                 ),
               );
               return;
             }
-            
+
             // Prendre le premier enfant
             final firstChild = children.first;
-            
+
             context.push(
               '/family/child-daily-routine',
               extra: {'childId': firstChild.id},
@@ -392,22 +402,22 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                 ),
               ),
               const SizedBox(width: 16),
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.routineAndReminders,
-                      style: const TextStyle(
+                      'Routine & Rappels',
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: _slate800,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
-                      AppLocalizations.of(context)!.viewChildDailyTasks,
-                      style: const TextStyle(
+                      'Voir les tâches quotidiennes de votre enfant',
+                      style: TextStyle(
                         fontSize: 14,
                         color: _slate500,
                       ),
@@ -415,7 +425,8 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios_rounded, color: _accentColor, size: 18),
+              const Icon(Icons.arrow_forward_ios_rounded,
+                  color: _accentColor, size: 18),
             ],
           ),
         ),
@@ -428,7 +439,8 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
       child: InkWell(
         onTap: () async {
           try {
-            final authProvider = Provider.of<AuthProvider>(context, listen: false);
+            final authProvider =
+                Provider.of<AuthProvider>(context, listen: false);
             final childrenService = ChildrenService(
               getToken: () async => authProvider.accessToken,
             );
@@ -437,7 +449,8 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
             if (children.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Veuillez d\'abord ajouter un profil d\'enfant'),
+                  content:
+                      Text('Veuillez d\'abord ajouter un profil d\'enfant'),
                   backgroundColor: Colors.orange,
                 ),
               );
@@ -474,26 +487,27 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Center(
-                  child: Icon(Icons.show_chart_rounded, color: _green600, size: 32),
+                  child: Icon(Icons.show_chart_rounded,
+                      color: _green600, size: 32),
                 ),
               ),
               const SizedBox(width: 16),
-              Expanded(
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.progressSummary,
-                      style: const TextStyle(
+                      'Résumé de progrès',
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: _slate800,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
-                      AppLocalizations.of(context)!.progressSummaryDesc,
-                      style: const TextStyle(
+                      'Progression par plan et tâches complétées',
+                      style: TextStyle(
                         fontSize: 14,
                         color: _slate500,
                       ),
@@ -501,7 +515,8 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios_rounded, color: _accentColor, size: 18),
+              const Icon(Icons.arrow_forward_ios_rounded,
+                  color: _accentColor, size: 18),
             ],
           ),
         ),
@@ -524,23 +539,24 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  AppLocalizations.of(context)!.dailyProgress,
-                  style: const TextStyle(
+                const Text(
+                  'Progrès du jour',
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: _slate800,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
                     color: _primary.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  child: Text(
-                    AppLocalizations.of(context)!.childAgeLabel('Léo', '6'),
-                    style: const TextStyle(
+                  child: const Text(
+                    'Léo • 6 ans',
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: _primary,
@@ -563,9 +579,12 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                           height: heights[i],
                           decoration: BoxDecoration(
                             color: hasStar[i]
-                                ? (isCurrent[i] ? _primary : _primary.withOpacity(0.2))
+                                ? (isCurrent[i]
+                                    ? _primary
+                                    : _primary.withOpacity(0.2))
                                 : _slate300.withOpacity(0.5),
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(8)),
                           ),
                           child: hasStar[i]
                               ? Align(
@@ -575,7 +594,9 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                                     child: Icon(
                                       Icons.star_rounded,
                                       size: 16,
-                                      color: isCurrent[i] ? Colors.white : _primary,
+                                      color: isCurrent[i]
+                                          ? Colors.white
+                                          : _primary,
                                     ),
                                   ),
                                 )
@@ -599,16 +620,17 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
             const SizedBox(height: 16),
             RichText(
               textAlign: TextAlign.center,
-              text: TextSpan(
-                style: const TextStyle(fontSize: 14, color: _slate500),
+              text: const TextSpan(
+                style: TextStyle(fontSize: 14, color: _slate500),
                 children: [
                   TextSpan(
-                    text: AppLocalizations.of(context)!.starsNeededForChallenge('2'),
-                    style: const TextStyle(
+                    text: 'Encore 2 étoiles ',
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: _slate800,
                     ),
                   ),
+                  TextSpan(text: 'pour le défi de la semaine !'),
                 ],
               ),
             ),
@@ -640,21 +662,22 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                             color: _green100,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.forum_rounded, color: _green600, size: 22),
+                          child: const Icon(Icons.forum_rounded,
+                              color: _green600, size: 22),
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          AppLocalizations.of(context)!.familyChat,
-                          style: const TextStyle(
+                        const Text(
+                          'Chat Famille',
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: _slate800,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          AppLocalizations.of(context)!.newMessagesCount('2'),
-                          style: const TextStyle(fontSize: 12, color: _slate500),
+                        const Text(
+                          '2 nouveaux messages',
+                          style: TextStyle(fontSize: 12, color: _slate500),
                         ),
                       ],
                     ),
@@ -666,7 +689,8 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
             Expanded(
               child: _Card(
                 child: InkWell(
-                  onTap: () => context.push(AppConstants.familyPatientRecordRoute),
+                  onTap: () =>
+                      context.push(AppConstants.familyPatientRecordRoute),
                   borderRadius: BorderRadius.circular(16),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -680,21 +704,22 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                             color: _accentColor.withOpacity(0.12),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.medical_services_rounded, color: _accentColor, size: 22),
+                          child: const Icon(Icons.medical_services_rounded,
+                              color: _accentColor, size: 22),
                         ),
                         const SizedBox(height: 12),
-                        Text(
-                          AppLocalizations.of(context)!.medicalTracking,
-                          style: const TextStyle(
+                        const Text(
+                          'Suivi Médical',
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: _slate800,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          AppLocalizations.of(context)!.nextAppointmentLabel,
-                          style: const TextStyle(fontSize: 12, color: _slate500),
+                        const Text(
+                          'RDV demain 10h',
+                          style: TextStyle(fontSize: 12, color: _slate500),
                         ),
                       ],
                     ),
@@ -712,11 +737,11 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 16),
+        const Padding(
+          padding: EdgeInsets.only(bottom: 16),
           child: Text(
-            AppLocalizations.of(context)!.volunteersLabel,
-            style: const TextStyle(
+            'Bénévoles',
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: _slate800,
@@ -734,24 +759,26 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
             child: Center(
               child: Column(
                 children: [
-                  Text(_volunteerError!, textAlign: TextAlign.center, style: const TextStyle(color: _slate500)),
+                  Text(_volunteerError!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: _slate500)),
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: _loadVolunteerAvailabilities,
-                    child: Text(AppLocalizations.of(context)!.retryButton),
+                    child: const Text('Réessayer'),
                   ),
                 ],
               ),
             ),
           )
         else if (_volunteerCards == null || _volunteerCards!.isEmpty)
-           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(
               child: Text(
-                AppLocalizations.of(context)!.noVolunteersAvailable,
+                'Aucun bénévole disponible pour le moment.\nLes disponibilités publiées apparaîtront ici.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14, color: _slate500),
+                style: TextStyle(fontSize: 14, color: _slate500),
               ),
             ),
           )
@@ -788,7 +815,8 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                         color: _primary,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.person_rounded, color: Colors.white, size: 28),
+                      child: const Icon(Icons.person_rounded,
+                          color: Colors.white, size: 28),
                     ),
                   ),
                 ),
@@ -827,11 +855,16 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                           const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.verified_rounded, size: 16, color: _accentColor),
+                              Icon(Icons.verified_rounded,
+                                  size: 16, color: _accentColor),
                               SizedBox(width: 4),
                               Text(
                                 'VÉRIFIÉ',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _accentColor, letterSpacing: 0.5),
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: _accentColor,
+                                    letterSpacing: 0.5),
                               ),
                             ],
                           ),
@@ -848,12 +881,14 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(Icons.location_on_outlined, size: 14, color: _slate400),
+                            const Icon(Icons.location_on_outlined,
+                                size: 14, color: _slate400),
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
                                 v.location,
-                                style: const TextStyle(fontSize: 12, color: _slate500),
+                                style: const TextStyle(
+                                    fontSize: 12, color: _slate500),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -875,10 +910,11 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                       backgroundColor: _accentColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       elevation: 0,
                     ),
-                    child: Text(AppLocalizations.of(context)!.askForHelp),
+                    child: const Text('Demander de l\'aide'),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -887,10 +923,12 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                   style: OutlinedButton.styleFrom(
                     foregroundColor: _slate800,
                     side: const BorderSide(color: _slate300),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Text(AppLocalizations.of(context)!.messagesLabel),
+                  child: const Text('Message'),
                 ),
               ],
             ),
@@ -946,7 +984,6 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
       ),
     );
   }
-
 }
 
 class _Card extends StatelessWidget {

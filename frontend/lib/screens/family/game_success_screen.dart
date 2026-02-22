@@ -19,19 +19,27 @@ class GameSuccessScreen extends StatelessWidget {
 
   /// Index (0-based) of the sticker just earned.
   final int stickerIndex;
+
   /// Route to push for "Rejouer" (e.g. familyMatchingGameRoute).
   final String? gameRoute;
+
   /// Optional phrase shown above "Bravo!" in large text (e.g. "You've completed 30 levels!").
   final String? milestoneMessage;
 
   static String _stickerName(AppLocalizations loc, String nameKey) {
     switch (nameKey) {
-      case 'stickerLeoTheLion': return loc.stickerLeoTheLion;
-      case 'stickerHappyHippo': return loc.stickerHappyHippo;
-      case 'stickerBraveBear': return loc.stickerBraveBear;
-      case 'stickerSmartyPaws': return loc.stickerSmartyPaws;
-      case 'stickerComingSoon': return loc.stickerComingSoon;
-      default: return nameKey;
+      case 'stickerLeoTheLion':
+        return loc.stickerLeoTheLion;
+      case 'stickerHappyHippo':
+        return loc.stickerHappyHippo;
+      case 'stickerBraveBear':
+        return loc.stickerBraveBear;
+      case 'stickerSmartyPaws':
+        return loc.stickerSmartyPaws;
+      case 'stickerComingSoon':
+        return loc.stickerComingSoon;
+      default:
+        return nameKey;
     }
   }
 
@@ -42,8 +50,9 @@ class GameSuccessScreen extends StatelessWidget {
     final idx = stickerIndex.clamp(0, kStickerDefinitions.length - 1);
     final sticker = kStickerDefinitions[idx];
     final stickerName = _stickerName(loc, sticker.nameKey);
-    final hasImage = (sticker.imageUrl != null && sticker.imageUrl!.isNotEmpty) ||
-        (sticker.imageAsset != null && sticker.imageAsset!.isNotEmpty);
+    final hasImage =
+        (sticker.imageUrl != null && sticker.imageUrl!.isNotEmpty) ||
+            (sticker.imageAsset != null && sticker.imageAsset!.isNotEmpty);
 
     return Scaffold(
       backgroundColor: _brandBlue,
@@ -51,20 +60,20 @@ class GameSuccessScreen extends StatelessWidget {
         children: [
           // Confetti-style dots
           ..._confettiPositions.map((e) => Positioned(
-            left: e.left,
-            right: e.right,
-            top: e.top,
-            bottom: e.bottom,
-            child: Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                color: e.color.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(2),
-              ),
-              transform: Matrix4.identity()..rotateZ(e.rotation),
-            ),
-          )),
+                left: e.left,
+                right: e.right,
+                top: e.top,
+                bottom: e.bottom,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: e.color.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  transform: Matrix4.identity()..rotateZ(e.rotation),
+                ),
+              )),
           // Content with safe area and scroll
           Column(
             children: [
@@ -88,7 +97,8 @@ class GameSuccessScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       const SizedBox(height: 16),
-                      if (milestoneMessage != null && milestoneMessage!.isNotEmpty) ...[
+                      if (milestoneMessage != null &&
+                          milestoneMessage!.isNotEmpty) ...[
                         Text(
                           milestoneMessage!,
                           textAlign: TextAlign.center,
@@ -138,145 +148,170 @@ class GameSuccessScreen extends StatelessWidget {
                       Container(
                         width: 140,
                         height: 140,
-                    decoration: BoxDecoration(
-                      color: Colors.amber.shade400,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.amber.shade300, width: 8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.white.withOpacity(0.6),
-                          blurRadius: 30,
-                          spreadRadius: 10,
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Icon(Icons.wb_sunny_rounded, size: 88, color: Colors.amber.shade600),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(width: 12, height: 14, decoration: const BoxDecoration(color: Colors.black87, shape: BoxShape.circle)),
-                                const SizedBox(width: 24),
-                                Container(width: 12, height: 14, decoration: const BoxDecoration(color: Colors.black87, shape: BoxShape.circle)),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Container(
-                              width: 36,
-                              height: 14,
-                              decoration: const BoxDecoration(
-                                border: Border(bottom: BorderSide(color: Colors.black87, width: 4)),
-                                borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
-                              ),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade400,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                              color: Colors.amber.shade300, width: 8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.white.withOpacity(0.6),
+                              blurRadius: 30,
+                              spreadRadius: 10,
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(Icons.wb_sunny_rounded,
+                                size: 88, color: Colors.amber.shade600),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                        width: 12,
+                                        height: 14,
+                                        decoration: const BoxDecoration(
+                                            color: Colors.black87,
+                                            shape: BoxShape.circle)),
+                                    const SizedBox(width: 24),
+                                    Container(
+                                        width: 12,
+                                        height: 14,
+                                        decoration: const BoxDecoration(
+                                            color: Colors.black87,
+                                            shape: BoxShape.circle)),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Container(
+                                  width: 36,
+                                  height: 14,
+                                  decoration: const BoxDecoration(
+                                    border: Border(
+                                        bottom: BorderSide(
+                                            color: Colors.black87, width: 4)),
+                                    borderRadius: BorderRadius.vertical(
+                                        bottom: Radius.circular(12)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       // Sticker card
                       Container(
-                    width: double.infinity,
-                    constraints: const BoxConstraints(maxWidth: 320),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.95),
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(color: Colors.white.withOpacity(0.5), width: 4),
-                      boxShadow: [
-                        BoxShadow(
-                          color: _primary.withOpacity(0.2),
-                          blurRadius: 40,
-                          spreadRadius: 15,
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: _primary.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            loc.stickerWon.toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: _primary,
-                              letterSpacing: 1.2,
+                        width: double.infinity,
+                        constraints: const BoxConstraints(maxWidth: 320),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.95),
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(
+                              color: Colors.white.withOpacity(0.5), width: 4),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _primary.withOpacity(0.2),
+                              blurRadius: 40,
+                              spreadRadius: 15,
                             ),
-                          ),
+                          ],
                         ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: 120,
-                          height: 120,
-                          child: hasImage
-                              ? (sticker.imageAsset != null
-                                  ? Image.asset(
-                                      sticker.imageAsset!,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (_, __, ___) => _fallbackStickerIcon(idx),
-                                    )
-                                  : Image.network(
-                                      sticker.imageUrl!,
-                                      fit: BoxFit.contain,
-                                      loadingBuilder: (_, child, progress) {
-                                        if (progress == null) return child;
-                                        return Center(
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              SizedBox(
-                                                width: 40,
-                                                height: 40,
-                                                child: CircularProgressIndicator(
-                                                  value: progress.expectedTotalBytes != null
-                                                      ? progress.cumulativeBytesLoaded /
-                                                          progress.expectedTotalBytes!
-                                                      : null,
-                                                  color: _primary,
-                                                ),
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: _primary.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                loc.stickerWon.toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: _primary,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: 120,
+                              height: 120,
+                              child: hasImage
+                                  ? (sticker.imageAsset != null
+                                      ? Image.asset(
+                                          sticker.imageAsset!,
+                                          fit: BoxFit.contain,
+                                          errorBuilder: (_, __, ___) =>
+                                              _fallbackStickerIcon(idx),
+                                        )
+                                      : Image.network(
+                                          sticker.imageUrl!,
+                                          fit: BoxFit.contain,
+                                          loadingBuilder: (_, child, progress) {
+                                            if (progress == null) return child;
+                                            return Center(
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  SizedBox(
+                                                    width: 40,
+                                                    height: 40,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                      value: progress
+                                                                  .expectedTotalBytes !=
+                                                              null
+                                                          ? progress
+                                                                  .cumulativeBytesLoaded /
+                                                              progress
+                                                                  .expectedTotalBytes!
+                                                          : null,
+                                                      color: _primary,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Text(
+                                                    loc.stickerWon,
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      color: Color(0xFF64748B),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                loc.stickerWon,
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  color: Color(0xFF64748B),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                      errorBuilder: (_, __, ___) => _fallbackStickerIcon(idx),
-                                    ))
-                              : _comingSoonSticker(idx),
+                                            );
+                                          },
+                                          errorBuilder: (_, __, ___) =>
+                                              _fallbackStickerIcon(idx),
+                                        ))
+                                  : _comingSoonSticker(idx),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              stickerName,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF1F2937),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          stickerName,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF1F2937),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -294,7 +329,8 @@ class GameSuccessScreen extends StatelessWidget {
                       elevation: 12,
                       shadowColor: _primary.withOpacity(0.4),
                       child: InkWell(
-                        onTap: () => context.pushReplacement(AppConstants.familyStickerBookRoute),
+                        onTap: () => context.pushReplacement(
+                            AppConstants.familyStickerBookRoute),
                         borderRadius: BorderRadius.circular(24),
                         child: Container(
                           width: double.infinity,
@@ -302,7 +338,8 @@ class GameSuccessScreen extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.add_circle_rounded, color: Colors.white, size: 28),
+                              const Icon(Icons.add_circle_rounded,
+                                  color: Colors.white, size: 28),
                               const SizedBox(width: 10),
                               Flexible(
                                 child: Text(
@@ -377,7 +414,8 @@ class GameSuccessScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.lock_open_rounded, size: 56, color: _primary.withOpacity(0.8)),
+          Icon(Icons.lock_open_rounded,
+              size: 56, color: _primary.withOpacity(0.8)),
           const SizedBox(height: 6),
           Text(
             '${index + 1}',
@@ -392,12 +430,62 @@ class GameSuccessScreen extends StatelessWidget {
     );
   }
 
-  static const List<({double? left, double? right, double? top, double? bottom, Color color, double rotation})> _confettiPositions = [
-    (left: 40.0, top: 60.0, right: null, bottom: null, color: Colors.blue, rotation: 0.2),
-    (left: null, right: 50.0, top: 80.0, bottom: null, color: Color(0xFF2563EB), rotation: -0.8),
-    (left: 30.0, top: null, right: null, bottom: 280.0, color: Colors.white, rotation: 0.7),
-    (left: null, right: 40.0, top: null, bottom: 220.0, color: Color(0xFF93C5FD), rotation: 0.5),
-    (left: 60.0, top: null, right: null, bottom: 120.0, color: Color(0xFF3B82F6), rotation: -0.3),
-    (left: null, right: 70.0, top: null, bottom: 80.0, color: Colors.white, rotation: 1.5),
+  static const List<
+      ({
+        double? left,
+        double? right,
+        double? top,
+        double? bottom,
+        Color color,
+        double rotation
+      })> _confettiPositions = [
+    (
+      left: 40.0,
+      top: 60.0,
+      right: null,
+      bottom: null,
+      color: Colors.blue,
+      rotation: 0.2
+    ),
+    (
+      left: null,
+      right: 50.0,
+      top: 80.0,
+      bottom: null,
+      color: Color(0xFF2563EB),
+      rotation: -0.8
+    ),
+    (
+      left: 30.0,
+      top: null,
+      right: null,
+      bottom: 280.0,
+      color: Colors.white,
+      rotation: 0.7
+    ),
+    (
+      left: null,
+      right: 40.0,
+      top: null,
+      bottom: 220.0,
+      color: Color(0xFF93C5FD),
+      rotation: 0.5
+    ),
+    (
+      left: 60.0,
+      top: null,
+      right: null,
+      bottom: 120.0,
+      color: Color(0xFF3B82F6),
+      rotation: -0.3
+    ),
+    (
+      left: null,
+      right: 70.0,
+      top: null,
+      bottom: 80.0,
+      color: Colors.white,
+      rotation: 1.5
+    ),
   ];
 }

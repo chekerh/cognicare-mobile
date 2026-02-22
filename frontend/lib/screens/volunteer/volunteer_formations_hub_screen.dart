@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import '../../l10n/app_localizations.dart';
 import '../../services/courses_service.dart';
 import '../../utils/constants.dart';
 
@@ -45,7 +44,8 @@ class _VolunteerFormationsHubScreenState
       _error = null;
     });
     try {
-      final courses = await _coursesService.getCourses(qualificationOnly: false);
+      final courses =
+          await _coursesService.getCourses(qualificationOnly: false);
       final enrollments = await _coursesService.myEnrollments();
       if (mounted) {
         setState(() {
@@ -55,8 +55,7 @@ class _VolunteerFormationsHubScreenState
       }
     } catch (e) {
       if (mounted) {
-        setState(
-            () => _error = e.toString().replaceFirst('Exception: ', ''));
+        setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -94,7 +93,8 @@ class _VolunteerFormationsHubScreenState
                         SliverToBoxAdapter(child: _buildHeader()),
                         SliverToBoxAdapter(child: _buildCourseInProgress()),
                         SliverToBoxAdapter(child: _buildCatalogSection()),
-                        SliverToBoxAdapter(child: _buildCertificationsSection()),
+                        SliverToBoxAdapter(
+                            child: _buildCertificationsSection()),
                         const SliverToBoxAdapter(child: SizedBox(height: 100)),
                       ],
                     ),
@@ -115,7 +115,7 @@ class _VolunteerFormationsHubScreenState
             ElevatedButton(
               onPressed: _load,
               style: ElevatedButton.styleFrom(backgroundColor: _primary),
-              child: Text(AppLocalizations.of(context)!.retryButton),
+              child: const Text('Réessayer'),
             ),
           ],
         ),
@@ -131,9 +131,9 @@ class _VolunteerFormationsHubScreenState
         children: [
           Row(
             children: [
-              Text(
-                AppLocalizations.of(context)!.volunteerServiceHub,
-                style: const TextStyle(
+              const Text(
+                'Volunteer Service Hub',
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: _textSecondary,
@@ -147,24 +147,24 @@ class _VolunteerFormationsHubScreenState
             ],
           ),
           const SizedBox(height: 8),
-          Row(
+          const Row(
             children: [
               Text(
-                AppLocalizations.of(context)!.formationsLabel,
-                style: const TextStyle(
+                'Formations',
+                style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: _textPrimary,
                 ),
               ),
-              const SizedBox(width: 8),
-              const Icon(Icons.school_rounded, color: _primary, size: 28),
+              SizedBox(width: 8),
+              Icon(Icons.school_rounded, color: _primary, size: 28),
             ],
           ),
           const SizedBox(height: 4),
-          Text(
-            AppLocalizations.of(context)!.developSkillsSubtitle,
-            style: const TextStyle(
+          const Text(
+            'Développez vos compétences d\'accompagnement.',
+            style: TextStyle(
               fontSize: 14,
               color: _textSecondary,
             ),
@@ -201,13 +201,14 @@ class _VolunteerFormationsHubScreenState
                   color: _primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.school_outlined, color: _primary, size: 26),
+                child: const Icon(Icons.school_outlined,
+                    color: _primary, size: 26),
               ),
               const SizedBox(width: 16),
-              Expanded(
+              const Expanded(
                 child: Text(
-                  AppLocalizations.of(context)!.noFormationInProgress,
-                  style: const TextStyle(
+                  'Aucune formation en cours. Parcourez le catalogue pour vous inscrire.',
+                  style: TextStyle(
                     fontSize: 14,
                     color: _textSecondary,
                   ),
@@ -224,28 +225,27 @@ class _VolunteerFormationsHubScreenState
     final progress = (enrollment['progressPercent'] as num?)?.toInt() ?? 0;
     const moduleCount = 5;
     final currentModule = (progress / 20).ceil().clamp(1, moduleCount);
-    final moduleLabels = [
-      AppLocalizations.of(context)!.introModule,
-      AppLocalizations.of(context)!.foundationModule,
-      AppLocalizations.of(context)!.practiceModule,
-      AppLocalizations.of(context)!.socialInteractionsModule,
-      AppLocalizations.of(context)!.conclusionModule,
+    const moduleLabels = [
+      'Introduction',
+      'Fondements',
+      'Pratique',
+      'Interactions sociales',
+      'Conclusion',
     ];
-    final moduleLabel =
-        currentModule <= moduleLabels.length
-            ? moduleLabels[currentModule - 1]
-            : 'Module $currentModule';
+    final moduleLabel = currentModule <= moduleLabels.length
+        ? moduleLabels[currentModule - 1]
+        : 'Module $currentModule';
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 8),
+          const Padding(
+            padding: EdgeInsets.only(left: 4, bottom: 8),
             child: Text(
-              AppLocalizations.of(context)!.formationInProgress,
-              style: const TextStyle(
+              'FORMATION EN COURS',
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: _textSecondary,
@@ -297,7 +297,7 @@ class _VolunteerFormationsHubScreenState
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            AppLocalizations.of(context)!.moduleProgressLabel(currentModule, moduleCount, moduleLabel),
+                            'Module $currentModule sur $moduleCount : $moduleLabel',
                             style: const TextStyle(
                               fontSize: 13,
                               color: _textSecondary,
@@ -320,7 +320,7 @@ class _VolunteerFormationsHubScreenState
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  AppLocalizations.of(context)!.completedPercent(progress),
+                  '$progress% COMPLÉTÉ',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -336,14 +336,28 @@ class _VolunteerFormationsHubScreenState
   }
 
   Widget _buildCatalogSection() {
-    final l = AppLocalizations.of(context)!;
-    final catalogItems = [
-      (AppLocalizations.of(context)!.nonVerbalCommunication, Icons.chat_bubble_outline, '15 min',
-          l.beginnerLevel, const Color(0xFF3B82F6)),
-      (AppLocalizations.of(context)!.sensoryCrisisManagement, Icons.flash_on_outlined, '25 min',
-          l.advancedLevel, const Color(0xFFF59E0B)),
-      (AppLocalizations.of(context)!.adaptedPlayActivities, Icons.extension_outlined, '20 min',
-          l.intermediateLevel, const Color(0xFF8B5CF6)),
+    const catalogItems = [
+      (
+        'Communication non-verbale',
+        Icons.chat_bubble_outline,
+        '15 min',
+        'Débutant',
+        Color(0xFF3B82F6)
+      ),
+      (
+        'Gestion des crises sensorielles',
+        Icons.flash_on_outlined,
+        '25 min',
+        'Avancé',
+        Color(0xFFF59E0B)
+      ),
+      (
+        'Activités ludiques adaptées',
+        Icons.extension_outlined,
+        '20 min',
+        'Intermédiaire',
+        Color(0xFF8B5CF6)
+      ),
     ];
 
     return Padding(
@@ -354,9 +368,9 @@ class _VolunteerFormationsHubScreenState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                AppLocalizations.of(context)!.catalogueLabel,
-                style: const TextStyle(
+              const Text(
+                'Catalogue',
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: _textPrimary,
@@ -365,9 +379,9 @@ class _VolunteerFormationsHubScreenState
               TextButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.filter_list, size: 18, color: _primary),
-                label: Text(
-                  AppLocalizations.of(context)!.filterLabel,
-                  style: const TextStyle(
+                label: const Text(
+                  'Filtrer',
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: _primary,
                   ),
@@ -413,12 +427,15 @@ class _VolunteerFormationsHubScreenState
   }
 
   Widget _buildCertificationsSection() {
-    final l = AppLocalizations.of(context)!;
-    final certs = [
-      (l.mentorLevel1, Icons.star_rounded, const Color(0xFFFBBF24), true),
-      (l.socialInclusion, Icons.check_circle_rounded, const Color(0xFF22C55E),
-          true),
-      (l.cognitiveExpert, Icons.lock_outline, const Color(0xFF94A3B8), false),
+    const certs = [
+      ('Mentor Niveau 1', Icons.star_rounded, Color(0xFFFBBF24), true),
+      (
+        'Inclusion Sociale',
+        Icons.check_circle_rounded,
+        Color(0xFF22C55E),
+        true
+      ),
+      ('Expert Cognitif', Icons.lock_outline, Color(0xFF94A3B8), false),
     ];
 
     return Padding(
@@ -426,9 +443,9 @@ class _VolunteerFormationsHubScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            AppLocalizations.of(context)!.myCertifications,
-            style: const TextStyle(
+          const Text(
+            'Mes Certifications',
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: _textPrimary,
@@ -437,7 +454,9 @@ class _VolunteerFormationsHubScreenState
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: certs.map((c) => _CertificationBadge(c.$1, c.$2, c.$3, c.$4)).toList(),
+            children: certs
+                .map((c) => _CertificationBadge(c.$1, c.$2, c.$3, c.$4))
+                .toList(),
           ),
         ],
       ),
@@ -534,7 +553,8 @@ class _CatalogCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const Icon(Icons.arrow_forward_ios, size: 14, color: _textSecondary),
+                const Icon(Icons.arrow_forward_ios,
+                    size: 14, color: _textSecondary),
               ],
             ),
           ),

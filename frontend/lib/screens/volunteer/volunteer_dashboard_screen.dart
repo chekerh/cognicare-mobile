@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../../models/user.dart' as app_user;
 import '../../providers/auth_provider.dart';
 import '../../services/healthcare_service.dart';
 import '../../services/children_service.dart';
-import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 
@@ -22,30 +20,18 @@ String _fullImageUrl(String path) {
   return path.startsWith('/') ? '$base$path' : '$base/$path';
 }
 
-String _roleToSpecializationLabel(String role, BuildContext context) {
-  final l = AppLocalizations.of(context)!;
+String _roleToSpecializationLabel(String role) {
   switch (role) {
     case 'doctor':
-      return l.roleDoctorLabel;
+      return 'Médecin';
     case 'psychologist':
-      return l.rolePsychologistLabel;
+      return 'Pédopsychiatre / Psychologue';
     case 'speech_therapist':
-      return l.roleSpeechTherapistLabel;
+      return 'Orthophoniste';
     case 'occupational_therapist':
-      return l.roleOccupationalTherapistLabel;
+      return 'Ergothérapeute';
     default:
       return role;
-  }
-}
-
-String _formatDateOfBirth(String? raw) {
-  if (raw == null || raw.isEmpty) return 'DN: —';
-  try {
-    final d = DateTime.tryParse(raw);
-    if (d == null) return 'DN: $raw';
-    return 'DN: ${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
-  } catch (_) {
-    return 'DN: ${raw.length > 12 ? '${raw.substring(0, 10)}…' : raw}';
   }
 }
 
@@ -54,7 +40,8 @@ class VolunteerDashboardScreen extends StatefulWidget {
   const VolunteerDashboardScreen({super.key});
 
   @override
-  State<VolunteerDashboardScreen> createState() => _VolunteerDashboardScreenState();
+  State<VolunteerDashboardScreen> createState() =>
+      _VolunteerDashboardScreenState();
 }
 
 class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
@@ -83,7 +70,9 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
     });
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final list = await ChildrenService(getToken: () async => authProvider.accessToken).getOrganizationChildren();
+      final list =
+          await ChildrenService(getToken: () async => authProvider.accessToken)
+              .getOrganizationChildren();
       if (!mounted) return;
       setState(() {
         _children = list;
@@ -166,27 +155,22 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                AppLocalizations.of(context)!.myPatients,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-              ),
-              TextButton(
-                onPressed: () => context.go(AppConstants.healthcareDashboardRoute),
-                child: const Text('Espace pro / IA', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-              ),
-            ],
+          const Text(
+            'Mes Patients',
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B)),
           ),
           const SizedBox(height: 12),
           if (_childrenLoading)
             const Center(child: CircularProgressIndicator())
           else if (_childrenError != null)
-            Text('Error: $_childrenError', style: const TextStyle(color: Colors.red))
+            Text('Erreur: $_childrenError',
+                style: const TextStyle(color: Colors.red))
           else if (_children == null || _children!.isEmpty)
             Text(
-              AppLocalizations.of(context)!.noPatientsFound,
+              'Aucun patient trouvé dans votre organisation.',
               style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
             )
           else
@@ -212,7 +196,12 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Row(
         children: [
@@ -227,13 +216,12 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
               children: [
                 Text(
                   child.fullName,
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                 ),
                 Text(
-                  '${AppLocalizations.of(context)!.dobLabel}: ${_formatDateOfBirth(child.dateOfBirth).replaceFirst('DN: ', '')}',
+                  'DN: ${child.dateOfBirth}',
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
                 ),
               ],
             ),
@@ -254,33 +242,36 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.helloUser(userName),
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey.shade600),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Bonjour, $userName 👋',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
                       AppConstants.isSpecialistRole(userRole)
-                          ? _roleToSpecializationLabel(userRole!, context)
-                          : AppLocalizations.of(context)!.volunteerLabel,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ],
-                ),
+                          ? _roleToSpecializationLabel(userRole!)
+                          : 'Bénévole',
+                      style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B))),
+                ],
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextButton(
-                    onPressed: () => context.go(AppConstants.volunteerMissionsRoute),
-                    child: Text(AppLocalizations.of(context)!.missionsLabel, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    onPressed: () =>
+                        context.go(AppConstants.volunteerMissionsRoute),
+                    child: const Text('Missions',
+                        style: TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w600)),
                   ),
                   GestureDetector(
                     onTap: () => context.go(AppConstants.volunteerProfileRoute),
@@ -295,7 +286,8 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                             shape: BoxShape.circle,
                             border: Border.all(color: _primary, width: 2),
                           ),
-                          child: const Icon(Icons.person_outline, color: _primary, size: 28),
+                          child: const Icon(Icons.person_outline,
+                              color: _primary, size: 28),
                         ),
                         Positioned(
                           top: -2,
@@ -331,7 +323,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
             child: _statCard(
               icon: Icons.star,
               iconColor: _primary,
-              label: AppLocalizations.of(context)!.impactPoints,
+              label: 'Points Impact',
               value: '1,250',
               bgColor: _primary.withOpacity(0.1),
               borderColor: _primary.withOpacity(0.2),
@@ -342,7 +334,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
             child: _statCard(
               icon: Icons.volunteer_activism,
               iconColor: Colors.green.shade600,
-              label: AppLocalizations.of(context)!.missionsLabel,
+              label: 'Missions',
               value: '24',
               bgColor: Colors.green.shade50,
               borderColor: Colors.green.shade100,
@@ -373,9 +365,14 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
         children: [
           Icon(icon, color: iconColor, size: 24),
           const SizedBox(height: 8),
-          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+          Text(label,
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B))),
         ],
       ),
     );
@@ -383,9 +380,19 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
 
   Widget _buildSkillsSection(BuildContext context) {
     final skills = [
-      (Icons.psychology, Colors.amber.shade500, Colors.amber.shade100, AppLocalizations.of(context)!.tdah),
-      (Icons.palette, Colors.blue.shade500, Colors.blue.shade100, AppLocalizations.of(context)!.artTherapy),
-      (Icons.menu_book, Colors.purple.shade500, Colors.purple.shade100, AppLocalizations.of(context)!.reading),
+      (Icons.psychology, Colors.amber.shade500, Colors.amber.shade100, 'TDAH'),
+      (
+        Icons.palette,
+        Colors.blue.shade500,
+        Colors.blue.shade100,
+        'Art Thérapie'
+      ),
+      (
+        Icons.menu_book,
+        Colors.purple.shade500,
+        Colors.purple.shade100,
+        'Lecture'
+      ),
     ];
 
     return Padding(
@@ -396,10 +403,18 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(AppLocalizations.of(context)!.mySkills, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+              const Text('Mes Compétences',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B))),
               GestureDetector(
                 onTap: () {},
-                child: Text(AppLocalizations.of(context)!.seeAll, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
+                child: const Text('Voir tout',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: _primary)),
               ),
             ],
           ),
@@ -413,13 +428,19 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                 final s = skills[i];
                 return Container(
                   width: 128,
-                  margin: EdgeInsets.only(right: i < skills.length - 1 ? 12 : 0),
+                  margin:
+                      EdgeInsets.only(right: i < skills.length - 1 ? 12 : 0),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.grey.shade100),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2))
+                    ],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -427,11 +448,16 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                       Container(
                         width: 48,
                         height: 48,
-                        decoration: BoxDecoration(color: s.$3, shape: BoxShape.circle),
+                        decoration:
+                            BoxDecoration(color: s.$3, shape: BoxShape.circle),
                         child: Icon(s.$1, color: s.$2, size: 26),
                       ),
                       const SizedBox(height: 8),
-                      Text(s.$4, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
+                      Text(s.$4,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1E293B))),
                     ],
                   ),
                 );
@@ -449,13 +475,16 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            AppLocalizations.of(context)!.healthcareProfessionalsLabel,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+          const Text(
+            'Professionnels de santé',
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B)),
           ),
           const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context)!.contactExpertSubtitle,
+            'Contacter un expert pour échanger ou poser vos questions.',
             style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 16),
@@ -469,9 +498,13 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Column(
                 children: [
-                  Text(_healthcareError!, style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
+                  Text(_healthcareError!,
+                      style:
+                          TextStyle(fontSize: 13, color: Colors.grey.shade700)),
                   const SizedBox(height: 8),
-                  TextButton(onPressed: _loadHealthcare, child: Text(AppLocalizations.of(context)!.retry)),
+                  TextButton(
+                      onPressed: _loadHealthcare,
+                      child: const Text('Réessayer')),
                 ],
               ),
             )
@@ -479,7 +512,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: Text(
-                AppLocalizations.of(context)!.noPatientsYet,
+                'Aucun professionnel pour le moment.',
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
             )
@@ -497,7 +530,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
     final imageUrl = (user.profilePic != null && user.profilePic!.isNotEmpty)
         ? _fullImageUrl(user.profilePic!)
         : '';
-    final specialization = _roleToSpecializationLabel(user.role, context);
+    final specialization = _roleToSpecializationLabel(user.role);
     const size = 40.0;
     final avatar = imageUrl.isNotEmpty
         ? ClipRRect(
@@ -507,7 +540,8 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
               width: size,
               height: size,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _avatarPlaceholder(size, user.fullName),
+              errorBuilder: (_, __, ___) =>
+                  _avatarPlaceholder(size, user.fullName),
             ),
           )
         : _avatarPlaceholder(size, user.fullName);
@@ -518,7 +552,12 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -534,14 +573,20 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                   children: [
                     Text(
                       user.fullName,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                      style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B)),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.medical_services_outlined, size: 14, color: Colors.grey.shade500),
+                        Icon(Icons.medical_services_outlined,
+                            size: 14, color: Colors.grey.shade500),
                         const SizedBox(width: 4),
-                        Text('CogniCare', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                        Text('CogniCare',
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey.shade600)),
                       ],
                     ),
                   ],
@@ -555,7 +600,10 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                 ),
                 child: Text(
                   specialization,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _primary),
+                  style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: _primary),
                 ),
               ),
             ],
@@ -563,12 +611,14 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
           const SizedBox(height: 16),
           Text(
             specialization,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.5),
+            style: TextStyle(
+                fontSize: 14, color: Colors.grey.shade700, height: 1.5),
           ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.only(top: 16),
-            decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.grey.shade100))),
+            decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: Colors.grey.shade100))),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -590,9 +640,14 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                       context.push(uri.toString());
                     },
                     borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      child: Text(AppLocalizations.of(context)!.messageLabel, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                    child: const Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      child: Text('Message',
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white)),
                     ),
                   ),
                 ),
@@ -616,16 +671,16 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
       child: Center(
         child: Text(
           initial,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _primary),
+          style: const TextStyle(
+              fontSize: 18, fontWeight: FontWeight.bold, color: _primary),
         ),
       ),
     );
   }
 
   Widget _buildPlanningSection(BuildContext context) {
-    final locale = Localizations.localeOf(context).languageCode;
-    final weekdays = List.generate(7, (i) => DateFormat.E(locale).format(DateTime(2024, 3, 11 + i)));
-    final dates = ['12', '13', '14', '15', '16', '17', '18'];
+    const weekdays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    const dates = ['12', '13', '14', '15', '16', '17', '18'];
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
@@ -635,10 +690,18 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(AppLocalizations.of(context)!.myPlanning, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+              const Text('Mon Planning',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B))),
               GestureDetector(
                 onTap: () => context.go(AppConstants.volunteerAgendaRoute),
-                child: Text(AppLocalizations.of(context)!.detailsLabel, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
+                child: const Text('Détails',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: _primary)),
               ),
             ],
           ),
@@ -649,13 +712,24 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: Colors.grey.shade100),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2))
+              ],
             ),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: List.generate(7, (i) => Text(weekdays[i], style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500))),
+                  children: List.generate(
+                      7,
+                      (i) => Text(weekdays[i],
+                          style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade500))),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -667,14 +741,20 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                       height: 32,
                       alignment: Alignment.center,
                       decoration: isToday
-                          ? const BoxDecoration(color: _primary, shape: BoxShape.circle)
+                          ? const BoxDecoration(
+                              color: _primary, shape: BoxShape.circle)
                           : null,
                       child: Text(
                         dates[i],
                         style: TextStyle(
                           fontSize: 14,
-                          fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
-                          color: isToday ? Colors.white : (i == 3 ? const Color(0xFF1E293B) : Colors.grey.shade500),
+                          fontWeight:
+                              isToday ? FontWeight.bold : FontWeight.w500,
+                          color: isToday
+                              ? Colors.white
+                              : (i == 3
+                                  ? const Color(0xFF1E293B)
+                                  : Colors.grey.shade500),
                         ),
                       ),
                     );
@@ -689,14 +769,25 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                   ),
                   child: Row(
                     children: [
-                      Container(width: 4, height: 32, decoration: BoxDecoration(color: _primary, borderRadius: BorderRadius.circular(2))),
+                      Container(
+                          width: 4,
+                          height: 32,
+                          decoration: BoxDecoration(
+                              color: _primary,
+                              borderRadius: BorderRadius.circular(2))),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(AppLocalizations.of(context)!.nextIntervention, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                            Text(AppLocalizations.of(context)!.nextInterventionWith(DateFormat.MMMEd(locale).format(DateTime(2024, 3, 14)), '16:30', 'Lucas'), style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+                            const Text('Prochaine intervention',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1E293B))),
+                            Text('Mercredi 14, 16:30 avec Lucas',
+                                style: TextStyle(
+                                    fontSize: 10, color: Colors.grey.shade600)),
                           ],
                         ),
                       ),

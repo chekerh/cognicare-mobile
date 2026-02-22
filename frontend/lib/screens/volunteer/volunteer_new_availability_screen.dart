@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 import '../../services/availability_service.dart';
-import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFF89CFF0);
 const Color _primaryDark = Color(0xFF5BAED4);
@@ -14,10 +13,12 @@ class VolunteerNewAvailabilityScreen extends StatefulWidget {
   const VolunteerNewAvailabilityScreen({super.key});
 
   @override
-  State<VolunteerNewAvailabilityScreen> createState() => _VolunteerNewAvailabilityScreenState();
+  State<VolunteerNewAvailabilityScreen> createState() =>
+      _VolunteerNewAvailabilityScreenState();
 }
 
-class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilityScreen> {
+class _VolunteerNewAvailabilityScreenState
+    extends State<VolunteerNewAvailabilityScreen> {
   DateTime _displayMonth = DateTime.now();
   final Set<DateTime> _selectedDates = {};
   bool _recurrenceOn = true;
@@ -26,11 +27,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
   final TimeOfDay _endTime = const TimeOfDay(hour: 18, minute: 0);
   bool _saving = false;
 
-  List<String> _getDaysShort(BuildContext context) {
-    return [
-      'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'
-    ]; // TODO: If needed, fetch localized short days, for now keeping as is or use formatting if required.
-  }
+  static const _daysShort = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'];
 
   List<DateTime?> _getCalendarDays() {
     final first = DateTime(_displayMonth.year, _displayMonth.month, 1);
@@ -55,13 +52,17 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
   DateTime _norm(DateTime d) => DateTime(d.year, d.month, d.day);
 
   bool _isSelected(DateTime d) {
-    return _selectedDates.any((s) => s.year == d.year && s.month == d.month && s.day == d.day);
+    return _selectedDates
+        .any((s) => s.year == d.year && s.month == d.month && s.day == d.day);
   }
 
   void _toggleDate(DateTime d) {
     setState(() {
       final n = _norm(d);
-      final existing = _selectedDates.where((s) => s.year == n.year && s.month == n.month && s.day == n.day).toList();
+      final existing = _selectedDates
+          .where(
+              (s) => s.year == n.year && s.month == n.month && s.day == n.day)
+          .toList();
       if (existing.isNotEmpty) {
         for (final e in existing) {
           _selectedDates.remove(e);
@@ -81,7 +82,9 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
   Future<void> _saveAvailability() async {
     if (_selectedDates.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.selectOneDateAtLeast), behavior: SnackBarBehavior.floating),
+        const SnackBar(
+            content: Text('Sélectionnez au moins une date'),
+            behavior: SnackBarBehavior.floating),
       );
       return;
     }
@@ -103,13 +106,17 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.availabilitySaved), behavior: SnackBarBehavior.floating),
+        const SnackBar(
+            content: Text('Disponibilité enregistrée'),
+            behavior: SnackBarBehavior.floating),
       );
       context.pop();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), behavior: SnackBarBehavior.floating),
+        SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            behavior: SnackBarBehavior.floating),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -132,7 +139,11 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                 children: [
                   _circleButton(Icons.chevron_left, () => context.pop()),
                   const SizedBox(width: 16),
-                  Text(AppLocalizations.of(context)!.newAvailabilityTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                  const Text('Nouvelle Disponibilité',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B))),
                 ],
               ),
             ),
@@ -149,11 +160,27 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(AppLocalizations.of(context)!.selectDatesLabel, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                              const Text('Sélectionner les dates',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E293B))),
                               Row(
                                 children: [
-                                  IconButton(icon: Icon(Icons.chevron_left, color: Colors.grey.shade600), onPressed: () => setState(() => _displayMonth = DateTime(_displayMonth.year, _displayMonth.month - 1))),
-                                  IconButton(icon: Icon(Icons.chevron_right, color: Colors.grey.shade600), onPressed: () => setState(() => _displayMonth = DateTime(_displayMonth.year, _displayMonth.month + 1))),
+                                  IconButton(
+                                      icon: Icon(Icons.chevron_left,
+                                          color: Colors.grey.shade600),
+                                      onPressed: () => setState(() =>
+                                          _displayMonth = DateTime(
+                                              _displayMonth.year,
+                                              _displayMonth.month - 1))),
+                                  IconButton(
+                                      icon: Icon(Icons.chevron_right,
+                                          color: Colors.grey.shade600),
+                                      onPressed: () => setState(() =>
+                                          _displayMonth = DateTime(
+                                              _displayMonth.year,
+                                              _displayMonth.month + 1))),
                                 ],
                               ),
                             ],
@@ -161,24 +188,36 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                           const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: _getDaysShort(context).map((d) => Text(d, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500))).toList(),
+                            children: _daysShort
+                                .map((d) => Text(d,
+                                    style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey.shade500)))
+                                .toList(),
                           ),
                           const SizedBox(height: 8),
                           GridView.builder(
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, childAspectRatio: 1.2),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 7, childAspectRatio: 1.2),
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: days.length,
                             itemBuilder: (_, i) {
                               final d = days[i];
                               if (d == null) return const SizedBox();
-                              final isCurrentMonth = d.month == _displayMonth.month;
+                              final isCurrentMonth =
+                                  d.month == _displayMonth.month;
                               final selected = _isSelected(d);
                               return GestureDetector(
-                                onTap: isCurrentMonth ? () => _toggleDate(d) : null,
+                                onTap: isCurrentMonth
+                                    ? () => _toggleDate(d)
+                                    : null,
                                 child: Center(
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 8),
                                     decoration: BoxDecoration(
                                       color: selected ? _primary : null,
                                       borderRadius: BorderRadius.circular(12),
@@ -188,7 +227,11 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
-                                        color: !isCurrentMonth ? Colors.grey.shade400 : selected ? Colors.white : const Color(0xFF1E293B),
+                                        color: !isCurrentMonth
+                                            ? Colors.grey.shade400
+                                            : selected
+                                                ? Colors.white
+                                                : const Color(0xFF1E293B),
                                       ),
                                     ),
                                   ),
@@ -198,7 +241,12 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                           ),
                           const SizedBox(height: 8),
                           Center(
-                            child: Text(AppLocalizations.of(context)!.selectMultipleDatesHint, style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Colors.grey.shade500)),
+                            child: Text(
+                                'Appuyez pour sélectionner plusieurs dates',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.grey.shade500)),
                           ),
                         ],
                       ),
@@ -208,7 +256,11 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(AppLocalizations.of(context)!.timeRangeLabel, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          const Text('Plage horaire',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B))),
                           const SizedBox(height: 16),
                           Row(
                             children: [
@@ -216,20 +268,31 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(AppLocalizations.of(context)!.startTimeLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+                                    Text('DÉBUT',
+                                        style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey.shade500)),
                                     const SizedBox(height: 4),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 12),
                                       decoration: BoxDecoration(
                                         color: Colors.grey.shade50,
                                         borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: Colors.grey.shade200),
+                                        border: Border.all(
+                                            color: Colors.grey.shade200),
                                       ),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(_formatTime(_startTime), style: const TextStyle(fontWeight: FontWeight.bold)),
-                                          Icon(Icons.schedule, color: Colors.grey.shade500, size: 20),
+                                          Text(_formatTime(_startTime),
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                          Icon(Icons.schedule,
+                                              color: Colors.grey.shade500,
+                                              size: 20),
                                         ],
                                       ),
                                     ),
@@ -237,26 +300,40 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                                 ),
                               ),
                               const SizedBox(width: 16),
-                              Container(width: 24, height: 2, color: Colors.grey.shade300),
+                              Container(
+                                  width: 24,
+                                  height: 2,
+                                  color: Colors.grey.shade300),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(AppLocalizations.of(context)!.endTimeLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+                                    Text('FIN',
+                                        style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey.shade500)),
                                     const SizedBox(height: 4),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 12),
                                       decoration: BoxDecoration(
                                         color: Colors.grey.shade50,
                                         borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: Colors.grey.shade200),
+                                        border: Border.all(
+                                            color: Colors.grey.shade200),
                                       ),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(_formatTime(_endTime), style: const TextStyle(fontWeight: FontWeight.bold)),
-                                          Icon(Icons.schedule, color: Colors.grey.shade500, size: 20),
+                                          Text(_formatTime(_endTime),
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold)),
+                                          Icon(Icons.schedule,
+                                              color: Colors.grey.shade500,
+                                              size: 20),
                                         ],
                                       ),
                                     ),
@@ -276,10 +353,15 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(AppLocalizations.of(context)!.recurrenceLabel, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                              const Text('Récurrence',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E293B))),
                               Switch(
                                 value: _recurrenceOn,
-                                onChanged: (v) => setState(() => _recurrenceOn = v),
+                                onChanged: (v) =>
+                                    setState(() => _recurrenceOn = v),
                                 activeColor: _primary,
                               ),
                             ],
@@ -289,30 +371,60 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                             children: [
                               Expanded(
                                 child: GestureDetector(
-                                  onTap: () => setState(() => _recurrenceType = 0),
+                                  onTap: () =>
+                                      setState(() => _recurrenceType = 0),
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
                                     decoration: BoxDecoration(
-                                      color: _recurrenceType == 0 ? _primary.withOpacity(0.08) : Colors.grey.shade50,
+                                      color: _recurrenceType == 0
+                                          ? _primary.withOpacity(0.08)
+                                          : Colors.grey.shade50,
                                       borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: _recurrenceType == 0 ? _primary : Colors.grey.shade200, width: 2),
+                                      border: Border.all(
+                                          color: _recurrenceType == 0
+                                              ? _primary
+                                              : Colors.grey.shade200,
+                                          width: 2),
                                     ),
-                                    child: Text(AppLocalizations.of(context)!.weeklyLabel, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: _recurrenceType == 0 ? _brandBlue : Colors.grey.shade500)),
+                                    child: Text('Hebdomadaire',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: _recurrenceType == 0
+                                                ? _brandBlue
+                                                : Colors.grey.shade500)),
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: GestureDetector(
-                                  onTap: () => setState(() => _recurrenceType = 1),
+                                  onTap: () =>
+                                      setState(() => _recurrenceType = 1),
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
                                     decoration: BoxDecoration(
-                                      color: _recurrenceType == 1 ? _primary.withOpacity(0.08) : Colors.grey.shade50,
+                                      color: _recurrenceType == 1
+                                          ? _primary.withOpacity(0.08)
+                                          : Colors.grey.shade50,
                                       borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: _recurrenceType == 1 ? _primary : Colors.grey.shade200, width: 2),
+                                      border: Border.all(
+                                          color: _recurrenceType == 1
+                                              ? _primary
+                                              : Colors.grey.shade200,
+                                          width: 2),
                                     ),
-                                    child: Text(AppLocalizations.of(context)!.biweeklyLabel, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _recurrenceType == 1 ? _brandBlue : Colors.grey.shade500)),
+                                    child: Text('Toutes les 2 semaines',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: _recurrenceType == 1
+                                                ? _brandBlue
+                                                : Colors.grey.shade500)),
                                   ),
                                 ),
                               ),
@@ -324,13 +436,25 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
                       onPressed: _saving ? null : _saveAvailability,
-                      icon: _saving ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.check_circle, size: 22),
-                      label: Text(_saving ? AppLocalizations.of(context)!.savingAvailability : AppLocalizations.of(context)!.saveAvailabilityButton, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      icon: _saving
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white))
+                          : const Icon(Icons.check_circle, size: 22),
+                      label: Text(
+                          _saving
+                              ? 'Enregistrement...'
+                              : 'Enregistrer ma disponibilité',
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _primary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 20),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
                         elevation: 4,
                         shadowColor: _primaryDark,
                       ),
@@ -354,7 +478,10 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(999),
-        child: SizedBox(width: 40, height: 40, child: Icon(icon, color: Colors.grey.shade600)),
+        child: SizedBox(
+            width: 40,
+            height: 40,
+            child: Icon(icon, color: Colors.grey.shade600)),
       ),
     );
   }
@@ -366,7 +493,12 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white.withOpacity(0.5)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: child,
     );

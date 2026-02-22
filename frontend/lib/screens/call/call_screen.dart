@@ -8,7 +8,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/call_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/call_service.dart';
-import '../../l10n/app_localizations.dart';
 import '../../services/chat_service.dart';
 import 'package:record/record.dart';
 
@@ -117,13 +116,16 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       if (!mounted) return;
       _initRenderers().then((_) {
         // Initialize speakerphone early for iOS/Android
-        if (kIsWeb == false && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.android)) {
-           Helper.setSpeakerphoneOn(_isSpeakerOn);
+        if (kIsWeb == false &&
+            (defaultTargetPlatform == TargetPlatform.iOS ||
+                defaultTargetPlatform == TargetPlatform.android)) {
+          Helper.setSpeakerphoneOn(_isSpeakerOn);
         }
-        
+
         if (widget.isIncoming && widget.incomingCall != null) {
           _listenForEnd();
           _listenForWebRTCSignaling();
+          _listenForTranscription();
         } else {
           _listenForResponse();
           _listenForEnd();
@@ -161,8 +163,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
 
   void _listenForResponse() {
     _acceptedSub = _callService.onCallAccepted.listen((channelId) {
-      debugPrint(
-          '📞 [CALL_SCREEN] call:accepted channelId=$channelId');
+      debugPrint('📞 [CALL_SCREEN] call:accepted channelId=$channelId');
       if (channelId == widget.channelId && mounted) {
         _noAnswerTimer?.cancel();
         _startWebRTCAsOffer();
@@ -172,14 +173,14 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       if (mounted) {
         _addMissedCallMessage();
         setState(() => _callStatus = CallStatus.ended);
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.chatCallRefused)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Appel refusé')));
         Future.delayed(const Duration(seconds: 1), () {
           if (mounted && context.mounted && !_isEnding) {
-             _isEnding = true;
-             if (GoRouter.of(context).canPop()) {
-               context.pop();
-             }
+            _isEnding = true;
+            if (GoRouter.of(context).canPop()) {
+              context.pop();
+            }
           }
         });
       }
@@ -273,8 +274,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           : false,
     };
 
-    _localStream =
-        await navigator.mediaDevices.getUserMedia(mediaConstraints);
+    _localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
     _localRenderer.srcObject = _localStream;
 
     // Create peer connection
@@ -320,7 +320,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
           setState(() {
             _callStatus = CallStatus.failed;
-            _error = AppLocalizations.of(context)?.callConnectionFailed ?? 'Connection failed';
+            _error = 'La connexion a échoué';
           });
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
@@ -436,12 +436,12 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       return;
     }
     _isEnding = true;
-    
+
     debugPrint('📞 [CALL_SCREEN] _hangUp() - Status was: $_callStatus');
-    
+
     final finalDuration = _callDuration;
     final statusAtHangup = _callStatus;
-    
+
     // Set status immediately to avoid recursive calls from callbacks
     setState(() => _callStatus = CallStatus.ended);
 
@@ -451,17 +451,19 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       debugPrint('📞 [CALL_SCREEN] Error calling endCall: $e');
     }
     _cleanup();
-    
+
     if (mounted) {
       // If call was connected, send a summary message to chat
-      if (statusAtHangup == CallStatus.connected && widget.remoteUserId.isNotEmpty) {
+      if (statusAtHangup == CallStatus.connected &&
+          widget.remoteUserId.isNotEmpty) {
         _sendCallSummaryMessage(finalDuration);
-      } 
+      }
       // If call was NOT connected and it's a call WE initiated, it's a "missed" call for the other side
-      else if (!widget.isIncoming && 
-               (statusAtHangup == CallStatus.ringing || statusAtHangup == CallStatus.connecting) &&
-               widget.remoteUserId.isNotEmpty) {
-         _addMissedCallMessage();
+      else if (!widget.isIncoming &&
+          (statusAtHangup == CallStatus.ringing ||
+              statusAtHangup == CallStatus.connecting) &&
+          widget.remoteUserId.isNotEmpty) {
+        _addMissedCallMessage();
       }
 
       Future.delayed(const Duration(milliseconds: 500), () {
@@ -484,8 +486,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       final chatService = ChatService();
       final conv =
           await chatService.getOrCreateConversation(widget.remoteUserId);
-      final loc = AppLocalizations.of(context)!;
-      final text = widget.isVideo ? loc.videoCallLabel : loc.voiceCallLabel;
+      final text = widget.isVideo ? 'Appel vidéo' : 'Appel vocal';
       await chatService.sendMessage(
         conv.id,
         text,
@@ -550,7 +551,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       if (!mounted) return;
       _addMissedCallMessage();
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.callNoAnswer)));
+          .showSnackBar(const SnackBar(content: Text('Pas de réponse')));
       _hangUp();
     });
   }
@@ -558,18 +559,18 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   Future<void> _addMissedCallMessage() async {
     try {
       if (!mounted) return;
-      debugPrint('📞 [CALL_SCREEN] _addMissedCallMessage() for ${widget.remoteUserId}');
-      final auth =
-          Provider.of<AuthProvider>(context, listen: false);
+      debugPrint(
+          '📞 [CALL_SCREEN] _addMissedCallMessage() for ${widget.remoteUserId}');
+      final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.user == null || widget.remoteUserId.isEmpty) {
-        debugPrint('⚠️ [CALL_SCREEN] Skipped missed call message: user=${auth.user?.id}, remote=${widget.remoteUserId}');
+        debugPrint(
+            '⚠️ [CALL_SCREEN] Skipped missed call message: user=${auth.user?.id}, remote=${widget.remoteUserId}');
         return;
       }
       final chatService = ChatService();
       final conv =
           await chatService.getOrCreateConversation(widget.remoteUserId);
-      final loc = AppLocalizations.of(context)!;
-      final text = widget.isVideo ? loc.videoCallLabel : loc.voiceCallLabel;
+      final text = widget.isVideo ? 'Appel vidéo' : 'Appel vocal';
       await chatService.sendMessage(
         conv.id,
         text,
@@ -636,20 +637,19 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       backgroundColor: const Color(0xFF0F172A),
       body: SafeArea(
         child: _error != null && _callStatus == CallStatus.failed
-            ? _buildError(context)
+            ? _buildError()
             : widget.isIncoming &&
                     widget.incomingCall != null &&
                     _callStatus == CallStatus.ringing
-                ? _buildIncomingUI(context)
-                : _buildCallUI(context),
+                ? _buildIncomingUI()
+                : _buildCallUI(),
       ),
     );
   }
 
   // ─── Error UI ──────────────────────────────────────────────────
 
-  Widget _buildError(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
+  Widget _buildError() {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -671,13 +671,12 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                   color: _endCallRed.withOpacity(0.15),
                   shape: BoxShape.circle,
                 ),
-                child:
-                    const Icon(Icons.call_end, color: _endCallRed, size: 40),
+                child: const Icon(Icons.call_end, color: _endCallRed, size: 40),
               ),
               const SizedBox(height: 24),
-              Text(
-                loc.callConnectionFailed,
-                style: const TextStyle(
+              const Text(
+                'Échec de la connexion',
+                style: TextStyle(
                   color: Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -687,7 +686,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
               Text(
                 _error ?? '',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 14),
+                style: TextStyle(
+                    color: Colors.white.withOpacity(0.6), fontSize: 14),
               ),
               const SizedBox(height: 32),
               FilledButton.icon(
@@ -698,7 +698,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                   }
                 },
                 icon: const Icon(Icons.arrow_back),
-                label: Text(loc.backButton),
+                label: const Text('Retour'),
                 style: FilledButton.styleFrom(
                   backgroundColor: _primary,
                   foregroundColor: const Color(0xFF0F172A),
@@ -717,8 +717,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
 
   // ─── Incoming call UI ────────────────────────────────────────────
 
-  Widget _buildIncomingUI(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
+  Widget _buildIncomingUI() {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -780,7 +779,9 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           ),
           const SizedBox(height: 8),
           Text(
-            widget.isVideo ? loc.incomingVideoCall : loc.incomingVoiceCall,
+            widget.isVideo
+                ? 'Appel vidéo entrant...'
+                : 'Appel vocal entrant...',
             style: TextStyle(
               fontSize: 16,
               color: Colors.white.withOpacity(0.6),
@@ -796,13 +797,13 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                 _buildCallActionButton(
                   icon: Icons.call_end,
                   color: _endCallRed,
-                  label: loc.declineCall,
+                  label: 'Refuser',
                   onTap: _rejectCall,
                 ),
                 _buildCallActionButton(
                   icon: widget.isVideo ? Icons.videocam : Icons.call,
                   color: _acceptGreen,
-                  label: loc.acceptCall,
+                  label: 'Accepter',
                   onTap: _acceptCall,
                 ),
               ],
@@ -816,8 +817,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
 
   // ─── Active call UI ──────────────────────────────────────────────
 
-  Widget _buildCallUI(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
+  Widget _buildCallUI() {
     final isVideoCall = widget.isVideo;
     final hasRemoteVideo = _remoteRenderer.srcObject != null &&
         _callStatus == CallStatus.connected;
@@ -834,14 +834,14 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           )
         else
           // Gradient background for audio call or when connecting
-          _buildAudioCallBackground(context),
+          _buildAudioCallBackground(),
 
         // Top bar with status
         Positioned(
           top: 0,
           left: 0,
           right: 0,
-          child: _buildTopBar(context, loc),
+          child: _buildTopBar(),
         ),
 
         // Local video PiP (draggable)
@@ -860,7 +860,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                 height: 160,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+                  border: Border.all(
+                      color: Colors.white.withOpacity(0.3), width: 2),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.4),
@@ -875,8 +876,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                       ? RTCVideoView(
                           _localRenderer,
                           mirror: _isFrontCamera,
-                          objectFit: RTCVideoViewObjectFit
-                              .RTCVideoViewObjectFitCover,
+                          objectFit:
+                              RTCVideoViewObjectFit.RTCVideoViewObjectFitCover,
                         )
                       : Container(
                           color: _controlBg,
@@ -942,8 +943,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildAudioCallBackground(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
+  Widget _buildAudioCallBackground() {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -964,7 +964,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                 child: RTCVideoView(_remoteRenderer),
               ),
             ),
-          
+
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1005,7 +1005,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _statusText(loc),
+                  _statusText,
                   style: TextStyle(
                     fontSize: 15,
                     color: Colors.white.withOpacity(0.6),
@@ -1019,22 +1019,22 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     );
   }
 
-  String _statusText(AppLocalizations loc) {
+  String get _statusText {
     switch (_callStatus) {
       case CallStatus.ringing:
-        return loc.callRinging;
+        return 'Appel en cours...';
       case CallStatus.connecting:
-        return loc.callConnecting;
+        return 'Connexion...';
       case CallStatus.connected:
         return _formatDuration(_callDuration);
       case CallStatus.ended:
-        return loc.callEnded;
+        return 'Appel terminé';
       case CallStatus.failed:
-        return loc.callConnectionFailed;
+        return 'Échec de la connexion';
     }
   }
 
-  Widget _buildTopBar(BuildContext context, AppLocalizations loc) {
+  Widget _buildTopBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: BoxDecoration(
@@ -1051,7 +1051,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         children: [
           IconButton(
             onPressed: () => _hangUp(),
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+            icon:
+                const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -1086,7 +1087,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                     Text(
                       _callStatus == CallStatus.connected
                           ? _formatDuration(_callDuration)
-                          : _statusText(loc),
+                          : _statusText,
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.7),
                         fontSize: 12,
@@ -1109,7 +1110,6 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildControlBar() {
-    final loc = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
       decoration: BoxDecoration(
@@ -1127,26 +1127,27 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         children: [
           _controlButton(
             icon: _isMuted ? Icons.mic_off : Icons.mic,
-            label: _isMuted ? loc.callMuteOff : loc.callMic,
+            label: _isMuted ? 'Son off' : 'Micro',
             isActive: !_isMuted,
             onTap: _toggleMute,
           ),
           if (widget.isVideo)
             _controlButton(
               icon: _isVideoEnabled ? Icons.videocam : Icons.videocam_off,
-              label: _isVideoEnabled ? loc.callCamera : loc.callCameraOff,
+              label: _isVideoEnabled ? 'Caméra' : 'Cam off',
               isActive: _isVideoEnabled,
               onTap: _toggleVideo,
             ),
           _controlButton(
             icon: _isSpeakerOn ? Icons.volume_up : Icons.hearing,
-            label: _isSpeakerOn ? loc.callSpeaker : loc.callEarpiece,
+            label: _isSpeakerOn ? 'HP' : 'Écouteur',
             isActive: _isSpeakerOn,
             onTap: _toggleSpeaker,
           ),
           _controlButton(
-            icon: _isTranscriptionEnabled ? Icons.subtitles : Icons.subtitles_off,
-            label: _isTranscriptionEnabled ? loc.callTranscriptionOn : loc.callTranscriptionOff,
+            icon:
+                _isTranscriptionEnabled ? Icons.subtitles : Icons.subtitles_off,
+            label: _isTranscriptionEnabled ? 'Texte ON' : 'Texte OFF',
             isActive: _isTranscriptionEnabled,
             onTap: _toggleTranscription,
           ),
@@ -1167,8 +1168,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                   ),
                 ],
               ),
-              child:
-                  const Icon(Icons.call_end, color: Colors.white, size: 30),
+              child: const Icon(Icons.call_end, color: Colors.white, size: 30),
             ),
           ),
         ],

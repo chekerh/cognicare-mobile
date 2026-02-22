@@ -85,7 +85,8 @@ class LanguageSelectionScreen extends StatelessWidget {
                   onPressed: () {
                     // Save selection if not already marked
                     if (!languageProvider.isLanguageSelected) {
-                      languageProvider.setLanguage(languageProvider.languageCode);
+                      languageProvider
+                          .setLanguage(languageProvider.languageCode);
                     }
                     if (context.canPop()) {
                       context.pop();

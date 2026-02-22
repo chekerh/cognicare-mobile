@@ -87,11 +87,16 @@ class EngagementDashboard {
     return EngagementDashboard(
       childId: json['childId'] as String? ?? '',
       childName: json['childName'] as String? ?? '',
-      playTimeTodayMinutes: (json['playTimeTodayMinutes'] as num?)?.toInt() ?? 0,
+      playTimeTodayMinutes:
+          (json['playTimeTodayMinutes'] as num?)?.toInt() ?? 0,
       playTimeGoalMinutes: (json['playTimeGoalMinutes'] as num?)?.toInt() ?? 60,
       focusMessage: json['focusMessage'] as String? ?? '',
-      recentActivities: activities.map((e) => EngagementActivity.fromJson(e as Map<String, dynamic>)).toList(),
-      badges: badgesList.map((e) => EngagementBadge.fromJson(e as Map<String, dynamic>)).toList(),
+      recentActivities: activities
+          .map((e) => EngagementActivity.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      badges: badgesList
+          .map((e) => EngagementBadge.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 }
@@ -109,7 +114,8 @@ class EngagementService {
   Future<EngagementDashboard> getDashboard({String? childId}) async {
     final token = await _getToken();
     if (token == null || token.isEmpty) throw Exception('Non authentifié');
-    final url = AppConstants.baseUrl + AppConstants.engagementDashboardUrl(childId);
+    final url =
+        AppConstants.baseUrl + AppConstants.engagementDashboardUrl(childId);
     final response = await _client.get(
       Uri.parse(url),
       headers: {
@@ -120,7 +126,8 @@ class EngagementService {
     if (response.statusCode != 200) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;
-        throw Exception(err['message'] ?? 'Erreur chargement tableau d\'engagement');
+        throw Exception(
+            err['message'] ?? 'Erreur chargement tableau d\'engagement');
       } catch (e) {
         if (e is Exception) rethrow;
         throw Exception('Erreur: ${response.statusCode}');

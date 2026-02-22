@@ -25,11 +25,11 @@ class _LevelConfig {
 /// Une seule forme : l’étoile à 5 branches (5 segments à tracer).
 final List<_LevelConfig> _levelConfigs = [
   const _LevelConfig('Étoile', [
-    Offset(50, 8),   // haut
-    Offset(90, 38),   // droite-haut
-    Offset(72, 88),   // droite-bas
-    Offset(28, 88),   // gauche-bas
-    Offset(10, 38),  // gauche-haut
+    Offset(50, 8), // haut
+    Offset(90, 38), // droite-haut
+    Offset(72, 88), // droite-bas
+    Offset(28, 88), // gauche-bas
+    Offset(10, 38), // gauche-haut
   ]),
 ];
 
@@ -38,14 +38,19 @@ class _ShapePathPainter extends CustomPainter {
   final Size size;
   final List<Offset> shapePoints;
 
-  _ShapePathPainter({required this.segmentsTraced, required this.size, required this.shapePoints});
+  _ShapePathPainter(
+      {required this.segmentsTraced,
+      required this.size,
+      required this.shapePoints});
 
   @override
   void paint(Canvas canvas, Size size) {
     final scale = min(this.size.width, this.size.height) / 100;
     final center = Offset(size.width / 2, size.height / 2);
     final origin = center - Offset(50 * scale, 50 * scale);
-    final pts = shapePoints.map((p) => origin + Offset(p.dx * scale, p.dy * scale)).toList();
+    final pts = shapePoints
+        .map((p) => origin + Offset(p.dx * scale, p.dy * scale))
+        .toList();
 
     // Contour complet de l'étoile (ligne bien visible à suivre)
     final guidePath = Path()..moveTo(pts[0].dx, pts[0].dy);
@@ -141,19 +146,26 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
   Size _canvasSize = Size.zero;
   DateTime? _gameStartTime;
 
-  List<Offset> get _currentPoints => _levelConfigs[(_level - 1).clamp(0, _levelConfigs.length - 1)].points;
+  List<Offset> get _currentPoints =>
+      _levelConfigs[(_level - 1).clamp(0, _levelConfigs.length - 1)].points;
   int get _totalSegments => _currentPoints.length;
-  String get _currentLevelName => _levelConfigs[(_level - 1).clamp(0, _levelConfigs.length - 1)].name;
+  String get _currentLevelName =>
+      _levelConfigs[(_level - 1).clamp(0, _levelConfigs.length - 1)].name;
 
-  int get _starsCollected => _totalSegments > 0 ? (_segmentsTraced / _totalSegments * 5).floor().clamp(0, 5) : 0;
-  int get _progressPercent => _totalSegments > 0 ? (_segmentsTraced / _totalSegments * 100).round() : 0;
+  int get _starsCollected => _totalSegments > 0
+      ? (_segmentsTraced / _totalSegments * 5).floor().clamp(0, 5)
+      : 0;
+  int get _progressPercent =>
+      _totalSegments > 0 ? (_segmentsTraced / _totalSegments * 100).round() : 0;
 
   List<Offset> get _scaledPoints {
     if (_canvasSize.width <= 0 || _canvasSize.height <= 0) return [];
     final scale = min(_canvasSize.width, _canvasSize.height) / 100;
     final center = Offset(_canvasSize.width / 2, _canvasSize.height / 2);
     final origin = center - Offset(50 * scale, 50 * scale);
-    return _currentPoints.map((p) => origin + Offset(p.dx * scale, p.dy * scale)).toList();
+    return _currentPoints
+        .map((p) => origin + Offset(p.dx * scale, p.dy * scale))
+        .toList();
   }
 
   @override
@@ -209,14 +221,16 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
                 metrics: {'segmentsTraced': _totalSegments},
               );
               if (!context.mounted) return;
-              final provider = Provider.of<StickerBookProvider>(context, listen: false);
+              final provider =
+                  Provider.of<StickerBookProvider>(context, listen: false);
               final stickerIndex = provider.unlockedCount - 1;
               final completed = provider.tasksCompletedCount;
               final milestoneSteps = [5, 10, 15, 20, 25, 30];
               final loc = AppLocalizations.of(context);
-              final milestoneMessage = (loc != null && milestoneSteps.contains(completed))
-                  ? loc.milestoneLevelsCompleted(completed)
-                  : null;
+              final milestoneMessage =
+                  (loc != null && milestoneSteps.contains(completed))
+                      ? loc.milestoneLevelsCompleted(completed)
+                      : null;
               if (!context.mounted) return;
               if (widget.inSequence) {
                 context.pushReplacement(
@@ -227,7 +241,8 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
                 context.push(AppConstants.familyGameSuccessRoute, extra: {
                   'stickerIndex': stickerIndex,
                   'gameRoute': AppConstants.familyStarTracerRoute,
-                  if (milestoneMessage != null) 'milestoneMessage': milestoneMessage,
+                  if (milestoneMessage != null)
+                    'milestoneMessage': milestoneMessage,
                 });
               }
             });
@@ -236,7 +251,10 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
             _level++;
             _segmentsTraced = 0;
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) Provider.of<StickerBookProvider>(context, listen: false).recordLevelCompleted(k);
+              if (mounted) {
+                Provider.of<StickerBookProvider>(context, listen: false)
+                    .recordLevelCompleted(k);
+              }
             });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -263,9 +281,11 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  _canvasSize = Size(constraints.maxWidth - 32, constraints.maxHeight - 120);
+                  _canvasSize = Size(
+                      constraints.maxWidth - 32, constraints.maxHeight - 120);
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
@@ -297,20 +317,34 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
                             ),
                           ),
                         ),
-                        Positioned(top: 8, right: 24, child: Icon(Icons.star_rounded, color: Colors.amber[400], size: 24)),
-                        Positioned(bottom: 48, left: 24, child: Icon(Icons.auto_awesome, color: _primary.withOpacity(0.4), size: 28)),
-                        Positioned(top: 64, left: 32, child: Icon(Icons.auto_awesome, color: _primary.withOpacity(0.3), size: 20)),
+                        Positioned(
+                            top: 8,
+                            right: 24,
+                            child: Icon(Icons.star_rounded,
+                                color: Colors.amber[400], size: 24)),
+                        Positioned(
+                            bottom: 48,
+                            left: 24,
+                            child: Icon(Icons.auto_awesome,
+                                color: _primary.withOpacity(0.4), size: 28)),
+                        Positioned(
+                            top: 64,
+                            left: 32,
+                            child: Icon(Icons.auto_awesome,
+                                color: _primary.withOpacity(0.3), size: 20)),
                         Positioned(
                           bottom: 24,
                           left: 0,
                           right: 0,
                           child: Center(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
                               decoration: BoxDecoration(
                                 color: _primary.withOpacity(0.05),
                                 borderRadius: BorderRadius.circular(999),
-                                border: Border.all(color: _primary.withOpacity(0.1)),
+                                border: Border.all(
+                                    color: _primary.withOpacity(0.1)),
                               ),
                               child: Text(
                                 AppLocalizations.of(context)!.keepGoing,
@@ -347,7 +381,8 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
         children: [
           IconButton(
             onPressed: () => context.pop(),
-            icon: const Icon(Icons.chevron_left_rounded, color: _primary, size: 32),
+            icon: const Icon(Icons.chevron_left_rounded,
+                color: _primary, size: 32),
           ),
           Expanded(
             child: Text(
@@ -360,7 +395,8 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
               ),
             ),
           ),
-          const ChildModeExitButton(iconColor: _primary, textColor: _primary, opacity: 0.9),
+          const ChildModeExitButton(
+              iconColor: _primary, textColor: _primary, opacity: 0.9),
         ],
       ),
     );
@@ -478,7 +514,8 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
                       color: Colors.amber.shade100,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.star_rounded, color: Colors.amber.shade700, size: 20),
+                    child: Icon(Icons.star_rounded,
+                        color: Colors.amber.shade700, size: 20),
                   ),
                   const SizedBox(width: 8),
                   Text(
@@ -498,7 +535,8 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
                   onTap: () {},
                   borderRadius: BorderRadius.circular(999),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
                     child: Text(
                       AppLocalizations.of(context)!.hint,
                       style: const TextStyle(

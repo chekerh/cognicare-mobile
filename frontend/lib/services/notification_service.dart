@@ -9,21 +9,24 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
     tz.initializeTimeZones();
-    
+
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
+    const DarwinInitializationSettings initializationSettingsIOS =
+        DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
 
-    const InitializationSettings initializationSettings = InitializationSettings(
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
     );
@@ -56,12 +59,14 @@ class NotificationService {
       ),
     );
 
-    await _notificationsPlugin.show(id, title, body, notificationDetails, payload: payload);
+    await _notificationsPlugin.show(id, title, body, notificationDetails,
+        payload: payload);
   }
 
   // --- Call and Message Notifications ---
 
-  Future<void> showIncomingCall({required String callerName, required bool isVideo}) async {
+  Future<void> showIncomingCall(
+      {required String callerName, required bool isVideo}) async {
     await _showBasicNotification(
       id: 1,
       title: 'Appel entrant',
@@ -71,7 +76,8 @@ class NotificationService {
     );
   }
 
-  Future<void> showNewMessage({required String senderName, required String preview}) async {
+  Future<void> showNewMessage(
+      {required String senderName, required String preview}) async {
     await _showBasicNotification(
       id: 2,
       title: senderName,
@@ -81,7 +87,8 @@ class NotificationService {
     );
   }
 
-  Future<void> showPaymentConfirmation({required String orderId, required String amount}) async {
+  Future<void> showPaymentConfirmation(
+      {required String orderId, required String amount}) async {
     await _showBasicNotification(
       id: 3,
       title: 'Paiement confirmé',
@@ -135,11 +142,11 @@ class NotificationService {
 
   Future<void> syncNotifications(List<TaskReminder> reminders) async {
     await cancelAll();
-    
+
     int notificationId = 100;
     for (final reminder in reminders) {
       if (reminder.times.isEmpty) continue;
-      
+
       for (final timeStr in reminder.times) {
         try {
           final parts = timeStr.split(':');
@@ -147,7 +154,7 @@ class NotificationService {
             hour: int.parse(parts[0]),
             minute: int.parse(parts[1]),
           );
-          
+
           await scheduleNotification(
             id: notificationId++,
             title: reminder.title,

@@ -29,7 +29,8 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
 
   final List<File> _photos = [];
   static const int _maxPhotos = 5;
-  int _categoryIndex = -1; // -1 = non sélectionné, 0=Vêtements, 1=Mobilier, 2=Jouets
+  int _categoryIndex =
+      -1; // -1 = non sélectionné, 0=Vêtements, 1=Mobilier, 2=Jouets
   int _conditionIndex = 1; // 0=Neuf, 1=Très bon état, 2=Bon état
   int _suitableAgeIndex = -1; // -1 = non sélectionné
   bool _isSubmitting = false;
@@ -39,6 +40,16 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
   bool _mapLoading = false;
   final GeocodingService _geocoding = GeocodingService();
 
+  static const List<String> _categories = ['Vêtements', 'Mobilier', 'Jouets'];
+  static const List<String> _conditions = ['Neuf', 'Très bon état', 'Bon état'];
+  static const List<String> _suitableAges = [
+    'Tous âges',
+    '0-2 ans',
+    '3-5 ans',
+    '6-9 ans',
+    '10-12 ans',
+    '12+ ans'
+  ];
 
   @override
   void initState() {
@@ -79,7 +90,7 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)!.donationAddressNotFound,
+            'Adresse introuvable. Essayez une adresse plus précise (ex: Ariana, Tunisie ou Paris, France)',
           ),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.orange,
@@ -139,7 +150,8 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
         isOffer: true,
         latitude: _mapLat,
         longitude: _mapLng,
-        suitableAge: _suitableAgeIndex >= 0 ? null : null, // Not saving literal text here, using indices later
+        suitableAge:
+            _suitableAgeIndex >= 0 ? _suitableAges[_suitableAgeIndex] : null,
       );
     } catch (e) {
       setState(() => _isSubmitting = false);
@@ -213,17 +225,18 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
         children: [
           IconButton(
             onPressed: () => context.pop(),
-            icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: _primary),
+            icon:
+                const Icon(Icons.arrow_back_ios_new, size: 20, color: _primary),
             style: IconButton.styleFrom(
               backgroundColor: Colors.white,
               shape: const CircleBorder(),
             ),
           ),
-          Expanded(
+          const Expanded(
             child: Text(
-              AppLocalizations.of(context)!.proposeDonation,
+              'Proposer un don',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF111418),
@@ -254,9 +267,12 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            AppLocalizations.of(context)!.donationAddPhotos,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+          const Text(
+            'Ajouter des photos',
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF334155)),
           ),
           const SizedBox(height: 12),
           InkWell(
@@ -267,28 +283,40 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
               decoration: BoxDecoration(
                 color: _primary.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: _primary.withOpacity(0.3), width: 2, style: BorderStyle.solid),
+                border: Border.all(
+                    color: _primary.withOpacity(0.3),
+                    width: 2,
+                    style: BorderStyle.solid),
               ),
               child: _photos.isEmpty
                   ? Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.add_a_photo, size: 48, color: _primary),
+                        const Icon(Icons.add_a_photo,
+                            size: 48, color: _primary),
                         const SizedBox(height: 8),
-                        Text(AppLocalizations.of(context)!.donationClickToAddPhotos, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: _primary)),
+                        const Text('Cliquez pour ajouter des photos',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: _primary)),
                         const SizedBox(height: 4),
-                        Text(AppLocalizations.of(context)!.donationUpToPhotos(_maxPhotos), style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                        Text('Jusqu\'à $_maxPhotos photos',
+                            style: TextStyle(
+                                fontSize: 10, color: Colors.grey.shade500)),
                       ],
                     )
                   : GridView.builder(
                       padding: const EdgeInsets.all(8),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
                         crossAxisSpacing: 8,
                         mainAxisSpacing: 8,
                         childAspectRatio: 1,
                       ),
-                      itemCount: _photos.length + (_photos.length < _maxPhotos ? 1 : 0),
+                      itemCount: _photos.length +
+                          (_photos.length < _maxPhotos ? 1 : 0),
                       itemBuilder: (context, i) {
                         if (i < _photos.length) {
                           return Stack(
@@ -296,7 +324,8 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
                             children: [
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: Image.file(_photos[i], fit: BoxFit.cover),
+                                child:
+                                    Image.file(_photos[i], fit: BoxFit.cover),
                               ),
                               Positioned(
                                 top: 4,
@@ -305,8 +334,11 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
                                   onTap: () => _removePhoto(i),
                                   child: Container(
                                     padding: const EdgeInsets.all(4),
-                                    decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                                    child: const Icon(Icons.close, size: 16, color: Colors.white),
+                                    decoration: const BoxDecoration(
+                                        color: Colors.black54,
+                                        shape: BoxShape.circle),
+                                    child: const Icon(Icons.close,
+                                        size: 16, color: Colors.white),
                                   ),
                                 ),
                               ),
@@ -319,9 +351,11 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
                             decoration: BoxDecoration(
                               color: _primary.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: _primary.withOpacity(0.3)),
+                              border:
+                                  Border.all(color: _primary.withOpacity(0.3)),
                             ),
-                            child: const Icon(Icons.add, color: _primary, size: 32),
+                            child: const Icon(Icons.add,
+                                color: _primary, size: 32),
                           ),
                         );
                       },
@@ -334,42 +368,58 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
   }
 
   Widget _buildDetailsCard(AppLocalizations loc) {
-    final categories = [loc.donationClothing, loc.donationFurniture, loc.donationToys];
-    final conditions = [loc.donationConditionNew, loc.veryGoodCondition, loc.donationGoodCondition];
-    final suitableAges = [loc.donationAllAges, loc.donationAge0_2, loc.donationAge3_5, loc.donationAge6_9, loc.donationAge10_12, loc.donationAge12Plus];
-
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white),
-        boxShadow: [BoxShadow(color: _primary.withOpacity(0.08), blurRadius: 40, offset: const Offset(0, 10))],
+        boxShadow: [
+          BoxShadow(
+              color: _primary.withOpacity(0.08),
+              blurRadius: 40,
+              offset: const Offset(0, 10))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             loc.donationFormTitle,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+            style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF334155)),
           ),
           const SizedBox(height: 8),
           TextFormField(
             controller: _titleController,
             decoration: InputDecoration(
-              hintText: loc.donationFormTitleHint,
+              hintText: 'Ex: Vêtements sensoriels, Lit médicalisé...',
               hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
               filled: true,
               fillColor: const Color(0xFFF8FAFC),
               border: InputBorder.none,
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: _primary.withOpacity(0.2), width: 2)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none),
+              focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      BorderSide(color: _primary.withOpacity(0.2), width: 2)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),
-            validator: (v) => (v == null || v.trim().isEmpty) ? loc.donationFormTitleRequired : null,
+            validator: (v) => (v == null || v.trim().isEmpty)
+                ? loc.donationFormTitleRequired
+                : null,
           ),
           const SizedBox(height: 20),
-          Text(loc.selectCategory, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
+          const Text('Catégorie',
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF334155))),
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
@@ -380,32 +430,44 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
               value: _categoryIndex >= 0 ? _categoryIndex : null,
               decoration: const InputDecoration(
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
-              hint: Text(loc.selectCategory),
-              items: List.generate(categories.length, (i) => DropdownMenuItem(value: i, child: Text(categories[i]))),
+              hint: const Text('Sélectionner une catégorie'),
+              items: List.generate(
+                  _categories.length,
+                  (i) =>
+                      DropdownMenuItem(value: i, child: Text(_categories[i]))),
               onChanged: (v) => setState(() => _categoryIndex = v ?? -1),
             ),
           ),
           const SizedBox(height: 20),
-          Text(loc.itemConditionTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
+          const Text('État de l\'objet',
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF334155))),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: List.generate(conditions.length, (i) {
+            children: List.generate(_conditions.length, (i) {
               final selected = _conditionIndex == i;
               return GestureDetector(
                 onTap: () => setState(() => _conditionIndex = i),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: selected ? _primary.withOpacity(0.1) : const Color(0xFFF8FAFC),
+                    color: selected
+                        ? _primary.withOpacity(0.1)
+                        : const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: selected ? _primary : const Color(0xFFE2E8F0)),
+                    border: Border.all(
+                        color: selected ? _primary : const Color(0xFFE2E8F0)),
                   ),
                   child: Text(
-                    conditions[i],
+                    _conditions[i],
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: selected ? FontWeight.bold : FontWeight.w500,
@@ -417,29 +479,37 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
             }),
           ),
           const SizedBox(height: 20),
-          Text(loc.donationSuitableAgeTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
+          const Text('Âge adapté',
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF334155))),
           const SizedBox(height: 8),
           Text(
-            loc.donationSuitableAgeOptional,
+            'Pour qui ces vêtements ou équipements sont adaptés (optionnel)',
             style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: List.generate(suitableAges.length, (i) {
+            children: List.generate(_suitableAges.length, (i) {
               final selected = _suitableAgeIndex == i;
               return GestureDetector(
                 onTap: () => setState(() => _suitableAgeIndex = i),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: selected ? _primary.withOpacity(0.1) : const Color(0xFFF8FAFC),
+                    color: selected
+                        ? _primary.withOpacity(0.1)
+                        : const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: selected ? _primary : const Color(0xFFE2E8F0)),
+                    border: Border.all(
+                        color: selected ? _primary : const Color(0xFFE2E8F0)),
                   ),
                   child: Text(
-                    suitableAges[i],
+                    _suitableAges[i],
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: selected ? FontWeight.bold : FontWeight.w500,
@@ -462,35 +532,55 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white),
-        boxShadow: [BoxShadow(color: _primary.withOpacity(0.08), blurRadius: 40, offset: const Offset(0, 10))],
+        boxShadow: [
+          BoxShadow(
+              color: _primary.withOpacity(0.08),
+              blurRadius: 40,
+              offset: const Offset(0, 10))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             loc.donationFormDescription,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+            style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF334155)),
           ),
           const SizedBox(height: 8),
           TextFormField(
             controller: _descriptionController,
             maxLines: 4,
             decoration: InputDecoration(
-              hintText: loc.donationFormDescriptionHint,
+              hintText:
+                  'Décrivez l\'objet et comment il peut aider un enfant avec des besoins spécifiques...',
               hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
               filled: true,
               fillColor: const Color(0xFFF8FAFC),
               border: InputBorder.none,
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: _primary.withOpacity(0.2), width: 2)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none),
+              focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      BorderSide(color: _primary.withOpacity(0.2), width: 2)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),
-            validator: (v) => (v == null || v.trim().isEmpty) ? loc.donationFormDescriptionRequired : null,
+            validator: (v) => (v == null || v.trim().isEmpty)
+                ? loc.donationFormDescriptionRequired
+                : null,
           ),
           const SizedBox(height: 8),
           Text(
-            loc.donationSensoryBenefits,
-            style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Colors.grey.shade500),
+            'Mentionner les bénéfices sensoriels ou ergonomiques aide les autres parents.',
+            style: TextStyle(
+                fontSize: 11,
+                fontStyle: FontStyle.italic,
+                color: Colors.grey.shade500),
           ),
         ],
       ),
@@ -504,12 +594,21 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white),
-        boxShadow: [BoxShadow(color: _primary.withOpacity(0.08), blurRadius: 40, offset: const Offset(0, 10))],
+        boxShadow: [
+          BoxShadow(
+              color: _primary.withOpacity(0.08),
+              blurRadius: 40,
+              offset: const Offset(0, 10))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(loc.donationPickupLocation, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
+          const Text('Localisation du retrait',
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF334155))),
           const SizedBox(height: 12),
           LocationSearchField(
             controller: _locationController,
@@ -532,12 +631,14 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
                     child: Container(
                       color: Colors.grey.shade200,
                       alignment: Alignment.center,
-                      child: Column(
+                      child: const Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const CircularProgressIndicator(),
-                          const SizedBox(height: 12),
-                          Text(loc.loadingMapLabel, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                          CircularProgressIndicator(),
+                          SizedBox(height: 12),
+                          Text('Chargement de la carte...',
+                              style:
+                                  TextStyle(fontSize: 12, color: Colors.grey)),
                         ],
                       ),
                     ),
@@ -563,11 +664,13 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.map_outlined, size: 48, color: Colors.grey.shade400),
+                          Icon(Icons.map_outlined,
+                              size: 48, color: Colors.grey.shade400),
                           const SizedBox(height: 8),
                           Text(
-                            loc.donationTapToViewMap,
-                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            'Appuyez pour afficher la carte',
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey.shade600),
                           ),
                         ],
                       ),
@@ -604,8 +707,12 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
               color: _primary,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
-                const BoxShadow(color: _primaryDark, offset: Offset(0, 4), blurRadius: 0),
-                BoxShadow(color: _primary.withOpacity(0.3), offset: const Offset(0, 8), blurRadius: 15),
+                const BoxShadow(
+                    color: _primaryDark, offset: Offset(0, 4), blurRadius: 0),
+                BoxShadow(
+                    color: _primary.withOpacity(0.3),
+                    offset: const Offset(0, 8),
+                    blurRadius: 15),
               ],
             ),
             child: _isSubmitting
@@ -613,17 +720,22 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
                     child: SizedBox(
                       height: 24,
                       width: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
                     ),
                   )
-                : Row(
+                : const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.volunteer_activism, color: Colors.white, size: 24),
-                      const SizedBox(width: 12),
+                      Icon(Icons.volunteer_activism,
+                          color: Colors.white, size: 24),
+                      SizedBox(width: 12),
                       Text(
-                        loc.publishDonationButton,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                        'Publier mon don',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
                       ),
                     ],
                   ),

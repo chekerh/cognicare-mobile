@@ -37,10 +37,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     setState(() => _progressAiLoading = true);
     try {
       final data = await _adminService.getProgressAiAdminSummary();
-      if (mounted) setState(() {
-        _progressAiSummary = data;
-        _progressAiLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _progressAiSummary = data;
+          _progressAiLoading = false;
+        });
+      }
     } catch (e) {
       debugPrint('Progress AI summary: $e');
       if (mounted) setState(() => _progressAiLoading = false);
@@ -75,7 +77,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         _userStats['total'] = users.length;
         _userStats['family'] = users.where((u) => u.role == 'family').length;
         _userStats['doctor'] = users.where((u) => u.role == 'doctor').length;
-        _userStats['volunteer'] = users.where((u) => u.role == 'volunteer').length;
+        _userStats['volunteer'] =
+            users.where((u) => u.role == 'volunteer').length;
       });
     } catch (e) {
       // If fails, keep default values
@@ -288,7 +291,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             children: [
                               Row(
                                 children: [
-                                  const Icon(Icons.auto_awesome, color: AppTheme.primary, size: 28),
+                                  const Icon(Icons.auto_awesome,
+                                      color: AppTheme.primary, size: 28),
                                   const SizedBox(width: 12),
                                   Text(
                                     'Total plans: ${_progressAiSummary!['totalPlans'] ?? 0}',
@@ -309,15 +313,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 ),
                               ),
                               const SizedBox(height: 16),
-                              if (_progressAiSummary!['planCountByType'] != null)
+                              if (_progressAiSummary!['planCountByType'] !=
+                                  null)
                                 Wrap(
                                   spacing: 12,
                                   runSpacing: 8,
-                                  children: (_progressAiSummary!['planCountByType'] as Map<String, dynamic>)
+                                  children: (_progressAiSummary![
+                                              'planCountByType']
+                                          as Map<String, dynamic>)
                                       .entries
                                       .map((e) => Chip(
                                             label: Text('${e.key}: ${e.value}'),
-                                            backgroundColor: AppTheme.primary.withOpacity(0.1),
+                                            backgroundColor: AppTheme.primary
+                                                .withOpacity(0.1),
                                           ))
                                       .toList(),
                                 ),
@@ -377,7 +385,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               description: 'Configure platform settings',
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('System Settings - Coming Soon')),
+                  const SnackBar(
+                      content: Text('System Settings - Coming Soon')),
                 );
               },
             ),
@@ -389,7 +398,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               description: 'Manage email templates and notifications',
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Email Templates - Coming Soon')),
+                  const SnackBar(
+                      content: Text('Email Templates - Coming Soon')),
                 );
               },
             ),

@@ -17,13 +17,15 @@ Future<void> recordGameCompletion({
   Map<String, int>? metrics,
 }) async {
   // Record locally (existing behavior)
-  final stickerProvider = Provider.of<StickerBookProvider>(context, listen: false);
+  final stickerProvider =
+      Provider.of<StickerBookProvider>(context, listen: false);
   final scaffoldMessenger = ScaffoldMessenger.of(context);
   await stickerProvider.recordLevelCompleted(levelKey);
 
   // Record in backend (new gamification system)
   try {
-    final gamificationProvider = Provider.of<GamificationProvider>(context, listen: false);
+    final gamificationProvider =
+        Provider.of<GamificationProvider>(context, listen: false);
     final result = await gamificationProvider.recordGameSession(
       gameType: gameType,
       level: level,
@@ -116,7 +118,8 @@ Future<void> recordGameCompletion({
     final milestoneSteps = [5, 10, 15, 20, 25, 30];
     if (milestoneSteps.contains(completed)) {
       final loc = AppLocalizations.of(context);
-      final message = loc?.milestoneLevelsCompleted(completed) ?? 'You\'ve completed $completed levels!';
+      final message = loc?.milestoneLevelsCompleted(completed) ??
+          'You\'ve completed $completed levels!';
       WidgetsBinding.instance.addPostFrameCallback((_) {
         scaffoldMessenger.showSnackBar(
           SnackBar(

@@ -15,7 +15,8 @@ class ThemeProvider extends ChangeNotifier {
   String? get themeId => _themeId;
   bool get loaded => _loaded;
 
-  ThemeData get currentTheme => AppTheme.themeForId(_themeId ?? _defaultThemeId);
+  ThemeData get currentTheme =>
+      AppTheme.themeForId(_themeId ?? _defaultThemeId);
 
   ThemeProvider({String? initialThemeId}) {
     _themeId = initialThemeId ?? _defaultThemeId;

@@ -17,7 +17,8 @@ const Color _brand = Color(0xFF2D7DA1);
     final items = content['items'] as List<dynamic>? ?? [];
     int pass = 0, total = 0;
     for (final it in items) {
-      final trials = (it is Map ? (it as Map)['trials'] : null) as List<dynamic>?;
+      final trials =
+          (it is Map ? (it as Map)['trials'] : null) as List<dynamic>?;
       if (trials != null) {
         for (final t in trials) {
           if (t == true) pass++;
@@ -27,14 +28,15 @@ const Color _brand = Color(0xFF2D7DA1);
     }
     if (total == 0) return (progress: 0.0, milestone: null);
     final p = pass / total;
-    return (progress: p, milestone: '${pass}/${total} essais');
+    return (progress: p, milestone: '$pass/$total essais');
   }
   if (type == 'TEACCH') {
     final goals = content['goals'] as List<dynamic>? ?? [];
     double sumCur = 0, sumTarget = 0;
     for (final g in goals) {
       if (g is! Map) continue;
-      final cur = (g['current'] is num) ? (g['current'] as num).toDouble() : 0.0;
+      final cur =
+          (g['current'] is num) ? (g['current'] as num).toDouble() : 0.0;
       final tgt = (g['target'] is num) ? (g['target'] as num).toDouble() : 0.0;
       sumCur += cur;
       sumTarget += tgt;
@@ -56,7 +58,8 @@ const Color _brand = Color(0xFF2D7DA1);
   }
   if (type == 'Activity') {
     final status = content['status'] as String?;
-    final p = status == 'completed' ? 1.0 : (status == 'in_progress' ? 0.5 : 0.0);
+    final p =
+        status == 'completed' ? 1.0 : (status == 'in_progress' ? 0.5 : 0.0);
     return (progress: p, milestone: status ?? '—');
   }
   return (progress: 0.0, milestone: null);
@@ -80,8 +83,7 @@ class ProgressAiRecommendationsScreen extends StatefulWidget {
 }
 
 class _ProgressAiRecommendationsScreenState
-    extends State<ProgressAiRecommendationsScreen>
-    with WidgetsBindingObserver {
+    extends State<ProgressAiRecommendationsScreen> with WidgetsBindingObserver {
   ProgressAiRecommendationResult? _result;
   String? _error;
   bool _loading = true;
@@ -89,7 +91,8 @@ class _ProgressAiRecommendationsScreenState
   bool _loadingPlans = false;
   Timer? _pollTimer;
   final Set<int> _feedbackSent = {};
-  int? _pendingResultsImprovedIndex; // after approve/modify, show "results improved?" then send
+  int?
+      _pendingResultsImprovedIndex; // after approve/modify, show "results improved?" then send
   String? _pendingResultsImprovedAction;
   String? _pendingResultsImprovedEditedText;
   String? _pendingResultsImprovedOriginalText;
@@ -134,7 +137,12 @@ class _ProgressAiRecommendationsScreenState
     );
     try {
       final list = await service.getPlansByChild(widget.childId);
-      if (mounted) setState(() { _plans = list; _loadingPlans = false; });
+      if (mounted) {
+        setState(() {
+          _plans = list;
+          _loadingPlans = false;
+        });
+      }
     } catch (_) {
       if (mounted) setState(() => _loadingPlans = false);
     }
@@ -382,7 +390,8 @@ class _ProgressAiRecommendationsScreenState
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Domaine concerné (optionnel) :', style: TextStyle(fontSize: 12)),
+                  const Text('Domaine concerné (optionnel) :',
+                      style: TextStyle(fontSize: 12)),
                   const SizedBox(height: 4),
                   Wrap(
                     spacing: 8,
@@ -390,7 +399,8 @@ class _ProgressAiRecommendationsScreenState
                         .map((t) => ChoiceChip(
                               label: Text(t),
                               selected: selectedPlanType == t,
-                              onSelected: (v) => setDialogState(() => selectedPlanType = v ? t : null),
+                              onSelected: (v) => setDialogState(
+                                  () => selectedPlanType = v ? t : null),
                             ))
                         .toList(),
                   ),
@@ -405,12 +415,16 @@ class _ProgressAiRecommendationsScreenState
               FilledButton(
                 onPressed: () async {
                   Navigator.of(ctx).pop();
-                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                  final service = ProgressAiService(getToken: () async => authProvider.accessToken);
+                  final authProvider =
+                      Provider.of<AuthProvider>(context, listen: false);
+                  final service = ProgressAiService(
+                      getToken: () async => authProvider.accessToken);
                   try {
                     await service.requestParentFeedback(
                       childId: widget.childId,
-                      message: messageController.text.trim().isEmpty ? null : messageController.text.trim(),
+                      message: messageController.text.trim().isEmpty
+                          ? null
+                          : messageController.text.trim(),
                       planType: selectedPlanType,
                     );
                     if (mounted) {
@@ -425,7 +439,8 @@ class _ProgressAiRecommendationsScreenState
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(e.toString().replaceFirst('Exception: ', '')),
+                          content: Text(
+                              e.toString().replaceFirst('Exception: ', '')),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -443,20 +458,24 @@ class _ProgressAiRecommendationsScreenState
 
   void _openPreferencesDialog() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final service = ProgressAiService(getToken: () async => authProvider.accessToken);
+    final service =
+        ProgressAiService(getToken: () async => authProvider.accessToken);
     Map<String, dynamic>? prefs;
     try {
       prefs = await service.getPreferences();
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossible de charger les préférences'), backgroundColor: Colors.red),
+          const SnackBar(
+              content: Text('Impossible de charger les préférences'),
+              backgroundColor: Colors.red),
         );
       }
       return;
     }
     if (!mounted) return;
-    final focusTypes = List<String>.from(prefs?['focusPlanTypes'] as List<dynamic>? ?? []);
+    final focusTypes =
+        List<String>.from(prefs?['focusPlanTypes'] as List<dynamic>? ?? []);
     final planTypes = ['PECS', 'TEACCH', 'SkillTracker', 'Activity'];
     String summaryLength = prefs?['summaryLength'] as String? ?? 'short';
     String frequency = prefs?['frequency'] as String? ?? 'every_session';
@@ -480,7 +499,8 @@ class _ProgressAiRecommendationsScreenState
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Types de plans à privilégier', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Types de plans à privilégier',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 6),
                   Wrap(
                     spacing: 6,
@@ -490,42 +510,58 @@ class _ProgressAiRecommendationsScreenState
                         label: Text(t),
                         selected: selected,
                         onSelected: (v) => setDialogState(() {
-                          if (v) focusTypes.add(t); else focusTypes.remove(t);
+                          if (v) {
+                            focusTypes.add(t);
+                          } else {
+                            focusTypes.remove(t);
+                          }
                         }),
                       );
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Longueur du résumé', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Longueur du résumé',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   DropdownButton<String>(
                     value: summaryLength,
                     isExpanded: true,
                     items: const [
                       DropdownMenuItem(value: 'short', child: Text('Court')),
-                      DropdownMenuItem(value: 'detailed', child: Text('Détaillé')),
+                      DropdownMenuItem(
+                          value: 'detailed', child: Text('Détaillé')),
                     ],
-                    onChanged: (v) => setDialogState(() => summaryLength = v ?? 'short'),
+                    onChanged: (v) =>
+                        setDialogState(() => summaryLength = v ?? 'short'),
                   ),
                   const SizedBox(height: 8),
-                  const Text('Fréquence', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Fréquence',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   DropdownButton<String>(
                     value: frequency,
                     isExpanded: true,
                     items: const [
-                      DropdownMenuItem(value: 'every_session', child: Text('Chaque session')),
-                      DropdownMenuItem(value: 'weekly', child: Text('Hebdomadaire')),
+                      DropdownMenuItem(
+                          value: 'every_session',
+                          child: Text('Chaque session')),
+                      DropdownMenuItem(
+                          value: 'weekly', child: Text('Hebdomadaire')),
                     ],
-                    onChanged: (v) => setDialogState(() => frequency = v ?? 'every_session'),
+                    onChanged: (v) =>
+                        setDialogState(() => frequency = v ?? 'every_session'),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Pondération par type (0.5 – 2)', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Pondération par type (0.5 – 2)',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   ...planTypes.map((t) {
                     final w = weights[t] ?? 1.0;
                     return Padding(
                       padding: const EdgeInsets.only(top: 8),
                       child: Row(
                         children: [
-                          SizedBox(width: 100, child: Text(t, style: const TextStyle(fontSize: 12))),
+                          SizedBox(
+                              width: 100,
+                              child: Text(t,
+                                  style: const TextStyle(fontSize: 12))),
                           Expanded(
                             child: Slider(
                               value: w,
@@ -533,10 +569,14 @@ class _ProgressAiRecommendationsScreenState
                               max: 2.0,
                               divisions: 15,
                               label: w.toStringAsFixed(1),
-                              onChanged: (v) => setDialogState(() => weights[t] = v),
+                              onChanged: (v) =>
+                                  setDialogState(() => weights[t] = v),
                             ),
                           ),
-                          SizedBox(width: 36, child: Text(w.toStringAsFixed(1), style: const TextStyle(fontSize: 12))),
+                          SizedBox(
+                              width: 36,
+                              child: Text(w.toStringAsFixed(1),
+                                  style: const TextStyle(fontSize: 12))),
                         ],
                       ),
                     );
@@ -572,7 +612,8 @@ class _ProgressAiRecommendationsScreenState
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(e.toString().replaceFirst('Exception: ', '')),
+                          content: Text(
+                              e.toString().replaceFirst('Exception: ', '')),
                           backgroundColor: Colors.red,
                         ),
                       );
@@ -638,7 +679,9 @@ class _ProgressAiRecommendationsScreenState
         foregroundColor: _brand,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.canPop() ? context.pop() : context.go(AppConstants.healthcarePatientsRoute),
+          onPressed: () => context.canPop()
+              ? context.pop()
+              : context.go(AppConstants.healthcarePatientsRoute),
         ),
         actions: [
           IconButton(
@@ -752,16 +795,21 @@ class _ProgressAiRecommendationsScreenState
                                   child: Padding(
                                     padding: const EdgeInsets.all(12),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 8, vertical: 4),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4),
                                               decoration: BoxDecoration(
-                                                color: _primary.withOpacity(0.3),
-                                                borderRadius: BorderRadius.circular(8),
+                                                color:
+                                                    _primary.withOpacity(0.3),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
                                               ),
                                               child: Text(
                                                 type,
@@ -788,9 +836,12 @@ class _ProgressAiRecommendationsScreenState
                                         LinearProgressIndicator(
                                           value: p.progress,
                                           backgroundColor: Colors.grey.shade300,
-                                          valueColor: const AlwaysStoppedAnimation<Color>(_brand),
+                                          valueColor:
+                                              const AlwaysStoppedAnimation<
+                                                  Color>(_brand),
                                           minHeight: 8,
-                                          borderRadius: BorderRadius.circular(4),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
                                         ),
                                         if (p.milestone != null) ...[
                                           const SizedBox(height: 4),
@@ -822,7 +873,8 @@ class _ProgressAiRecommendationsScreenState
                               _result!.recommendations.length,
                               (index) {
                                 final item = _result!.recommendations[index];
-                                final feedbackSent = _feedbackSent.contains(index);
+                                final feedbackSent =
+                                    _feedbackSent.contains(index);
                                 return Card(
                                   margin: const EdgeInsets.only(bottom: 12),
                                   child: Padding(
@@ -834,10 +886,13 @@ class _ProgressAiRecommendationsScreenState
                                         Row(
                                           children: [
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 8, vertical: 4),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4),
                                               decoration: BoxDecoration(
-                                                color: _primary.withOpacity(0.3),
+                                                color:
+                                                    _primary.withOpacity(0.3),
                                                 borderRadius:
                                                     BorderRadius.circular(8),
                                               ),
@@ -868,14 +923,14 @@ class _ProgressAiRecommendationsScreenState
                                               TextButton(
                                                 onPressed: () =>
                                                     _submitFeedback(
-                                                      recommendationId: _result!
-                                                          .recommendationId,
-                                                      action: 'dismissed',
-                                                      originalRecommendationText:
-                                                          item.text,
-                                                      itemIndex: index,
-                                                      planType: item.planType,
-                                                    ),
+                                                  recommendationId:
+                                                      _result!.recommendationId,
+                                                  action: 'dismissed',
+                                                  originalRecommendationText:
+                                                      item.text,
+                                                  itemIndex: index,
+                                                  planType: item.planType,
+                                                ),
                                                 child: const Text('Ignorer'),
                                               ),
                                               const SizedBox(width: 8),
@@ -889,22 +944,22 @@ class _ProgressAiRecommendationsScreenState
                                               FilledButton(
                                                 onPressed: () =>
                                                     _askResultsImprovedThenSubmit(
-                                                      recommendationId: _result!
-                                                          .recommendationId,
-                                                      action: 'approved',
-                                                      originalRecommendationText:
-                                                          item.text,
-                                                      itemIndex: index,
-                                                      planType: item.planType,
-                                                    ),
+                                                  recommendationId:
+                                                      _result!.recommendationId,
+                                                  action: 'approved',
+                                                  originalRecommendationText:
+                                                      item.text,
+                                                  itemIndex: index,
+                                                  planType: item.planType,
+                                                ),
                                                 child: const Text('Approuver'),
                                               ),
                                             ],
                                           ),
                                         ] else
                                           Padding(
-                                            padding: const EdgeInsets.only(
-                                                top: 8),
+                                            padding:
+                                                const EdgeInsets.only(top: 8),
                                             child: Text(
                                               'Feedback enregistré',
                                               style: TextStyle(

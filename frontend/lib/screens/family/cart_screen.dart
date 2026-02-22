@@ -3,11 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../utils/constants.dart';
-import '../../l10n/app_localizations.dart';
 
 /// Étape 1/3 — Panier. Design HTML CogniCare.
 const Color _primary = Color(0xFFADD8E6);
-const Color _accentColor = Color(0xFF212121); // même gris foncé que "Commande Confirmée"
+const Color _accentColor =
+    Color(0xFF212121); // même gris foncé que "Commande Confirmée"
 const Color _textPrimary = Color(0xFF1E293B);
 
 class CartScreen extends StatelessWidget {
@@ -28,11 +28,12 @@ class CartScreen extends StatelessWidget {
                 _buildHeader(context),
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 16),
                     children: [
                       ...cart.items.map((item) => _CartItemTile(item: item)),
                       const SizedBox(height: 24),
-                      _buildPromoSection(context),
+                      _buildPromoSection(),
                     ],
                   ),
                 ),
@@ -54,21 +55,26 @@ class CartScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.shopping_cart_outlined, size: 80, color: _accentColor.withOpacity(0.5)),
+                Icon(Icons.shopping_cart_outlined,
+                    size: 80, color: _accentColor.withOpacity(0.5)),
                 const SizedBox(height: 16),
-                Text(
-                  AppLocalizations.of(context)!.cartEmptyTitle,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _textPrimary),
+                const Text(
+                  'Votre panier est vide',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: _textPrimary),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  AppLocalizations.of(context)!.cartEmptyDesc,
-                  style: TextStyle(fontSize: 14, color: _textPrimary.withOpacity(0.7)),
+                  'Ajoutez des produits depuis la boutique',
+                  style: TextStyle(
+                      fontSize: 14, color: _textPrimary.withOpacity(0.7)),
                 ),
                 const SizedBox(height: 24),
                 TextButton(
                   onPressed: () => context.go(AppConstants.familyMarketRoute),
-                  child: Text(AppLocalizations.of(context)!.viewBoutique),
+                  child: const Text('Voir la boutique'),
                 ),
               ],
             ),
@@ -97,10 +103,19 @@ class CartScreen extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          Column(
+          const Column(
             children: [
-              Text(AppLocalizations.of(context)!.yourCart, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _textPrimary)),
-              Text(AppLocalizations.of(context)!.step1Of3, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _textPrimary, letterSpacing: 2)),
+              Text('Your Cart',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: _textPrimary)),
+              Text('STEP 1 OF 3',
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: _textPrimary,
+                      letterSpacing: 2)),
             ],
           ),
           const Spacer(),
@@ -110,7 +125,7 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPromoSection(BuildContext context) {
+  Widget _buildPromoSection() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -125,10 +140,15 @@ class CartScreen extends StatelessWidget {
             children: [
               Icon(Icons.sell, color: _textPrimary.withOpacity(0.7), size: 24),
               const SizedBox(width: 12),
-              Text(AppLocalizations.of(context)!.applyPromoCode, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _textPrimary)),
+              const Text('Apply Promo Code',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: _textPrimary)),
             ],
           ),
-          Icon(Icons.chevron_right, color: _textPrimary.withOpacity(0.5), size: 24),
+          Icon(Icons.chevron_right,
+              color: _textPrimary.withOpacity(0.5), size: 24),
         ],
       ),
     );
@@ -145,19 +165,30 @@ class CartScreen extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(40),
           boxShadow: [
-            BoxShadow(color: _accentColor.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 4)),
+            BoxShadow(
+                color: _accentColor.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 4)),
           ],
         ),
         child: Column(
           children: [
-            _summaryRow(AppLocalizations.of(context)!.subtotal, '\$${cart.subtotal.toStringAsFixed(2)}'),
-            _summaryRow(AppLocalizations.of(context)!.shipping, AppLocalizations.of(context)!.free, isGreen: true),
+            _summaryRow('Subtotal', '\$${cart.subtotal.toStringAsFixed(2)}'),
+            _summaryRow('Shipping', 'Free', isGreen: true),
             const Divider(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(AppLocalizations.of(context)!.total, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _textPrimary)),
-                Text(totalStr, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: _textPrimary)),
+                const Text('Total',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: _textPrimary)),
+                Text(totalStr,
+                    style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: _textPrimary)),
               ],
             ),
             const SizedBox(height: 24),
@@ -169,16 +200,19 @@ class CartScreen extends StatelessWidget {
                   backgroundColor: _accentColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
                   elevation: 4,
                   shadowColor: _accentColor.withOpacity(0.4),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(AppLocalizations.of(context)!.proceedToCheckout, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.arrow_forward, size: 22),
+                    Text('Proceed to Checkout',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    SizedBox(width: 8),
+                    Icon(Icons.arrow_forward, size: 22),
                   ],
                 ),
               ),
@@ -195,8 +229,14 @@ class CartScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 14, color: _textPrimary.withOpacity(0.7))),
-          Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isGreen ? Colors.green.shade700 : _textPrimary)),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 14, color: _textPrimary.withOpacity(0.7))),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: isGreen ? Colors.green.shade700 : _textPrimary)),
         ],
       ),
     );
@@ -249,14 +289,18 @@ class _CartItemTile extends StatelessWidget {
                     Expanded(
                       child: Text(
                         item.title,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _textPrimary),
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _textPrimary),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     IconButton(
                       onPressed: () => cart.removeItem(item.productId),
-                      icon: Icon(Icons.delete, color: _textPrimary.withOpacity(0.6), size: 22),
+                      icon: Icon(Icons.delete,
+                          color: _textPrimary.withOpacity(0.6), size: 22),
                     ),
                   ],
                 ),
@@ -264,9 +308,14 @@ class _CartItemTile extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(item.price, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _accentColor)),
+                    Text(item.price,
+                        style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: _accentColor)),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(999),
@@ -275,18 +324,29 @@ class _CartItemTile extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           InkWell(
-                            onTap: () => cart.updateQuantity(item.productId, item.quantity - 1),
+                            onTap: () => cart.updateQuantity(
+                                item.productId, item.quantity - 1),
                             child: Padding(
                               padding: const EdgeInsets.all(4),
-                              child: Icon(Icons.remove, size: 20, color: _textPrimary.withOpacity(0.6)),
+                              child: Icon(Icons.remove,
+                                  size: 20,
+                                  color: _textPrimary.withOpacity(0.6)),
                             ),
                           ),
-                          SizedBox(width: 20, child: Center(child: Text('${item.quantity}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)))),
+                          SizedBox(
+                              width: 20,
+                              child: Center(
+                                  child: Text('${item.quantity}',
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold)))),
                           InkWell(
-                            onTap: () => cart.updateQuantity(item.productId, item.quantity + 1),
+                            onTap: () => cart.updateQuantity(
+                                item.productId, item.quantity + 1),
                             child: const Padding(
                               padding: EdgeInsets.all(4),
-                              child: Icon(Icons.add, size: 20, color: _accentColor),
+                              child: Icon(Icons.add,
+                                  size: 20, color: _accentColor),
                             ),
                           ),
                         ],

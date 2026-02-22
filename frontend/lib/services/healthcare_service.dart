@@ -45,8 +45,6 @@ class HealthcareService {
       throw Exception(err?['message'] ?? 'Erreur: ${response.statusCode}');
     }
     final List<dynamic> list = jsonDecode(response.body) as List<dynamic>;
-    return list
-        .map((e) => User.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return list.map((e) => User.fromJson(e as Map<String, dynamic>)).toList();
   }
 }

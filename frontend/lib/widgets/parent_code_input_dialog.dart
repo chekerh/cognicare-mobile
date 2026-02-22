@@ -52,7 +52,8 @@ class _ParentCodeInputDialogState extends State<ParentCodeInputDialog> {
   }
 
   Future<void> _onConfirm() async {
-    final codeProvider = Provider.of<ChildSecurityCodeProvider>(context, listen: false);
+    final codeProvider =
+        Provider.of<ChildSecurityCodeProvider>(context, listen: false);
     if (!codeProvider.verifyCode(_code)) {
       setState(() {
         _showError = true;
@@ -61,7 +62,8 @@ class _ParentCodeInputDialogState extends State<ParentCodeInputDialog> {
       return;
     }
     // Enregistrer la durée du mode enfant (temps de jeu) avant de quitter
-    final sessionProvider = Provider.of<ChildModeSessionProvider>(context, listen: false);
+    final sessionProvider =
+        Provider.of<ChildModeSessionProvider>(context, listen: false);
     final durationSeconds = sessionProvider.durationSeconds;
     sessionProvider.clearSession();
     final gp = Provider.of<GamificationProvider>(context, listen: false);
@@ -114,7 +116,8 @@ class _ParentCodeInputDialogState extends State<ParentCodeInputDialog> {
                   color: _primary.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.lock_outline, color: _primary, size: 40),
+                child:
+                    const Icon(Icons.lock_outline, color: _primary, size: 40),
               ),
               const SizedBox(height: 20),
               Text(
@@ -148,10 +151,19 @@ class _ParentCodeInputDialogState extends State<ParentCodeInputDialog> {
                       shape: BoxShape.circle,
                       color: filled ? _primary : Colors.transparent,
                       border: Border.all(
-                        color: _showError ? Colors.red : (filled ? _primary : const Color(0xFFDBE2E6)),
+                        color: _showError
+                            ? Colors.red
+                            : (filled ? _primary : const Color(0xFFDBE2E6)),
                         width: 2,
                       ),
-                      boxShadow: filled ? [BoxShadow(color: _primary.withOpacity(0.4), blurRadius: 6, spreadRadius: 0)] : null,
+                      boxShadow: filled
+                          ? [
+                              BoxShadow(
+                                  color: _primary.withOpacity(0.4),
+                                  blurRadius: 6,
+                                  spreadRadius: 0)
+                            ]
+                          : null,
                     ),
                   );
                 }),
@@ -160,7 +172,10 @@ class _ParentCodeInputDialogState extends State<ParentCodeInputDialog> {
                 const SizedBox(height: 12),
                 Text(
                   loc.incorrectCode,
-                  style: const TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                      color: Colors.red,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600),
                 ),
               ],
               const SizedBox(height: 24),
@@ -170,11 +185,13 @@ class _ParentCodeInputDialogState extends State<ParentCodeInputDialog> {
                 onPressed: _onCancel,
                 style: TextButton.styleFrom(
                   foregroundColor: _primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
                 child: Text(
                   loc.cancel,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ],

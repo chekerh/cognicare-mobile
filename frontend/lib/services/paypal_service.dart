@@ -25,7 +25,8 @@ class PaypalService {
     required String amount,
     String currencyCode = 'USD',
   }) async {
-    final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.paypalCreateOrderEndpoint}');
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.paypalCreateOrderEndpoint}');
     final response = await _client.post(
       uri,
       headers: await _headers(),

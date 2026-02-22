@@ -6,7 +6,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
-import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 
@@ -41,7 +40,8 @@ class ConversationSettingsScreen extends StatefulWidget {
       _ConversationSettingsScreenState();
 }
 
-class _ConversationSettingsScreenState extends State<ConversationSettingsScreen> {
+class _ConversationSettingsScreenState
+    extends State<ConversationSettingsScreen> {
   bool _autoSavePhotos = false;
   bool _muted = false;
   bool _loadingSettings = true;
@@ -141,9 +141,9 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
           : ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
               children: [
-          _Section(
-            title: 'Personnalisation',
-            children: [
+                _Section(
+                  title: 'Personnalisation',
+                  children: [
                     _SettingsTile(
                       icon: Icons.favorite,
                       iconColor: AppTheme.primaryForThemeId(
@@ -162,13 +162,15 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
                       icon: Icons.group_add_rounded,
                       iconColor: _textMuted,
                       label: 'Créer un groupe',
-                      onTap: () => context.push(AppConstants.familyCreateGroupRoute),
+                      onTap: () =>
+                          context.push(AppConstants.familyCreateGroupRoute),
                       showArrow: true,
                     ),
                     _SettingsTile(
                       icon: Icons.photo_library_outlined,
                       iconColor: _textMuted,
-                      label: 'Voir les contenus multimédias, les fichiers et les liens',
+                      label:
+                          'Voir les contenus multimédias, les fichiers et les liens',
                       onTap: () => _showMedia(context),
                       showArrow: true,
                     ),
@@ -244,8 +246,8 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
     final cid = widget.conversationId;
     if (cid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.noConversationSelected),
+        const SnackBar(
+          content: Text('Aucune conversation sélectionnée'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -290,7 +292,8 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
                         itemBuilder: (_, i) {
                           final m = list[i];
                           final url = m['attachmentUrl'] as String? ?? '';
-                          final type = m['attachmentType'] as String? ?? 'image';
+                          final type =
+                              m['attachmentType'] as String? ?? 'image';
                           final fullUrl = url.isEmpty
                               ? ''
                               : url.startsWith('http')
@@ -342,8 +345,8 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
     final cid = widget.conversationId;
     if (cid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.noConversationSelected),
+        const SnackBar(
+          content: Text('Aucune conversation sélectionnée'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -354,7 +357,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
-        title: Text(AppLocalizations.of(context)!.searchHint, style: const TextStyle(color: _textPrimary)),
+        title: const Text('Rechercher', style: TextStyle(color: _textPrimary)),
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(
@@ -364,8 +367,8 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
           onSubmitted: (q) async {
             if (q.trim().isEmpty) return;
             try {
-              final list = await _chatService.searchConversationMessages(
-                  cid, q.trim());
+              final list =
+                  await _chatService.searchConversationMessages(cid, q.trim());
               if (!ctx.mounted) return;
               Navigator.of(ctx).pop();
               _showSearchResults(context, list);
@@ -384,7 +387,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(AppLocalizations.of(context)!.closeLabel, style: const TextStyle(color: _textMuted)),
+            child: const Text('Fermer', style: TextStyle(color: _textMuted)),
           ),
           TextButton(
             onPressed: () async {
@@ -408,7 +411,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
                 }
               }
             },
-            child: Text(AppLocalizations.of(context)!.searchHint,
+            child: const Text('Rechercher',
                 style: TextStyle(color: AppTheme.primary)),
           ),
         ],
@@ -485,7 +488,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
-        title: Text(AppLocalizations.of(context)!.blockLabel, style: const TextStyle(color: _textPrimary)),
+        title: const Text('Bloquer', style: TextStyle(color: _textPrimary)),
         content: Text(
           'Bloquer ${widget.title} ? Cette personne ne pourra plus vous envoyer de messages.',
           style: const TextStyle(color: _textMuted),
@@ -493,7 +496,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(AppLocalizations.of(context)!.convSettingsCancel, style: const TextStyle(color: _textMuted)),
+            child: const Text('Annuler', style: TextStyle(color: _textMuted)),
           ),
           TextButton(
             onPressed: () async {
@@ -504,8 +507,8 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
                 context.pop();
                 context.pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(AppLocalizations.of(context)!.contactBlocked),
+                  const SnackBar(
+                    content: Text('Contact bloqué'),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
@@ -513,15 +516,14 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content:
-                        Text(e.toString().replaceFirst('Exception: ', '')),
+                    content: Text(e.toString().replaceFirst('Exception: ', '')),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
               }
             },
-            child: Text(AppLocalizations.of(context)!.blockLabel,
-                style: TextStyle(color: _destructiveRed)),
+            child:
+                const Text('Bloquer', style: TextStyle(color: _destructiveRed)),
           ),
         ],
       ),
@@ -532,8 +534,8 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
     final cid = widget.conversationId;
     if (cid == null || cid.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.cannotDeleteConversation),
+        const SnackBar(
+          content: Text('Cette conversation ne peut pas être supprimée.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -543,7 +545,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
-        title: Text(AppLocalizations.of(context)!.deleteConversationTitle,
+        title: const Text('Supprimer la discussion',
             style: TextStyle(color: _textPrimary)),
         content: const Text(
           'Êtes-vous sûr de vouloir supprimer cette conversation ? Les messages seront définitivement supprimés.',
@@ -552,12 +554,12 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(AppLocalizations.of(context)!.convSettingsCancel, style: const TextStyle(color: _textMuted)),
+            child: const Text('Annuler', style: TextStyle(color: _textMuted)),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child:
-                Text(AppLocalizations.of(context)!.deleteLabel, style: const TextStyle(color: _destructiveRed)),
+            child: const Text('Supprimer',
+                style: TextStyle(color: _destructiveRed)),
           ),
         ],
       ),
@@ -569,8 +571,8 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
       context.pop();
       context.pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.conversationDeleted),
+        const SnackBar(
+          content: Text('Discussion supprimée'),
           behavior: SnackBarBehavior.floating,
         ),
       );

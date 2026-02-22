@@ -53,7 +53,8 @@ class _LocationSearchFieldState extends State<LocationSearchField> {
       _removeOverlay();
       return;
     }
-    _debounce = Timer(const Duration(milliseconds: 350), () => _search(text.trim()));
+    _debounce =
+        Timer(const Duration(milliseconds: 350), () => _search(text.trim()));
   }
 
   Future<void> _search(String query) async {
@@ -101,25 +102,33 @@ class _LocationSearchFieldState extends State<LocationSearchField> {
               child: _isLoading
                   ? const Padding(
                       padding: EdgeInsets.all(24),
-                      child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
+                      child: Center(
+                          child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child:
+                                  CircularProgressIndicator(strokeWidth: 2))),
                     )
                   : _suggestions.isEmpty
                       ? Padding(
                           padding: const EdgeInsets.all(16),
                           child: Text(
                             'Aucun résultat pour « $_lastQuery »',
-                            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey.shade600),
                           ),
                         )
                       : ListView.separated(
                           shrinkWrap: true,
                           padding: EdgeInsets.zero,
                           itemCount: _suggestions.length,
-                          separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade200),
+                          separatorBuilder: (_, __) =>
+                              Divider(height: 1, color: Colors.grey.shade200),
                           itemBuilder: (context, i) {
                             final s = _suggestions[i];
                             return ListTile(
-                              leading: const Icon(Icons.location_on, color: _primary, size: 22),
+                              leading: const Icon(Icons.location_on,
+                                  color: _primary, size: 22),
                               title: Text(
                                 s.displayName,
                                 style: const TextStyle(fontSize: 14),
@@ -162,15 +171,20 @@ class _LocationSearchFieldState extends State<LocationSearchField> {
                 focusNode: _focusNode,
                 onChanged: _onTextChanged,
                 onTapOutside: (_) {
-                  Future.delayed(const Duration(milliseconds: 150), _removeOverlay);
+                  Future.delayed(
+                      const Duration(milliseconds: 150), _removeOverlay);
                 },
                 decoration: InputDecoration(
-                  hintText: 'Rechercher une adresse (ex: Sousse, Paris, Ariana...)',
-                  hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-                  prefixIcon: const Icon(Icons.location_on, color: _primary, size: 24),
+                  hintText:
+                      'Rechercher une adresse (ex: Sousse, Paris, Ariana...)',
+                  hintStyle:
+                      TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                  prefixIcon:
+                      const Icon(Icons.location_on, color: _primary, size: 24),
                   suffixIcon: value.text.isNotEmpty
                       ? IconButton(
-                          icon: Icon(Icons.clear, size: 20, color: Colors.grey.shade600),
+                          icon: Icon(Icons.clear,
+                              size: 20, color: Colors.grey.shade600),
                           onPressed: () {
                             widget.controller.clear();
                             setState(() => _suggestions = []);
@@ -187,9 +201,11 @@ class _LocationSearchFieldState extends State<LocationSearchField> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: _primary.withOpacity(0.5), width: 2),
+                    borderSide:
+                        BorderSide(color: _primary.withOpacity(0.5), width: 2),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
               );
             },
@@ -197,7 +213,11 @@ class _LocationSearchFieldState extends State<LocationSearchField> {
           if (_isLoading)
             const Padding(
               padding: EdgeInsets.only(top: 8),
-              child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+              child: Center(
+                  child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2))),
             ),
         ],
       ),

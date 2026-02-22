@@ -29,7 +29,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
   int _categoryIndex = 0; // 0=all, 1=sensory, 2=motor, 3=cognitive
   bool _isSubmitting = false;
 
-  static const List<String> _categoryKeys = ['all', 'sensory', 'motor', 'cognitive'];
+  static const List<String> _categoryKeys = [
+    'all',
+    'sensory',
+    'motor',
+    'cognitive'
+  ];
 
   @override
   void dispose() {
@@ -41,7 +46,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   Future<void> _pickPhoto() async {
     try {
-      final XFile? picked = await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? picked =
+          await _picker.pickImage(source: ImageSource.gallery);
       if (picked != null && mounted) {
         setState(() => _photo = File(picked.path));
       }
@@ -108,7 +114,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final categories = [loc.allItems, loc.sensory, loc.motorSkills, loc.cognitive];
+    final categories = [
+      loc.allItems,
+      loc.sensory,
+      loc.motorSkills,
+      loc.cognitive
+    ];
 
     return Scaffold(
       backgroundColor: _bgLight,
@@ -175,7 +186,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   const SizedBox(height: 8),
                   TextFormField(
                     controller: _priceController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
                       hintText: loc.priceHint,
                       border: OutlineInputBorder(
@@ -210,8 +222,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         onSelected: (s) => setState(() => _categoryIndex = i),
                         selectedColor: _primary,
                         labelStyle: TextStyle(
-                          color: selected ? AppTheme.text : Colors.grey.shade700,
-                          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                          color:
+                              selected ? AppTheme.text : Colors.grey.shade700,
+                          fontWeight:
+                              selected ? FontWeight.w600 : FontWeight.normal,
                         ),
                       );
                     }),
@@ -362,7 +376,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                 color: Colors.black54,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.close, size: 20, color: Colors.white),
+                              child: const Icon(Icons.close,
+                                  size: 20, color: Colors.white),
                             ),
                           ),
                         ),

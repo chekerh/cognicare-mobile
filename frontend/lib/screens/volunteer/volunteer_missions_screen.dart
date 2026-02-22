@@ -1,14 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../../l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 
 // Couleurs du design HTML
 const Color _primary = Color(0xFF77B5D1);
 const Color _brandLight = Color(0xFFA8D9EB);
 const Color _bgLight = Color(0xFFF8FAFC);
+
+const _daysFr = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+const _daysFullFr = [
+  'Lundi',
+  'Mardi',
+  'Mercredi',
+  'Jeudi',
+  'Vendredi',
+  'Samedi',
+  'Dimanche'
+];
+const _monthsFr = [
+  'Janvier',
+  'Février',
+  'Mars',
+  'Avril',
+  'Mai',
+  'Juin',
+  'Juillet',
+  'Août',
+  'Septembre',
+  'Octobre',
+  'Novembre',
+  'Décembre'
+];
 
 class _Mission {
   final String category;
@@ -31,10 +54,8 @@ class _Mission {
     required this.address,
   });
 
-  String dateLabel(BuildContext context) {
-    final locale = Localizations.localeOf(context).languageCode;
-    return DateFormat.yMMMMEEEEd(locale).format(date);
-  }
+  String get dateLabel =>
+      '${_daysFullFr[date.weekday - 1]} ${date.day} ${_monthsFr[date.month - 1]}';
   String get time => '$timeRange ($duration)';
 }
 
@@ -66,7 +87,8 @@ class _VolunteerTag {
   final Color bgColor;
   final Color textColor;
 
-  _VolunteerTag({required this.label, required this.bgColor, required this.textColor});
+  _VolunteerTag(
+      {required this.label, required this.bgColor, required this.textColor});
 }
 
 /// Missions bénévole — Rendez-vous (dashboard) / Historique (missions passées).
@@ -74,65 +96,91 @@ class VolunteerMissionsScreen extends StatefulWidget {
   const VolunteerMissionsScreen({super.key});
 
   @override
-  State<VolunteerMissionsScreen> createState() => _VolunteerMissionsScreenState();
+  State<VolunteerMissionsScreen> createState() =>
+      _VolunteerMissionsScreenState();
 }
 
 class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
   bool _isRendezVous = true;
   int _selectedDayIndex = 0;
   String _volunteerSearch = '';
-  int _volunteerFilterIndex = 0; // 0=Tous, 1=Orthophonie, 2=Tâches quotidiennes, 3=Atelier créatif
+  int _volunteerFilterIndex =
+      0; // 0=Tous, 1=Orthophonie, 2=Tâches quotidiennes, 3=Atelier créatif
 
-  List<_VolunteerProfile> _allVolunteers() {
+  static List<_VolunteerProfile> _allVolunteers() {
     return [
       _VolunteerProfile(
         name: 'Sarah Miller',
-        avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDa9YjhzEnl1xZV-16FgNasNLLSPYGAxoAInz2ABP_EQGTu6dOPK6fxj18Gt-Hm_JiJSsJOzRcgAcBwjvylPN1BfzIQmOWS-M46LbrO8cMWDSMabfeBahZShTGVHPACMChjAKL3oZ4Yazo8PdykzrZW_0uJRXKt3FkoB8VE438vXx99CHpuE3HC2DPFidBkfiNAMsUDnhLB0kA7xMHTqdlnLDXLBA_cNyZCz1JsWzGXPQhYR87Yp52kl3p4GcUi_SDfwFb095juyrM',
+        avatarUrl:
+            'https://lh3.googleusercontent.com/aida-public/AB6AXuDa9YjhzEnl1xZV-16FgNasNLLSPYGAxoAInz2ABP_EQGTu6dOPK6fxj18Gt-Hm_JiJSsJOzRcgAcBwjvylPN1BfzIQmOWS-M46LbrO8cMWDSMabfeBahZShTGVHPACMChjAKL3oZ4Yazo8PdykzrZW_0uJRXKt3FkoB8VE438vXx99CHpuE3HC2DPFidBkfiNAMsUDnhLB0kA7xMHTqdlnLDXLBA_cNyZCz1JsWzGXPQhYR87Yp52kl3p4GcUi_SDfwFb095juyrM',
         isOnline: true,
         rating: '4.9',
         reviewsCount: '12',
         distance: '2 km',
         tags: [
-          _VolunteerTag(label: AppLocalizations.of(context)!.speechTherapyHelp, bgColor: const Color(0xFFEFF6FF), textColor: const Color(0xFF2563EB)),
-          _VolunteerTag(label: AppLocalizations.of(context)!.reading, bgColor: const Color(0xFFFEF3C7), textColor: const Color(0xFFD97706)),
+          _VolunteerTag(
+              label: 'Aide orthophonique',
+              bgColor: const Color(0xFFEFF6FF),
+              textColor: const Color(0xFF2563EB)),
+          _VolunteerTag(
+              label: 'Lecture',
+              bgColor: const Color(0xFFFEF3C7),
+              textColor: const Color(0xFFD97706)),
         ],
-        description: 'Bénévole patiente et enthousiaste, 3 ans d\'expérience avec les enfants ayant des retards de langage. Disponible le week-end.',
+        description:
+            'Bénévole patiente et enthousiaste, 3 ans d\'expérience avec les enfants ayant des retards de langage. Disponible le week-end.',
       ),
       _VolunteerProfile(
         name: 'David Chen',
-        avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC9uszXa11CivzMYsbmhCfvx0SASe0AkMaMhe816F5kMf7_q0cUmLvaR3WbAyvMCOEU5Xaj4gTa5SSndyTJh1Lcv2UQf_KwDnTz4qoay7CdXRjQNtlwLX1NAF2XjNEK9lMpdm50PEFU02lVNJDlMEW3QoxQCyvXNRBBieKunWrt1FpK2I5VgY5towJOevNs6El8oqdxbfKsfSoezp7rxVfjUVQy4ZuiopksYJH1DZQpURXMyPhZutJRv6R97VBhwsk24tFNZGkMN9Q',
+        avatarUrl:
+            'https://lh3.googleusercontent.com/aida-public/AB6AXuC9uszXa11CivzMYsbmhCfvx0SASe0AkMaMhe816F5kMf7_q0cUmLvaR3WbAyvMCOEU5Xaj4gTa5SSndyTJh1Lcv2UQf_KwDnTz4qoay7CdXRjQNtlwLX1NAF2XjNEK9lMpdm50PEFU02lVNJDlMEW3QoxQCyvXNRBBieKunWrt1FpK2I5VgY5towJOevNs6El8oqdxbfKsfSoezp7rxVfjUVQy4ZuiopksYJH1DZQpURXMyPhZutJRv6R97VBhwsk24tFNZGkMN9Q',
         isOnline: true,
         rating: '5.0',
         reviewsCount: '28',
         distance: '0,5 km',
         tags: [
-          _VolunteerTag(label: AppLocalizations.of(context)!.physiotherapy, bgColor: const Color(0xFFF5F3FF), textColor: const Color(0xFF7C3AED)),
-          _VolunteerTag(label: AppLocalizations.of(context)!.outdoorActivities, bgColor: const Color(0xFFECFDF5), textColor: const Color(0xFF059669)),
+          _VolunteerTag(
+              label: 'Kinésithérapie',
+              bgColor: const Color(0xFFF5F3FF),
+              textColor: const Color(0xFF7C3AED)),
+          _VolunteerTag(
+              label: 'Activités extérieures',
+              bgColor: const Color(0xFFECFDF5),
+              textColor: const Color(0xFF059669)),
         ],
-        description: 'Spécialisé dans l\'activité physique et les sorties. J\'aime organiser des jeux sportifs inclusifs.',
+        description:
+            'Spécialisé dans l\'activité physique et les sorties. J\'aime organiser des jeux sportifs inclusifs.',
       ),
       _VolunteerProfile(
         name: 'Emma Wilson',
-        avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDlV8Lpv4GFaGOxzHKQOVtrEP0kCUl576ef14mnP5FSwPjlR_8o_M0bl3mfSKVJpSM3Y7jiGL-EoHYdpJwZeQDZFbbSpMIl7BWEpLVx8HGIFaCTQIfBFRQp0EKVGjNcu5_j72Oo-mgqR5OULOx1uTHNz7CN4M1WiWd4A0R5UgwDiCzggcMy6tghENrKFZhDAgLbiy2tHsFRCzDFEMDi0vLa3lgZ3bzQUaVX7cFNo_ApWzGg-4FVEW2DOAWzyQuWbOpMMr7dYK2gAIg',
+        avatarUrl:
+            'https://lh3.googleusercontent.com/aida-public/AB6AXuDlV8Lpv4GFaGOxzHKQOVtrEP0kCUl576ef14mnP5FSwPjlR_8o_M0bl3mfSKVJpSM3Y7jiGL-EoHYdpJwZeQDZFbbSpMIl7BWEpLVx8HGIFaCTQIfBFRQp0EKVGjNcu5_j72Oo-mgqR5OULOx1uTHNz7CN4M1WiWd4A0R5UgwDiCzggcMy6tghENrKFZhDAgLbiy2tHsFRCzDFEMDi0vLa3lgZ3bzQUaVX7cFNo_ApWzGg-4FVEW2DOAWzyQuWbOpMMr7dYK2gAIg',
         isOnline: false,
         rating: '4.8',
         reviewsCount: '15',
         distance: '5 km',
         tags: [
-          _VolunteerTag(label: AppLocalizations.of(context)!.dailyTasks, bgColor: const Color(0xFFFFF1F2), textColor: const Color(0xFFE11D48)),
-          _VolunteerTag(label: AppLocalizations.of(context)!.creativeArts, bgColor: const Color(0xFFECFEFF), textColor: const Color(0xFF0891B2)),
+          _VolunteerTag(
+              label: 'Tâches quotidiennes',
+              bgColor: const Color(0xFFFFF1F2),
+              textColor: const Color(0xFFE11D48)),
+          _VolunteerTag(
+              label: 'Arts créatifs',
+              bgColor: const Color(0xFFECFEFF),
+              textColor: const Color(0xFF0891B2)),
         ],
-        description: 'Étudiante en art, propose aide au quotidien et ateliers créatifs pour les enfants.',
+        description:
+            'Étudiante en art, propose aide au quotidien et ateliers créatifs pour les enfants.',
       ),
     ];
   }
 
-  List<_Mission> _allMissions(DateTime now) {
+  static List<_Mission> _allMissions(DateTime now) {
     return [
       _Mission(
-        category: AppLocalizations.of(context)!.homeworkHelp,
+        category: 'Aide aux devoirs',
         family: 'Famille Martin',
-        status: AppLocalizations.of(context)!.statusConfirmed,
+        status: 'Confirmé',
         isConfirmed: true,
         date: now.add(const Duration(days: 2)),
         timeRange: '16:30 - 18:00',
@@ -140,9 +188,9 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         address: '12 Rue de la Paix, 75002 Paris',
       ),
       _Mission(
-        category: AppLocalizations.of(context)!.outdoorAccompaniment,
+        category: 'Accompagnement extérieur',
         family: 'Famille Lefebvre',
-        status: AppLocalizations.of(context)!.statusPending,
+        status: 'En attente',
         isConfirmed: false,
         date: now.add(const Duration(days: 5)),
         timeRange: '14:00 - 16:00',
@@ -150,9 +198,9 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         address: '8 Avenue des Champs-Élysées, 75008 Paris',
       ),
       _Mission(
-        category: AppLocalizations.of(context)!.courtesyVisit,
+        category: 'Visite de courtoisie',
         family: 'Famille Dubois',
-        status: AppLocalizations.of(context)!.statusConfirmed,
+        status: 'Confirmé',
         isConfirmed: true,
         date: now.add(const Duration(days: 7)),
         timeRange: '10:00 - 11:30',
@@ -160,9 +208,9 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         address: '25 Boulevard Saint-Germain, 75005 Paris',
       ),
       _Mission(
-        category: AppLocalizations.of(context)!.homeworkHelp,
+        category: 'Aide aux devoirs',
         family: 'Famille Bernard',
-        status: AppLocalizations.of(context)!.statusConfirmed,
+        status: 'Confirmé',
         isConfirmed: true,
         date: now.subtract(const Duration(days: 7)),
         timeRange: '14:00 - 15:30',
@@ -170,9 +218,9 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         address: '5 Rue de Rivoli, 75001 Paris',
       ),
       _Mission(
-        category: AppLocalizations.of(context)!.outdoorAccompaniment,
+        category: 'Accompagnement extérieur',
         family: 'Famille Petit',
-        status: AppLocalizations.of(context)!.statusConfirmed,
+        status: 'Confirmé',
         isConfirmed: true,
         date: now.subtract(const Duration(days: 14)),
         timeRange: '10:00 - 12:00',
@@ -180,9 +228,9 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         address: '42 Rue du Faubourg Saint-Honoré, 75008 Paris',
       ),
       _Mission(
-        category: AppLocalizations.of(context)!.courtesyVisit,
+        category: 'Visite de courtoisie',
         family: 'Famille Durand',
-        status: AppLocalizations.of(context)!.statusConfirmed,
+        status: 'Confirmé',
         isConfirmed: true,
         date: now.subtract(const Duration(days: 21)),
         timeRange: '15:00 - 16:00',
@@ -196,7 +244,8 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     return _allMissions(now)
-        .where((m) => DateTime(m.date.year, m.date.month, m.date.day).isBefore(today))
+        .where((m) =>
+            DateTime(m.date.year, m.date.month, m.date.day).isBefore(today))
         .toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
@@ -205,7 +254,6 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
     final user = Provider.of<AuthProvider>(context).user;
     final userName = (user?.fullName ?? '').split(' ').firstOrNull ?? 'Lucas';
 
@@ -213,7 +261,22 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
       backgroundColor: _bgLight,
       body: Stack(
         children: [
-          Positioned.fill(child: Container(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [_brandLight.withOpacity(0.6), _brandLight.withOpacity(0.3), _bgLight], stops: const [0.0, 0.4, 0.6])))),
+          Positioned.fill(
+              child: Container(
+                  decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                _brandLight.withOpacity(0.6),
+                _brandLight.withOpacity(0.3),
+                _bgLight
+              ],
+                          stops: const [
+                0.0,
+                0.4,
+                0.6
+              ])))),
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,8 +290,16 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('${localizations.helloUser('')},', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey.shade600)),
-                          Text('${localizations.volunteerLabel} $userName', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          Text('Bonjour,',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey.shade600)),
+                          Text('Bénévole $userName',
+                              style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B))),
                         ],
                       ),
                       GestureDetector(
@@ -239,10 +310,29 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                             Container(
                               width: 40,
                               height: 40,
-                              decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2))]),
-                              child: const Icon(Icons.notifications, color: _primary, size: 22),
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: Colors.black.withOpacity(0.06),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2))
+                                  ]),
+                              child: const Icon(Icons.notifications,
+                                  color: _primary, size: 22),
                             ),
-                            Positioned(top: 0, right: 0, child: Container(width: 12, height: 12, decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: _brandLight, width: 2)))),
+                            Positioned(
+                                top: 0,
+                                right: 0,
+                                child: Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                            color: _brandLight, width: 2)))),
                           ],
                         ),
                       ),
@@ -254,7 +344,9 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(color: Colors.grey.shade200.withOpacity(0.5), borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(
+                        color: Colors.grey.shade200.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(12)),
                     child: Row(
                       children: [
                         Expanded(
@@ -263,11 +355,30 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                color: _isRendezVous ? Colors.white : Colors.transparent,
+                                color: _isRendezVous
+                                    ? Colors.white
+                                    : Colors.transparent,
                                 borderRadius: BorderRadius.circular(8),
-                                boxShadow: _isRendezVous ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))] : null,
+                                boxShadow: _isRendezVous
+                                    ? [
+                                        BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.05),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2))
+                                      ]
+                                    : null,
                               ),
-                              child: Text(localizations.rendezVousTab, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: _isRendezVous ? FontWeight.w600 : FontWeight.w500, color: _isRendezVous ? _primary : Colors.grey.shade600)),
+                              child: Text('Rendez-vous',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: _isRendezVous
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                      color: _isRendezVous
+                                          ? _primary
+                                          : Colors.grey.shade600)),
                             ),
                           ),
                         ),
@@ -277,11 +388,30 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                color: _isRendezVous ? Colors.transparent : Colors.white,
+                                color: _isRendezVous
+                                    ? Colors.transparent
+                                    : Colors.white,
                                 borderRadius: BorderRadius.circular(8),
-                                boxShadow: _isRendezVous ? null : [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))],
+                                boxShadow: _isRendezVous
+                                    ? null
+                                    : [
+                                        BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.05),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2))
+                                      ],
                               ),
-                              child: Text(localizations.historiqueTab, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: _isRendezVous ? FontWeight.w500 : FontWeight.w600, color: _isRendezVous ? Colors.grey.shade600 : _primary)),
+                              child: Text('Historique',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: _isRendezVous
+                                          ? FontWeight.w500
+                                          : FontWeight.w600,
+                                      color: _isRendezVous
+                                          ? Colors.grey.shade600
+                                          : _primary)),
                             ),
                           ),
                         ),
@@ -290,7 +420,9 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                   ),
                 ),
                 Expanded(
-                  child: _isRendezVous ? _buildRendezVousContent() : _buildHistoriqueContent(),
+                  child: _isRendezVous
+                      ? _buildRendezVousContent()
+                      : _buildHistoriqueContent(),
                 ),
               ],
             ),
@@ -304,7 +436,8 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
     final now = DateTime.now();
     final weekStart = _weekStart(now);
     final weekDays = List.generate(6, (i) => weekStart.add(Duration(days: i)));
-    final selectedDate = weekDays[_selectedDayIndex.clamp(0, weekDays.length - 1)];
+    final selectedDate =
+        weekDays[_selectedDayIndex.clamp(0, weekDays.length - 1)];
 
     final bottomPadding = 100 + MediaQuery.of(context).padding.bottom;
     return SingleChildScrollView(
@@ -329,7 +462,12 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,11 +475,21 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(AppLocalizations.of(context)!.yourImpact, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
+              const Text('Votre Impact',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B))),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: _primary.withOpacity(0.1), borderRadius: BorderRadius.circular(999)),
-                child: Text(AppLocalizations.of(context)!.levelLabel('4'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _primary)),
+                decoration: BoxDecoration(
+                    color: _primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(999)),
+                child: const Text('Niveau 4',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: _primary)),
               ),
             ],
           ),
@@ -352,10 +500,12 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  border: Border.all(color: _primary.withOpacity(0.3), width: 4),
+                  border:
+                      Border.all(color: _primary.withOpacity(0.3), width: 4),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.verified_user, color: _primary, size: 32),
+                child:
+                    const Icon(Icons.verified_user, color: _primary, size: 32),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -366,10 +516,15 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Flexible(
-                          child: Text(AppLocalizations.of(context)!.nextBadgeLabel('Super Aidant'), style: TextStyle(fontSize: 14, color: Colors.grey.shade600), overflow: TextOverflow.ellipsis),
+                          child: Text('Prochain Badge: "Super Aidant"',
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.grey.shade600),
+                              overflow: TextOverflow.ellipsis),
                         ),
                         const SizedBox(width: 8),
-                        const Text('85%', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                        const Text('85%',
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w600)),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -392,11 +547,11 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _statBox(AppLocalizations.of(context)!.hoursLabel, '24h')),
+              Expanded(child: _statBox('Heures', '24h')),
               const SizedBox(width: 8),
-              Expanded(child: _statBox(AppLocalizations.of(context)!.missionsLabel, '12')),
+              Expanded(child: _statBox('Missions', '12')),
               const SizedBox(width: 8),
-              Expanded(child: _statBox(AppLocalizations.of(context)!.merciLabel, '8')),
+              Expanded(child: _statBox('Merci', '8')),
             ],
           ),
         ],
@@ -407,11 +562,15 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
   Widget _statBox(String label, String value) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+          color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12)),
       child: Column(
         children: [
-          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-          Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(label,
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+          Text(value,
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -421,10 +580,14 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
     final volunteers = _allVolunteers().where((v) {
       final matchSearch = _volunteerSearch.isEmpty ||
           v.name.toLowerCase().contains(_volunteerSearch.toLowerCase()) ||
-          v.description.toLowerCase().contains(_volunteerSearch.toLowerCase()) ||
-          v.tags.any((t) => t.label.toLowerCase().contains(_volunteerSearch.toLowerCase()));
-      final filterLabels = ['', 'orthophonique', 'quotidien', 'art'];
-      final filter = filterLabels[_volunteerFilterIndex.clamp(0, filterLabels.length - 1)];
+          v.description
+              .toLowerCase()
+              .contains(_volunteerSearch.toLowerCase()) ||
+          v.tags.any((t) =>
+              t.label.toLowerCase().contains(_volunteerSearch.toLowerCase()));
+      final filterLabels = ['', 'orthophonie', 'quotidien', 'art'];
+      final filter =
+          filterLabels[_volunteerFilterIndex.clamp(0, filterLabels.length - 1)];
       final matchFilter = filter.isEmpty ||
           v.tags.any((t) => t.label.toLowerCase().contains(filter));
       return matchSearch && matchFilter;
@@ -433,7 +596,11 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(AppLocalizations.of(context)!.volunteerLabel, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+        const Text('Bénévoles',
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B))),
         const SizedBox(height: 12),
         // Barre de recherche
         Container(
@@ -445,11 +612,13 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
           child: TextField(
             onChanged: (v) => setState(() => _volunteerSearch = v),
             decoration: InputDecoration(
-              hintText: AppLocalizations.of(context)!.searchVolunteerHint,
+              hintText: 'Rechercher un bénévole...',
               hintStyle: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-              prefixIcon: Icon(Icons.search, size: 22, color: Colors.grey.shade500),
+              prefixIcon:
+                  Icon(Icons.search, size: 22, color: Colors.grey.shade500),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),
           ),
         ),
@@ -459,21 +628,21 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              _filterChip(AppLocalizations.of(context)!.allFilter, 0),
+              _filterChip('Tous', 0),
               const SizedBox(width: 8),
-              _filterChip(AppLocalizations.of(context)!.roleSpeechTherapistLabel, 1),
+              _filterChip('Orthophonie', 1),
               const SizedBox(width: 8),
-              _filterChip(AppLocalizations.of(context)!.dailyTasksFilter, 2),
+              _filterChip('Tâches quotidiennes', 2),
               const SizedBox(width: 8),
-              _filterChip(AppLocalizations.of(context)!.creativeWorkshopFilter, 3),
+              _filterChip('Atelier créatif', 3),
             ],
           ),
         ),
         const SizedBox(height: 16),
         ...volunteers.map((v) => Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: _volunteerCard(v),
-        )),
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _volunteerCard(v),
+            )),
       ],
     );
   }
@@ -487,8 +656,16 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         decoration: BoxDecoration(
           color: isSelected ? _primary : Colors.white,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: isSelected ? _primary : Colors.grey.shade300),
-          boxShadow: isSelected ? [BoxShadow(color: _primary.withOpacity(0.25), blurRadius: 8, offset: const Offset(0, 2))] : null,
+          border:
+              Border.all(color: isSelected ? _primary : Colors.grey.shade300),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                      color: _primary.withOpacity(0.25),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2))
+                ]
+              : null,
         ),
         child: Text(
           label,
@@ -509,7 +686,12 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -531,7 +713,8 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                         width: 64,
                         height: 64,
                         color: _primary.withOpacity(0.2),
-                        child: const Icon(Icons.person, color: _primary, size: 32),
+                        child:
+                            const Icon(Icons.person, color: _primary, size: 32),
                       ),
                     ),
                   ),
@@ -555,12 +738,20 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(v.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                    Row(
+                    Text(v.name,
+                        style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B))),
+                    const Row(
                       children: [
-                        const Icon(Icons.verified, size: 14, color: _primary),
-                        const SizedBox(width: 4),
-                        Text(AppLocalizations.of(context)!.verifiedVolunteer, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _primary)),
+                        Icon(Icons.verified, size: 14, color: _primary),
+                        SizedBox(width: 4),
+                        Text('Bénévole vérifié',
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: _primary)),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -569,8 +760,9 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                         Icon(Icons.star, size: 14, color: Colors.grey.shade600),
                         const SizedBox(width: 4),
                         Text(
-                          '${v.rating} (${AppLocalizations.of(context)!.reviewsLabel(v.reviewsCount)}) • ${v.distance}',
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          '${v.rating} (${v.reviewsCount} avis) • ${v.distance}',
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey.shade600),
                         ),
                       ],
                     ),
@@ -583,17 +775,27 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 6,
-            children: v.tags.map((t) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: t.bgColor,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(t.label.toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: t.textColor, letterSpacing: 0.5)),
-            )).toList(),
+            children: v.tags
+                .map((t) => Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: t.bgColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(t.label.toUpperCase(),
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: t.textColor,
+                              letterSpacing: 0.5)),
+                    ))
+                .toList(),
           ),
           const SizedBox(height: 12),
-          Text(v.description, style: TextStyle(fontSize: 14, color: Colors.grey.shade600, height: 1.4)),
+          Text(v.description,
+              style: TextStyle(
+                  fontSize: 14, color: Colors.grey.shade600, height: 1.4)),
           const SizedBox(height: 16),
           Material(
             color: _primary,
@@ -604,12 +806,16 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.calendar_today, color: Colors.white, size: 20),
-                    const SizedBox(width: 8),
-                    Text(AppLocalizations.of(context)!.requestHelpButton, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                    Icon(Icons.calendar_today, color: Colors.white, size: 20),
+                    SizedBox(width: 8),
+                    Text('Demander de l\'aide',
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white)),
                   ],
                 ),
               ),
@@ -626,8 +832,8 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
     context.push('/volunteer/task-accepted', extra: {
       'volunteerName': userName,
       'familyName': v.name,
-      'missionType': v.tags.isNotEmpty ? v.tags.first.label : AppLocalizations.of(context)!.volunteerLabel,
-      'schedule': AppLocalizations.of(context)!.toDefine,
+      'missionType': v.tags.isNotEmpty ? v.tags.first.label : 'Aide bénévole',
+      'schedule': 'À définir',
       'address': '',
     });
   }
@@ -636,14 +842,23 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(AppLocalizations.of(context)!.yourWeek, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+        const Text('Votre semaine',
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B))),
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.grey.shade100),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2))
+            ],
           ),
           child: Column(
             children: [
@@ -659,18 +874,37 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                         onTap: () => setState(() => _selectedDayIndex = i),
                         child: Column(
                           children: [
-                            Text(DateFormat.E(Localizations.localeOf(context).languageCode).format(d), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+                            Text(_daysFr[d.weekday - 1],
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey.shade500)),
                             const SizedBox(height: 4),
                             Container(
                               width: 32,
                               height: 32,
-                              decoration: isSelected ? const BoxDecoration(color: _primary, shape: BoxShape.circle) : null,
+                              decoration: isSelected
+                                  ? const BoxDecoration(
+                                      color: _primary, shape: BoxShape.circle)
+                                  : null,
                               alignment: Alignment.center,
-                              child: Text('${d.day}', style: TextStyle(fontSize: 14, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500, color: isSelected ? Colors.white : const Color(0xFF1E293B))),
+                              child: Text('${d.day}',
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: isSelected
+                                          ? FontWeight.bold
+                                          : FontWeight.w500,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : const Color(0xFF1E293B))),
                             ),
                             if (hasEvent) ...[
                               const SizedBox(height: 2),
-                              Container(width: 4, height: 4, decoration: const BoxDecoration(color: _primary, shape: BoxShape.circle)),
+                              Container(
+                                  width: 4,
+                                  height: 4,
+                                  decoration: const BoxDecoration(
+                                      color: _primary, shape: BoxShape.circle)),
                             ],
                           ],
                         ),
@@ -684,9 +918,12 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    _scheduleItem('14:00', AppLocalizations.of(context)!.courtesyVisit, 'Mme. Lefebvre', isCancelled: false),
+                    _scheduleItem(
+                        '14:00', 'Visite de courtoisie', 'Mme. Lefebvre',
+                        isCancelled: false),
                     const SizedBox(height: 12),
-                    _scheduleItem('16:30', AppLocalizations.of(context)!.medicalTransport, AppLocalizations.of(context)!.statusCancelled, isCancelled: true),
+                    _scheduleItem('16:30', 'Transport Médical', 'ANNULÉ',
+                        isCancelled: true),
                   ],
                 ),
               ),
@@ -697,25 +934,53 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
     );
   }
 
-  Widget _scheduleItem(String time, String title, String subtitle, {required bool isCancelled}) {
+  Widget _scheduleItem(String time, String title, String subtitle,
+      {required bool isCancelled}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 40, child: Text(time, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade500))),
+        SizedBox(
+            width: 40,
+            child: Text(time,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade500))),
         const SizedBox(width: 12),
         Expanded(
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isCancelled ? Colors.grey.shade50 : _primary.withOpacity(0.08),
-              border: Border(left: BorderSide(color: isCancelled ? Colors.grey.shade400 : _primary, width: 4)),
-              borderRadius: const BorderRadius.only(topRight: Radius.circular(8), bottomRight: Radius.circular(8)),
+              color: isCancelled
+                  ? Colors.grey.shade50
+                  : _primary.withOpacity(0.08),
+              border: Border(
+                  left: BorderSide(
+                      color: isCancelled ? Colors.grey.shade400 : _primary,
+                      width: 4)),
+              borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(8),
+                  bottomRight: Radius.circular(8)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isCancelled ? Colors.grey.shade500 : const Color(0xFF1E293B), decoration: isCancelled ? TextDecoration.lineThrough : null)),
-                Text(subtitle, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isCancelled ? Colors.grey.shade500 : Colors.grey.shade600)),
+                Text(title,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isCancelled
+                            ? Colors.grey.shade500
+                            : const Color(0xFF1E293B),
+                        decoration:
+                            isCancelled ? TextDecoration.lineThrough : null)),
+                Text(subtitle,
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: isCancelled
+                            ? Colors.grey.shade500
+                            : Colors.grey.shade600)),
               ],
             ),
           ),
@@ -729,7 +994,8 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
     final bottomPadding = 100 + MediaQuery.of(context).padding.bottom;
     if (missions.isEmpty) {
       return Center(
-        child: Text(AppLocalizations.of(context)!.noMissionsHistory, style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
+        child: Text('Aucune mission dans l\'historique',
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
       );
     }
     return ListView.separated(
@@ -741,7 +1007,8 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
   }
 
   void _openItinerary(_Mission m) {
-    context.push('/volunteer/mission-itinerary', extra: {'family': m.family, 'address': m.address});
+    context.push('/volunteer/mission-itinerary',
+        extra: {'family': m.family, 'address': m.address});
   }
 
   Widget _missionCard(_Mission m) {
@@ -751,7 +1018,12 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -763,18 +1035,35 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(m.category.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2, color: _primary)),
+                  Text(m.category.toUpperCase(),
+                      style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                          color: _primary)),
                   const SizedBox(height: 4),
-                  Text(m.family, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                  Text(m.family,
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B))),
                 ],
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: m.isConfirmed ? Colors.green.shade100 : Colors.orange.shade100,
+                  color: m.isConfirmed
+                      ? Colors.green.shade100
+                      : Colors.orange.shade100,
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: Text(m.status, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: m.isConfirmed ? Colors.green.shade700 : Colors.orange.shade700)),
+                child: Text(m.status,
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: m.isConfirmed
+                            ? Colors.green.shade700
+                            : Colors.orange.shade700)),
               ),
             ],
           ),
@@ -783,7 +1072,8 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
             children: [
               const Icon(Icons.calendar_today, size: 18, color: _primary),
               const SizedBox(width: 8),
-              Text(m.dateLabel(context), style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+              Text(m.dateLabel,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
             ],
           ),
           const SizedBox(height: 8),
@@ -791,7 +1081,8 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
             children: [
               const Icon(Icons.schedule, size: 18, color: _primary),
               const SizedBox(width: 8),
-              Text(m.time, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+              Text(m.time,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
             ],
           ),
           const SizedBox(height: 20),
@@ -811,7 +1102,11 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                         children: [
                           Icon(Icons.directions, color: Colors.white, size: 20),
                           SizedBox(width: 8),
-                          Text('Itinéraire', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                          Text('Itinéraire',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white)),
                         ],
                       ),
                     ),
@@ -822,8 +1117,11 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
               Container(
                 width: 56,
                 height: 48,
-                decoration: BoxDecoration(border: Border.all(color: _primary.withOpacity(0.3)), borderRadius: BorderRadius.circular(12)),
-                child: const Icon(Icons.chat_bubble_outline, color: _primary, size: 22),
+                decoration: BoxDecoration(
+                    border: Border.all(color: _primary.withOpacity(0.3)),
+                    borderRadius: BorderRadius.circular(12)),
+                child: const Icon(Icons.chat_bubble_outline,
+                    color: _primary, size: 22),
               ),
             ],
           ),

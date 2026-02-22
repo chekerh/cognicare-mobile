@@ -51,9 +51,11 @@ class FamilyFeedScreen extends StatefulWidget {
 
 class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   int _selectedTab = 0; // 0: Community, 1: Donations, 2: Healthcare
-  int _donationsCategoryIndex = 0; // 0: Tout, 1: Mobilité, 2: Jouets, 3: Vêtements
+  int _donationsCategoryIndex =
+      0; // 0: Tout, 1: Mobilité, 2: Jouets, 3: Vêtements
   late final Future<List<MarketplaceProduct>> _marketplaceProductsFuture;
-  final TextEditingController _donationSearchController = TextEditingController();
+  final TextEditingController _donationSearchController =
+      TextEditingController();
   final FocusNode _donationSearchFocusNode = FocusNode();
   String _donationSearchQuery = '';
   Timer? _donationSearchDebounce;
@@ -90,8 +92,11 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     });
     try {
       const isOffer = true; // Afficher les dons (offres)
-      final category = _donationsCategoryIndex > 0 ? _donationsCategoryIndex : null;
-      final search = _donationSearchQuery.trim().isNotEmpty ? _donationSearchQuery.trim() : null;
+      final category =
+          _donationsCategoryIndex > 0 ? _donationsCategoryIndex : null;
+      final search = _donationSearchQuery.trim().isNotEmpty
+          ? _donationSearchQuery.trim()
+          : null;
       final list = await DonationService().getDonations(
         isOffer: isOffer,
         category: category,
@@ -170,7 +175,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               _buildTabs(),
               Expanded(
                 child: _selectedTab == 0
-                    ? _buildCommunityScrollContent(context, feedProvider, bottomPadding)
+                    ? _buildCommunityScrollContent(
+                        context, feedProvider, bottomPadding)
                     : _selectedTab == 1
                         ? _buildDonationsContent(bottomPadding)
                         : _buildHealthcareContent(bottomPadding),
@@ -200,7 +206,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   color: Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.psychology, color: _feedPrimary, size: 22),
+                child:
+                    const Icon(Icons.psychology, color: _feedPrimary, size: 22),
               ),
               const SizedBox(width: 8),
               const Text(
@@ -219,7 +226,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  _headerButton(Icons.notifications_outlined, onPressed: () => context.push(AppConstants.familyNotificationsRoute)),
+                  _headerButton(Icons.notifications_outlined,
+                      onPressed: () =>
+                          context.push(AppConstants.familyNotificationsRoute)),
                   Positioned(
                     top: 6,
                     right: 6,
@@ -371,50 +380,52 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           onRefresh: _loadDonations,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Le Cercle du Don header (in-content)
-              Row(
-                children: [
-                  const Icon(Icons.favorite, color: _donationPrimary, size: 28),
-                  const SizedBox(width: 8),
-                  Text(
-                    loc.leCercleDuDon,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF111418),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Category chips
-              SizedBox(
-                height: 44,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Le Cercle du Don header (in-content)
+                Row(
                   children: [
-                    _donationCategoryChip(loc.all, Icons.grid_view, 0),
+                    const Icon(Icons.favorite,
+                        color: _donationPrimary, size: 28),
                     const SizedBox(width: 8),
-                    _donationCategoryChip(loc.mobility, Icons.accessibility_new, 1),
-                    const SizedBox(width: 8),
-                    _donationCategoryChip(loc.earlyLearning, Icons.toys, 2),
-                    const SizedBox(width: 8),
-                    _donationCategoryChip(loc.clothing, Icons.checkroom, 3),
+                    Text(
+                      loc.leCercleDuDon,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF111418),
+                      ),
+                    ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              _buildDonationSearchBar(),
-              const SizedBox(height: 20),
-              ..._buildDonationCards(loc),
-              SizedBox(height: bottomPadding),
-            ],
+                const SizedBox(height: 16),
+                // Category chips
+                SizedBox(
+                  height: 44,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _donationCategoryChip(loc.all, Icons.grid_view, 0),
+                      const SizedBox(width: 8),
+                      _donationCategoryChip(
+                          loc.mobility, Icons.accessibility_new, 1),
+                      const SizedBox(width: 8),
+                      _donationCategoryChip(loc.earlyLearning, Icons.toys, 2),
+                      const SizedBox(width: 8),
+                      _donationCategoryChip(loc.clothing, Icons.checkroom, 3),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildDonationSearchBar(),
+                const SizedBox(height: 20),
+                ..._buildDonationCards(loc),
+                SizedBox(height: bottomPadding),
+              ],
+            ),
           ),
-        ),
         ),
         // FAB "Proposer un don" — bouton rond à droite
         Positioned(
@@ -463,14 +474,17 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
-              color: selected ? _donationPrimary : _donationPrimary.withOpacity(0.2),
+              color: selected
+                  ? _donationPrimary
+                  : _donationPrimary.withOpacity(0.2),
               width: 1,
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 16, color: selected ? Colors.white : _donationPrimary),
+              Icon(icon,
+                  size: 16, color: selected ? Colors.white : _donationPrimary),
               const SizedBox(width: 6),
               Text(
                 label,
@@ -508,10 +522,12 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         decoration: InputDecoration(
           hintText: loc.searchDonationsHint,
           hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-          prefixIcon: Icon(Icons.search, color: _donationPrimary.withOpacity(0.8), size: 22),
+          prefixIcon: Icon(Icons.search,
+              color: _donationPrimary.withOpacity(0.8), size: 22),
           suffixIcon: _donationSearchQuery.isNotEmpty
               ? IconButton(
-                  icon: Icon(Icons.clear, size: 20, color: Colors.grey.shade600),
+                  icon:
+                      Icon(Icons.clear, size: 20, color: Colors.grey.shade600),
                   onPressed: () {
                     _donationSearchController.clear();
                     setState(() => _donationSearchQuery = '');
@@ -520,7 +536,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                 )
               : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           filled: true,
           fillColor: Colors.white,
         ),
@@ -559,7 +576,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               TextButton.icon(
                 onPressed: _loadDonations,
                 icon: const Icon(Icons.refresh),
-                label: Text(loc.tryAgain),
+                label: const Text('Réessayer'),
               ),
             ],
           ),
@@ -574,10 +591,11 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           child: Center(
             child: Column(
               children: [
-                Icon(Icons.inventory_2_outlined, size: 56, color: _donationPrimary.withOpacity(0.5)),
+                Icon(Icons.inventory_2_outlined,
+                    size: 56, color: _donationPrimary.withOpacity(0.5)),
                 const SizedBox(height: 16),
                 Text(
-                  loc.noDonationsYet,
+                  'Aucun don pour le moment',
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 ),
               ],
@@ -614,7 +632,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               'location': d.location,
               'distanceText': null,
               'donorName': d.donorName,
-              'donorAvatarUrl': d.donorProfilePic != null ? _fullImageUrl(d.donorProfilePic!) : null,
+              'donorAvatarUrl': d.donorProfilePic != null
+                  ? _fullImageUrl(d.donorProfilePic!)
+                  : null,
               'donorId': d.donorId,
               'donationId': d.id,
               'latitude': d.latitude,
@@ -679,7 +699,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       color: Colors.grey.shade300,
-                      child: Icon(Icons.image_not_supported, size: 48, color: Colors.grey.shade600),
+                      child: Icon(Icons.image_not_supported,
+                          size: 48, color: Colors.grey.shade600),
                     ),
                   ),
                   // Condition badge
@@ -687,7 +708,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     top: 12,
                     left: 12,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: conditionColors[conditionIndex],
                         borderRadius: BorderRadius.circular(999),
@@ -715,7 +737,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                         customBorder: const CircleBorder(),
                         child: const Padding(
                           padding: EdgeInsets.all(8),
-                          child: Icon(Icons.favorite, color: _donationPrimary, size: 20),
+                          child: Icon(Icons.favorite,
+                              color: _donationPrimary, size: 20),
                         ),
                       ),
                     ),
@@ -770,11 +793,13 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 14, color: Colors.grey.shade600),
+                        Icon(Icons.location_on,
+                            size: 14, color: Colors.grey.shade600),
                         const SizedBox(width: 4),
                         Text(
                           location,
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey.shade600),
                         ),
                       ],
                     ),
@@ -792,7 +817,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                             ),
                           ),
                           const SizedBox(width: 4),
-                          const Icon(Icons.chevron_right, color: _donationPrimary, size: 18),
+                          const Icon(Icons.chevron_right,
+                              color: _donationPrimary, size: 18),
                         ],
                       ),
                     ),
@@ -832,12 +858,13 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     Text(
                       _healthcareError!,
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                      style:
+                          TextStyle(fontSize: 14, color: Colors.grey.shade700),
                     ),
                     const SizedBox(height: 12),
                     TextButton(
                       onPressed: _loadHealthcareUsers,
-                      child: Text(AppLocalizations.of(context)!.tryAgain),
+                      child: const Text('Réessayer'),
                     ),
                   ],
                 ),
@@ -865,16 +892,19 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         ],
       ),
       child: TextField(
-        onChanged: (value) => setState(() => _healthcareSearchQuery = value.trim()),
+        onChanged: (value) =>
+            setState(() => _healthcareSearchQuery = value.trim()),
         decoration: InputDecoration(
-          hintText: AppLocalizations.of(context)!.searchProfessionalHint,
+          hintText: 'Rechercher un professionnel...',
           hintStyle: TextStyle(
             color: AppTheme.text.withOpacity(0.5),
             fontSize: 14,
           ),
-          prefixIcon: Icon(Icons.search, color: AppTheme.text.withOpacity(0.4), size: 22),
+          prefixIcon: Icon(Icons.search,
+              color: AppTheme.text.withOpacity(0.4), size: 22),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           filled: true,
           fillColor: Colors.white,
         ),
@@ -883,41 +913,38 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   }
 
   int _healthcareFilterIndex = 0;
-  List<String> _getHealthcareFilterLabels(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
-    return [
-      loc.filterAll,
-      loc.filterSpeechTherapists,
-      loc.filterChildPsychiatrists,
-      loc.filterOccupationalTherapists,
-    ];
-  }
+  static const List<String> _healthcareFilterLabels = [
+    'Tous',
+    'Orthophonistes',
+    'Pédopsychiatres',
+    'Ergothérapeutes',
+  ];
 
   Widget _buildHealthcareFilterChips() {
-    final labels = _getHealthcareFilterLabels(context);
     return SizedBox(
       height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: labels.length,
+        itemCount: _healthcareFilterLabels.length,
         itemBuilder: (context, index) {
           final selected = _healthcareFilterIndex == index;
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: Material(
-              color: selected
-                  ? Colors.white
-                  : Colors.white.withOpacity(0.3),
+              color: selected ? Colors.white : Colors.white.withOpacity(0.3),
               borderRadius: BorderRadius.circular(999),
               child: InkWell(
                 onTap: () => setState(() => _healthcareFilterIndex = index),
                 borderRadius: BorderRadius.circular(999),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(
-                      color: selected ? Colors.white : Colors.white.withOpacity(0.2),
+                      color: selected
+                          ? Colors.white
+                          : Colors.white.withOpacity(0.2),
                       width: 1,
                     ),
                     boxShadow: selected
@@ -932,7 +959,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    labels[index],
+                    _healthcareFilterLabels[index],
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -948,37 +975,40 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     );
   }
 
-  String _roleToSpecializationLabel(String role, AppLocalizations loc) {
+  static String _roleToSpecializationLabel(String role) {
     switch (role) {
       case 'doctor':
-        return loc.doctor;
+        return 'Médecin';
       case 'psychologist':
-        return loc.psychologist;
+        return 'Pédopsychiatre / Psychologue';
       case 'speech_therapist':
-        return loc.speechTherapist;
+        return 'Orthophoniste';
       case 'occupational_therapist':
-        return loc.occupationalTherapist;
+        return 'Ergothérapeute';
       default:
         return role;
     }
   }
 
   List<Widget> _buildHealthcareCards() {
-    final loc = AppLocalizations.of(context)!;
     final list = _healthcareUsers ?? [];
     List<app_user.User> filtered = list;
     if (_healthcareFilterIndex == 1) {
       filtered = list.where((u) => u.role == 'speech_therapist').toList();
     } else if (_healthcareFilterIndex == 2) {
-      filtered = list.where((u) => u.role == 'psychologist' || u.role == 'doctor').toList();
+      filtered = list
+          .where((u) => u.role == 'psychologist' || u.role == 'doctor')
+          .toList();
     } else if (_healthcareFilterIndex == 3) {
       filtered = list.where((u) => u.role == 'occupational_therapist').toList();
     }
     if (_healthcareSearchQuery.isNotEmpty) {
       final q = _healthcareSearchQuery.toLowerCase();
-      filtered = filtered.where((u) =>
-          u.fullName.toLowerCase().contains(q) ||
-          _roleToSpecializationLabel(u.role, loc).toLowerCase().contains(q)).toList();
+      filtered = filtered
+          .where((u) =>
+              u.fullName.toLowerCase().contains(q) ||
+              _roleToSpecializationLabel(u.role).toLowerCase().contains(q))
+          .toList();
     }
     if (filtered.isEmpty) {
       return [
@@ -986,7 +1016,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           padding: const EdgeInsets.all(24),
           child: Center(
             child: Text(
-              loc.noProfessionalsYet,
+              'Aucun professionnel pour le moment.',
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
           ),
@@ -1002,14 +1032,14 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         padding: const EdgeInsets.only(bottom: 16),
         child: _ExpertCard(
           name: user.fullName,
-          specialization: _roleToSpecializationLabel(user.role, loc),
+          specialization: _roleToSpecializationLabel(user.role),
           location: 'CogniCare',
           imageUrl: imageUrl,
           primaryColor: _feedSecondary,
           onBookConsultation: () {
             context.push(AppConstants.familyExpertBookingRoute, extra: {
               'name': user.fullName,
-              'specialization': _roleToSpecializationLabel(user.role, loc),
+              'specialization': _roleToSpecializationLabel(user.role),
               'location': 'CogniCare',
               'imageUrl': imageUrl,
             });
@@ -1055,89 +1085,90 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               ],
             ),
             child: Row(
-          children: [
-            SizedBox(
-              width: 104,
-              height: 40,
-              child: Stack(
-                children: [
-                  Positioned(left: 0, child: _avatarCircle('D', 20)),
-                  Positioned(left: 32, child: _avatarCircle('M', 20)),
-                  Positioned(
-                    left: 64,
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: _feedPrimary,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          '+2',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+              children: [
+                SizedBox(
+                  width: 104,
+                  height: 40,
+                  child: Stack(
+                    children: [
+                      Positioned(left: 0, child: _avatarCircle('D', 20)),
+                      Positioned(left: 32, child: _avatarCircle('M', 20)),
+                      Positioned(
+                        left: 64,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: _feedPrimary,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
                           ),
+                          child: const Center(
+                            child: Text(
+                              '+2',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocalizations.of(context)!.familyChat,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: AppTheme.text,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Mom: "Check out this toy!"',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.text.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Material(
+                  color: _feedPrimary.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(999),
+                  child: InkWell(
+                    onTap: () => context.go(AppConstants.familyFamiliesRoute),
+                    borderRadius: BorderRadius.circular(999),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      child: Text(
+                        AppLocalizations.of(context)!.open,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: _feedSecondary,
+                          letterSpacing: 1.2,
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)!.familyChat,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      color: AppTheme.text,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    AppLocalizations.of(context)!.momCheckOutToy,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.text.withOpacity(0.6),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Material(
-              color: _feedPrimary.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(999),
-              child: InkWell(
-                onTap: () => context.go(AppConstants.familyFamiliesRoute),
-                borderRadius: BorderRadius.circular(999),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  child: Text(
-                    AppLocalizations.of(context)!.open,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: _feedSecondary,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
                 ),
-              ),
+              ],
             ),
-            ],
           ),
         ),
       ),
-    ),
-  );
+    );
   }
 
   Widget _avatarCircle(String letter, double radius) {
@@ -1201,7 +1232,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
                       color: _feedBackground,
                       borderRadius: BorderRadius.circular(999),
@@ -1216,7 +1248,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Icon(Icons.add_photo_alternate, color: _feedPrimary, size: 26),
+                const Icon(Icons.add_photo_alternate,
+                    color: _feedPrimary, size: 26),
               ],
             ),
           ),
@@ -1249,11 +1282,13 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           : null;
       final currentUserId = authProvider.user?.id.toString().trim() ?? '';
       final postAuthorId = post.authorId.toString().trim();
-      final sameName = (authProvider.user?.fullName ?? '').trim().toLowerCase() ==
-          post.authorName.trim().toLowerCase();
+      final sameName =
+          (authProvider.user?.fullName ?? '').trim().toLowerCase() ==
+              post.authorName.trim().toLowerCase();
       // canDelete: même id, ou même nom si les ids ne matchent pas (ex. posts créés sur téléphone)
       final canDelete = currentUserId.isNotEmpty &&
-          (currentUserId == postAuthorId || (sameName && postAuthorId.isNotEmpty));
+          (currentUserId == postAuthorId ||
+              (sameName && postAuthorId.isNotEmpty));
       return _buildPost(
         postId: post.id,
         name: post.authorName,
@@ -1280,13 +1315,14 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           }
         },
         onShareTap: () {
-          final loc = AppLocalizations.of(context)!;
-          final shareText = '${post.authorName}: ${post.text}\n\n— CogniCare Community';
-          Share.share(shareText, subject: loc.cogniCarePost);
+          final shareText =
+              '${post.authorName}: ${post.text}\n\n— CogniCare Community';
+          Share.share(shareText, subject: 'Publication CogniCare');
         },
         canDelete: canDelete,
         onEditTap: canDelete
-            ? () => _showEditPostDialog(context, post.id, post.text, feedProvider)
+            ? () =>
+                _showEditPostDialog(context, post.id, post.text, feedProvider)
             : null,
         onDeleteTap: canDelete
             ? () async {
@@ -1303,7 +1339,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(ctx).pop(true),
-                        style: TextButton.styleFrom(foregroundColor: Colors.red),
+                        style:
+                            TextButton.styleFrom(foregroundColor: Colors.red),
                         child: Text(loc.delete),
                       ),
                     ],
@@ -1324,7 +1361,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text(e is Exception ? e.toString().replaceFirst('Exception: ', '') : loc.errorLoadingProfile),
+                          content: Text(e is Exception
+                              ? e.toString().replaceFirst('Exception: ', '')
+                              : loc.errorLoadingProfile),
                           behavior: SnackBarBehavior.floating,
                           backgroundColor: Colors.red,
                         ),
@@ -1494,7 +1533,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                       radius: 18,
                       backgroundColor: _feedPrimary.withOpacity(0.3),
                       child: Text(
-                        (authProvider.user?.fullName ?? 'U').substring(0, 1).toUpperCase(),
+                        (authProvider.user?.fullName ?? 'U')
+                            .substring(0, 1)
+                            .toUpperCase(),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: AppTheme.text,
@@ -1514,7 +1555,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(24),
-                            borderSide: BorderSide(color: AppTheme.text.withOpacity(0.2)),
+                            borderSide: BorderSide(
+                                color: AppTheme.text.withOpacity(0.2)),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -1645,50 +1687,52 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     ),
                   ),
                 ),
-              PopupMenuButton<String>(
-                icon: Icon(
-                  Icons.more_horiz,
-                  color: AppTheme.text.withOpacity(0.5),
-                  size: 22,
+                PopupMenuButton<String>(
+                  icon: Icon(
+                    Icons.more_horiz,
+                    color: AppTheme.text.withOpacity(0.5),
+                    size: 22,
+                  ),
+                  onSelected: (value) {
+                    if (value == 'edit' && onEditTap != null) {
+                      onEditTap();
+                    } else if (value == 'delete' && onDeleteTap != null) {
+                      onDeleteTap();
+                    }
+                    // 'info' = fermer le menu (pas d'action)
+                  },
+                  itemBuilder: (context) => [
+                    if (onEditTap != null)
+                      PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.edit_outlined,
+                                color: AppTheme.primary, size: 20),
+                            const SizedBox(width: 8),
+                            Text(AppLocalizations.of(context)!.editPost),
+                          ],
+                        ),
+                      ),
+                    if (onDeleteTap != null)
+                      PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.delete_outline, color: Colors.red),
+                            const SizedBox(width: 8),
+                            Text(AppLocalizations.of(context)!.deletePost),
+                          ],
+                        ),
+                      ),
+                    if (onEditTap == null && onDeleteTap == null)
+                      const PopupMenuItem<String>(
+                        value: 'info',
+                        child: Text(
+                            'Vous ne pouvez modifier que vos propres publications'),
+                      ),
+                  ],
                 ),
-                onSelected: (value) {
-                  if (value == 'edit' && onEditTap != null) {
-                    onEditTap();
-                  } else if (value == 'delete' && onDeleteTap != null) {
-                    onDeleteTap();
-                  }
-                  // 'info' = fermer le menu (pas d'action)
-                },
-                itemBuilder: (context) => [
-                  if (onEditTap != null)
-                    PopupMenuItem<String>(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.edit_outlined, color: AppTheme.primary, size: 20),
-                          const SizedBox(width: 8),
-                          Text(AppLocalizations.of(context)!.editPost),
-                        ],
-                      ),
-                    ),
-                  if (onDeleteTap != null)
-                    PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.delete_outline, color: Colors.red),
-                          const SizedBox(width: 8),
-                          Text(AppLocalizations.of(context)!.deletePost),
-                        ],
-                      ),
-                    ),
-                  if (onEditTap == null && onDeleteTap == null)
-                    PopupMenuItem<String>(
-                      value: 'info',
-                      child: Text(AppLocalizations.of(context)!.onlyEditOwnPosts),
-                    ),
-                ],
-              ),
               ],
             ),
           ),
@@ -1711,7 +1755,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   runSpacing: 6,
                   children: tagStyles.map((e) {
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: e.$1.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(999),
@@ -1736,7 +1781,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: imagePath != null
-                    ? (imagePath.startsWith('http') || imagePath.startsWith('/uploads/')
+                    ? (imagePath.startsWith('http') ||
+                            imagePath.startsWith('/uploads/')
                         ? Image.network(
                             imagePath.startsWith('http')
                                 ? imagePath
@@ -1753,8 +1799,10 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                                 color: _feedPrimary.withOpacity(0.15),
                                 child: Center(
                                   child: CircularProgressIndicator(
-                                    value: loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress.cumulativeBytesLoaded /
+                                    value: loadingProgress.expectedTotalBytes !=
+                                            null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
                                             loadingProgress.expectedTotalBytes!
                                         : null,
                                     color: _feedSecondary,
@@ -1811,14 +1859,17 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   onTap: onLikeTap,
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
                           liked ? Icons.favorite : Icons.favorite_border,
                           size: 22,
-                          color: liked ? Colors.red : AppTheme.text.withOpacity(0.5),
+                          color: liked
+                              ? Colors.red
+                              : AppTheme.text.withOpacity(0.5),
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -1826,7 +1877,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: liked ? Colors.red : AppTheme.text.withOpacity(0.5),
+                            color: liked
+                                ? Colors.red
+                                : AppTheme.text.withOpacity(0.5),
                           ),
                         ),
                       ],
@@ -1838,7 +1891,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   onTap: onCommentTap,
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -1865,8 +1919,10 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   onTap: onShareTap ?? () {},
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                    child: Icon(Icons.share_outlined, size: 22, color: AppTheme.text.withOpacity(0.5)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                    child: Icon(Icons.share_outlined,
+                        size: 22, color: AppTheme.text.withOpacity(0.5)),
                   ),
                 ),
               ],
@@ -1951,7 +2007,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               InkWell(
                 onTap: () => context.go(AppConstants.familyMarketRoute),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
                   child: Text(
                     AppLocalizations.of(context)!.viewAll,
                     style: const TextStyle(
@@ -1973,7 +2030,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return ListView(
                     scrollDirection: Axis.horizontal,
-                    children: List.generate(3, (_) => _marketplaceCardPlaceholder()),
+                    children:
+                        List.generate(3, (_) => _marketplaceCardPlaceholder()),
                   );
                 }
                 final products = snapshot.data ?? [];
@@ -2003,11 +2061,13 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.shopping_bag_outlined, size: 40, color: AppTheme.text.withOpacity(0.3)),
+            Icon(Icons.shopping_bag_outlined,
+                size: 40, color: AppTheme.text.withOpacity(0.3)),
             const SizedBox(height: 8),
             Text(
-              AppLocalizations.of(context)!.noProductsYet,
-              style: TextStyle(fontSize: 13, color: AppTheme.text.withOpacity(0.6)),
+              'Aucun produit pour le moment',
+              style: TextStyle(
+                  fontSize: 13, color: AppTheme.text.withOpacity(0.6)),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -2015,7 +2075,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               onPressed: () => context.go(AppConstants.familyMarketRoute),
               child: Text(
                 AppLocalizations.of(context)!.viewAll,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
               ),
             ),
           ],
@@ -2039,7 +2100,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Center(
-              child: Icon(Icons.shopping_bag_outlined, size: 32, color: _feedPrimary),
+              child: Icon(Icons.shopping_bag_outlined,
+                  size: 32, color: _feedPrimary),
             ),
           ),
           const SizedBox(height: 6),
@@ -2107,15 +2169,18 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                       loadingBuilder: (_, child, progress) {
                         if (progress == null) return child;
                         return const Center(
-                          child: Icon(Icons.shopping_bag_outlined, size: 32, color: _feedPrimary),
+                          child: Icon(Icons.shopping_bag_outlined,
+                              size: 32, color: _feedPrimary),
                         );
                       },
                       errorBuilder: (_, __, ___) => const Center(
-                        child: Icon(Icons.shopping_bag_outlined, size: 32, color: _feedPrimary),
+                        child: Icon(Icons.shopping_bag_outlined,
+                            size: 32, color: _feedPrimary),
                       ),
                     )
                   : const Center(
-                      child: Icon(Icons.shopping_bag_outlined, size: 32, color: _feedPrimary),
+                      child: Icon(Icons.shopping_bag_outlined,
+                          size: 32, color: _feedPrimary),
                     ),
             ),
             const SizedBox(height: 6),
@@ -2160,6 +2225,7 @@ class _ExpertCard extends StatelessWidget {
   final String name;
   final String specialization;
   final String location;
+
   /// URL de la photo de profil (vide = afficher l'initiale du nom).
   final String imageUrl;
   final Color primaryColor;
@@ -2260,7 +2326,8 @@ class _ExpertCard extends StatelessWidget {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: verifiedAccent.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(999),
@@ -2268,10 +2335,11 @@ class _ExpertCard extends StatelessWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.verified, size: 14, color: verifiedAccent),
+                              Icon(Icons.verified,
+                                  size: 14, color: verifiedAccent),
                               const SizedBox(width: 4),
                               Text(
-                                AppLocalizations.of(context)!.verifiedLabel,
+                                'VERIFIED',
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
@@ -2295,7 +2363,8 @@ class _ExpertCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 14, color: slate400),
+                        const Icon(Icons.location_on,
+                            size: 14, color: slate400),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -2325,12 +2394,12 @@ class _ExpertCard extends StatelessWidget {
                   child: InkWell(
                     onTap: onBookConsultation,
                     borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10),
                       child: Center(
                         child: Text(
-                          AppLocalizations.of(context)!.bookConsultation,
-                          style: const TextStyle(
+                          'Book Consultation',
+                          style: TextStyle(
                             color: Colors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -2356,9 +2425,9 @@ class _ExpertCard extends StatelessWidget {
                         border: Border.all(color: const Color(0xFFF1F5F9)),
                       ),
                       alignment: Alignment.center,
-                      child: Text(
-                        AppLocalizations.of(context)!.sendMessageLabel,
-                        style: const TextStyle(
+                      child: const Text(
+                        'Message',
+                        style: TextStyle(
                           color: Color(0xFF475569),
                           fontSize: 12,
                           fontWeight: FontWeight.bold,

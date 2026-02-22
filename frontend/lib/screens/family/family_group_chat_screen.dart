@@ -14,7 +14,6 @@ import '../../providers/theme_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/call_service.dart';
 import '../../services/chat_service.dart';
-import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 import '../../widgets/chat_message_bar.dart';
@@ -37,6 +36,7 @@ class FamilyGroupChatScreen extends StatefulWidget {
   final String groupName;
   final int memberCount;
   final String? groupId;
+
   /// When true, this is a real group (API); show ADD button to add members.
   final bool isGroup;
 
@@ -84,7 +84,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
         id: '1',
         senderName: 'Mom',
         senderType: _SenderType.mom,
-        text: "How did the session go today? Did he enjoy the new puzzle game? 🧩",
+        text:
+            "How did the session go today? Did he enjoy the new puzzle game? 🧩",
         time: '10:15 AM',
         isFromRight: false,
       ),
@@ -92,7 +93,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
         id: '2',
         senderName: 'Dr. Sarah (Therapist)',
         senderType: _SenderType.therapist,
-        text: 'He was very focused! He completed the level 2 sequence without any frustration today. Huge win! 🌟',
+        text:
+            'He was very focused! He completed the level 2 sequence without any frustration today. Huge win! 🌟',
         time: '10:22 AM',
         isFromRight: false,
         quotedText: '"Great progress on motor skills"',
@@ -101,7 +103,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
         id: '3',
         senderName: 'Dad',
         senderType: _SenderType.dad,
-        text: "That's amazing news! I'll make sure we practice the same pattern at home tonight before bed.",
+        text:
+            "That's amazing news! I'll make sure we practice the same pattern at home tonight before bed.",
         time: '10:45 AM',
         isFromRight: true,
         showReadReceipt: true,
@@ -123,7 +126,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     super.initState();
     if (widget.groupId != null) {
       _messages = [];
-      WidgetsBinding.instance.addPostFrameCallback((_) => _loadMessagesFromApi());
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _loadMessagesFromApi());
     } else {
       _messages = _defaultLocalMessages();
     }
@@ -153,7 +157,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
           Provider.of<AuthProvider>(context, listen: false).user?.id;
       final isMine = currentUserId != null && currentUserId == evt.senderId;
       if (isMine) return;
-      final msgId = evt.messageId ?? 'ws_${DateTime.now().microsecondsSinceEpoch}';
+      final msgId =
+          evt.messageId ?? 'ws_${DateTime.now().microsecondsSinceEpoch}';
       final alreadyExists = _messages.any((m) => m.id == msgId);
       if (alreadyExists) return;
       final type = evt.attachmentType;
@@ -164,7 +169,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
         _messages.add(
           _ChatMessage(
             id: msgId,
-            senderName: evt.senderName.isNotEmpty ? evt.senderName : widget.groupName,
+            senderName:
+                evt.senderName.isNotEmpty ? evt.senderName : widget.groupName,
             senderType: _SenderType.therapist,
             text: text,
             time: _formatTime(evt.createdAt ?? DateTime.now()),
@@ -189,8 +195,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
       if (!mounted) return;
       if (families.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.noOtherFamilyToAdd),
+          const SnackBar(
+            content: Text('Aucune autre famille à ajouter pour le moment.'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -223,7 +229,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('${f.fullName} a été ajouté au groupe.'),
+                            content:
+                                Text('${f.fullName} a été ajouté au groupe.'),
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
@@ -231,7 +238,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                         if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(e.toString().replaceFirst('Exception: ', '')),
+                            content: Text(
+                                e.toString().replaceFirst('Exception: ', '')),
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
@@ -313,12 +321,12 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
   Future<void> _toggleVoicePlayback(_ChatMessage msg) async {
     if (msg.voicePath == null) return;
     final pathOrUrl = msg.voicePath!;
-    
+
     // Convert relative path to full URL, or use absolute URL directly
-    final fullUrl = pathOrUrl.startsWith('http') 
-      ? pathOrUrl 
-      : AppConstants.fullImageUrl(pathOrUrl);
-    
+    final fullUrl = pathOrUrl.startsWith('http')
+        ? pathOrUrl
+        : AppConstants.fullImageUrl(pathOrUrl);
+
     if (_playingMessageId == msg.id) {
       await _audioPlayer.pause();
       if (mounted) setState(() => _playingMessageId = null);
@@ -327,14 +335,15 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     if (_playingMessageId != null) {
       await _audioPlayer.stop();
     }
-    
+
     try {
       await _audioPlayer.play(UrlSource(fullUrl, mimeType: 'audio/mp4'));
       if (mounted) setState(() => _playingMessageId = msg.id);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.voiceMessageReadError)),
+          SnackBar(
+              content: Text('Erreur: Impossible de lire le message vocal')),
         );
       }
     }
@@ -349,8 +358,9 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     if (!hasPermission) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.chatMicPermissionRequired),
+          const SnackBar(
+            content: Text(
+                'Autorisez l’accès au micro pour enregistrer un message vocal.'),
           ),
         );
       }
@@ -362,8 +372,10 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
   Future<void> _startRecording() async {
     try {
       final dir = await getTemporaryDirectory();
-      _currentRecordPath = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
-      await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: _currentRecordPath!);
+      _currentRecordPath =
+          '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc),
+          path: _currentRecordPath!);
       if (!mounted) return;
       setState(() {
         _isRecording = true;
@@ -376,7 +388,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppLocalizations.of(context)!.recordingStartError}$e')),
+          SnackBar(
+              content: Text('Impossible de démarrer l’enregistrement: $e')),
         );
       }
     }
@@ -400,7 +413,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
         if (cid != null) {
           try {
             final chatService = ChatService();
-            final url = await chatService.uploadAttachment(File(voicePath), 'voice');
+            final url =
+                await chatService.uploadAttachment(File(voicePath), 'voice');
             final sent = await chatService.sendMessage(
               cid,
               'Message vocal',
@@ -455,7 +469,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
       if (mounted) {
         setState(() => _isRecording = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppLocalizations.of(context)!.recordingError}$e')),
+          SnackBar(content: Text('Erreur enregistrement: $e')),
         );
       }
     }
@@ -472,20 +486,22 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     if (cid == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.chatConversationNotLoaded)),
+          const SnackBar(content: Text('Conversation non chargée')),
         );
       }
       return;
     }
     try {
-      final XFile? picked = await _imagePicker.pickImage(source: ImageSource.gallery);
+      final XFile? picked =
+          await _imagePicker.pickImage(source: ImageSource.gallery);
       if (picked == null || !mounted) return;
       final file = File(picked.path);
       final chatService = ChatService();
       setState(() => _sending = true);
       try {
         final url = await chatService.uploadAttachment(file, 'image');
-        await chatService.sendMessage(cid, 'Photo', attachmentUrl: url, attachmentType: 'image');
+        await chatService.sendMessage(cid, 'Photo',
+            attachmentUrl: url, attachmentType: 'image');
         if (!mounted) return;
         setState(() {
           _sending = false;
@@ -527,7 +543,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     final cid = widget.groupId;
     if (cid != null) {
       setState(() => _sending = true);
-      final optimisticId = 'optimistic_${DateTime.now().microsecondsSinceEpoch}';
+      final optimisticId =
+          'optimistic_${DateTime.now().microsecondsSinceEpoch}';
       final optimistic = _ChatMessage(
         id: optimisticId,
         senderName: 'Me',
@@ -634,11 +651,13 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                         )
                       : ListView(
                           controller: _scrollController,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 16),
                           children: [
                             _buildDateSeparator(),
                             const SizedBox(height: 24),
-                            ..._messages.map((m) => _buildMessageBubble(context, m)),
+                            ..._messages
+                                .map((m) => _buildMessageBubble(context, m)),
                           ],
                         ),
             ),
@@ -671,7 +690,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
               borderRadius: BorderRadius.circular(12),
               child: const Padding(
                 padding: EdgeInsets.all(8),
-                child: Icon(Icons.arrow_back_ios, color: _textPrimary, size: 20),
+                child:
+                    Icon(Icons.arrow_back_ios, color: _textPrimary, size: 20),
               ),
             ),
           ),
@@ -686,7 +706,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                       path: AppConstants.familyConversationSettingsRoute,
                       queryParameters: {
                         'title': widget.groupName,
-                        if (widget.groupId != null) 'conversationId': widget.groupId!,
+                        if (widget.groupId != null)
+                          'conversationId': widget.groupId!,
                         if (widget.groupId != null) 'groupId': widget.groupId!,
                         'isGroup': '1',
                         'memberCount': '${widget.memberCount}',
@@ -700,7 +721,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                     CircleAvatar(
                       radius: 24,
                       backgroundColor: _primary.withOpacity(0.3),
-                      child: const Icon(Icons.group_rounded, color: _textMuted, size: 28),
+                      child: const Icon(Icons.group_rounded,
+                          color: _textMuted, size: 28),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -741,7 +763,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                 borderRadius: BorderRadius.circular(12),
                 child: const Padding(
                   padding: EdgeInsets.all(8),
-                  child: Icon(Icons.person_add_rounded, color: _textPrimary, size: 24),
+                  child: Icon(Icons.person_add_rounded,
+                      color: _textPrimary, size: 24),
                 ),
               ),
             ),
@@ -751,7 +774,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
           ),
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.videocam_outlined, color: _textPrimary, size: 26),
+            icon: const Icon(Icons.videocam_outlined,
+                color: _textPrimary, size: 26),
           ),
         ],
       ),
@@ -784,17 +808,20 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) _avatar(),
           if (!isMe) const SizedBox(width: 10),
           Flexible(
             child: Column(
-              crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: isMe ? _primary : Colors.white,
                     borderRadius: BorderRadius.only(
@@ -815,7 +842,9 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                       ? Material(
                           color: Colors.transparent,
                           child: InkWell(
-                            onTap: msg.voicePath != null ? () => _toggleVoicePlayback(msg) : null,
+                            onTap: msg.voicePath != null
+                                ? () => _toggleVoicePlayback(msg)
+                                : null,
                             borderRadius: BorderRadius.circular(8),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(vertical: 4),
@@ -830,11 +859,14 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                                     size: 32,
                                   ),
                                   const SizedBox(width: 10),
-                                  Icon(Icons.mic, color: isMe ? Colors.white70 : _textMuted, size: 22),
+                                  Icon(Icons.mic,
+                                      color: isMe ? Colors.white70 : _textMuted,
+                                      size: 22),
                                   const SizedBox(width: 6),
                                   Text(
                                     msg.durationSeconds != null
-                                        ? _formatDuration(Duration(seconds: msg.durationSeconds!))
+                                        ? _formatDuration(Duration(
+                                            seconds: msg.durationSeconds!))
                                         : 'Message vocal',
                                     style: TextStyle(
                                       fontSize: 14,
@@ -853,7 +885,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                                 msg.imageUrl != null && msg.imageUrl!.isNotEmpty
                                     ? (msg.imageUrl!.startsWith('http')
                                         ? msg.imageUrl!
-                                        : AppConstants.fullImageUrl(msg.imageUrl!))
+                                        : AppConstants.fullImageUrl(
+                                            msg.imageUrl!))
                                     : '',
                                 width: 200,
                                 height: 200,
@@ -861,21 +894,26 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                                 errorBuilder: (_, __, ___) => Container(
                                   width: 200,
                                   height: 200,
-                                  color: isMe ? Colors.white12 : const Color(0xFFF1F5F9),
+                                  color: isMe
+                                      ? Colors.white12
+                                      : const Color(0xFFF1F5F9),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
                                         Icons.image_not_supported,
                                         size: 48,
-                                        color: isMe ? Colors.white70 : _textMuted,
+                                        color:
+                                            isMe ? Colors.white70 : _textMuted,
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
                                         'Image non disponible',
                                         style: TextStyle(
                                           fontSize: 12,
-                                          color: isMe ? Colors.white70 : _textMuted,
+                                          color: isMe
+                                              ? Colors.white70
+                                              : _textMuted,
                                         ),
                                       ),
                                     ],
@@ -895,7 +933,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
                 const SizedBox(height: 6),
                 Row(
                   mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                  mainAxisAlignment:
+                      isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
                   children: [
                     Text(
                       msg.time,
@@ -923,7 +962,6 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
       child: const Icon(Icons.person, size: 16, color: _textMuted),
     );
   }
-
 }
 
 enum _SenderType { mom, dad, therapist }

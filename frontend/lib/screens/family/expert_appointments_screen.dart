@@ -32,7 +32,8 @@ class ExpertAppointmentsScreen extends StatefulWidget {
   const ExpertAppointmentsScreen({super.key});
 
   @override
-  State<ExpertAppointmentsScreen> createState() => _ExpertAppointmentsScreenState();
+  State<ExpertAppointmentsScreen> createState() =>
+      _ExpertAppointmentsScreenState();
 }
 
 class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
@@ -42,7 +43,8 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
     _Appointment(
       expertName: 'Dr. Sarah Williams',
       specialty: 'Neurologue',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC43_k34ZEjEBeKmimLMsQhDlyKtKikCbSQ7aGEvameMkHW9_lhGEHBKh5PecXZ4AGgRp1ZIDWsZalUY_Njx4PD6pNrSIVxi_21lI3EBvqKuteDCDIbUS6DlFeg0CaJ1azIJvvsCP2AvbqwPA7UnMHB2xq2op2GZJkooH7ycVcaJPF-eSEOyn7oZZ5BKT5SEy85YLP2UXSzmEs2iuInoL2yDD0htypvSEfAhHnUbFSUamGUWGs1OD52CQTl4ReNmVgyIexG92zYHbI',
+      imageUrl:
+          'https://lh3.googleusercontent.com/aida-public/AB6AXuC43_k34ZEjEBeKmimLMsQhDlyKtKikCbSQ7aGEvameMkHW9_lhGEHBKh5PecXZ4AGgRp1ZIDWsZalUY_Njx4PD6pNrSIVxi_21lI3EBvqKuteDCDIbUS6DlFeg0CaJ1azIJvvsCP2AvbqwPA7UnMHB2xq2op2GZJkooH7ycVcaJPF-eSEOyn7oZZ5BKT5SEy85YLP2UXSzmEs2iuInoL2yDD0htypvSEfAhHnUbFSUamGUWGs1OD52CQTl4ReNmVgyIexG92zYHbI',
       date: '4 Octobre 2023',
       time: '10:30',
       status: 'confirmed',
@@ -51,7 +53,8 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
     _Appointment(
       expertName: 'Dr. James Cooper',
       specialty: 'Gériatre',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB8V490nnNnAQbJ_ZEQYTq3TIqUXERI9ZOAo40nHXsELWssJJd8MxZcm77UaNRQyC0e-MhJ12MCCY0-EO5raZ0NagFWgTdXeoEvW0EIOOYgMOEDwKB01efGpAmcEh83v6rLIMiJYq2OrKRctYrcxQZkkxKLc-A9bmBzsN0JbWzRq5j7WomSLExFMNx7szIuiHvzvH9hUZZEETV7O0Yy-zUH8fk4ztwkMyn-Qw_XGBYp-JHifO77eEPuPHe4ZXQgpnACFxNZS1UN5Z0',
+      imageUrl:
+          'https://lh3.googleusercontent.com/aida-public/AB6AXuB8V490nnNnAQbJ_ZEQYTq3TIqUXERI9ZOAo40nHXsELWssJJd8MxZcm77UaNRQyC0e-MhJ12MCCY0-EO5raZ0NagFWgTdXeoEvW0EIOOYgMOEDwKB01efGpAmcEh83v6rLIMiJYq2OrKRctYrcxQZkkxKLc-A9bmBzsN0JbWzRq5j7WomSLExFMNx7szIuiHvzvH9hUZZEETV7O0Yy-zUH8fk4ztwkMyn-Qw_XGBYp-JHifO77eEPuPHe4ZXQgpnACFxNZS1UN5Z0',
       date: '12 Octobre 2023',
       time: '15:00',
       status: 'pending',
@@ -60,7 +63,8 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
     _Appointment(
       expertName: 'Dr. Emma Martin',
       specialty: 'Psychologue',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAk7hpcBDDm1M48NG078ywjRIiURS5cKOtsS5GFIJD1TGLDiqjZtvOE_dPT_E6DVGrMCovnDjmdBaR-7qlIEKhvfyZYgfW0pui_q62xWLM2-kJqC4Gzy1eZsjb_pUK-m8wHqU2YdIEZQ6NwgY3IWgSgjwZRmsZVglhPkQWKIj4M96imQ0rPhCWQ4_zwOJIq_g-zr-ohIgHpvDFVjnHRCb-5xmxly9YQWSlhTYTngP445dGw_W-42zzxUhCgd3AKxTsoSDFi3JV38',
+      imageUrl:
+          'https://lh3.googleusercontent.com/aida-public/AB6AXuAk7hpcBDDm1M48NG078ywjRIiURS5cKOtsS5GFIJD1TGLDiqjZtvOE_dPT_E6DVGrMCovnDjmdBaR-7qlIEKhvfyZYgfW0pui_q62xWLM2-kJqC4Gzy1eZsjb_pUK-m8wHqU2YdIEZQ6NwgY3IWgSgjwZRmsZVglhPkQWKIj4M96imQ0rPhCWQ4_zwOJIq_g-zr-ohIgHpvDFVjnHRCb-5xmxly9YQWSlhTYTngP445dGw_W-42zzxUhCgd3AKxTsoSDFi3JV38',
       date: '18 Octobre 2023',
       time: '09:15',
       status: 'confirmed',
@@ -86,7 +90,8 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
                   children: [
                     _buildTabBar(loc),
                     const SizedBox(height: 24),
-                    ..._upcomingAppointments.map((a) => _buildAppointmentCard(a, loc)),
+                    ..._upcomingAppointments
+                        .map((a) => _buildAppointmentCard(a, loc)),
                   ],
                 ),
               ),
@@ -105,19 +110,24 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
           IconButton(
             onPressed: () => context.go(AppConstants.familyDashboardRoute),
             icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-            style: IconButton.styleFrom(backgroundColor: Colors.white.withOpacity(0.2)),
+            style: IconButton.styleFrom(
+                backgroundColor: Colors.white.withOpacity(0.2)),
           ),
           Expanded(
             child: Text(
               loc.expertAppointmentsTitle,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold),
             ),
           ),
           IconButton(
             onPressed: () {},
             icon: const Icon(Icons.search, color: Colors.white),
-            style: IconButton.styleFrom(backgroundColor: Colors.white.withOpacity(0.2)),
+            style: IconButton.styleFrom(
+                backgroundColor: Colors.white.withOpacity(0.2)),
           ),
         ],
       ),
@@ -148,7 +158,9 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: _tabIndex == 0 ? const Color(0xFF334155) : Colors.white,
+                      color: _tabIndex == 0
+                          ? const Color(0xFF334155)
+                          : Colors.white,
                     ),
                   ),
                 ),
@@ -170,7 +182,9 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: _tabIndex == 1 ? const Color(0xFF334155) : Colors.white,
+                      color: _tabIndex == 1
+                          ? const Color(0xFF334155)
+                          : Colors.white,
                     ),
                   ),
                 ),
@@ -190,7 +204,12 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, 4))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,7 +220,10 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: a.imageUrl.isNotEmpty
-                    ? Image.network(a.imageUrl, width: 56, height: 56, fit: BoxFit.cover,
+                    ? Image.network(a.imageUrl,
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => _avatarPlaceholder())
                     : _avatarPlaceholder(),
               ),
@@ -210,19 +232,35 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(a.expertName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0F172A))),
+                    Text(a.expertName,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Color(0xFF0F172A))),
                     const SizedBox(height: 2),
-                    Text(a.specialty, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+                    Text(a.specialty,
+                        style: TextStyle(
+                            fontSize: 14, color: Colors.grey.shade600)),
                     const SizedBox(height: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: isConfirmed ? const Color(0xFFECFDF5) : const Color(0xFFFFFBEB),
+                        color: isConfirmed
+                            ? const Color(0xFFECFDF5)
+                            : const Color(0xFFFFFBEB),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
-                        isConfirmed ? loc.expertAppointmentsConfirmed : loc.expertAppointmentsPending,
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isConfirmed ? const Color(0xFF059669) : const Color(0xFFD97706)),
+                        isConfirmed
+                            ? loc.expertAppointmentsConfirmed
+                            : loc.expertAppointmentsPending,
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: isConfirmed
+                                ? const Color(0xFF059669)
+                                : const Color(0xFFD97706)),
                       ),
                     ),
                   ],
@@ -238,11 +276,19 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
               children: [
                 const Icon(Icons.calendar_today, color: _blue600, size: 20),
                 const SizedBox(width: 8),
-                Text(a.date, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
+                Text(a.date,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF334155))),
                 const Spacer(),
                 const Icon(Icons.schedule, color: _blue600, size: 20),
                 const SizedBox(width: 8),
-                Text(a.time, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
+                Text(a.time,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF334155))),
               ],
             ),
           ),
@@ -252,7 +298,9 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
             children: [
               Expanded(
                 child: Material(
-                  color: a.isVideo && isConfirmed ? _blue600 : Colors.grey.shade100,
+                  color: a.isVideo && isConfirmed
+                      ? _blue600
+                      : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(12),
                   child: InkWell(
                     onTap: () {},
@@ -262,13 +310,24 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(a.isVideo ? Icons.videocam : Icons.location_on, color: a.isVideo && isConfirmed ? Colors.white : Colors.grey.shade700, size: 20),
+                          Icon(a.isVideo ? Icons.videocam : Icons.location_on,
+                              color: a.isVideo && isConfirmed
+                                  ? Colors.white
+                                  : Colors.grey.shade700,
+                              size: 20),
                           const SizedBox(width: 8),
                           Text(
                             isConfirmed
-                                ? (a.isVideo ? loc.expertAppointmentsJoinCall : loc.expertAppointmentsViewItinerary)
+                                ? (a.isVideo
+                                    ? loc.expertAppointmentsJoinCall
+                                    : loc.expertAppointmentsViewItinerary)
                                 : loc.expertAppointmentsAppointmentDetails,
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: a.isVideo && isConfirmed ? Colors.white : Colors.grey.shade700),
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: a.isVideo && isConfirmed
+                                    ? Colors.white
+                                    : Colors.grey.shade700),
                           ),
                         ],
                       ),

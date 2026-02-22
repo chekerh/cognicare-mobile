@@ -44,7 +44,8 @@ class HealthcareConsultationScreen extends StatelessWidget {
                 errorBuilder: (_, __, ___) => Container(
                   color: const Color(0xFF1a1a1a),
                   child: const Center(
-                    child: Icon(Icons.videocam_off, color: Colors.white54, size: 64),
+                    child: Icon(Icons.videocam_off,
+                        color: Colors.white54, size: 64),
                   ),
                 ),
               ),
@@ -55,7 +56,8 @@ class HealthcareConsultationScreen extends StatelessWidget {
               left: 0,
               right: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -69,7 +71,8 @@ class HealthcareConsultationScreen extends StatelessWidget {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back_ios_new,
+                          color: Colors.white),
                       onPressed: () => context.pop(),
                     ),
                     Expanded(
@@ -98,7 +101,8 @@ class HealthcareConsultationScreen extends StatelessWidget {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(999),
@@ -168,7 +172,9 @@ class HealthcareConsultationScreen extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => const ColoredBox(
                       color: Color(0xFF2D7DA1),
-                      child: Center(child: Icon(Icons.person, color: Colors.white, size: 48)),
+                      child: Center(
+                          child: Icon(Icons.person,
+                              color: Colors.white, size: 48)),
                     ),
                   ),
                 ),

@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../l10n/app_localizations.dart';
 import '../../providers/gamification_provider.dart';
 import '../../services/engagement_service.dart';
 
@@ -17,7 +16,8 @@ class EngagementDashboardScreen extends StatefulWidget {
   final String? childId;
 
   @override
-  State<EngagementDashboardScreen> createState() => _EngagementDashboardScreenState();
+  State<EngagementDashboardScreen> createState() =>
+      _EngagementDashboardScreenState();
 }
 
 class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
@@ -33,7 +33,9 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
     if (widget.childId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.read<GamificationProvider>().setCurrentChildId(widget.childId!);
+          context
+              .read<GamificationProvider>()
+              .setCurrentChildId(widget.childId!);
         }
       });
     }
@@ -45,7 +47,8 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
       _error = null;
     });
     try {
-      final data = await _engagementService.getDashboard(childId: widget.childId);
+      final data =
+          await _engagementService.getDashboard(childId: widget.childId);
       if (mounted) {
         setState(() {
           _dashboard = data;
@@ -79,7 +82,8 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
             _buildHeader(context),
             Expanded(
               child: _loading
-                  ? const Center(child: CircularProgressIndicator(color: _primary))
+                  ? const Center(
+                      child: CircularProgressIndicator(color: _primary))
                   : _error != null
                       ? _buildError()
                       : _buildContent(context),
@@ -107,13 +111,17 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
               child: const SizedBox(
                 width: 40,
                 height: 40,
-                child: Icon(Icons.chevron_left, color: Color(0xFF64748B), size: 24),
+                child: Icon(Icons.chevron_left,
+                    color: Color(0xFF64748B), size: 24),
               ),
             ),
           ),
-          Text(
-            AppLocalizations.of(context)!.engagementDashboardTitle,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+          const Text(
+            'Tableau d\'Engagement',
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B)),
           ),
           Material(
             color: Colors.white,
@@ -141,12 +149,14 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF64748B))),
+            Text(_error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Color(0xFF64748B))),
             const SizedBox(height: 16),
             TextButton.icon(
               onPressed: _loadDashboard,
               icon: const Icon(Icons.refresh),
-              label: Text(AppLocalizations.of(context)!.retryButton),
+              label: const Text('Réessayer'),
             ),
           ],
         ),
@@ -164,30 +174,40 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
     return ListView(
       padding: EdgeInsets.fromLTRB(24, 16, 24, 32 + bottomPadding),
       children: [
-        _buildPlaytimeCard(progress, d.playTimeTodayMinutes, d.playTimeGoalMinutes, d.focusMessage, context),
+        _buildPlaytimeCard(progress, d.playTimeTodayMinutes,
+            d.playTimeGoalMinutes, d.focusMessage),
         const SizedBox(height: 32),
-        _buildRecentActivities(d.recentActivities, context),
+        _buildRecentActivities(d.recentActivities),
         const SizedBox(height: 32),
-        _buildBadgesSection(d.badges, context),
+        _buildBadgesSection(d.badges),
       ],
     );
   }
 
-  Widget _buildPlaytimeCard(double progress, int minutes, int goal, String focusMessage, BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
+  Widget _buildPlaytimeCard(
+      double progress, int minutes, int goal, String focusMessage) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(32),
         border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4))
+        ],
       ),
       child: Column(
         children: [
           Text(
-            loc.playtimeTodayLabel,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade500, letterSpacing: 1.2),
+            'TEMPS DE JEU AUJOURD\'HUI',
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade500,
+                letterSpacing: 1.2),
           ),
           const SizedBox(height: 24),
           Stack(
@@ -211,14 +231,24 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
                   Text.rich(
                     TextSpan(
                       text: '$minutes ',
-                      style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                      style: const TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B)),
                       children: [
-                        TextSpan(text: loc.minutesShortLabel, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.grey.shade400)),
+                        TextSpan(
+                            text: 'min',
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey.shade400)),
                       ],
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text('${loc.goalLabel}: $goal ${loc.minutesShortLabel}', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                  Text('Objectif: $goal min',
+                      style:
+                          TextStyle(fontSize: 12, color: Colors.grey.shade500)),
                 ],
               ),
             ],
@@ -237,7 +267,10 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
                 Expanded(
                   child: Text(
                     focusMessage,
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey.shade700),
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade700),
                   ),
                 ),
               ],
@@ -248,18 +281,25 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
     );
   }
 
-  Widget _buildRecentActivities(List<EngagementActivity> activities, BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
+  Widget _buildRecentActivities(List<EngagementActivity> activities) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(loc.recentActivitiesTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+            const Text('Activités récentes',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B))),
             GestureDetector(
               onTap: () {},
-              child: Text(loc.seeAllAction, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
+              child: const Text('Voir tout',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: _primary)),
             ),
           ],
         ),
@@ -274,7 +314,7 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
             ),
             child: Center(
               child: Text(
-                loc.noActivityToday,
+                'Aucune activité aujourd\'hui.',
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
               ),
             ),
@@ -283,9 +323,15 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
           ...activities.map((a) => Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: _activityItem(
-                  icon: a.type == 'game' ? Icons.extension : Icons.check_circle_outline,
-                  iconBg: a.type == 'game' ? Colors.orange.shade100 : Colors.indigo.shade100,
-                  iconColor: a.type == 'game' ? Colors.orange.shade700 : Colors.indigo.shade700,
+                  icon: a.type == 'game'
+                      ? Icons.extension
+                      : Icons.check_circle_outline,
+                  iconBg: a.type == 'game'
+                      ? Colors.orange.shade100
+                      : Colors.indigo.shade100,
+                  iconColor: a.type == 'game'
+                      ? Colors.orange.shade700
+                      : Colors.indigo.shade700,
                   title: a.title,
                   time: a.time,
                   subtitle: a.subtitle,
@@ -332,7 +378,12 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
           decoration: BoxDecoration(
             color: iconBg,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2))],
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2))
+            ],
           ),
           child: Icon(icon, color: iconColor, size: 28),
         ),
@@ -344,7 +395,12 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: Colors.grey.shade100),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2))
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -352,16 +408,26 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(child: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
-                    Text(time, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                    Expanded(
+                        child: Text(title,
+                            style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B)))),
+                    Text(time,
+                        style: TextStyle(
+                            fontSize: 12, color: Colors.grey.shade500)),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(subtitle, style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
+                Text(subtitle,
+                    style:
+                        TextStyle(fontSize: 14, color: Colors.grey.shade500)),
                 if (badgeLabel != null && badgeLabel.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: badgeColorResolved.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(999),
@@ -369,9 +435,14 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.trending_up, size: 14, color: badgeColorResolved),
+                        Icon(Icons.trending_up,
+                            size: 14, color: badgeColorResolved),
                         const SizedBox(width: 4),
-                        Text(badgeLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: badgeColorResolved)),
+                        Text(badgeLabel,
+                            style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: badgeColorResolved)),
                       ],
                     ),
                   ),
@@ -384,12 +455,15 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
     );
   }
 
-  Widget _buildBadgesSection(List<EngagementBadge> badges, BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
+  Widget _buildBadgesSection(List<EngagementBadge> badges) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(loc.engagementBadgesTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+        const Text('Badges d\'engagement',
+            style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B))),
         const SizedBox(height: 16),
         if (badges.isEmpty)
           Container(
@@ -401,7 +475,7 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
             ),
             child: Center(
               child: Text(
-                loc.noBadgesYet,
+                'Aucun badge encore. Continue de jouer !',
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
               ),
             ),
@@ -416,13 +490,19 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
                 final b = badges[i];
                 return Container(
                   width: 112,
-                  margin: EdgeInsets.only(right: i < badges.length - 1 ? 16 : 0),
+                  margin:
+                      EdgeInsets.only(right: i < badges.length - 1 ? 16 : 0),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(color: Colors.grey.shade100),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2))
+                    ],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -434,7 +514,8 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
                           color: _primary.withOpacity(0.2),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.emoji_events, color: _primary, size: 32),
+                        child: const Icon(Icons.emoji_events,
+                            color: _primary, size: 32),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -442,7 +523,10 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
                         textAlign: TextAlign.center,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade600),
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade600),
                       ),
                     ],
                   ),
@@ -488,10 +572,12 @@ class _ProgressRingPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
     const sweepAngle = 2 * math.pi;
     const startAngle = -math.pi / 2;
-    canvas.drawArc(rect, startAngle, sweepAngle * progress.clamp(0.0, 1.0), false, progressPaint);
+    canvas.drawArc(rect, startAngle, sweepAngle * progress.clamp(0.0, 1.0),
+        false, progressPaint);
   }
 
   @override
   bool shouldRepaint(covariant _ProgressRingPainter oldDelegate) =>
-      oldDelegate.progress != progress || oldDelegate.progressColor != progressColor;
+      oldDelegate.progress != progress ||
+      oldDelegate.progressColor != progressColor;
 }

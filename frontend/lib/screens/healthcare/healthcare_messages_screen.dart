@@ -42,7 +42,8 @@ class HealthcareMessagesScreen extends StatefulWidget {
   const HealthcareMessagesScreen({super.key});
 
   @override
-  State<HealthcareMessagesScreen> createState() => _HealthcareMessagesScreenState();
+  State<HealthcareMessagesScreen> createState() =>
+      _HealthcareMessagesScreenState();
 }
 
 class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
@@ -190,9 +191,11 @@ class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
           decoration: InputDecoration(
             hintText: AppLocalizations.of(context)!.searchHint,
             hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-            prefixIcon: Icon(Icons.search, color: Colors.grey.shade500, size: 22),
+            prefixIcon:
+                Icon(Icons.search, color: Colors.grey.shade500, size: 22),
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
       ),
@@ -234,7 +237,8 @@ class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.shade400),
+            Icon(Icons.chat_bubble_outline,
+                size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
               AppLocalizations.of(context)!.noMessagesLabel,
@@ -311,21 +315,20 @@ class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
                         width: 56,
                         height: 56,
                         fit: BoxFit.cover,
-                        loadingBuilder: (_, child, progress) =>
-                            progress == null
-                                ? child
-                                : SizedBox(
-                                    width: 56,
-                                    height: 56,
-                                    child: Center(
-                                      child: CircularProgressIndicator(
-                                        value: progress.expectedTotalBytes != null
-                                            ? progress.cumulativeBytesLoaded /
-                                                progress.expectedTotalBytes!
-                                            : null,
-                                      ),
-                                    ),
+                        loadingBuilder: (_, child, progress) => progress == null
+                            ? child
+                            : SizedBox(
+                                width: 56,
+                                height: 56,
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    value: progress.expectedTotalBytes != null
+                                        ? progress.cumulativeBytesLoaded /
+                                            progress.expectedTotalBytes!
+                                        : null,
                                   ),
+                                ),
+                              ),
                         errorBuilder: (_, __, ___) => CircleAvatar(
                           radius: 28,
                           backgroundColor: _primary.withOpacity(0.2),

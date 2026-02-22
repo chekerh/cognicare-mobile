@@ -30,7 +30,8 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
     final progress = provider.progressTowardNextReward;
     final target = provider.nextRewardTarget;
     final hasReached = provider.hasReachedNextReward;
-    final progressPercent = target > 0 ? (progress / target).clamp(0.0, 1.0) : 0.0;
+    final progressPercent =
+        target > 0 ? (progress / target).clamp(0.0, 1.0) : 0.0;
 
     // 3 stars: progression de l'enfant (4, 8, 16 tâches)
     final star1Filled = progress >= 4;
@@ -38,70 +39,73 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
     final star3Filled = progress >= 16;
 
     return Scaffold(
-      backgroundColor: _primary,
-      body: SafeArea(
-        top: true,
-        bottom: true,
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                const SizedBox(height: 8),
-                _buildHeader(loc),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(minHeight: constraints.maxHeight - 40),
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildStarPath(
-                                  star1Filled: star1Filled,
-                                  star2Filled: star2Filled,
-                                  star3Filled: star3Filled,
-                                  loc: loc,
-                                  hasReached: hasReached,
-                                  progressPercent: progressPercent,
-                                  progress: progress,
-                                  target: target,
-                                ),
-                                const SizedBox(height: 24),
-                                _buildBadgesSection(context, loc),
-                              ],
+        backgroundColor: _primary,
+        body: SafeArea(
+          top: true,
+          bottom: true,
+          child: Stack(
+            children: [
+              Column(
+                children: [
+                  const SizedBox(height: 8),
+                  _buildHeader(loc),
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 20),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight - 40),
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildStarPath(
+                                    star1Filled: star1Filled,
+                                    star2Filled: star2Filled,
+                                    star3Filled: star3Filled,
+                                    loc: loc,
+                                    hasReached: hasReached,
+                                    progressPercent: progressPercent,
+                                    progress: progress,
+                                    target: target,
+                                  ),
+                                  const SizedBox(height: 24),
+                                  _buildBadgesSection(context, loc),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                    child: _buildRetourButton(context, loc),
+                  ),
+                ],
+              ),
+              Positioned(
+                left: 12,
+                right: 12,
+                top: 12,
+                bottom: 12,
+                child: IgnorePointer(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.white.withOpacity(0.1), width: 12),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                  child: _buildRetourButton(context, loc),
-                ),
-              ],
-            ),
-          Positioned(
-            left: 12,
-            right: 12,
-            top: 12,
-            bottom: 12,
-            child: IgnorePointer(
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white.withOpacity(0.1), width: 12),
-                  borderRadius: BorderRadius.circular(24),
-                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
-    ));
+        ));
   }
 
   Widget _buildBadgesSection(BuildContext context, AppLocalizations loc) {
@@ -170,7 +174,8 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
                   runSpacing: 8,
                   children: stats.badges.map((b) {
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: _accent.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20),
@@ -223,7 +228,8 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
                   ),
                 ],
               ),
-              child: const Icon(CupertinoIcons.eyeglasses, color: Colors.black87, size: 44),
+              child: const Icon(CupertinoIcons.eyeglasses,
+                  color: Colors.black87, size: 44),
             ),
             Positioned(
               left: -12,
@@ -244,7 +250,8 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
               right: -48,
               top: 8,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: const BorderRadius.only(
@@ -328,7 +335,8 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
             const SizedBox(height: starSpacing),
             _buildStar(star3Filled, starSize),
             const SizedBox(height: 20),
-            _buildAchievementBox(loc, hasReached, progressPercent, progress, target),
+            _buildAchievementBox(
+                loc, hasReached, progressPercent, progress, target),
           ],
         ),
       ],
@@ -364,7 +372,8 @@ class _ChildProgressScreenState extends State<ChildProgressScreen> {
     );
   }
 
-  Widget _buildAchievementBox(AppLocalizations loc, bool hasReached, double progressPercent, int progress, int target) {
+  Widget _buildAchievementBox(AppLocalizations loc, bool hasReached,
+      double progressPercent, int progress, int target) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(

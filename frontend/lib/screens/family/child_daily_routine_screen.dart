@@ -5,7 +5,6 @@ import '../../models/task_reminder.dart';
 import '../../services/reminders_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/notification_service.dart';
-import '../../l10n/app_localizations.dart';
 
 // Couleurs alignées avec le dashboard famille
 const Color _primary = Color(0xFFA3D9E5);
@@ -26,7 +25,8 @@ class ChildDailyRoutineScreen extends StatefulWidget {
   });
 
   @override
-  State<ChildDailyRoutineScreen> createState() => _ChildDailyRoutineScreenState();
+  State<ChildDailyRoutineScreen> createState() =>
+      _ChildDailyRoutineScreenState();
 }
 
 class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
@@ -42,7 +42,7 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
 
   Future<void> _loadReminders() async {
     if (!mounted) return;
-    
+
     setState(() {
       _isLoading = true;
     });
@@ -53,7 +53,8 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
         getToken: () async => authProvider.accessToken,
       );
 
-      final reminders = await remindersService.getTodayReminders(widget.childId);
+      final reminders =
+          await remindersService.getTodayReminders(widget.childId);
       final completed = reminders.where((r) => r.completedToday == true).length;
 
       if (mounted) {
@@ -82,10 +83,11 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
 
         setState(() {
           _reminders = filteredReminders;
-          _completedCount = filteredReminders.where((r) => r.completedToday == true).length;
+          _completedCount =
+              filteredReminders.where((r) => r.completedToday == true).length;
           _isLoading = false;
         });
-        
+
         // Synchroniser les notifications locales
         NotificationService().syncNotifications(filteredReminders);
       }
@@ -122,7 +124,8 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
               controller: controller,
               maxLines: 3,
               decoration: const InputDecoration(
-                hintText: 'Ex. : L\'enfant a bien participé, difficulté à se concentrer après 10 min...',
+                hintText:
+                    'Ex. : L\'enfant a bien participé, difficulté à se concentrer après 10 min...',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -147,7 +150,7 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
 
   Future<void> _toggleTaskCompletion(TaskReminder reminder) async {
     final newStatus = !(reminder.completedToday ?? false);
-    
+
     // Si c'est un médicament et qu'on veut le marquer comme complété, ouvrir l'écran de vérification
     if (reminder.type == ReminderType.medication && newStatus) {
       final result = await context.push(
@@ -158,27 +161,27 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
           'taskDescription': reminder.description,
         },
       );
-      
+
       // Si la vérification a réussi, recharger les reminders
       if (result == true && mounted) {
         _loadReminders();
       }
       return;
     }
-    
+
     // Pour les autres tâches : si on marque comme complété, proposer un retour optionnel pour le spécialiste
     String? feedback;
     if (newStatus) {
       feedback = await _showOptionalFeedbackDialog(reminder.title);
       if (!mounted) return;
     }
-    
+
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final remindersService = RemindersService(
         getToken: () async => authProvider.accessToken,
       );
-      
+
       await remindersService.completeTask(
         reminderId: reminder.id,
         completed: newStatus,
@@ -194,10 +197,12 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
               completedToday: newStatus,
               completedAt: newStatus ? DateTime.now() : null,
               // On réinitialise le statut de vérification si on dé-complète
-              verificationStatus: newStatus ? reminder.verificationStatus : null,
-              verificationMetadata: newStatus ? reminder.verificationMetadata : null,
+              verificationStatus:
+                  newStatus ? reminder.verificationStatus : null,
+              verificationMetadata:
+                  newStatus ? reminder.verificationMetadata : null,
             );
-            
+
             if (newStatus) {
               _completedCount++;
             } else {
@@ -207,10 +212,9 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
         });
 
         if (newStatus) {
-          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(_getEncouragementMessage(reminder.type, l10n)),
+              content: Text(_getEncouragementMessage(reminder.type)),
               backgroundColor: Colors.green,
               behavior: SnackBarBehavior.floating,
               duration: const Duration(seconds: 2),
@@ -236,18 +240,19 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
       final remindersService = RemindersService(
         getToken: () async => authProvider.accessToken,
       );
-      
+
       await remindersService.deleteReminder(reminder.id);
-      
+
       if (mounted) {
         setState(() {
           _reminders.removeWhere((r) => r.id == reminder.id);
-          _completedCount = _reminders.where((r) => r.completedToday == true).length;
+          _completedCount =
+              _reminders.where((r) => r.completedToday == true).length;
         });
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.taskDeleted),
+            content: Text('"${reminder.title}" supprimé'),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
           ),
@@ -257,7 +262,7 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context)!.taskDeleteError}: $e'),
+            content: Text('Erreur lors de la suppression : $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -266,31 +271,36 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
     }
   }
 
-  String _getEncouragementMessage(ReminderType type, AppLocalizations l10n) {
+  String _getEncouragementMessage(ReminderType type) {
     switch (type) {
       case ReminderType.water:
-        return l10n.encouragementHydrated;
+        return 'Great job staying hydrated!';
       case ReminderType.meal:
-        return l10n.encouragementMeal;
+        return 'Well done! You had a healthy meal!';
       case ReminderType.medication:
-        return l10n.encouragementMedication;
+        return 'Perfect! You took your medicine!';
       case ReminderType.hygiene:
-        return l10n.encouragementHygiene;
+        return 'Awesome! You\'re so clean!';
       case ReminderType.homework:
-        return l10n.encouragementHomework;
+        return 'Amazing work! You completed your task!';
       default:
-        return l10n.encouragementDefault;
+        return 'Well done! Keep it up!';
     }
   }
 
   /// Recent completion entries that have feedback (for "Vos retours récents").
-  List<({String taskTitle, String feedback, DateTime date})> _recentFeedbackEntries() {
+  List<({String taskTitle, String feedback, DateTime date})>
+      _recentFeedbackEntries() {
     final list = <({String taskTitle, String feedback, DateTime date})>[];
     for (final r in _reminders) {
       final history = r.completionHistory ?? [];
       for (final entry in history) {
         if (entry.feedback != null && entry.feedback!.trim().isNotEmpty) {
-          list.add((taskTitle: r.title, feedback: entry.feedback!.trim(), date: entry.date));
+          list.add((
+            taskTitle: r.title,
+            feedback: entry.feedback!.trim(),
+            date: entry.date
+          ));
         }
       }
     }
@@ -308,7 +318,8 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
       backgroundColor: _backgroundColor,
       body: SafeArea(
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: _primaryDark))
+            ? const Center(
+                child: CircularProgressIndicator(color: _primaryDark))
             : Column(
                 children: [
                   // Custom Header
@@ -325,7 +336,7 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
                         ? _buildEmptyState()
                         : _buildTaskList(),
                   ),
-                  
+
                   // Progress Footer
                   if (_reminders.isNotEmpty) ...[
                     _buildProgressFooter(progress, totalTasks),
@@ -348,6 +359,7 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
       if (day == today.subtract(const Duration(days: 1))) return 'Hier';
       return '${d.day}/${d.month}/${d.year}';
     }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Material(
@@ -425,22 +437,22 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
             ),
           ),
           const SizedBox(width: 16),
-          
+
           // Title
-          Expanded(
+          const Expanded(
             child: Text(
-              AppLocalizations.of(context)!.routineTitle,
-              style: const TextStyle(
+              'Child Daily Visual Routine',
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: Colors.black87,
               ),
             ),
           ),
-          
+
           // Add Task Button
           Container(
-            margin: const EdgeInsetsDirectional.only(end: 8),
+            margin: const EdgeInsets.only(right: 8),
             decoration: BoxDecoration(
               color: _primaryDark.withOpacity(0.1),
               shape: BoxShape.circle,
@@ -461,7 +473,7 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
               },
             ),
           ),
-          
+
           // Settings Button
           Container(
             decoration: BoxDecoration(
@@ -472,7 +484,8 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
               icon: const Icon(Icons.settings, color: Colors.black87),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(AppLocalizations.of(context)!.settingsComingSoon)),
+                  const SnackBar(
+                      content: Text('Parametres bientot disponibles')),
                 );
               },
             ),
@@ -504,9 +517,9 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
               ),
             ),
             const SizedBox(height: 32),
-            Text(
-              AppLocalizations.of(context)!.noTasksToday,
-              style: const TextStyle(
+            const Text(
+              'Aucune tâche pour aujourd\'hui',
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
                 color: Colors.black87,
@@ -515,8 +528,8 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              AppLocalizations.of(context)!.noTasksDescription,
-              style: const TextStyle(
+              'Commencez par créer des rappels pour votre enfant. Cliquez sur le bouton ci-dessous pour ajouter des tâches quotidiennes.',
+              style: TextStyle(
                 fontSize: 15,
                 color: Colors.black54,
                 height: 1.5,
@@ -533,7 +546,7 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
                     'childName': 'Enfant',
                   },
                 );
-                
+
                 if (result == true && mounted) {
                   _loadReminders();
                 }
@@ -541,20 +554,21 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: _primaryDark,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
                 elevation: 3,
               ),
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.add, size: 20),
-                  const SizedBox(width: 8),
+                  Icon(Icons.add, size: 20),
+                  SizedBox(width: 8),
                   Text(
-                    AppLocalizations.of(context)!.addTasksButton,
-                    style: const TextStyle(
+                    'Ajouter des tâches',
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -582,19 +596,18 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  title: Text(AppLocalizations.of(context)!.confirmDeleteTitle),
-                  content: Text(AppLocalizations.of(context)!.confirmDeleteMessage(reminder.title)),
+                  title: const Text("Confirmer la suppression"),
+                  content: Text(
+                      "Voulez-vous vraiment supprimer le rappel \"${reminder.title}\" ?"),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(false),
-                      child: Text(AppLocalizations.of(context)!.cancel.toUpperCase()),
+                      child: const Text("ANNULER"),
                     ),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(true),
-                      child: Text(
-                        AppLocalizations.of(context)!.delete.toUpperCase(),
-                        style: const TextStyle(color: Colors.red),
-                      ),
+                      child: const Text("SUPPRIMER",
+                          style: TextStyle(color: Colors.red)),
                     ),
                   ],
                 );
@@ -612,7 +625,8 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
               color: Colors.redAccent,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Icon(Icons.delete_outline, color: Colors.white, size: 30),
+            child:
+                const Icon(Icons.delete_outline, color: Colors.white, size: 30),
           ),
           child: _buildTaskCard(reminder),
         );
@@ -622,7 +636,7 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
 
   Widget _buildTaskCard(TaskReminder reminder) {
     final isCompleted = reminder.completedToday ?? false;
-    
+
     return GestureDetector(
       onTap: () {
         // Suppression de la navigation vers l'écran de notification inutile
@@ -660,7 +674,7 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
               ),
             ),
             const SizedBox(width: 14),
-            
+
             // Task Info
             Expanded(
               child: Column(
@@ -676,22 +690,29 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
                           color: Color(0xFF1E293B),
                         ),
                       ),
-                      if (reminder.type == ReminderType.medication && isCompleted && reminder.verificationStatus != 'VALID')
+                      if (reminder.type == ReminderType.medication &&
+                          isCompleted &&
+                          reminder.verificationStatus != 'VALID')
                         Container(
-                          margin: const EdgeInsetsDirectional.only(start: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          margin: const EdgeInsets.only(left: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: Colors.orange.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Text(
-                            AppLocalizations.of(context)!.verificationInProgress,
-                            style: const TextStyle(fontSize: 10, color: Colors.orange, fontWeight: FontWeight.bold),
+                          child: const Text(
+                            'Vérification...',
+                            style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.orange,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                     ],
                   ),
-                  if (reminder.description != null && reminder.description!.isNotEmpty) ...[
+                  if (reminder.description != null &&
+                      reminder.description!.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
                       reminder.description!,
@@ -704,30 +725,39 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
                     ),
                   ],
                   const SizedBox(height: 6),
-                  if (reminder.times.isNotEmpty) 
+                  if (reminder.times.isNotEmpty)
                     Wrap(
                       spacing: 4,
-                      children: reminder.times.map((t) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          t,
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _primaryDark),
-                        ),
-                      )).toList(),
+                      children: reminder.times
+                          .map((t) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: _primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  t,
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: _primaryDark),
+                                ),
+                              ))
+                          .toList(),
                     )
                   else
-                    Text(
-                      AppLocalizations.of(context)!.unspecifiedTime,
-                      style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Colors.orange),
+                    const Text(
+                      'Horaire non spécifié',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.orange),
                     ),
                 ],
               ),
             ),
-            
+
             // Checkbox logic: Medication must be VALID to show tick
             GestureDetector(
               onTap: () => _toggleTaskCompletion(reminder),
@@ -739,19 +769,28 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: (reminder.type == ReminderType.medication)
-                        ? (reminder.verificationStatus == 'VALID' ? _primaryDark : Colors.grey.shade200)
+                        ? (reminder.verificationStatus == 'VALID'
+                            ? _primaryDark
+                            : Colors.grey.shade200)
                         : (isCompleted ? _primaryDark : Colors.grey.shade200),
                     width: 2.5,
                   ),
                   color: (reminder.type == ReminderType.medication)
-                      ? (reminder.verificationStatus == 'VALID' ? _primaryDark : Colors.transparent)
+                      ? (reminder.verificationStatus == 'VALID'
+                          ? _primaryDark
+                          : Colors.transparent)
                       : (isCompleted ? _primaryDark : Colors.transparent),
                 ),
-                child: ((reminder.type == ReminderType.medication && reminder.verificationStatus == 'VALID') || 
-                       (reminder.type != ReminderType.medication && isCompleted))
+                child: ((reminder.type == ReminderType.medication &&
+                            reminder.verificationStatus == 'VALID') ||
+                        (reminder.type != ReminderType.medication &&
+                            isCompleted))
                     ? const Icon(Icons.check, color: Colors.white, size: 20)
-                    : (reminder.type == ReminderType.medication && isCompleted && reminder.verificationStatus != 'VALID')
-                        ? const Icon(Icons.hourglass_bottom, color: Colors.orange, size: 18) // Waiting for AI
+                    : (reminder.type == ReminderType.medication &&
+                            isCompleted &&
+                            reminder.verificationStatus != 'VALID')
+                        ? const Icon(Icons.hourglass_bottom,
+                            color: Colors.orange, size: 18) // Waiting for AI
                         : null,
               ),
             ),
@@ -782,16 +821,16 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  AppLocalizations.of(context)!.keepGoing,
-                  style: const TextStyle(
+                const Text(
+                  'Keep going!',
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF1E293B),
                   ),
                 ),
                 const SizedBox(height: 10),
-                  ClipRRect(
+                ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: LinearProgressIndicator(
                     value: progress,

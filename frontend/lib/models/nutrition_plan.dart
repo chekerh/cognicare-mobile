@@ -110,8 +110,7 @@ class NutritionPlan {
       createdBy: json['createdBy'] ?? '',
       dailyWaterGoal: json['dailyWaterGoal'] ?? 6,
       waterReminderInterval: json['waterReminderInterval'] ?? 120,
-      breakfast:
-          (json['breakfast'] as List<dynamic>?)?.cast<String>() ?? [],
+      breakfast: (json['breakfast'] as List<dynamic>?)?.cast<String>() ?? [],
       breakfastTime: json['breakfastTime'],
       lunch: (json['lunch'] as List<dynamic>?)?.cast<String>() ?? [],
       lunchTime: json['lunchTime'],
@@ -121,8 +120,7 @@ class NutritionPlan {
               ?.map((s) => Snack.fromJson(s as Map<String, dynamic>))
               .toList() ??
           [],
-      allergies:
-          (json['allergies'] as List<dynamic>?)?.cast<String>() ?? [],
+      allergies: (json['allergies'] as List<dynamic>?)?.cast<String>() ?? [],
       restrictions:
           (json['restrictions'] as List<dynamic>?)?.cast<String>() ?? [],
       preferences:
@@ -133,12 +131,10 @@ class NutritionPlan {
           [],
       specialNotes: json['specialNotes'],
       isActive: json['isActive'] ?? true,
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'])
-          : null,
+      createdAt:
+          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      updatedAt:
+          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
     );
   }
 

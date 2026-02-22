@@ -30,8 +30,22 @@ class ChatMessageBar extends StatelessWidget {
   final Duration? recordingDuration;
 
   static const List<String> _defaultEmojis = [
-    '😀', '😊', '👍', '❤️', '🙏', '😅', '😂', '🥰',
-    '👋', '💪', '✨', '🔥', '✅', '🎉', '💯', '🙌',
+    '😀',
+    '😊',
+    '👍',
+    '❤️',
+    '🙏',
+    '😅',
+    '😂',
+    '🥰',
+    '👋',
+    '💪',
+    '✨',
+    '🔥',
+    '✅',
+    '🎉',
+    '💯',
+    '🙌',
   ];
 
   void _showEmojiPicker(BuildContext context) {
@@ -52,7 +66,8 @@ class ChatMessageBar extends StatelessWidget {
             return InkWell(
               onTap: () {
                 controller.text = controller.text + e;
-                controller.selection = TextSelection.collapsed(offset: controller.text.length);
+                controller.selection =
+                    TextSelection.collapsed(offset: controller.text.length);
                 Navigator.pop(ctx);
               },
               borderRadius: BorderRadius.circular(8),
@@ -95,8 +110,10 @@ class ChatMessageBar extends StatelessWidget {
             // Champ texte
             Expanded(
               child: Container(
-                constraints: const BoxConstraints(minHeight: 44, maxHeight: 120),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                constraints:
+                    const BoxConstraints(minHeight: 44, maxHeight: 120),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(22),

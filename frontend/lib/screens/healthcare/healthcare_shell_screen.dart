@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 
 const Color _navPrimary = Color(0xFFA2D9E7);
@@ -47,11 +46,15 @@ class HealthcareShellScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _navItem(context, 0, Icons.group_rounded, AppLocalizations.of(context)!.patientsLabel, currentIndex),
-                _navItem(context, 1, Icons.insights_rounded, AppLocalizations.of(context)!.reportsLabel, currentIndex),
+                _navItem(
+                    context, 0, Icons.group_rounded, 'Patients', currentIndex),
+                _navItem(context, 1, Icons.insights_rounded, 'Rapports',
+                    currentIndex),
                 _tableauNavItem(context, currentIndex),
-                _navItem(context, 3, Icons.chat_bubble_outline_rounded, AppLocalizations.of(context)!.messageLabel, currentIndex),
-                _navItem(context, 4, Icons.person_outline_rounded, AppLocalizations.of(context)!.profileTitle, currentIndex),
+                _navItem(context, 3, Icons.chat_bubble_outline_rounded,
+                    'Messages', currentIndex),
+                _navItem(context, 4, Icons.person_outline_rounded, 'Profil',
+                    currentIndex),
               ],
             ),
           ),
@@ -64,7 +67,11 @@ class HealthcareShellScreen extends StatelessWidget {
     if (path.startsWith(AppConstants.healthcareRoute)) {
       if (path.endsWith('patients')) return 0;
       if (path.endsWith('reports')) return 1;
-      if (path.endsWith('dashboard') || path == AppConstants.healthcareRoute || path == '${AppConstants.healthcareRoute}/') return 2;
+      if (path.endsWith('dashboard') ||
+          path == AppConstants.healthcareRoute ||
+          path == '${AppConstants.healthcareRoute}/') {
+        return 2;
+      }
       if (path.endsWith('messages')) return 3;
       if (path.endsWith('profile')) return 4;
     }
@@ -106,7 +113,7 @@ class HealthcareShellScreen extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              AppLocalizations.of(context)!.tableauLabel,
+              'Tableau',
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
@@ -119,7 +126,8 @@ class HealthcareShellScreen extends StatelessWidget {
     );
   }
 
-  Widget _navItem(BuildContext context, int index, IconData icon, String label, int currentIndex) {
+  Widget _navItem(BuildContext context, int index, IconData icon, String label,
+      int currentIndex) {
     final isSelected = currentIndex == index;
     return InkWell(
       onTap: () => _onTap(index),

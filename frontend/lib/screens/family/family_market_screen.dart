@@ -8,7 +8,8 @@ import '../../utils/theme.dart';
 
 const Color _marketPrimary = Color(0xFFADD8E6);
 const Color _marketBackground = Color(0xFFF8FAFC);
-const Color _accentColor = Color(0xFF212121); // même gris que "Commande Confirmée"
+const Color _accentColor =
+    Color(0xFF212121); // même gris que "Commande Confirmée"
 
 /// Marketplace — écran de produits spécialisés (secteur famille).
 class FamilyMarketScreen extends StatefulWidget {
@@ -41,14 +42,27 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
   }
 
   Future<void> _loadProducts() async {
-    final category = _selectedCategoryKey != null ? _categoryToApi(_selectedCategoryKey!) : 'all';
+    final category = _selectedCategoryKey != null
+        ? _categoryToApi(_selectedCategoryKey!)
+        : 'all';
     setState(() => _loading = true);
     try {
       // Uniquement les produits ajoutés par l'utilisateur connecté
-      final list = await MarketplaceService().getMyProducts(limit: 50, category: category);
-      if (mounted) setState(() { _products = list; _loading = false; });
+      final list = await MarketplaceService()
+          .getMyProducts(limit: 50, category: category);
+      if (mounted) {
+        setState(() {
+          _products = list;
+          _loading = false;
+        });
+      }
     } catch (_) {
-      if (mounted) setState(() { _products = []; _loading = false; });
+      if (mounted) {
+        setState(() {
+          _products = [];
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -88,10 +102,12 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
     final listBox = context.findRenderObject() as RenderBox?;
     if (listBox == null) return;
     final sectionTop = box.localToGlobal(Offset.zero, ancestor: listBox).dy;
-    final target = (_contentScrollController.offset + sectionTop - 12).clamp(
-      0.0,
-      _contentScrollController.position.maxScrollExtent,
-    ).toDouble();
+    final target = (_contentScrollController.offset + sectionTop - 12)
+        .clamp(
+          0.0,
+          _contentScrollController.position.maxScrollExtent,
+        )
+        .toDouble();
     _contentScrollController.animateTo(
       target,
       duration: const Duration(milliseconds: 260),
@@ -140,7 +156,8 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final added = await context.push<bool>(AppConstants.familyAddProductRoute);
+          final added =
+              await context.push<bool>(AppConstants.familyAddProductRoute);
           if (added == true && mounted) _loadProducts();
         },
         backgroundColor: _accentColor,
@@ -198,7 +215,8 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
               ),
               Row(
                 children: [
-                  _headerButton(Icons.shopping_cart_outlined, onTap: () => context.push(AppConstants.familyCartRoute)),
+                  _headerButton(Icons.shopping_cart_outlined,
+                      onTap: () => context.push(AppConstants.familyCartRoute)),
                   const SizedBox(width: 12),
                   _headerButton(Icons.search),
                 ],
@@ -220,7 +238,8 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
                     },
                     borderRadius: BorderRadius.circular(999),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? _accentColor
@@ -311,7 +330,8 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
                   itemBuilder: (context, i) {
                     final product = _products[i];
                     return Padding(
-                      padding: EdgeInsets.only(right: i < _products.length - 1 ? 16 : 0),
+                      padding: EdgeInsets.only(
+                          right: i < _products.length - 1 ? 16 : 0),
                       child: _recommendedCard(product),
                     );
                   },
@@ -374,7 +394,8 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
                         if (loadingProgress == null) return child;
                         return Container(
                           color: Colors.grey.shade200,
-                          child: const Center(child: CircularProgressIndicator()),
+                          child:
+                              const Center(child: CircularProgressIndicator()),
                         );
                       },
                       errorBuilder: (context, error, stackTrace) => Container(
@@ -388,7 +409,8 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
                       top: 12,
                       left: 12,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
                           color: badgeColor,
                           borderRadius: BorderRadius.circular(999),
@@ -440,7 +462,8 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _accentColor,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
                     ),
@@ -479,7 +502,8 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
               ),
             ),
             IconButton(
-              icon: Icon(Icons.filter_list, color: AppTheme.text.withOpacity(0.5)),
+              icon: Icon(Icons.filter_list,
+                  color: AppTheme.text.withOpacity(0.5)),
               onPressed: () {},
             ),
           ],

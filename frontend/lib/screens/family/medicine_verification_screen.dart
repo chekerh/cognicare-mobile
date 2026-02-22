@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/reminders_service.dart';
-import '../../l10n/app_localizations.dart';
 
 // Couleurs alignées avec le dashboard famille
 const Color _primary = Color(0xFFA3D9E5);
@@ -27,7 +26,8 @@ class MedicineVerificationScreen extends StatefulWidget {
   });
 
   @override
-  State<MedicineVerificationScreen> createState() => _MedicineVerificationScreenState();
+  State<MedicineVerificationScreen> createState() =>
+      _MedicineVerificationScreenState();
 }
 
 class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
@@ -42,7 +42,7 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
   @override
   void initState() {
     super.initState();
-    
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -76,7 +76,7 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context)!.photoSelectionError}: $e'),
+            content: Text('Erreur lors de la sélection: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -87,8 +87,8 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
   Future<void> _submitVerification() async {
     if (_capturedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.photoRequiredError),
+        const SnackBar(
+          content: Text('Veuillez prendre une photo pour vérifier'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -112,7 +112,7 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
         date: DateTime.now(),
         proofImagePath: _capturedImage!.path,
       );
-      
+
       debugPrint('Verification Result: $result');
 
       if (!mounted) return;
@@ -124,18 +124,17 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
 
       // Message de succès ou d'avertissement selon le statut AI
       final status = _verificationResult?['verificationStatus'];
-      final l10n = AppLocalizations.of(context)!;
-      String message = l10n.analysisComplete;
+      String message = 'Analyse du médicament terminée';
       Color bgColor = Colors.blueGrey;
-      
+
       if (status == 'VALID') {
-        message = l10n.verificationSuccessMsg;
+        message = '✅ Médicament vérifié ! Bravo !';
         bgColor = Colors.green;
       } else if (status == 'UNCERTAIN') {
-        message = l10n.verificationUncertainMsg;
+        message = '⚠️ Vérification incertaine. Un spécialiste va vérifier.';
         bgColor = Colors.orange;
       } else if (status == 'INVALID') {
-        message = l10n.verificationInvalidMsg;
+        message = '❌ Médicament incorrect ou expiré. Attention !';
         bgColor = Colors.red;
       }
 
@@ -153,14 +152,14 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
       // Il cliquera sur "Fermer" manuellement.
     } catch (e) {
       if (!mounted) return;
-      
+
       setState(() {
         _isSubmitting = false;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${AppLocalizations.of(context)!.unknownError}: $e'),
+          content: Text('Erreur: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -176,19 +175,19 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
           children: [
             // Header
             _buildHeader(),
-            
+
             // Content
             Expanded(
               child: _isSubmitting
-                  ? Center(
+                  ? const Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           CircularProgressIndicator(color: _primaryDark),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           Text(
-                            AppLocalizations.of(context)!.verifyingStatus,
-                            style: const TextStyle(
+                            'Vérification en cours...',
+                            style: TextStyle(
                               fontSize: 16,
                               color: Color(0xFF1E293B),
                               fontWeight: FontWeight.w600,
@@ -211,11 +210,13 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
                                   width: 150,
                                   height: 150,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFEC4899).withOpacity(0.2),
+                                    color: const Color(0xFFEC4899)
+                                        .withOpacity(0.2),
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFFEC4899).withOpacity(0.3),
+                                        color: const Color(0xFFEC4899)
+                                            .withOpacity(0.3),
                                         blurRadius: 30,
                                         spreadRadius: 5,
                                       ),
@@ -231,9 +232,9 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
                               );
                             },
                           ),
-                          
+
                           const SizedBox(height: 32),
-                          
+
                           // Title
                           Text(
                             widget.taskTitle,
@@ -244,7 +245,7 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          
+
                           if (widget.taskDescription != null) ...[
                             const SizedBox(height: 12),
                             Text(
@@ -256,9 +257,9 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
                               textAlign: TextAlign.center,
                             ),
                           ],
-                          
+
                           const SizedBox(height: 32),
-                          
+
                           // Instructions
                           Container(
                             padding: const EdgeInsets.all(20),
@@ -275,9 +276,10 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
                             ),
                             child: Column(
                               children: [
-                                  const Row(
+                                const Row(
                                   children: [
-                                    Icon(Icons.camera_alt, color: _primaryDark, size: 24),
+                                    Icon(Icons.camera_alt,
+                                        color: _primaryDark, size: 24),
                                     SizedBox(width: 12),
                                     Expanded(
                                       child: Text(
@@ -293,7 +295,7 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  AppLocalizations.of(context)!.medicineVerificationInstructions,
+                                  'Pour confirmer que tu as pris tes médicaments, prends une photo de toi en train de les prendre.',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey.shade600,
@@ -303,36 +305,37 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
                                 const SizedBox(height: 16),
                                 _buildInstructionStep(
                                   '1',
-                                  AppLocalizations.of(context)!.stepPrepareMedicine,
+                                  'Prépare tes médicaments',
                                   Icons.medication,
                                 ),
                                 const SizedBox(height: 8),
                                 _buildInstructionStep(
                                   '2',
-                                  AppLocalizations.of(context)!.stepTakeWithWater,
+                                  'Prends-les avec de l\'eau',
                                   Icons.water_drop,
                                 ),
                                 const SizedBox(height: 8),
                                 _buildInstructionStep(
                                   '3',
-                                  AppLocalizations.of(context)!.stepTakeSelfie,
+                                  'Prends une photo (selfie)',
                                   Icons.photo_camera,
                                 ),
                               ],
                             ),
                           ),
-                          
+
                           const SizedBox(height: 24),
-                          
+
                           // Photo preview or capture button
                           if (_capturedImage != null)
                             _buildPhotoPreview()
                           else
                             _buildCaptureButton(),
-                          
+
                           const SizedBox(height: 24),
-                          
-                          if (_capturedImage != null && _verificationResult == null)
+
+                          if (_capturedImage != null &&
+                              _verificationResult == null)
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
@@ -340,20 +343,21 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.green,
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   elevation: 3,
                                 ),
-                                child: Row(
+                                child: const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(Icons.check_circle, size: 24),
-                                    const SizedBox(width: 8),
+                                    Icon(Icons.check_circle, size: 24),
+                                    SizedBox(width: 8),
                                     Text(
-                                      AppLocalizations.of(context)!.validateIntakeButton,
-                                      style: const TextStyle(
+                                      'Valider la prise',
+                                      style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -362,9 +366,8 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
                                 ),
                               ),
                             ),
-                          
-                          if (_verificationResult != null)
-                            _buildAIResultCard(),
+
+                          if (_verificationResult != null) _buildAIResultCard(),
                         ],
                       ),
                     ),
@@ -378,8 +381,7 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
   Widget _buildAIResultCard() {
     final status = _verificationResult?['verificationStatus'];
     final metadata = _verificationResult?['verificationMetadata'];
-    final l10n = AppLocalizations.of(context)!;
-    final reasoning = metadata?['reasoning'] ?? l10n.analysisComplete;
+    final reasoning = metadata?['reasoning'] ?? 'Analyse AI complétée.';
 
     Color color;
     IconData icon;
@@ -389,22 +391,22 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
       case 'VALID':
         color = Colors.green;
         icon = Icons.check_circle;
-        statusTitle = l10n.verificationFailedTitle; // Actually means Success in the code context above
+        statusTitle = 'Vérification Réussie';
         break;
       case 'UNCERTAIN':
         color = Colors.orange;
         icon = Icons.warning;
-        statusTitle = l10n.verificationUncertainTitle;
+        statusTitle = 'Vérification Incertaine';
         break;
       case 'INVALID':
         color = Colors.red;
         icon = Icons.error;
-        statusTitle = l10n.verificationInvalidTitle;
+        statusTitle = 'Médicament Invalide';
         break;
       default:
         color = Colors.grey;
         icon = Icons.help;
-        statusTitle = l10n.verificationUnknownStatus;
+        statusTitle = 'Statut Inconnu';
     }
 
     return Container(
@@ -462,11 +464,14 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
               ),
               child: Column(
                 children: [
-                  _buildMetadataRow(l10n.labelMedicineRead, metadata['medicineName'] ?? l10n.notDetected),
+                  _buildMetadataRow('Médicament lue:',
+                      metadata['medicineName'] ?? 'Non détecté'),
                   const SizedBox(height: 8),
-                  _buildMetadataRow(l10n.labelDosage, metadata['dosage'] ?? l10n.notDetected),
+                  _buildMetadataRow(
+                      'Dosage:', metadata['dosage'] ?? 'Non détecté'),
                   const SizedBox(height: 8),
-                  _buildMetadataRow(l10n.labelExpiration, metadata['expiryDate'] ?? l10n.notVisible),
+                  _buildMetadataRow(
+                      'Expiration:', metadata['expiryDate'] ?? 'Non visible'),
                 ],
               ),
             ),
@@ -486,7 +491,7 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
                 elevation: 0,
               ),
               child: Text(
-                status == 'VALID' ? l10n.confirmAndCloseButton : l10n.understoodAndCloseButton,
+                status == 'VALID' ? 'Confirmer et Fermer' : 'Compris et Fermer',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -505,11 +510,13 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
       children: [
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+          style: const TextStyle(
+              fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
         ),
         Text(
           value,
-          style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
+          style: const TextStyle(
+              fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
         ),
       ],
     );
@@ -531,10 +538,10 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
             ),
           ),
           const SizedBox(width: 16),
-          Expanded(
+          const Expanded(
             child: Text(
-              AppLocalizations.of(context)!.medicineVerificationTitle,
-              style: const TextStyle(
+              'Vérification Médicament',
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: Colors.black87,
@@ -613,12 +620,16 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
                       color: _primary.withOpacity(0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.camera_alt, size: 30, color: _primaryDark),
+                    child: const Icon(Icons.camera_alt,
+                        size: 30, color: _primaryDark),
                   ),
-                   const SizedBox(height: 12),
-                  Text(
-                    AppLocalizations.of(context)!.cameraLabel,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _slate800),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Appareil',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: _slate800),
                   ),
                 ],
               ),
@@ -652,12 +663,16 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
                       color: _primary.withOpacity(0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.photo_library, size: 30, color: _primaryDark),
+                    child: const Icon(Icons.photo_library,
+                        size: 30, color: _primaryDark),
                   ),
-                   const SizedBox(height: 12),
-                  Text(
-                    AppLocalizations.of(context)!.galleryLabel,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _slate800),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Galerie',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: _slate800),
                   ),
                 ],
               ),
@@ -699,7 +714,7 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
               child: OutlinedButton.icon(
                 onPressed: () => _pickImage(ImageSource.camera),
                 icon: const Icon(Icons.refresh),
-                label: Text(AppLocalizations.of(context)!.retakeButton),
+                label: const Text('Reprendre'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: _primaryDark,
                   side: const BorderSide(color: _primaryDark),

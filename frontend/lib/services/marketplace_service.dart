@@ -25,10 +25,12 @@ class MarketplaceService {
   }
 
   /// Liste les produits (limit par défaut 6 pour la section feed).
-  Future<List<MarketplaceProduct>> getProducts({int limit = 6, String? category}) async {
+  Future<List<MarketplaceProduct>> getProducts(
+      {int limit = 6, String? category}) async {
     final query = <String, String>{'limit': limit.toString()};
     if (category != null && category != 'all') query['category'] = category;
-    final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.marketplaceProductsEndpoint}')
+    final uri = Uri.parse(
+            '${AppConstants.baseUrl}${AppConstants.marketplaceProductsEndpoint}')
         .replace(queryParameters: query);
     final response = await _client.get(uri);
     if (response.statusCode != 200) {
@@ -42,10 +44,12 @@ class MarketplaceService {
   }
 
   /// Liste uniquement les produits ajoutés par l'utilisateur connecté (JWT requis).
-  Future<List<MarketplaceProduct>> getMyProducts({int limit = 50, String? category}) async {
+  Future<List<MarketplaceProduct>> getMyProducts(
+      {int limit = 50, String? category}) async {
     final query = <String, String>{'limit': limit.toString()};
     if (category != null && category != 'all') query['category'] = category;
-    final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.marketplaceMyProductsEndpoint}')
+    final uri = Uri.parse(
+            '${AppConstants.baseUrl}${AppConstants.marketplaceMyProductsEndpoint}')
         .replace(queryParameters: query);
     final response = await _client.get(uri, headers: await _headers());
     if (response.statusCode != 200) {
@@ -103,7 +107,8 @@ class MarketplaceService {
 
   /// Récupère un produit par ID.
   Future<MarketplaceProduct> getProductById(String id) async {
-    final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.marketplaceProductByIdEndpoint(id)}');
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.marketplaceProductByIdEndpoint(id)}');
     final response = await _client.get(uri);
     if (response.statusCode != 200) {
       if (response.statusCode == 404) {
@@ -119,7 +124,8 @@ class MarketplaceService {
   Future<String> uploadImage(File imageFile) async {
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.marketplaceUploadImageEndpoint}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.marketplaceUploadImageEndpoint}'),
     );
     final token = await _getToken();
     if (token != null) request.headers['Authorization'] = 'Bearer $token';
@@ -162,7 +168,8 @@ class MarketplaceService {
     };
     if (badge != null && badge.isNotEmpty) body['badge'] = badge;
     final response = await _client.post(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.marketplaceProductsEndpoint}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.marketplaceProductsEndpoint}'),
       headers: await _headers(),
       body: jsonEncode(body),
     );

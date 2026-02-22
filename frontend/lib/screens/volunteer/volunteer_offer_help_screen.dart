@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../l10n/app_localizations.dart';
 
 const Color _brandBlue = Color(0xFF2563EB);
 const Color _bgLight = Color(0xFFF0F9FF);
@@ -10,7 +9,8 @@ class VolunteerOfferHelpScreen extends StatefulWidget {
   const VolunteerOfferHelpScreen({super.key});
 
   @override
-  State<VolunteerOfferHelpScreen> createState() => _VolunteerOfferHelpScreenState();
+  State<VolunteerOfferHelpScreen> createState() =>
+      _VolunteerOfferHelpScreenState();
 }
 
 class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
@@ -23,14 +23,12 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
     super.dispose();
   }
 
-  List<({String label, IconData icon})> _getHelpTypes(BuildContext context) {
-    return [
-      (label: AppLocalizations.of(context)!.groceriesLabel, icon: Icons.shopping_cart),
-      (label: AppLocalizations.of(context)!.transportLabel, icon: Icons.directions_car),
-      (label: AppLocalizations.of(context)!.childcareLabel, icon: Icons.child_care),
-      (label: AppLocalizations.of(context)!.otherLabel, icon: Icons.more_horiz),
-    ];
-  }
+  static const List<({String label, IconData icon})> _helpTypes = [
+    (label: 'Courses', icon: Icons.shopping_cart),
+    (label: 'Transport', icon: Icons.directions_car),
+    (label: 'Garde', icon: Icons.child_care),
+    (label: 'Autre', icon: Icons.more_horiz),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -50,9 +48,17 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => context.pop(),
-                    child: const Icon(Icons.arrow_back_ios, color: Color(0xFF475569), size: 22),
+                    child: const Icon(Icons.arrow_back_ios,
+                        color: Color(0xFF475569), size: 22),
                   ),
-                  Expanded(child: Text(AppLocalizations.of(context)!.offerHelpTitle, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)), overflow: TextOverflow.ellipsis)),
+                  const Expanded(
+                      child: Text('Proposer mon Aide',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B)),
+                          overflow: TextOverflow.ellipsis)),
                   const SizedBox(width: 40),
                 ],
               ),
@@ -74,7 +80,7 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                AppLocalizations.of(context)!.offerHelpSubtitle,
+                "Votre générosité fait la force de notre communauté. Proposez votre aide spontanément.",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
@@ -90,7 +96,12 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(AppLocalizations.of(context)!.helpTypeLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500, letterSpacing: 1)),
+                          Text('TYPE D\'AIDE',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade500,
+                                  letterSpacing: 1)),
                           const SizedBox(height: 16),
                           GridView.count(
                             crossAxisCount: 2,
@@ -101,21 +112,37 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                             childAspectRatio: 1.4,
                             children: List.generate(4, (i) {
                               final selected = _helpTypeIndex == i;
-                              final item = _getHelpTypes(context)[i];
+                              final item = _helpTypes[i];
                               return GestureDetector(
                                 onTap: () => setState(() => _helpTypeIndex = i),
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: selected ? _brandBlue.withOpacity(0.08) : Colors.grey.shade50,
+                                    color: selected
+                                        ? _brandBlue.withOpacity(0.08)
+                                        : Colors.grey.shade50,
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: selected ? _brandBlue : Colors.grey.shade200, width: selected ? 2 : 1),
+                                    border: Border.all(
+                                        color: selected
+                                            ? _brandBlue
+                                            : Colors.grey.shade200,
+                                        width: selected ? 2 : 1),
                                   ),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(item.icon, size: 28, color: selected ? _brandBlue : Colors.grey),
+                                      Icon(item.icon,
+                                          size: 28,
+                                          color: selected
+                                              ? _brandBlue
+                                              : Colors.grey),
                                       const SizedBox(height: 8),
-                                      Text(item.label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: selected ? _brandBlue : Colors.grey.shade700)),
+                                      Text(item.label,
+                                          style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: selected
+                                                  ? _brandBlue
+                                                  : Colors.grey.shade700)),
                                     ],
                                   ),
                                 ),
@@ -130,29 +157,50 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(AppLocalizations.of(context)!.whenLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500, letterSpacing: 1)),
+                          Text('QUAND',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade500,
+                                  letterSpacing: 1)),
                           const SizedBox(height: 16),
                           Row(
                             children: [
                               Expanded(
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 12),
                                   decoration: BoxDecoration(
                                     color: Colors.grey.shade50,
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.grey.shade200),
+                                    border:
+                                        Border.all(color: Colors.grey.shade200),
                                   ),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.calendar_today, color: _brandBlue, size: 20),
+                                      const Icon(Icons.calendar_today,
+                                          color: _brandBlue, size: 20),
                                       const SizedBox(width: 8),
                                       Flexible(
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            Text(AppLocalizations.of(context)!.dateLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
-                                            Text(AppLocalizations.of(context)!.todayValueLabel, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontStyle: FontStyle.italic), overflow: TextOverflow.ellipsis),
+                                            Text('DATE',
+                                                style: TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                    color:
+                                                        Colors.grey.shade600)),
+                                            const Text("Aujourd'hui",
+                                                style: TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontStyle:
+                                                        FontStyle.italic),
+                                                overflow:
+                                                    TextOverflow.ellipsis),
                                           ],
                                         ),
                                       ),
@@ -163,23 +211,39 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 12),
                                   decoration: BoxDecoration(
                                     color: Colors.grey.shade50,
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.grey.shade200),
+                                    border:
+                                        Border.all(color: Colors.grey.shade200),
                                   ),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.schedule, color: _brandBlue, size: 20),
+                                      const Icon(Icons.schedule,
+                                          color: _brandBlue, size: 20),
                                       const SizedBox(width: 8),
                                       Flexible(
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            Text(AppLocalizations.of(context)!.timeLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
-                                            Text(AppLocalizations.of(context)!.asapLabel, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontStyle: FontStyle.italic), overflow: TextOverflow.ellipsis),
+                                            Text('HEURE',
+                                                style: TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.bold,
+                                                    color:
+                                                        Colors.grey.shade600)),
+                                            const Text('Dès que possible',
+                                                style: TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontStyle:
+                                                        FontStyle.italic),
+                                                overflow:
+                                                    TextOverflow.ellipsis),
                                           ],
                                         ),
                                       ),
@@ -197,16 +261,24 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(AppLocalizations.of(context)!.customMessageLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500, letterSpacing: 1)),
+                          Text('MESSAGE PERSONNALISÉ',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade500,
+                                  letterSpacing: 1)),
                           const SizedBox(height: 12),
                           TextField(
                             controller: _messageController,
                             maxLines: 4,
                             decoration: InputDecoration(
-                              hintText: "Précisez vos disponibilités ou un détail particulier...",
+                              hintText:
+                                  "Précisez vos disponibilités ou un détail particulier...",
                               filled: true,
                               fillColor: Colors.grey.shade50,
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide.none),
                               contentPadding: const EdgeInsets.all(16),
                             ),
                           ),
@@ -216,16 +288,25 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.offerBroadcastedMessage), behavior: SnackBarBehavior.floating));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Proposition diffusée'),
+                                behavior: SnackBarBehavior.floating));
                         context.pop();
                       },
-                      icon: const Icon(Icons.send, size: 22, color: Colors.white),
-                      label: Text(AppLocalizations.of(context)!.broadcastOfferButton, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                      icon:
+                          const Icon(Icons.send, size: 22, color: Colors.white),
+                      label: const Text('Diffuser ma proposition',
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _brandBlue,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
                         elevation: 6,
                         shadowColor: _brandBlue.withOpacity(0.5),
                       ),
@@ -247,7 +328,12 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white.withOpacity(0.5)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: child,
     );

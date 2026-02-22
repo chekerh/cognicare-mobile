@@ -24,10 +24,12 @@ class ChildProgressSummaryScreen extends StatefulWidget {
   final String? childName;
 
   @override
-  State<ChildProgressSummaryScreen> createState() => _ChildProgressSummaryScreenState();
+  State<ChildProgressSummaryScreen> createState() =>
+      _ChildProgressSummaryScreenState();
 }
 
-class _ChildProgressSummaryScreenState extends State<ChildProgressSummaryScreen> {
+class _ChildProgressSummaryScreenState
+    extends State<ChildProgressSummaryScreen> {
   List<Map<String, dynamic>> _planProgress = [];
   Map<String, dynamic>? _reminderStats;
   bool _loadingPlans = true;
@@ -48,8 +50,10 @@ class _ChildProgressSummaryScreenState extends State<ChildProgressSummaryScreen>
 
   Future<void> _load() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final childrenService = ChildrenService(getToken: () async => authProvider.accessToken);
-    final remindersService = RemindersService(getToken: () async => authProvider.accessToken);
+    final childrenService =
+        ChildrenService(getToken: () async => authProvider.accessToken);
+    final remindersService =
+        RemindersService(getToken: () async => authProvider.accessToken);
 
     setState(() {
       _loadingPlans = true;
@@ -78,7 +82,8 @@ class _ChildProgressSummaryScreenState extends State<ChildProgressSummaryScreen>
     }
 
     try {
-      final stats = await remindersService.getReminderStats(widget.childId, days: 14);
+      final stats =
+          await remindersService.getReminderStats(widget.childId, days: 14);
       if (mounted) {
         setState(() {
           _reminderStats = stats;
@@ -103,9 +108,11 @@ class _ChildProgressSummaryScreenState extends State<ChildProgressSummaryScreen>
       _errorSummary = null;
     });
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final service = ProgressAiService(getToken: () async => authProvider.accessToken);
+    final service =
+        ProgressAiService(getToken: () async => authProvider.accessToken);
     try {
-      final data = await service.getParentSummary(widget.childId, period: _summaryPeriod);
+      final data = await service.getParentSummary(widget.childId,
+          period: _summaryPeriod);
       if (mounted) {
         setState(() {
           _aiSummary = data['summary'] as String?;
@@ -180,7 +187,8 @@ class _ChildProgressSummaryScreenState extends State<ChildProgressSummaryScreen>
                           Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: _primary.withOpacity(0.3),
                                   borderRadius: BorderRadius.circular(8),
@@ -210,7 +218,8 @@ class _ChildProgressSummaryScreenState extends State<ChildProgressSummaryScreen>
                           LinearProgressIndicator(
                             value: percent.clamp(0.0, 1.0),
                             backgroundColor: Colors.grey.shade300,
-                            valueColor: const AlwaysStoppedAnimation<Color>(_primary),
+                            valueColor:
+                                const AlwaysStoppedAnimation<Color>(_primary),
                             minHeight: 8,
                           ),
                           const SizedBox(height: 4),
@@ -257,7 +266,8 @@ class _ChildProgressSummaryScreenState extends State<ChildProgressSummaryScreen>
               ),
               const SizedBox(height: 12),
               if (_loadingStats)
-                const Center(child: Padding(
+                const Center(
+                    child: Padding(
                   padding: EdgeInsets.all(24),
                   child: CircularProgressIndicator(),
                 ))
@@ -376,7 +386,9 @@ class _ChildProgressSummaryScreenState extends State<ChildProgressSummaryScreen>
             ),
             const SizedBox(height: 12),
             LinearProgressIndicator(
-              value: totalTasks > 0 ? (completedTasks / totalTasks).clamp(0.0, 1.0) : 0.0,
+              value: totalTasks > 0
+                  ? (completedTasks / totalTasks).clamp(0.0, 1.0)
+                  : 0.0,
               backgroundColor: Colors.grey.shade300,
               valueColor: const AlwaysStoppedAnimation<Color>(_primary),
               minHeight: 10,
@@ -400,7 +412,7 @@ class _ChildProgressSummaryScreenState extends State<ChildProgressSummaryScreen>
                   final completed = m['completed'] as int? ?? 0;
                   final dateStr = m['date'] as String? ?? '';
                   final dayLabel = dateStr.length >= 10
-                      ? dateStr.substring(8, 10) + '/' + dateStr.substring(5, 7)
+                      ? '${dateStr.substring(8, 10)}/${dateStr.substring(5, 7)}'
                       : '';
                   final h = total > 0 ? (completed / total) * 80.0 : 0.0;
                   return Expanded(
@@ -413,9 +425,12 @@ class _ChildProgressSummaryScreenState extends State<ChildProgressSummaryScreen>
                             height: h.clamp(4.0, 80.0),
                             decoration: BoxDecoration(
                               color: total > 0
-                                  ? (completed >= total ? _primary : _primary.withOpacity(0.4))
+                                  ? (completed >= total
+                                      ? _primary
+                                      : _primary.withOpacity(0.4))
                                   : Colors.grey.shade300,
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                              borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(4)),
                             ),
                           ),
                           const SizedBox(height: 4),

@@ -32,9 +32,8 @@ class NotificationsFeedService {
     }
     final body = jsonDecode(response.body) as Map<String, dynamic>;
     final list = body['notifications'] as List<dynamic>? ?? [];
-    final unreadCount = (body['unreadCount'] is int)
-        ? body['unreadCount'] as int
-        : 0;
+    final unreadCount =
+        (body['unreadCount'] is int) ? body['unreadCount'] as int : 0;
     final notifications = list
         .map((e) => AppNotification.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -85,7 +84,8 @@ class NotificationsFeedService {
       }),
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
-      throw Exception('Échec enregistrement notification: ${response.statusCode}');
+      throw Exception(
+          'Échec enregistrement notification: ${response.statusCode}');
     }
   }
 }

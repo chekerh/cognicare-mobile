@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/children_service.dart';
-import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFFA2D9E7);
@@ -15,7 +14,8 @@ class HealthcarePatientsScreen extends StatefulWidget {
   const HealthcarePatientsScreen({super.key});
 
   @override
-  State<HealthcarePatientsScreen> createState() => _HealthcarePatientsScreenState();
+  State<HealthcarePatientsScreen> createState() =>
+      _HealthcarePatientsScreenState();
 }
 
 class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
@@ -24,7 +24,8 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
   String? _error;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String _planTypeFilter = 'all'; // 'all' | 'PECS' | 'TEACCH' | 'SkillTracker' | 'Activity'
+  String _planTypeFilter =
+      'all'; // 'all' | 'PECS' | 'TEACCH' | 'SkillTracker' | 'Activity'
   String _progressFilter = 'all'; // 'all' | 'need_attention' | 'on_track'
 
   @override
@@ -32,7 +33,8 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
     super.initState();
     _loadPatients();
     _searchController.addListener(() {
-      setState(() => _searchQuery = _searchController.text.trim().toLowerCase());
+      setState(
+          () => _searchQuery = _searchController.text.trim().toLowerCase());
     });
   }
 
@@ -48,7 +50,8 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
       _error = null;
     });
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final service = ChildrenService(getToken: () async => authProvider.accessToken);
+    final service =
+        ChildrenService(getToken: () async => authProvider.accessToken);
     try {
       final list = await service.getOrganizationChildrenWithPlans();
       if (mounted) {
@@ -73,19 +76,16 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
     var list = _childrenWithPlans;
     if (_searchQuery.isNotEmpty) {
       list = list
-          .where((c) =>
-              (c['childName'] as String? ?? '')
-                  .toLowerCase()
-                  .contains(_searchQuery))
+          .where((c) => (c['childName'] as String? ?? '')
+              .toLowerCase()
+              .contains(_searchQuery))
           .toList();
     }
     if (_planTypeFilter != 'all') {
-      list = list
-          .where((c) {
-            final types = c['planTypes'] as List<dynamic>? ?? [];
-            return types.contains(_planTypeFilter);
-          })
-          .toList();
+      list = list.where((c) {
+        final types = c['planTypes'] as List<dynamic>? ?? [];
+        return types.contains(_planTypeFilter);
+      }).toList();
     }
     if (_progressFilter == 'need_attention') {
       list = list.where((c) => c['needAttention'] == true).toList();
@@ -123,9 +123,9 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        AppLocalizations.of(context)!.healthcareSpaceLabel,
-                        style: const TextStyle(
+                      const Text(
+                        'Espace Santé',
+                        style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF0F172A),
@@ -133,21 +133,36 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        userName.isNotEmpty ? AppLocalizations.of(context)!.helloDr(userName) : AppLocalizations.of(context)!.helloDr(''),
+                        userName.isNotEmpty ? 'Bonjour, $userName' : 'Bonjour',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade600,
                         ),
                       ),
                       const SizedBox(height: 20),
-                      _searchBar(context),
+                      TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Rechercher un patient...',
+                          prefixIcon:
+                              const Icon(Icons.search, color: Colors.grey),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
+                        ),
+                      ),
                       const SizedBox(height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            AppLocalizations.of(context)!.followedPatientsLabel,
-                            style: const TextStyle(
+                          const Text(
+                            'Patients suivis',
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF0F172A),
@@ -155,7 +170,7 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
                           ),
                           if (!_loading && _error == null)
                             Text(
-                              AppLocalizations.of(context)!.activePatientsCount(_filteredChildren.length),
+                              '${_filteredChildren.length} ACTIFS',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
@@ -164,18 +179,36 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
                             ),
                         ],
                       ),
-                      if (!_loading && _error == null && _childrenWithPlans.isNotEmpty) ...[
+                      if (!_loading &&
+                          _error == null &&
+                          _childrenWithPlans.isNotEmpty) ...[
                         const SizedBox(height: 12),
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            const Text('Type de plan:', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-                            _filterChip('Tous', _planTypeFilter == 'all', () => setState(() => _planTypeFilter = 'all')),
-                            _filterChip('PECS', _planTypeFilter == 'PECS', () => setState(() => _planTypeFilter = 'PECS')),
-                            _filterChip('TEACCH', _planTypeFilter == 'TEACCH', () => setState(() => _planTypeFilter = 'TEACCH')),
-                            _filterChip('Skill Tracker', _planTypeFilter == 'SkillTracker', () => setState(() => _planTypeFilter = 'SkillTracker')),
-                            _filterChip('Activité', _planTypeFilter == 'Activity', () => setState(() => _planTypeFilter = 'Activity')),
+                            const Text('Type de plan:',
+                                style: TextStyle(
+                                    fontSize: 12, color: Color(0xFF64748B))),
+                            _filterChip('Tous', _planTypeFilter == 'all',
+                                () => setState(() => _planTypeFilter = 'all')),
+                            _filterChip('PECS', _planTypeFilter == 'PECS',
+                                () => setState(() => _planTypeFilter = 'PECS')),
+                            _filterChip(
+                                'TEACCH',
+                                _planTypeFilter == 'TEACCH',
+                                () =>
+                                    setState(() => _planTypeFilter = 'TEACCH')),
+                            _filterChip(
+                                'Skill Tracker',
+                                _planTypeFilter == 'SkillTracker',
+                                () => setState(
+                                    () => _planTypeFilter = 'SkillTracker')),
+                            _filterChip(
+                                'Activité',
+                                _planTypeFilter == 'Activity',
+                                () => setState(
+                                    () => _planTypeFilter = 'Activity')),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -183,10 +216,21 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            const Text('Progrès:', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-                            _filterChip('Tous', _progressFilter == 'all', () => setState(() => _progressFilter = 'all')),
-                            _filterChip('Besoin d\'attention', _progressFilter == 'need_attention', () => setState(() => _progressFilter = 'need_attention')),
-                            _filterChip('En bonne voie', _progressFilter == 'on_track', () => setState(() => _progressFilter = 'on_track')),
+                            const Text('Progrès:',
+                                style: TextStyle(
+                                    fontSize: 12, color: Color(0xFF64748B))),
+                            _filterChip('Tous', _progressFilter == 'all',
+                                () => setState(() => _progressFilter = 'all')),
+                            _filterChip(
+                                'Besoin d\'attention',
+                                _progressFilter == 'need_attention',
+                                () => setState(
+                                    () => _progressFilter = 'need_attention')),
+                            _filterChip(
+                                'En bonne voie',
+                                _progressFilter == 'on_track',
+                                () => setState(
+                                    () => _progressFilter = 'on_track')),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -226,7 +270,8 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
                     padding: const EdgeInsets.all(24),
                     child: Column(
                       children: [
-                        Icon(Icons.people_outline, size: 64, color: Colors.grey.shade400),
+                        Icon(Icons.people_outline,
+                            size: 64, color: Colors.grey.shade400),
                         const SizedBox(height: 16),
                         Text(
                           _childrenWithPlans.isEmpty
@@ -248,7 +293,8 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
                       final name = child['childName'] as String? ?? '';
                       final condition = child['diagnosis'] as String? ?? '—';
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 8),
                         child: _PatientCard(
                           patientId: childId,
                           name: name,
@@ -277,22 +323,6 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
     );
   }
 
-  Widget _searchBar(BuildContext context) {
-    return TextField(
-      controller: _searchController,
-      decoration: InputDecoration(
-        hintText: AppLocalizations.of(context)!.searchPatientHint,
-        prefixIcon: const Icon(Icons.search, color: Colors.grey),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-
   Widget _clinicalNotesSection(BuildContext context) {
     return Material(
       color: const Color(0xFF1E293B),
@@ -302,13 +332,13 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Row(
               children: [
-                const Icon(Icons.event_note, color: _primary, size: 22),
-                const SizedBox(width: 8),
+                Icon(Icons.event_note, color: _primary, size: 22),
+                SizedBox(width: 8),
                 Text(
-                  AppLocalizations.of(context)!.clinicalNotesLabel,
-                  style: const TextStyle(
+                  'Notes cliniques',
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -372,7 +402,11 @@ class _PatientCard extends StatelessWidget {
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    name.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join(),
+                    name
+                        .split(' ')
+                        .map((e) => e.isNotEmpty ? e[0] : '')
+                        .take(2)
+                        .join(),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: _brand,
@@ -404,7 +438,8 @@ class _PatientCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8),
@@ -420,7 +455,9 @@ class _PatientCard extends StatelessWidget {
                 ),
               ],
             ),
-            if (hasAiAnalysis && aiSummary != null && aiSummary!.isNotEmpty) ...[
+            if (hasAiAnalysis &&
+                aiSummary != null &&
+                aiSummary!.isNotEmpty) ...[
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -432,13 +469,13 @@ class _PatientCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    const Row(
                       children: [
-                        const Icon(Icons.auto_awesome, size: 14, color: _brand),
-                        const SizedBox(width: 6),
+                        Icon(Icons.auto_awesome, size: 14, color: _brand),
+                        SizedBox(width: 6),
                         Text(
-                          AppLocalizations.of(context)!.aiAnalysisLabel,
-                          style: const TextStyle(
+                          'ANALYSE IA',
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: _brand,
@@ -468,7 +505,7 @@ class _PatientCard extends StatelessWidget {
                       '${AppConstants.healthcareCareBoardRoute}?patientId=$patientId&patientName=${Uri.encodeComponent(name)}',
                     ),
                     icon: const Icon(Icons.description_outlined, size: 18),
-                    label: Text(AppLocalizations.of(context)!.detailsLabel),
+                    label: const Text('Détails'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _primary,
                       foregroundColor: const Color(0xFF1E293B),
@@ -483,7 +520,8 @@ class _PatientCard extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => context.push(
-                      AppConstants.healthcareProgressAiRecommendationsRoute(patientId),
+                      AppConstants.healthcareProgressAiRecommendationsRoute(
+                          patientId),
                       extra: {'childName': name},
                     ),
                     icon: const Icon(Icons.auto_awesome, size: 18),

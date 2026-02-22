@@ -30,17 +30,18 @@ class _CallConnectionHandlerState extends State<CallConnectionHandler> {
     super.initState();
     _callProvider = Provider.of<CallProvider>(context, listen: false);
     // Attach listener once and keep it active
-    _incomingSub = _callProvider.service.onIncomingCall.listen(_handleIncomingCall);
+    _incomingSub =
+        _callProvider.service.onIncomingCall.listen(_handleIncomingCall);
   }
 
   void _handleIncomingCall(IncomingCall call) {
     if (!mounted) return;
     debugPrint(
         '📞 [CALL_HANDLER] Appel entrant reçu! fromUserId=${call.fromUserId} fromUserName=${call.fromUserName} channelId=${call.channelId}');
-    
+
     // Store pending for UI
     _callProvider.setPendingIncoming(call);
-    
+
     // Navigate to call screen after the current frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -86,7 +87,7 @@ class _CallConnectionHandlerState extends State<CallConnectionHandler> {
         _connectedUserId = uid;
         debugPrint(
             '📞 [CALL_HANDLER] Utilisateur connecté, connexion WebSocket userId=$uid');
-        
+
         // Wrap in post-frame to avoid build exceptions
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && _connectedUserId == uid) {
@@ -99,7 +100,7 @@ class _CallConnectionHandlerState extends State<CallConnectionHandler> {
           '📞 [CALL_HANDLER] Utilisateur déconnecté, déconnexion WebSocket');
       final lastId = _connectedUserId;
       _connectedUserId = null;
-      
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // Only disconnect if we are still logged out
         if (mounted && _connectedUserId == null) {

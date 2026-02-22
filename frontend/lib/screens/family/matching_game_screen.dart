@@ -45,7 +45,11 @@ class MatchingGameScreen extends StatefulWidget {
 class _MatchingGameScreenState extends State<MatchingGameScreen> {
   static const List<({IconData icon, Color color, String label})> _pairs = [
     (icon: Icons.lightbulb_rounded, color: Color(0xFFFB923C), label: 'Light'),
-    (icon: Icons.directions_car_rounded, color: Color(0xFF60A5FA), label: 'Car'),
+    (
+      icon: Icons.directions_car_rounded,
+      color: Color(0xFF60A5FA),
+      label: 'Car'
+    ),
     (icon: Icons.star_rounded, color: Color(0xFFFBBF24), label: 'Star'),
   ];
 
@@ -67,8 +71,10 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
     final list = <_GameCard>[];
     for (int i = 0; i < 3; i++) {
       final p = _pairs[i];
-      list.add(_GameCard(pairId: i, icon: p.icon, iconColor: p.color, label: p.label));
-      list.add(_GameCard(pairId: i, icon: p.icon, iconColor: p.color, label: p.label));
+      list.add(_GameCard(
+          pairId: i, icon: p.icon, iconColor: p.color, label: p.label));
+      list.add(_GameCard(
+          pairId: i, icon: p.icon, iconColor: p.color, label: p.label));
     }
     list.shuffle(rnd);
     setState(() {
@@ -104,7 +110,7 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
       if (newPairs == 3) {
         await Future.delayed(const Duration(milliseconds: 400));
         if (!mounted) return;
-        
+
         // Calculate time spent
         final timeSpent = _gameStartTime != null
             ? DateTime.now().difference(_gameStartTime!).inSeconds
@@ -119,14 +125,16 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
           metrics: {'pairsFound': 3},
         );
 
-        final provider = Provider.of<StickerBookProvider>(context, listen: false);
+        final provider =
+            Provider.of<StickerBookProvider>(context, listen: false);
         final stickerIndex = provider.unlockedCount - 1;
         final completed = provider.tasksCompletedCount;
         final milestoneSteps = [5, 10, 15, 20, 25, 30];
         final loc = AppLocalizations.of(context);
-        final milestoneMessage = (loc != null && milestoneSteps.contains(completed))
-            ? loc.milestoneLevelsCompleted(completed)
-            : null;
+        final milestoneMessage =
+            (loc != null && milestoneSteps.contains(completed))
+                ? loc.milestoneLevelsCompleted(completed)
+                : null;
         if (!context.mounted) return;
         if (widget.inSequence) {
           context.pushReplacement(
@@ -176,7 +184,8 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
                   // 3 lignes + 2 espaces : 3 * cell + 2 * gap <= availableHeight
                   final cellHeight = (availableHeight - 2 * gap) / 3;
                   final cellWidth = (availableWidth - gap) / 2;
-                  final cellSize = cellHeight < cellWidth ? cellHeight : cellWidth;
+                  final cellSize =
+                      cellHeight < cellWidth ? cellHeight : cellWidth;
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: GridView.builder(
@@ -188,7 +197,8 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
                         mainAxisExtent: cellSize,
                       ),
                       itemCount: 6,
-                      itemBuilder: (context, index) => _buildCard(index, _cards[index]),
+                      itemBuilder: (context, index) =>
+                          _buildCard(index, _cards[index]),
                     ),
                   );
                 },
@@ -218,7 +228,8 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
               child: const SizedBox(
                 width: 48,
                 height: 48,
-                child: Icon(Icons.arrow_back_ios_new_rounded, color: _primaryDark, size: 24),
+                child: Icon(Icons.arrow_back_ios_new_rounded,
+                    color: _primaryDark, size: 24),
               ),
             ),
           ),
@@ -231,7 +242,8 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
               letterSpacing: 1.2,
             ),
           ),
-          const ChildModeExitButton(iconColor: _primaryDark, textColor: _primaryDark, opacity: 0.9),
+          const ChildModeExitButton(
+              iconColor: _primaryDark, textColor: _primaryDark, opacity: 0.9),
         ],
       ),
     );

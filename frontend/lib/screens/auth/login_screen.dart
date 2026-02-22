@@ -109,7 +109,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: const SizedBox(
                       width: 40,
                       height: 40,
-                      child: Icon(Icons.arrow_back_ios_new, color: AppTheme.text, size: 20),
+                      child: Icon(Icons.arrow_back_ios_new,
+                          color: AppTheme.text, size: 20),
                     ),
                   ),
                 ),
@@ -123,7 +124,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [_authPrimary.withOpacity(0.2), _authPrimary.withOpacity(0.05)],
+                        colors: [
+                          _authPrimary.withOpacity(0.2),
+                          _authPrimary.withOpacity(0.05)
+                        ],
                       ),
                       shape: BoxShape.circle,
                       boxShadow: [
@@ -157,7 +161,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               Center(
                                 child: Transform.rotate(
                                   angle: -0.2,
-                                  child: const Icon(Icons.psychology, color: _authPrimary, size: 38),
+                                  child: const Icon(Icons.psychology,
+                                      color: _authPrimary, size: 38),
                                 ),
                               ),
                               Positioned(
@@ -165,7 +170,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 right: 4,
                                 child: Transform.rotate(
                                   angle: -0.2,
-                                  child: Icon(Icons.eco, color: Colors.green[400], size: 22),
+                                  child: Icon(Icons.eco,
+                                      color: Colors.green[400], size: 22),
                                 ),
                               ),
                             ],
@@ -212,8 +218,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   hint: localizations.emailLabel,
                   keyboardType: TextInputType.emailAddress,
                   validator: (v) {
-                    if (v == null || v.isEmpty) return localizations.emailRequired;
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
+                    if (v == null || v.isEmpty) {
+                      return localizations.emailRequired;
+                    }
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(v)) {
                       return localizations.emailInvalid;
                     }
                     return null;
@@ -230,14 +239,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   obscureText: _obscurePassword,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       color: Colors.grey.shade400,
                       size: 22,
                     ),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
                   ),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return localizations.passwordRequired;
+                    if (v == null || v.isEmpty) {
+                      return localizations.passwordRequired;
+                    }
                     return null;
                   },
                 ),
@@ -245,7 +259,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => context.go(AppConstants.forgotPasswordRoute),
+                    onPressed: () =>
+                        context.go(AppConstants.forgotPasswordRoute),
                     child: Text(
                       localizations.forgotPasswordQuestion,
                       style: TextStyle(
@@ -276,7 +291,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ? const SizedBox(
                             width: 24,
                             height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
                           )
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -392,7 +408,8 @@ class _LoginScreenState extends State<LoginScreen> {
             horizontal: icon != null ? 16 : 20,
             vertical: 16,
           ),
-          hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.w500),
+          hintStyle: TextStyle(
+              color: Colors.grey.shade400, fontWeight: FontWeight.w500),
         ),
         style: const TextStyle(
           color: AppTheme.text,

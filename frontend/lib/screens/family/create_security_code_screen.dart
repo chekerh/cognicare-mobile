@@ -11,7 +11,8 @@ class CreateSecurityCodeScreen extends StatefulWidget {
   const CreateSecurityCodeScreen({super.key});
 
   @override
-  State<CreateSecurityCodeScreen> createState() => _CreateSecurityCodeScreenState();
+  State<CreateSecurityCodeScreen> createState() =>
+      _CreateSecurityCodeScreenState();
 }
 
 class _CreateSecurityCodeScreenState extends State<CreateSecurityCodeScreen> {
@@ -29,7 +30,9 @@ class _CreateSecurityCodeScreenState extends State<CreateSecurityCodeScreen> {
 
   Future<void> _onConfirm() async {
     if (_code.length != 4) return;
-    final ok = await Provider.of<ChildSecurityCodeProvider>(context, listen: false).setCode(_code);
+    final ok =
+        await Provider.of<ChildSecurityCodeProvider>(context, listen: false)
+            .setCode(_code);
     if (!mounted) return;
     if (ok) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -125,7 +128,9 @@ class _CreateSecurityCodeScreenState extends State<CreateSecurityCodeScreen> {
                         shape: BoxShape.circle,
                         color: filled ? Colors.white : Colors.transparent,
                         border: Border.all(
-                          color: filled ? Colors.white : Colors.white.withOpacity(0.5),
+                          color: filled
+                              ? Colors.white
+                              : Colors.white.withOpacity(0.5),
                           width: 2,
                         ),
                       ),

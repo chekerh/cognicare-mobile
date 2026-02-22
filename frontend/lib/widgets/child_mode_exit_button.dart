@@ -43,7 +43,8 @@ class ChildModeExitButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final codeProvider = Provider.of<ChildSecurityCodeProvider>(context, listen: false);
+    final codeProvider =
+        Provider.of<ChildSecurityCodeProvider>(context, listen: false);
     final iconC = iconColor ?? Colors.white;
     final textC = textColor ?? Colors.white;
 

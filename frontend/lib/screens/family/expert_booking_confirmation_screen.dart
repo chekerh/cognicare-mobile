@@ -41,7 +41,9 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final modeLabel = mode == 'video' ? loc.expertBookingVideoCall : loc.expertBookingInPerson;
+    final modeLabel = mode == 'video'
+        ? loc.expertBookingVideoCall
+        : loc.expertBookingInPerson;
     final dateTimeStr = '$date ${loc.atLabel} $time';
 
     return Scaffold(
@@ -55,7 +57,8 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
                 child: Column(
                   children: [
-                    _buildConfirmationCard(context, loc, modeLabel, dateTimeStr),
+                    _buildConfirmationCard(
+                        context, loc, modeLabel, dateTimeStr),
                     const SizedBox(height: 32),
                     _buildAddToCalendarButton(loc),
                     const SizedBox(height: 12),
@@ -78,13 +81,17 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
           IconButton(
             onPressed: () => context.pop(),
             icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-            style: IconButton.styleFrom(backgroundColor: Colors.white.withOpacity(0.2)),
+            style: IconButton.styleFrom(
+                backgroundColor: Colors.white.withOpacity(0.2)),
           ),
           Expanded(
             child: Text(
               loc.expertBookingConfirmationTitle,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold),
             ),
           ),
           const SizedBox(width: 48),
@@ -93,13 +100,19 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildConfirmationCard(BuildContext context, AppLocalizations loc, String modeLabel, String dateTimeStr) {
+  Widget _buildConfirmationCard(BuildContext context, AppLocalizations loc,
+      String modeLabel, String dateTimeStr) {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(32),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 24, offset: const Offset(0, 10))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 24,
+              offset: const Offset(0, 10))
+        ],
       ),
       child: Column(
         children: [
@@ -114,14 +127,18 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.grey.shade100),
                 ),
-                child: Icon(Icons.calendar_today, size: 56, color: Colors.blue.shade600),
+                child: Icon(Icons.calendar_today,
+                    size: 56, color: Colors.blue.shade600),
               ),
               Positioned(
                 bottom: -4,
                 right: -4,
                 child: Container(
                   padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(color: Colors.green, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3)),
+                  decoration: BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 3)),
                   child: const Icon(Icons.check, color: Colors.white, size: 20),
                 ),
               ),
@@ -130,7 +147,10 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             loc.expertBookingConfirmedTitle,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+            style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF0F172A)),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -142,7 +162,8 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
           const SizedBox(height: 32),
           Container(height: 1, color: Colors.grey.shade200),
           const SizedBox(height: 24),
-          _detailRow(Icons.person, loc.expertBookingSpecialistLabel, expertName),
+          _detailRow(
+              Icons.person, loc.expertBookingSpecialistLabel, expertName),
           const SizedBox(height: 16),
           _detailRow(Icons.event, loc.expertBookingDateTimeLabel, dateTimeStr),
           const SizedBox(height: 16),
@@ -159,7 +180,9 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
         Container(
           width: 48,
           height: 48,
-          decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12)),
           child: Icon(icon, color: Colors.blue.shade600, size: 24),
         ),
         const SizedBox(width: 16),
@@ -167,9 +190,17 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+              Text(label,
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade500)),
               const SizedBox(height: 4),
-              Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+              Text(value,
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0F172A))),
             ],
           ),
         ),
@@ -193,7 +224,11 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
             children: [
               const Icon(Icons.calendar_today, color: _primaryDark, size: 22),
               const SizedBox(width: 12),
-              Text(loc.expertBookingAddToCalendar, style: const TextStyle(color: _primaryDark, fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(loc.expertBookingAddToCalendar,
+                  style: const TextStyle(
+                      color: _primaryDark,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold)),
             ],
           ),
         ),
@@ -201,7 +236,8 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildViewAppointmentsButton(BuildContext context, AppLocalizations loc) {
+  Widget _buildViewAppointmentsButton(
+      BuildContext context, AppLocalizations loc) {
     return Material(
       color: Colors.white.withOpacity(0.2),
       borderRadius: BorderRadius.circular(16),
@@ -215,7 +251,11 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
             border: Border.all(color: Colors.white.withOpacity(0.3)),
           ),
           alignment: Alignment.center,
-          child: Text(loc.expertBookingViewAppointments, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          child: Text(loc.expertBookingViewAppointments,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold)),
         ),
       ),
     );

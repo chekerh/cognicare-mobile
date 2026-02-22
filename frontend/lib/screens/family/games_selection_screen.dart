@@ -85,21 +85,24 @@ class _GamesSelectionScreenState extends State<GamesSelectionScreen> {
                     icon: Icons.change_circle_rounded,
                     iconBg: _cardGreen,
                     title: loc.gameShapeSorting,
-                    onTap: () => context.push(AppConstants.familyShapeSortingRoute),
+                    onTap: () =>
+                        context.push(AppConstants.familyShapeSortingRoute),
                   ),
                   const SizedBox(height: 20),
                   _GameCard(
                     icon: Icons.auto_awesome,
                     iconBg: _cardCoral,
                     title: loc.starTracer,
-                    onTap: () => context.push(AppConstants.familyStarTracerRoute),
+                    onTap: () =>
+                        context.push(AppConstants.familyStarTracerRoute),
                   ),
                   const SizedBox(height: 20),
                   _GameCard(
                     icon: Icons.shopping_basket_rounded,
                     iconBg: const Color(0xFF2B8CEE),
                     title: loc.gameBasketSort,
-                    onTap: () => context.push(AppConstants.familyBasketSortRoute),
+                    onTap: () =>
+                        context.push(AppConstants.familyBasketSortRoute),
                   ),
                 ],
               ),
@@ -165,7 +168,8 @@ class _GameCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: _textDark.withOpacity(0.5), size: 28),
+              Icon(Icons.chevron_right_rounded,
+                  color: _textDark.withOpacity(0.5), size: 28),
             ],
           ),
         ),

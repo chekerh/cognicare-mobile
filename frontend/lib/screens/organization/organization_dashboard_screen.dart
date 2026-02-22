@@ -11,10 +11,12 @@ class OrganizationDashboardScreen extends StatefulWidget {
   const OrganizationDashboardScreen({super.key});
 
   @override
-  State<OrganizationDashboardScreen> createState() => _OrganizationDashboardScreenState();
+  State<OrganizationDashboardScreen> createState() =>
+      _OrganizationDashboardScreenState();
 }
 
-class _OrganizationDashboardScreenState extends State<OrganizationDashboardScreen> {
+class _OrganizationDashboardScreenState
+    extends State<OrganizationDashboardScreen> {
   final _specialistIdController = TextEditingController();
   Map<String, dynamic>? _specialistSummary;
   String? _summaryError;
@@ -34,19 +36,24 @@ class _OrganizationDashboardScreenState extends State<OrganizationDashboardScree
       _summaryLoading = true;
     });
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final service = ProgressAiService(getToken: () async => authProvider.accessToken);
+    final service =
+        ProgressAiService(getToken: () async => authProvider.accessToken);
     try {
       final data = await service.getOrgSpecialistSummary(id);
-      if (mounted) setState(() {
-        _specialistSummary = data;
-        _summaryLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _specialistSummary = data;
+          _summaryLoading = false;
+        });
+      }
     } catch (e) {
-      if (mounted) setState(() {
-        _summaryError = e.toString().replaceFirst('Exception: ', '');
-        _specialistSummary = null;
-        _summaryLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _summaryError = e.toString().replaceFirst('Exception: ', '');
+          _specialistSummary = null;
+          _summaryLoading = false;
+        });
+      }
     }
   }
 
@@ -182,16 +189,19 @@ class _OrganizationDashboardScreenState extends State<OrganizationDashboardScree
                           Wrap(
                             spacing: 8,
                             runSpacing: 4,
-                            children: (_specialistSummary!['planCountByType'] as Map<String, dynamic>)
+                            children: (_specialistSummary!['planCountByType']
+                                    as Map<String, dynamic>)
                                 .entries
                                 .map((e) => Chip(
                                       label: Text('${e.key}: ${e.value}'),
-                                      backgroundColor: AppTheme.primary.withOpacity(0.1),
+                                      backgroundColor:
+                                          AppTheme.primary.withOpacity(0.1),
                                     ))
                                 .toList(),
                           ),
                         ],
-                        if (_specialistSummary!['approvalRatePercent'] != null) ...[
+                        if (_specialistSummary!['approvalRatePercent'] !=
+                            null) ...[
                           const SizedBox(height: 12),
                           Text(
                             'Taux d\'approbation: ${_specialistSummary!['approvalRatePercent']}%',
@@ -201,7 +211,8 @@ class _OrganizationDashboardScreenState extends State<OrganizationDashboardScree
                             ),
                           ),
                         ],
-                        if (_specialistSummary!['resultsImprovedRatePercent'] != null) ...[
+                        if (_specialistSummary!['resultsImprovedRatePercent'] !=
+                            null) ...[
                           const SizedBox(height: 4),
                           Text(
                             'Résultats améliorés: ${_specialistSummary!['resultsImprovedRatePercent']}%',

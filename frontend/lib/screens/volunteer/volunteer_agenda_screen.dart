@@ -1,8 +1,7 @@
 import 'dart:ui';
-import 'package:intl/intl.dart';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 
 // Couleurs de la 2e photo : fond bleu pastel clair, accent bleu
@@ -19,17 +18,42 @@ class VolunteerAgendaScreen extends StatefulWidget {
 }
 
 class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
-  DateTime _displayDate = DateTime(2024, 3, 13);
-  DateTime _selectedDay = DateTime(2024, 3, 13);
   bool _isMonthView = true;
   bool _showQuickMenu = false;
+  DateTime _displayDate = DateTime(2024, 3, 13);
+  DateTime _selectedDay = DateTime(2024, 3, 13);
+
+  static const _monthsFr = [
+    'Janvier',
+    'Février',
+    'Mars',
+    'Avril',
+    'Mai',
+    'Juin',
+    'Juillet',
+    'Août',
+    'Septembre',
+    'Octobre',
+    'Novembre',
+    'Décembre'
+  ];
+  static const _daysFr = [
+    'Lundi',
+    'Mardi',
+    'Mercredi',
+    'Jeudi',
+    'Vendredi',
+    'Samedi',
+    'Dimanche'
+  ];
 
   void _previousPeriod() {
     setState(() {
       if (_isMonthView) {
         _displayDate = DateTime(_displayDate.year, _displayDate.month - 1);
       } else {
-        _displayDate = _weekStart(_displayDate).subtract(const Duration(days: 7));
+        _displayDate =
+            _weekStart(_displayDate).subtract(const Duration(days: 7));
         _selectedDay = _displayDate;
       }
     });
@@ -59,128 +83,207 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
         children: [
           SafeArea(
             child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(AppLocalizations.of(context)!.agendaLabel, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2))]),
-                      child: Icon(Icons.more_horiz, color: Colors.grey.shade600, size: 22),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Mon Agenda',
+                            style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B))),
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Colors.black.withOpacity(0.06),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2))
+                              ]),
+                          child: Icon(Icons.more_horiz,
+                              color: Colors.grey.shade600, size: 22),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              // Segmented: Mois / Semaine
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _isMonthView = true),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              color: _isMonthView ? Colors.white : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: _isMonthView ? [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6, offset: const Offset(0, 2))] : null,
-                            ),
-                            child: Text(AppLocalizations.of(context)!.monthLabel, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: _isMonthView ? FontWeight.w600 : FontWeight.w500, color: _isMonthView ? const Color(0xFF1E293B) : Colors.grey.shade600)),
-                          ),
-                        ),
+                  // Segmented: Mois / Semaine
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _isMonthView = false),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              color: _isMonthView ? Colors.transparent : Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: _isMonthView ? null : [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6, offset: const Offset(0, 2))],
-                            ),
-                            child: Text(AppLocalizations.of(context)!.weeklyLabel, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: _isMonthView ? FontWeight.w500 : FontWeight.w600, color: _isMonthView ? Colors.grey.shade600 : const Color(0xFF1E293B))),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              // Calendrier
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withOpacity(0.5)),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2))],
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Row(
                         children: [
-                          Text(DateFormat.yMMMM(Localizations.localeOf(context).languageCode).format(_displayDate), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: _previousPeriod,
-                                child: Icon(Icons.chevron_left, color: Colors.grey.shade600, size: 24),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _isMonthView = true),
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: _isMonthView
+                                      ? Colors.white
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: _isMonthView
+                                      ? [
+                                          BoxShadow(
+                                              color: Colors.black
+                                                  .withOpacity(0.06),
+                                              blurRadius: 6,
+                                              offset: const Offset(0, 2))
+                                        ]
+                                      : null,
+                                ),
+                                child: Text('Mois',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: _isMonthView
+                                            ? FontWeight.w600
+                                            : FontWeight.w500,
+                                        color: _isMonthView
+                                            ? const Color(0xFF1E293B)
+                                            : Colors.grey.shade600)),
                               ),
-                              const SizedBox(width: 16),
-                              GestureDetector(
-                                onTap: _nextPeriod,
-                                child: Icon(Icons.chevron_right, color: Colors.grey.shade600, size: 24),
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _isMonthView = false),
+                              child: Container(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: _isMonthView
+                                      ? Colors.transparent
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: _isMonthView
+                                      ? null
+                                      : [
+                                          BoxShadow(
+                                              color: Colors.black
+                                                  .withOpacity(0.06),
+                                              blurRadius: 6,
+                                              offset: const Offset(0, 2))
+                                        ],
+                                ),
+                                child: Text('Semaine',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: _isMonthView
+                                            ? FontWeight.w500
+                                            : FontWeight.w600,
+                                        color: _isMonthView
+                                            ? Colors.grey.shade600
+                                            : const Color(0xFF1E293B))),
                               ),
-                            ],
+                            ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
-                      _isMonthView ? _buildMonthGrid() : _buildWeekRow(),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-              // Événements du jour
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  // Calendrier
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border:
+                            Border.all(color: Colors.white.withOpacity(0.5)),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2))
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                  '${_monthsFr[_displayDate.month - 1]} ${_displayDate.year}',
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E293B))),
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: _previousPeriod,
+                                    child: Icon(Icons.chevron_left,
+                                        color: Colors.grey.shade600, size: 24),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  GestureDetector(
+                                    onTap: _nextPeriod,
+                                    child: Icon(Icons.chevron_right,
+                                        color: Colors.grey.shade600, size: 24),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          _isMonthView ? _buildMonthGrid() : _buildWeekRow(),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Événements du jour
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(DateFormat.yMMMEd(Localizations.localeOf(context).languageCode).format(_selectedDay), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade600, letterSpacing: 1.2)),
-                        Text(_isMonthView ? AppLocalizations.of(context)!.missionsCount('2') : AppLocalizations.of(context)!.plannedMissionsCount('2'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _brandBlue)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                                '${_daysFr[_selectedDay.weekday - 1]}, ${_selectedDay.day} ${_monthsFr[_selectedDay.month - 1]}',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey.shade600,
+                                    letterSpacing: 1.2)),
+                            Text(
+                                _isMonthView
+                                    ? '2 missions'
+                                    : '2 missions prévues',
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: _brandBlue)),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        _buildEventTimeline(isWeekView: !_isMonthView),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    _buildEventTimeline(isWeekView: !_isMonthView),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
           if (_showQuickMenu)
             GestureDetector(
               onTap: () => setState(() => _showQuickMenu = false),
@@ -200,17 +303,18 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _quickActionRow(AppLocalizations.of(context)!.missionReportLabel, Icons.description, () {
+                  _quickActionRow('Rapport de Mission', Icons.description, () {
                     setState(() => _showQuickMenu = false);
                     context.push(AppConstants.volunteerMissionReportRoute);
                   }),
                   const SizedBox(height: 24),
-                  _quickActionRow(AppLocalizations.of(context)!.offerHelpLabel, Icons.favorite_border, () {
+                  _quickActionRow('Proposer Aide', Icons.favorite_border, () {
                     setState(() => _showQuickMenu = false);
                     context.push(AppConstants.volunteerOfferHelpRoute);
                   }),
                   const SizedBox(height: 24),
-                  _quickActionRow(AppLocalizations.of(context)!.newAvailabilityLabel, Icons.event_available, () {
+                  _quickActionRow(
+                      'Nouvelle Disponibilité', Icons.event_available, () {
                     setState(() => _showQuickMenu = false);
                     context.push(AppConstants.volunteerNewAvailabilityRoute);
                   }),
@@ -254,9 +358,15 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.9),
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8)],
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8)
+            ],
           ),
-          child: Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _brandBlueDark)),
+          child: Text(label,
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: _brandBlueDark)),
         ),
         const SizedBox(width: 12),
         Material(
@@ -282,8 +392,7 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
   }
 
   Widget _buildMonthGrid() {
-    final locale = Localizations.localeOf(context).languageCode;
-    final weekdays = List.generate(7, (i) => DateFormat.E(locale).format(DateTime(2024, 1, 1 + i)));
+    const weekdays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
     final first = DateTime(_displayDate.year, _displayDate.month, 1);
     final start = first.subtract(Duration(days: first.weekday - 1));
     const totalCells = 42;
@@ -293,7 +402,13 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: weekdays.map((d) => Text(d, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade400))).toList(),
+          children: weekdays
+              .map((d) => Text(d,
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade400)))
+              .toList(),
         ),
         const SizedBox(height: 16),
         GridView.builder(
@@ -309,9 +424,14 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
           itemBuilder: (_, i) {
             final cellDate = start.add(Duration(days: i));
             final isCurrentMonth = cellDate.month == _displayDate.month;
-            final isSelected = cellDate.day == _selectedDay.day && cellDate.month == _selectedDay.month && cellDate.year == _selectedDay.year;
-            final isToday = cellDate.day == now.day && cellDate.month == now.month && cellDate.year == now.year;
-            final hasDot = isCurrentMonth && (cellDate.day == 1 || cellDate.day == 6 || cellDate.day == 14);
+            final isSelected = cellDate.day == _selectedDay.day &&
+                cellDate.month == _selectedDay.month &&
+                cellDate.year == _selectedDay.year;
+            final isToday = cellDate.day == now.day &&
+                cellDate.month == now.month &&
+                cellDate.year == now.year;
+            final hasDot = isCurrentMonth &&
+                (cellDate.day == 1 || cellDate.day == 6 || cellDate.day == 14);
             return GestureDetector(
               onTap: () => setState(() => _selectedDay = cellDate),
               child: Center(
@@ -329,28 +449,42 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
     );
   }
 
-  Widget _dayCell(int day, bool hasDot, bool isHighlighted, bool isCurrentMonth) {
+  Widget _dayCell(
+      int day, bool hasDot, bool isHighlighted, bool isCurrentMonth) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 32,
           height: 32,
-          decoration: isHighlighted ? const BoxDecoration(color: _brandBlue, shape: BoxShape.circle) : null,
+          decoration: isHighlighted
+              ? const BoxDecoration(color: _brandBlue, shape: BoxShape.circle)
+              : null,
           alignment: Alignment.center,
-          child: Text('$day', style: TextStyle(fontSize: 14, fontWeight: isHighlighted ? FontWeight.bold : FontWeight.w500, color: isHighlighted ? Colors.white : (isCurrentMonth ? const Color(0xFF1E293B) : Colors.grey.shade300))),
+          child: Text('$day',
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isHighlighted ? FontWeight.bold : FontWeight.w500,
+                  color: isHighlighted
+                      ? Colors.white
+                      : (isCurrentMonth
+                          ? const Color(0xFF1E293B)
+                          : Colors.grey.shade300))),
         ),
         if (hasDot) ...[
           const SizedBox(height: 2),
-          Container(width: 4, height: 4, decoration: const BoxDecoration(color: _brandBlue, shape: BoxShape.circle)),
+          Container(
+              width: 4,
+              height: 4,
+              decoration: const BoxDecoration(
+                  color: _brandBlue, shape: BoxShape.circle)),
         ],
       ],
     );
   }
 
   Widget _buildWeekRow() {
-    final locale = Localizations.localeOf(context).languageCode;
-    final weekdays = List.generate(7, (i) => DateFormat.E(locale).format(DateTime(2024, 3, 11 + i)));
+    const weekdays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
     final weekStart = _weekStart(_displayDate);
 
     return SingleChildScrollView(
@@ -359,7 +493,9 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: List.generate(7, (i) {
           final cellDate = weekStart.add(Duration(days: i));
-          final isSelected = cellDate.day == _selectedDay.day && cellDate.month == _selectedDay.month && cellDate.year == _selectedDay.year;
+          final isSelected = cellDate.day == _selectedDay.day &&
+              cellDate.month == _selectedDay.month &&
+              cellDate.year == _selectedDay.year;
           final hasDot = cellDate.day == 13;
           return GestureDetector(
             onTap: () => setState(() {
@@ -388,21 +524,34 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
                       decoration: BoxDecoration(
                         color: isSelected ? _brandBlue : Colors.transparent,
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: isSelected ? [BoxShadow(color: _brandBlue.withOpacity(0.3), blurRadius: 12)] : null,
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                    color: _brandBlue.withOpacity(0.3),
+                                    blurRadius: 12)
+                              ]
+                            : null,
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         '${cellDate.day}',
                         style: TextStyle(
                           fontSize: 14,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                          color: isSelected ? Colors.white : const Color(0xFF1E293B),
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.w600,
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFF1E293B),
                         ),
                       ),
                     ),
                     if (hasDot) ...[
                       const SizedBox(height: 2),
-                      Container(width: 4, height: 4, decoration: const BoxDecoration(color: _brandBlue, shape: BoxShape.circle)),
+                      Container(
+                          width: 4,
+                          height: 4,
+                          decoration: const BoxDecoration(
+                              color: _brandBlue, shape: BoxShape.circle)),
                     ],
                   ],
                 ),
@@ -417,14 +566,18 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
   Widget _buildEventTimeline({bool isWeekView = false}) {
     return Stack(
       children: [
-        Positioned(left: 11, top: 20, bottom: 20, child: Container(width: 2, color: Colors.grey.shade200)),
+        Positioned(
+            left: 11,
+            top: 20,
+            bottom: 20,
+            child: Container(width: 2, color: Colors.grey.shade200)),
         Column(
           children: [
             _eventCard(
               isActive: true,
               icon: Icons.menu_book,
               iconColor: _brandBlue,
-              title: AppLocalizations.of(context)!.readingSession,
+              title: 'Session de lecture',
               time: '14:30 - 16:00',
               subtitle: 'Lucas Martin • Lyon 03',
               initials: 'LM',
@@ -434,7 +587,7 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
               isActive: false,
               icon: Icons.park,
               iconColor: Colors.green.shade600,
-              title: AppLocalizations.of(context)!.parkOuting,
+              title: 'Sortie au Parc',
               time: '17:00 - 18:30',
               subtitle: 'Sophie Dubois • Villeurbanne',
               initials: 'SD',
@@ -447,12 +600,22 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
                   width: 24,
                   height: 24,
                   margin: const EdgeInsets.only(top: 16),
-                  decoration: BoxDecoration(color: Colors.grey.shade200, shape: BoxShape.circle, border: Border.all(color: _bgLight, width: 4)),
+                  decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: _bgLight, width: 4)),
                 ),
                 const SizedBox(width: 16),
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
-                  child: Text(isWeekView ? AppLocalizations.of(context)!.endOfdayLabel : AppLocalizations.of(context)!.noOtherEventsLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey.shade500)),
+                  child: Text(
+                      isWeekView
+                          ? 'Fin de journée'
+                          : 'Aucun autre événement aujourd\'hui',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey.shade500)),
                 ),
               ],
             ),
@@ -492,7 +655,12 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: Colors.white.withOpacity(0.5)),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2))
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -504,14 +672,24 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
                       children: [
                         Container(
                           padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(color: iconColor.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+                          decoration: BoxDecoration(
+                              color: iconColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(8)),
                           child: Icon(icon, color: iconColor, size: 18),
                         ),
                         const SizedBox(width: 8),
-                        Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                        Text(title,
+                            style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B))),
                       ],
                     ),
-                    Text(time, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+                    Text(time,
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade500)),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -520,12 +698,21 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
                     Container(
                       width: 24,
                       height: 24,
-                      decoration: BoxDecoration(color: Colors.grey.shade100, shape: BoxShape.circle),
+                      decoration: BoxDecoration(
+                          color: Colors.grey.shade100, shape: BoxShape.circle),
                       alignment: Alignment.center,
-                      child: Text(initials, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
+                      child: Text(initials,
+                          style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade700)),
                     ),
                     const SizedBox(width: 8),
-                    Text(subtitle, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey.shade600)),
+                    Text(subtitle,
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey.shade600)),
                   ],
                 ),
               ],

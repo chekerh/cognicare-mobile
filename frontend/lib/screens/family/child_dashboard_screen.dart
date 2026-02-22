@@ -157,7 +157,8 @@ class _ChildDashboardScreenState extends State<ChildDashboardScreen> {
             child: IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white.withOpacity(0.1), width: 12),
+                  border: Border.all(
+                      color: Colors.white.withOpacity(0.1), width: 12),
                   borderRadius: BorderRadius.circular(24),
                 ),
               ),

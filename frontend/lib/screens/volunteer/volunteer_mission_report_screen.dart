@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFF89CFF0);
 const Color _bgLight = Color(0xFFF0F9FF);
@@ -11,10 +10,12 @@ class VolunteerMissionReportScreen extends StatefulWidget {
   const VolunteerMissionReportScreen({super.key});
 
   @override
-  State<VolunteerMissionReportScreen> createState() => _VolunteerMissionReportScreenState();
+  State<VolunteerMissionReportScreen> createState() =>
+      _VolunteerMissionReportScreenState();
 }
 
-class _VolunteerMissionReportScreenState extends State<VolunteerMissionReportScreen> {
+class _VolunteerMissionReportScreenState
+    extends State<VolunteerMissionReportScreen> {
   final _summaryController = TextEditingController();
   final _notesController = TextEditingController();
   int _moodIndex = 1; // 0 Joyeux, 1 Calme, 2 Anxieux
@@ -40,7 +41,11 @@ class _VolunteerMissionReportScreenState extends State<VolunteerMissionReportScr
                 children: [
                   _circleButton(Icons.chevron_left, () => context.pop()),
                   const SizedBox(width: 16),
-                  Text(AppLocalizations.of(context)!.missionReportLabel, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                  const Text('Rapport de Mission',
+                      style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B))),
                 ],
               ),
             ),
@@ -52,15 +57,18 @@ class _VolunteerMissionReportScreenState extends State<VolunteerMissionReportScr
                   children: [
                     _section(
                       icon: Icons.description,
-                      title: AppLocalizations.of(context)!.missionReportSummaryLabel,
+                      title: 'Résumé de la mission',
                       child: TextField(
                         controller: _summaryController,
                         maxLines: 5,
                         decoration: InputDecoration(
-                          hintText: AppLocalizations.of(context)!.missionReportSummaryHint,
+                          hintText:
+                              "Décrivez le déroulement de la mission et vos observations...",
                           filled: true,
                           fillColor: Colors.grey.shade50,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none),
                           contentPadding: const EdgeInsets.all(16),
                         ),
                       ),
@@ -68,43 +76,47 @@ class _VolunteerMissionReportScreenState extends State<VolunteerMissionReportScr
                     const SizedBox(height: 24),
                     _section(
                       icon: Icons.mood,
-                      title: AppLocalizations.of(context)!.childMoodLabel,
+                      title: "Humeur de l'enfant",
                       child: Row(
                         children: [
-                          _moodButton(0, '😊', AppLocalizations.of(context)!.moodHappy),
+                          _moodButton(0, '😊', 'Joyeux'),
                           const SizedBox(width: 12),
-                          _moodButton(1, '😌', AppLocalizations.of(context)!.moodCalm),
+                          _moodButton(1, '😌', 'Calme'),
                           const SizedBox(width: 12),
-                          _moodButton(2, '😰', AppLocalizations.of(context)!.moodAnxious),
+                          _moodButton(2, '😰', 'Anxieux'),
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
                     _section(
                       icon: Icons.extension,
-                      title: AppLocalizations.of(context)!.completedActivitiesLabel,
+                      title: 'Activités réalisées',
                       child: Column(
                         children: [
-                          _activityRow(0, Icons.sports_esports, AppLocalizations.of(context)!.gamesAndEntertainment),
+                          _activityRow(
+                              0, Icons.sports_esports, 'Jeux & Divertissement'),
                           const SizedBox(height: 12),
-                          _activityRow(1, Icons.menu_book, AppLocalizations.of(context)!.reading),
+                          _activityRow(1, Icons.menu_book, 'Lecture'),
                           const SizedBox(height: 12),
-                          _activityRow(2, Icons.directions_walk, AppLocalizations.of(context)!.stroll),
+                          _activityRow(2, Icons.directions_walk, 'Promenade'),
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
                     _section(
                       icon: Icons.lock,
-                      title: AppLocalizations.of(context)!.notesForParentsLabel,
+                      title: 'Notes pour les parents',
                       child: TextField(
                         controller: _notesController,
                         maxLines: 3,
                         decoration: InputDecoration(
-                          hintText: AppLocalizations.of(context)!.notesForParentsHint,
+                          hintText:
+                              "Message privé destiné uniquement aux parents...",
                           filled: true,
                           fillColor: Colors.grey.shade50,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none),
                           contentPadding: const EdgeInsets.all(16),
                         ),
                       ),
@@ -112,16 +124,22 @@ class _VolunteerMissionReportScreenState extends State<VolunteerMissionReportScr
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.reportSentMessage), behavior: SnackBarBehavior.floating));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Rapport envoyé'),
+                                behavior: SnackBarBehavior.floating));
                         context.pop();
                       },
                       icon: const Icon(Icons.send, size: 22),
-                      label: Text(AppLocalizations.of(context)!.sendReportButton, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      label: const Text('Envoyer le rapport',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _primary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 20),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24)),
                         elevation: 4,
                         shadowColor: _primary.withOpacity(0.5),
                       ),
@@ -145,19 +163,28 @@ class _VolunteerMissionReportScreenState extends State<VolunteerMissionReportScr
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(999),
-        child: const SizedBox(width: 40, height: 40, child: Icon(Icons.chevron_left, color: _slate700)),
+        child: const SizedBox(
+            width: 40,
+            height: 40,
+            child: Icon(Icons.chevron_left, color: _slate700)),
       ),
     );
   }
 
-  Widget _section({required IconData icon, required String title, required Widget child}) {
+  Widget _section(
+      {required IconData icon, required String title, required Widget child}) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white.withOpacity(0.5)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,7 +193,11 @@ class _VolunteerMissionReportScreenState extends State<VolunteerMissionReportScr
             children: [
               Icon(icon, color: _primary, size: 22),
               const SizedBox(width: 8),
-              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _slate700)),
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: _slate700)),
             ],
           ),
           const SizedBox(height: 16),
@@ -186,13 +217,18 @@ class _VolunteerMissionReportScreenState extends State<VolunteerMissionReportScr
           decoration: BoxDecoration(
             color: selected ? _primary.withOpacity(0.1) : Colors.grey.shade50,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: selected ? _primary : Colors.transparent, width: 2),
+            border: Border.all(
+                color: selected ? _primary : Colors.transparent, width: 2),
           ),
           child: Column(
             children: [
               Text(emoji, style: const TextStyle(fontSize: 28)),
               const SizedBox(height: 8),
-              Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: selected ? _primary : Colors.grey.shade700)),
+              Text(label,
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: selected ? _primary : Colors.grey.shade700)),
             ],
           ),
         ),
@@ -218,11 +254,16 @@ class _VolunteerMissionReportScreenState extends State<VolunteerMissionReportScr
         ),
         child: Row(
           children: [
-            Icon(selected ? Icons.check_circle : Icons.radio_button_unchecked, color: selected ? _primary : Colors.grey, size: 24),
+            Icon(selected ? Icons.check_circle : Icons.radio_button_unchecked,
+                color: selected ? _primary : Colors.grey, size: 24),
             const SizedBox(width: 12),
             Icon(icon, color: Colors.grey.shade600, size: 22),
             const SizedBox(width: 12),
-            Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: _slate700)),
+            Text(label,
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: _slate700)),
           ],
         ),
       ),

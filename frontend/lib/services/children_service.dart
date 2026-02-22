@@ -72,9 +72,13 @@ class AddChildDto {
       'gender': gender,
     };
     if (diagnosis != null && diagnosis!.isNotEmpty) m['diagnosis'] = diagnosis;
-    if (medicalHistory != null && medicalHistory!.isNotEmpty) m['medicalHistory'] = medicalHistory;
+    if (medicalHistory != null && medicalHistory!.isNotEmpty) {
+      m['medicalHistory'] = medicalHistory;
+    }
     if (allergies != null && allergies!.isNotEmpty) m['allergies'] = allergies;
-    if (medications != null && medications!.isNotEmpty) m['medications'] = medications;
+    if (medications != null && medications!.isNotEmpty) {
+      m['medications'] = medications;
+    }
     if (notes != null && notes!.isNotEmpty) m['notes'] = notes;
     return m;
   }
@@ -93,12 +97,15 @@ class ChildrenService {
   Future<List<ChildModel>> getChildren({String? familyId}) async {
     final token = await getToken();
     if (token == null) throw Exception('Not authenticated');
-    final query = familyId != null && familyId.isNotEmpty ? '?familyId=$familyId' : '';
-    final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.childrenEndpoint}$query');
-    
+    final query =
+        familyId != null && familyId.isNotEmpty ? '?familyId=$familyId' : '';
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.childrenEndpoint}$query');
+
     print('🔍 ChildrenService - Requesting: $uri');
-    print('🔍 ChildrenService - Token présent: ${token != null ? "Oui (${token.substring(0, 20)}...)" : "Non"}');
-    
+    print(
+        '🔍 ChildrenService - Token présent: ${token != null ? "Oui (${token.substring(0, 20)}...)" : "Non"}');
+
     final response = await _client.get(
       uri,
       headers: {
@@ -106,10 +113,10 @@ class ChildrenService {
         'Authorization': 'Bearer $token',
       },
     );
-    
+
     print('🔍 ChildrenService - Status: ${response.statusCode}');
     print('🔍 ChildrenService - Body: ${response.body}');
-    
+
     if (response.statusCode != 200) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;
@@ -121,18 +128,21 @@ class ChildrenService {
     }
     final list = jsonDecode(response.body) as List<dynamic>? ?? [];
     print('🔍 ChildrenService - Nombre d\'enfants reçus: ${list.length}');
-    
-    return list.map((e) => ChildModel.fromJson(e as Map<String, dynamic>)).toList();
+
+    return list
+        .map((e) => ChildModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// GET /organization/my-organization/children - for specialists
   Future<List<ChildModel>> getOrganizationChildren() async {
     final token = await getToken();
     if (token == null) throw Exception('Not authenticated');
-    final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.organizationChildrenEndpoint}');
-    
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.organizationChildrenEndpoint}');
+
     print('🔍 ChildrenService - Requesting Org Children: $uri');
-    
+
     final response = await _client.get(
       uri,
       headers: {
@@ -140,25 +150,29 @@ class ChildrenService {
         'Authorization': 'Bearer $token',
       },
     );
-    
+
     if (response.statusCode != 200) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;
-        throw Exception(err['message'] ?? 'Failed to load organization children');
+        throw Exception(
+            err['message'] ?? 'Failed to load organization children');
       } catch (e) {
         if (e is Exception) rethrow;
         throw Exception('Failed to load: ${response.statusCode}');
       }
     }
     final list = jsonDecode(response.body) as List<dynamic>? ?? [];
-    return list.map((e) => ChildModel.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => ChildModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// GET /organization/my-organization/children-with-plans - for specialist filters (plan type, need attention)
   Future<List<Map<String, dynamic>>> getOrganizationChildrenWithPlans() async {
     final token = await getToken();
     if (token == null) throw Exception('Not authenticated');
-    final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.organizationChildrenWithPlansEndpoint}');
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.organizationChildrenWithPlansEndpoint}');
     final response = await _client.get(
       uri,
       headers: {
@@ -176,14 +190,17 @@ class ChildrenService {
       }
     }
     final list = jsonDecode(response.body) as List<dynamic>? ?? [];
-    return list.map((e) => Map<String, dynamic>.from(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => Map<String, dynamic>.from(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// POST /children - add a child (family only).
   Future<ChildModel> addChild(AddChildDto dto) async {
     final token = await getToken();
     if (token == null) throw Exception('Not authenticated');
-    final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.childrenEndpoint}');
+    final uri =
+        Uri.parse('${AppConstants.baseUrl}${AppConstants.childrenEndpoint}');
     final response = await _client.post(
       uri,
       headers: {

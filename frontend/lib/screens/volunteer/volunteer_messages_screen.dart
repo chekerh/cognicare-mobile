@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
-import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFF77B5D1);
 const Color _textPrimary = Color(0xFF1E293B);
@@ -42,7 +41,8 @@ class VolunteerMessagesScreen extends StatefulWidget {
   const VolunteerMessagesScreen({super.key});
 
   @override
-  State<VolunteerMessagesScreen> createState() => _VolunteerMessagesScreenState();
+  State<VolunteerMessagesScreen> createState() =>
+      _VolunteerMessagesScreenState();
 }
 
 class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
@@ -101,7 +101,8 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
         'familyId': c.id,
         'familyName': c.name,
         'missionType': c.missionType ?? c.subtitle ?? 'Mission',
-        if (c.conversationId != null && c.conversationId!.isNotEmpty) 'conversationId': c.conversationId!,
+        if (c.conversationId != null && c.conversationId!.isNotEmpty)
+          'conversationId': c.conversationId!,
       },
     );
   }
@@ -124,14 +125,15 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            AppLocalizations.of(context)!.messagesTitle,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: _textPrimary),
+            'Messages',
+            style: TextStyle(
+                fontSize: 28, fontWeight: FontWeight.bold, color: _textPrimary),
           ),
         ],
       ),
@@ -149,11 +151,13 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
         child: TextField(
           onChanged: (value) => setState(() => _searchQuery = value.trim()),
           decoration: InputDecoration(
-            hintText: AppLocalizations.of(context)!.searchHint,
+            hintText: 'Rechercher...',
             hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-            prefixIcon: Icon(Icons.search, color: Colors.grey.shade500, size: 22),
+            prefixIcon:
+                Icon(Icons.search, color: Colors.grey.shade500, size: 22),
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
       ),
@@ -169,8 +173,8 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
       ),
       child: Row(
         children: [
-          _tab(AppLocalizations.of(context)!.familiesTab, 0),
-          _tab(AppLocalizations.of(context)!.healthcareTab, 1),
+          _tab('Familles', 0),
+          _tab('Healthcare', 1),
         ],
       ),
     );
@@ -226,7 +230,7 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: _loadInbox,
-                child: Text(AppLocalizations.of(context)!.retryButton),
+                child: const Text('Réessayer'),
               ),
             ],
           ),
@@ -245,8 +249,8 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
       return Center(
         child: Text(
           _selectedTab == 0
-              ? AppLocalizations.of(context)!.noFamilyMessages
-              : AppLocalizations.of(context)!.noHealthcareMessages,
+              ? 'Aucune conversation avec des familles.'
+              : 'Aucune conversation avec des professionnels de santé.',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
         ),
@@ -277,20 +281,20 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
         return await showDialog<bool>(
               context: context,
               builder: (ctx) => AlertDialog(
-                title: Text(AppLocalizations.of(ctx)!.deleteConversationTitle),
-                content: Text(
-                  AppLocalizations.of(ctx)!.deleteConversationDesc,
+                title: const Text('Supprimer la conversation ?'),
+                content: const Text(
+                  'Cette action supprimera la conversation pour les deux participants.',
                 ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(ctx).pop(false),
-                    child: Text(AppLocalizations.of(ctx)!.cancel),
+                    child: const Text('Annuler'),
                   ),
                   TextButton(
                     onPressed: () => Navigator.of(ctx).pop(true),
-                    child: Text(
-                      AppLocalizations.of(ctx)!.deleteLabel,
-                      style: const TextStyle(color: Colors.red),
+                    child: const Text(
+                      'Supprimer',
+                      style: TextStyle(color: Colors.red),
                     ),
                   ),
                 ],
@@ -300,8 +304,7 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
       },
       onDismissed: (_) async {
         final id = c.conversationId ?? c.id;
-        final chatService =
-            ChatService();
+        final chatService = ChatService();
         try {
           await chatService.deleteConversation(id);
         } catch (_) {
@@ -337,36 +340,33 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
                       ? CircleAvatar(
                           radius: 28,
                           backgroundColor: _primary.withOpacity(0.2),
-                          child: Icon(
-                              c.isFamily ? Icons.group : Icons.person,
-                              color: _primary,
-                              size: 28),
+                          child: Icon(c.isFamily ? Icons.group : Icons.person,
+                              color: _primary, size: 28),
                         )
                       : Image.network(
                           AppConstants.fullImageUrl(c.imageUrl),
                           width: 56,
                           height: 56,
                           fit: BoxFit.cover,
-                          loadingBuilder: (_, child, progress) =>
-                              progress == null
-                                  ? child
-                                  : SizedBox(
-                                      width: 56,
-                                      height: 56,
-                                      child: Center(
-                                          child: CircularProgressIndicator(
-                                              value: progress.expectedTotalBytes != null
-                                                  ? progress.cumulativeBytesLoaded /
-                                                      progress.expectedTotalBytes!
-                                                  : null)),
-                                    ),
+                          loadingBuilder: (_, child, progress) => progress ==
+                                  null
+                              ? child
+                              : SizedBox(
+                                  width: 56,
+                                  height: 56,
+                                  child: Center(
+                                      child: CircularProgressIndicator(
+                                          value: progress.expectedTotalBytes !=
+                                                  null
+                                              ? progress.cumulativeBytesLoaded /
+                                                  progress.expectedTotalBytes!
+                                              : null)),
+                                ),
                           errorBuilder: (_, __, ___) => CircleAvatar(
                             radius: 28,
                             backgroundColor: _primary.withOpacity(0.2),
-                            child: Icon(
-                                c.isFamily ? Icons.group : Icons.person,
-                                color: _primary,
-                                size: 28),
+                            child: Icon(c.isFamily ? Icons.group : Icons.person,
+                                color: _primary, size: 28),
                           ),
                         ),
                 ),
@@ -393,8 +393,7 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
                       const SizedBox(height: 4),
                       Text(
                         c.lastMessage,
-                        style: const TextStyle(
-                            fontSize: 14, color: _textMuted),
+                        style: const TextStyle(fontSize: 14, color: _textMuted),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

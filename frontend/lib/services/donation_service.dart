@@ -27,7 +27,8 @@ class DonationService {
   Future<String> uploadImage(File imageFile) async {
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.donationsUploadImageEndpoint}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.donationsUploadImageEndpoint}'),
     );
     final token = await _getToken();
     if (token != null) request.headers['Authorization'] = 'Bearer $token';
@@ -111,11 +112,16 @@ class DonationService {
   }) async {
     final params = <String, String>{};
     if (isOffer != null) params['isOffer'] = isOffer.toString();
-    if (category != null && category > 0) params['category'] = category.toString();
-    if (search != null && search.trim().isNotEmpty) params['search'] = search.trim();
+    if (category != null && category > 0) {
+      params['category'] = category.toString();
+    }
+    if (search != null && search.trim().isNotEmpty) {
+      params['search'] = search.trim();
+    }
 
-    final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.donationsEndpoint}')
-        .replace(queryParameters: params.isEmpty ? null : params);
+    final uri =
+        Uri.parse('${AppConstants.baseUrl}${AppConstants.donationsEndpoint}')
+            .replace(queryParameters: params.isEmpty ? null : params);
     final response = await _client.get(uri, headers: await _headers());
     if (response.statusCode != 200) {
       throw Exception('Échec du chargement: ${response.statusCode}');

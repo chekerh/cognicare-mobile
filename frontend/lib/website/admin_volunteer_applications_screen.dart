@@ -31,7 +31,8 @@ class _AdminVolunteerApplicationsScreenState
       _error = null;
     });
     try {
-      final list = await _adminService.getVolunteerApplications(status: _filter);
+      final list =
+          await _adminService.getVolunteerApplications(status: _filter);
       if (mounted) setState(() => _applications = list);
     } catch (e) {
       if (mounted) {
@@ -48,7 +49,8 @@ class _AdminVolunteerApplicationsScreenState
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: AppTheme.primary,
-        title: const Text('Candidatures bénévoles', style: TextStyle(color: Colors.white)),
+        title: const Text('Candidatures bénévoles',
+            style: TextStyle(color: Colors.white)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
@@ -62,9 +64,18 @@ class _AdminVolunteerApplicationsScreenState
               children: [
                 SegmentedButton<String>(
                   segments: const [
-                    ButtonSegment(value: 'pending', label: Text('En attente'), icon: Icon(Icons.schedule)),
-                    ButtonSegment(value: 'approved', label: Text('Approuvées'), icon: Icon(Icons.check_circle)),
-                    ButtonSegment(value: 'denied', label: Text('Refusées'), icon: Icon(Icons.cancel)),
+                    ButtonSegment(
+                        value: 'pending',
+                        label: Text('En attente'),
+                        icon: Icon(Icons.schedule)),
+                    ButtonSegment(
+                        value: 'approved',
+                        label: Text('Approuvées'),
+                        icon: Icon(Icons.check_circle)),
+                    ButtonSegment(
+                        value: 'denied',
+                        label: Text('Refusées'),
+                        icon: Icon(Icons.cancel)),
                   ],
                   selected: {_filter},
                   onSelectionChanged: (Set<String> s) {
@@ -85,7 +96,9 @@ class _AdminVolunteerApplicationsScreenState
                           children: [
                             Text(_error!, textAlign: TextAlign.center),
                             const SizedBox(height: 16),
-                            ElevatedButton(onPressed: _load, child: const Text('Réessayer')),
+                            ElevatedButton(
+                                onPressed: _load,
+                                child: const Text('Réessayer')),
                           ],
                         ),
                       )
@@ -94,15 +107,19 @@ class _AdminVolunteerApplicationsScreenState
                         : RefreshIndicator(
                             onRefresh: _load,
                             child: ListView.builder(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
                               itemCount: _applications.length,
                               itemBuilder: (context, i) {
                                 final app = _applications[i];
                                 final id = app['id'] as String? ?? '';
-                                final user = app['user'] as Map<String, dynamic>?;
-                                final name = user?['fullName'] as String? ?? 'N/A';
+                                final user =
+                                    app['user'] as Map<String, dynamic>?;
+                                final name =
+                                    user?['fullName'] as String? ?? 'N/A';
                                 final email = user?['email'] as String? ?? '';
-                                final status = app['status'] as String? ?? 'pending';
+                                final status =
+                                    app['status'] as String? ?? 'pending';
                                 return Card(
                                   margin: const EdgeInsets.only(bottom: 8),
                                   child: ListTile(

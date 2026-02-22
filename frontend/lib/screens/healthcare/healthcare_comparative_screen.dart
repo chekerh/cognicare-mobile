@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart' as intl;
-import '../../l10n/app_localizations.dart';
-import '../../utils/theme.dart';
-import '../../utils/constants.dart';
 
+const Color _primary = Color(0xFFA2D9E7);
 const Color _brand = Color(0xFF2D7DA1);
-const Color _primary = Color(0xFF2b8cee);
 
 /// Analyse Comparative IA : comparaison de deux patients, métriques cognitives, prédictions IA.
 class HealthcareComparativeScreen extends StatelessWidget {
@@ -36,9 +32,9 @@ class HealthcareComparativeScreen extends StatelessWidget {
                 letterSpacing: 1,
               ),
             ),
-            Text(
-              AppLocalizations.of(context)!.aiComparativeAnalysisLabel,
-              style: const TextStyle(
+            const Text(
+              'Analyse Comparative IA',
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF0F172A),
@@ -55,9 +51,9 @@ class HealthcareComparativeScreen extends StatelessWidget {
           children: [
             _comparisonModeCard(context),
             const SizedBox(height: 20),
-            _metricsCard(context),
+            _metricsCard(),
             const SizedBox(height: 20),
-            _predictionsCard(context),
+            _predictionsCard(),
             const SizedBox(height: 20),
             _actionButtons(context),
             const SizedBox(height: 100),
@@ -68,8 +64,6 @@ class HealthcareComparativeScreen extends StatelessWidget {
   }
 
   Widget _comparisonModeCard(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
-    final locale = Localizations.localeOf(context).languageCode;
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
@@ -82,7 +76,7 @@ class HealthcareComparativeScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  loc.comparisonModeLabel,
+                  'MODE COMPARAISON',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -93,7 +87,11 @@ class HealthcareComparativeScreen extends StatelessWidget {
                 TextButton.icon(
                   onPressed: () {},
                   icon: const Icon(Icons.swap_horiz, size: 16, color: _brand),
-                  label: Text(loc.editLabel, style: const TextStyle(color: _brand, fontWeight: FontWeight.bold, fontSize: 11)),
+                  label: const Text('MODIFIER',
+                      style: TextStyle(
+                          color: _brand,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11)),
                 ),
               ],
             ),
@@ -111,11 +109,17 @@ class HealthcareComparativeScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       alignment: Alignment.center,
-                      child: const Text('JD', style: TextStyle(fontWeight: FontWeight.bold, color: _brand)),
+                      child: const Text('JD',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, color: _brand)),
                     ),
                     const SizedBox(height: 4),
-                    const Text('J. Dupont', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                    Text(intl.DateFormat.yMMMM(locale).format(DateTime(2024, 3)), style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+                    const Text('J. Dupont',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600, fontSize: 14)),
+                    Text('Mars 2024',
+                        style: TextStyle(
+                            fontSize: 10, color: Colors.grey.shade600)),
                   ],
                 ),
                 Icon(Icons.compare_arrows, color: Colors.grey.shade400),
@@ -130,11 +134,18 @@ class HealthcareComparativeScreen extends StatelessWidget {
                         border: Border.all(color: Colors.orange, width: 2),
                       ),
                       alignment: Alignment.center,
-                      child: Text('TB', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange.shade700)),
+                      child: Text('TB',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange.shade700)),
                     ),
                     const SizedBox(height: 4),
-                    const Text('T. Bernard', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                    Text(intl.DateFormat.yMMMM(Localizations.localeOf(context).languageCode).format(DateTime(2024, 3)), style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+                    const Text('T. Bernard',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600, fontSize: 14)),
+                    Text('Mars 2024',
+                        style: TextStyle(
+                            fontSize: 10, color: Colors.grey.shade600)),
                   ],
                 ),
               ],
@@ -145,7 +156,7 @@ class HealthcareComparativeScreen extends StatelessWidget {
     );
   }
 
-  Widget _metricsCard(BuildContext context) {
+  Widget _metricsCard() {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
@@ -160,17 +171,18 @@ class HealthcareComparativeScreen extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      AppLocalizations.of(context)!.cognitiveMetricsLabel,
-                      style: const TextStyle(
+                    const Text(
+                      'Métriques Cognitives',
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF0F172A),
                       ),
                     ),
                     Text(
-                      AppLocalizations.of(context)!.aggregatedData30Days,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      'Données agrégées sur 30 jours',
+                      style:
+                          TextStyle(fontSize: 12, color: Colors.grey.shade600),
                     ),
                   ],
                 ),
@@ -199,25 +211,29 @@ class HealthcareComparativeScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Text(AppLocalizations.of(context)!.weekLabel(1), style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
-                Text(AppLocalizations.of(context)!.weekLabel(2), style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
-                Text(AppLocalizations.of(context)!.weekLabel(3), style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
-                Text(AppLocalizations.of(context)!.weekLabel(4), style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
+                Text('Sem 1',
+                    style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
+                Text('Sem 2',
+                    style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
+                Text('Sem 3',
+                    style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
+                Text('Sem 4',
+                    style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
               ],
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
-                  child: _metricChip(AppLocalizations.of(context)!.memoryLabel, '+12%', isHighlight: true),
+                  child: _metricChip('MÉMOIRE', '+12%', isHighlight: true),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _metricChip(AppLocalizations.of(context)!.focusLabel, '-2%', isHighlight: false),
+                  child: _metricChip('FOCUS', '-2%', isHighlight: false),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _metricChip(AppLocalizations.of(context)!.motorLabel, '+5%', isHighlight: false),
+                  child: _metricChip('MOTEUR', '+5%', isHighlight: false),
                 ),
               ],
             ),
@@ -237,7 +253,8 @@ class HealthcareComparativeScreen extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 4),
-        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+        Text(label,
+            style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
       ],
     );
   }
@@ -273,8 +290,7 @@ class HealthcareComparativeScreen extends StatelessWidget {
     );
   }
 
-  Widget _predictionsCard(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
+  Widget _predictionsCard() {
     return Material(
       color: _brand,
       borderRadius: BorderRadius.circular(20),
@@ -283,13 +299,13 @@ class HealthcareComparativeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Row(
               children: [
-                const Icon(Icons.auto_awesome, color: _primary, size: 20),
-                const SizedBox(width: 8),
+                Icon(Icons.auto_awesome, color: _primary, size: 20),
+                SizedBox(width: 8),
                 Text(
-                  loc.aiPredictionsEvolution,
-                  style: const TextStyle(
+                  'PRÉDICTIONS IA - ÉVOLUTION',
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -299,9 +315,12 @@ class HealthcareComparativeScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            _predictionBlock('Jailson (Patient A)', 'Stabilisation attendue des cycles REM d\'ici 14 jours. Étape : Autonomie de lecture.'),
+            _predictionBlock('Jailson (Patient A)',
+                'Stabilisation attendue des cycles REM d\'ici 14 jours. Étape : Autonomie de lecture.'),
             const SizedBox(height: 12),
-            _predictionBlock('Thomas (Patient B)', 'Risque de régression motrice légère (15%). Ajustement thérapeutique suggéré.', isB: true),
+            _predictionBlock('Thomas (Patient B)',
+                'Risque de régression motrice légère (15%). Ajustement thérapeutique suggéré.',
+                isB: true),
           ],
         ),
       ),
@@ -345,11 +364,11 @@ class HealthcareComparativeScreen extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: _outlineAction(Icons.insights, AppLocalizations.of(context)!.groupAnalysisLabel, () {}),
+          child: _outlineAction(Icons.insights, 'Analyse de groupe', () {}),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _outlineAction(Icons.share, AppLocalizations.of(context)!.exportAnalysisLabel, () {}),
+          child: _outlineAction(Icons.share, 'Exporter l\'analyse', () {}),
         ),
       ],
     );
@@ -396,23 +415,35 @@ class _ChartPainter extends CustomPainter {
 
     final bluePath = Path();
     bluePath.moveTo(pad, pad + chartH * 0.6);
-    bluePath.quadraticBezierTo(pad + chartW * 0.25, pad + chartH * 0.5, pad + chartW * 0.5, pad + chartH * 0.4);
-    bluePath.quadraticBezierTo(pad + chartW * 0.75, pad + chartH * 0.3, pad + chartW, pad + chartH * 0.2);
+    bluePath.quadraticBezierTo(pad + chartW * 0.25, pad + chartH * 0.5,
+        pad + chartW * 0.5, pad + chartH * 0.4);
+    bluePath.quadraticBezierTo(pad + chartW * 0.75, pad + chartH * 0.3,
+        pad + chartW, pad + chartH * 0.2);
     canvas.drawPath(
       bluePath,
-      Paint()..color = const Color(0xFF2D7DA1)..strokeWidth = 2.5..style = PaintingStyle.stroke,
+      Paint()
+        ..color = const Color(0xFF2D7DA1)
+        ..strokeWidth = 2.5
+        ..style = PaintingStyle.stroke,
     );
-    canvas.drawCircle(Offset(pad + chartW * 0.5, pad + chartH * 0.4), 3, Paint()..color = const Color(0xFF2D7DA1));
+    canvas.drawCircle(Offset(pad + chartW * 0.5, pad + chartH * 0.4), 3,
+        Paint()..color = const Color(0xFF2D7DA1));
 
     final orangePath = Path();
     orangePath.moveTo(pad, pad + chartH * 0.8);
-    orangePath.quadraticBezierTo(pad + chartW * 0.25, pad + chartH * 0.75, pad + chartW * 0.5, pad + chartH * 0.85);
-    orangePath.quadraticBezierTo(pad + chartW * 0.75, pad + chartH * 0.9, pad + chartW, pad + chartH * 0.7);
+    orangePath.quadraticBezierTo(pad + chartW * 0.25, pad + chartH * 0.75,
+        pad + chartW * 0.5, pad + chartH * 0.85);
+    orangePath.quadraticBezierTo(pad + chartW * 0.75, pad + chartH * 0.9,
+        pad + chartW, pad + chartH * 0.7);
     canvas.drawPath(
       orangePath,
-      Paint()..color = Colors.orange..strokeWidth = 2.5..style = PaintingStyle.stroke,
+      Paint()
+        ..color = Colors.orange
+        ..strokeWidth = 2.5
+        ..style = PaintingStyle.stroke,
     );
-    canvas.drawCircle(Offset(pad + chartW * 0.5, pad + chartH * 0.85), 3, Paint()..color = Colors.orange);
+    canvas.drawCircle(Offset(pad + chartW * 0.5, pad + chartH * 0.85), 3,
+        Paint()..color = Colors.orange);
   }
 
   @override

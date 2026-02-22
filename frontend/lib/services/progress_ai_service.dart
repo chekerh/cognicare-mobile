@@ -37,7 +37,8 @@ class ProgressAiRecommendationResult {
       recommendationId: json['recommendationId'] as String? ?? '',
       summary: json['summary'] as String? ?? '',
       recommendations: recs
-          .map((e) => ProgressAiRecommendationItem.fromJson(e as Map<String, dynamic>))
+          .map((e) =>
+              ProgressAiRecommendationItem.fromJson(e as Map<String, dynamic>))
           .toList(),
       milestones: json['milestones'] as String?,
       predictions: json['predictions'] as String?,
@@ -109,7 +110,8 @@ class ProgressAiService {
     if (response.statusCode != 200) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;
-        throw Exception(err['message'] ?? 'Failed to load activity suggestions');
+        throw Exception(
+            err['message'] ?? 'Failed to load activity suggestions');
       } catch (e) {
         if (e is Exception) rethrow;
         throw Exception('Failed to load: ${response.statusCode}');
@@ -143,8 +145,11 @@ class ProgressAiService {
       'action': action,
     };
     if (planId != null && planId.isNotEmpty) body['planId'] = planId;
-    if (editedText != null && editedText.isNotEmpty) body['editedText'] = editedText;
-    if (originalRecommendationText != null && originalRecommendationText.isNotEmpty) {
+    if (editedText != null && editedText.isNotEmpty) {
+      body['editedText'] = editedText;
+    }
+    if (originalRecommendationText != null &&
+        originalRecommendationText.isNotEmpty) {
       body['originalRecommendationText'] = originalRecommendationText;
     }
     if (planType != null && planType.isNotEmpty) {
@@ -176,7 +181,8 @@ class ProgressAiService {
   }
 
   /// GET progress-ai/org/specialist/:specialistId/summary (org leader only).
-  Future<Map<String, dynamic>> getOrgSpecialistSummary(String specialistId) async {
+  Future<Map<String, dynamic>> getOrgSpecialistSummary(
+      String specialistId) async {
     final token = await getToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
@@ -207,7 +213,8 @@ class ProgressAiService {
     final token = await getToken();
     if (token == null) throw Exception('Not authenticated');
     final response = await _client.get(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.progressAiPreferencesEndpoint}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.progressAiPreferencesEndpoint}'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -237,7 +244,8 @@ class ProgressAiService {
       body['planTypeWeights'] = planTypeWeights.map((k, v) => MapEntry(k, v));
     }
     final response = await _client.patch(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.progressAiPreferencesEndpoint}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.progressAiPreferencesEndpoint}'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',

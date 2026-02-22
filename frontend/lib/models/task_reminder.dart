@@ -110,18 +110,15 @@ class TaskReminder {
       frequency: _reminderFrequencyFromString(json['frequency']),
       times: (json['times'] as List<dynamic>?)?.cast<String>() ?? [],
       intervalMinutes: json['intervalMinutes'],
-      daysOfWeek:
-          (json['daysOfWeek'] as List<dynamic>?)?.cast<String>() ?? [],
+      daysOfWeek: (json['daysOfWeek'] as List<dynamic>?)?.cast<String>() ?? [],
       soundEnabled: json['soundEnabled'] ?? true,
       vibrationEnabled: json['vibrationEnabled'] ?? true,
       isActive: json['isActive'] ?? true,
       linkedNutritionPlanId: json['linkedNutritionPlanId'],
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'])
-          : null,
+      createdAt:
+          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      updatedAt:
+          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
       completedToday: json['completedToday'],
       completedAt: json['completedAt'] != null
           ? DateTime.parse(json['completedAt'])
@@ -129,7 +126,8 @@ class TaskReminder {
       verificationStatus: json['verificationStatus'],
       verificationMetadata: json['verificationMetadata'],
       completionHistory: (json['completionHistory'] as List<dynamic>?)
-          ?.map((e) => CompletionHistoryEntry.fromJson(e as Map<String, dynamic>))
+          ?.map(
+              (e) => CompletionHistoryEntry.fromJson(e as Map<String, dynamic>))
           .whereType<CompletionHistoryEntry>()
           .toList(),
     );

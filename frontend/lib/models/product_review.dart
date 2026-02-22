@@ -28,9 +28,13 @@ class ProductReview {
       userId: (json['userId'] ?? '').toString(),
       userName: (json['userName'] ?? 'User').toString(),
       userProfileImageUrl: (pic != null && pic.isNotEmpty) ? pic : null,
-      rating: (json['rating'] is int) ? json['rating'] as int : int.tryParse(json['rating']?.toString() ?? '0') ?? 0,
+      rating: (json['rating'] is int)
+          ? json['rating'] as int
+          : int.tryParse(json['rating']?.toString() ?? '0') ?? 0,
       comment: (json['comment'] ?? '').toString(),
-      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'].toString())
+          : null,
     );
   }
 }

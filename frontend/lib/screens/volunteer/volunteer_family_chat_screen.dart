@@ -15,7 +15,6 @@ import '../../services/call_service.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
 import '../../widgets/chat_message_bar.dart';
-import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFF77B5D1);
 const Color _bgSoft = Color(0xFFEEF7FB);
@@ -55,6 +54,7 @@ class VolunteerFamilyChatScreen extends StatefulWidget {
   final String familyId;
   final String familyName;
   final String missionType;
+
   /// When set, messages are loaded/sent with this conversation (no getOrCreateConversation).
   final String? conversationId;
 
@@ -69,7 +69,8 @@ class VolunteerFamilyChatScreen extends StatefulWidget {
   }
 
   @override
-  State<VolunteerFamilyChatScreen> createState() => _VolunteerFamilyChatScreenState();
+  State<VolunteerFamilyChatScreen> createState() =>
+      _VolunteerFamilyChatScreenState();
 }
 
 class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
@@ -120,17 +121,22 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       final cid = _conversationId;
       if (cid == null || cid.isEmpty) return;
       if (evt.conversationId != cid) {
-        debugPrint('💬 [VOLUNTEER_CHAT] Event conversationId mismatch: ${evt.conversationId} != $cid');
+        debugPrint(
+            '💬 [VOLUNTEER_CHAT] Event conversationId mismatch: ${evt.conversationId} != $cid');
         return;
       }
-      debugPrint('💬 [VOLUNTEER_CHAT] Real-time message received, reloading...');
+      debugPrint(
+          '💬 [VOLUNTEER_CHAT] Real-time message received, reloading...');
       _loadMessagesDirect(silent: true);
     });
 
     _typingSub?.cancel();
     _typingSub = callProvider.service.onTyping.listen((evt) {
       if (!mounted) return;
-      if (evt.conversationId != _conversationId || evt.userId != widget.familyId) return;
+      if (evt.conversationId != _conversationId ||
+          evt.userId != widget.familyId) {
+        return;
+      }
 
       setState(() => _isRemoteTyping = evt.isTyping);
 
@@ -158,7 +164,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       if (currentUserId == null) {
         setState(() {
           _loading = false;
-          _loadError = AppLocalizations.of(context)!.notConnectedError;
+          _loadError = 'Non connecté';
         });
         return;
       }
@@ -203,7 +209,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       if (currentUserId == null) {
         setState(() {
           _loading = false;
-          _loadError = AppLocalizations.of(context)!.notConnectedError;
+          _loadError = 'Non connecté';
         });
         return;
       }
@@ -241,18 +247,21 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
   List<_Msg> _defaultMessages() {
     return [
       const _Msg(
-        text: "Bonjour Lucas ! Merci beaucoup d'avoir accepté notre mission. Seriez-vous disponible vers 14h30 ?",
+        text:
+            "Bonjour Lucas ! Merci beaucoup d'avoir accepté notre mission. Seriez-vous disponible vers 14h30 ?",
         isMe: false,
         time: '10:15',
       ),
       const _Msg(
-        text: "Bonjour ! Oui, c'est parfait pour moi. J'ai bien noté l'adresse au 12 Rue des Lilas.",
+        text:
+            "Bonjour ! Oui, c'est parfait pour moi. J'ai bien noté l'adresse au 12 Rue des Lilas.",
         isMe: true,
         time: '10:18',
         read: true,
       ),
       const _Msg(
-        text: "C'est parfait. Je vous laisserai la liste sur la table de l'entrée. À tout à l'heure !",
+        text:
+            "C'est parfait. Je vous laisserai la liste sur la table de l'entrée. À tout à l'heure !",
         isMe: false,
         time: '10:20',
       ),
@@ -286,10 +295,11 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       if (mounted) {
         setState(() => _playingVoiceUrl = null);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.voiceMessageError)),
+          const SnackBar(content: Text('Impossible de lire le message vocal')),
         );
       }
     }
+
     runZonedGuarded(() {
       _audioPlayer.play(UrlSource(url, mimeType: 'audio/mp4')).then((_) {
         if (mounted) setState(() => _playingVoiceUrl = msg.attachmentUrl);
@@ -302,7 +312,10 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
 
   Future<void> _onVoiceTap() async {
     if (_conversationId == null) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Conversation non chargée')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Conversation non chargée')));
+      }
       return;
     }
     if (_isRecording) {
@@ -311,13 +324,18 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     }
     final hasPermission = await _recorder.hasPermission();
     if (!hasPermission) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.micPermissionError)));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Autorisez l\'accès au micro.')));
+      }
       return;
     }
     try {
       final dir = await getTemporaryDirectory();
-      _currentRecordPath = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
-      await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: _currentRecordPath!);
+      _currentRecordPath =
+          '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc),
+          path: _currentRecordPath!);
       if (!mounted) return;
       setState(() {
         _isRecording = true;
@@ -328,7 +346,10 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
         setState(() => _recordingDuration += const Duration(seconds: 1));
       });
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      }
     }
   }
 
@@ -349,17 +370,25 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
         final chatService = ChatService();
         setState(() => _sending = true);
         try {
-          final url = await chatService.uploadAttachment(File(voicePath), 'voice');
-          await chatService.sendMessage(_conversationId!, AppLocalizations.of(context)!.voiceMessage, attachmentUrl: url, attachmentType: 'voice');
+          final url =
+              await chatService.uploadAttachment(File(voicePath), 'voice');
+          await chatService.sendMessage(_conversationId!, 'Message vocal',
+              attachmentUrl: url, attachmentType: 'voice');
           if (!mounted) return;
           setState(() {
-            _messages.add(_Msg(text: AppLocalizations.of(context)!.voiceMessage, isMe: true, time: _formatTime(DateTime.now()), attachmentType: 'voice', attachmentUrl: url));
+            _messages.add(_Msg(
+                text: 'Message vocal',
+                isMe: true,
+                time: _formatTime(DateTime.now()),
+                attachmentType: 'voice',
+                attachmentUrl: url));
             _sending = false;
           });
         } catch (e) {
           if (mounted) {
             setState(() => _sending = false);
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(e.toString().replaceFirst('Exception: ', ''))));
           }
         }
       }
@@ -370,31 +399,46 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
 
   Future<void> _onPhotoTap() async {
     if (_conversationId == null) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Conversation non chargée')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Conversation non chargée')));
+      }
       return;
     }
     try {
-      final XFile? picked = await _imagePicker.pickImage(source: ImageSource.gallery);
+      final XFile? picked =
+          await _imagePicker.pickImage(source: ImageSource.gallery);
       if (picked == null || !mounted) return;
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final chatService = ChatService();
       setState(() => _sending = true);
       try {
-        final url = await chatService.uploadAttachment(File(picked.path), 'image');
-        await chatService.sendMessage(_conversationId!, AppLocalizations.of(context)!.photoLabel, attachmentUrl: url, attachmentType: 'image');
+        final url =
+            await chatService.uploadAttachment(File(picked.path), 'image');
+        await chatService.sendMessage(_conversationId!, 'Photo',
+            attachmentUrl: url, attachmentType: 'image');
         if (!mounted) return;
         setState(() {
-          _messages.add(_Msg(text: AppLocalizations.of(context)!.photoLabel, isMe: true, time: _formatTime(DateTime.now()), attachmentType: 'image', attachmentUrl: url));
+          _messages.add(_Msg(
+              text: 'Photo',
+              isMe: true,
+              time: _formatTime(DateTime.now()),
+              attachmentType: 'image',
+              attachmentUrl: url));
           _sending = false;
         });
       } catch (e) {
         if (mounted) {
           setState(() => _sending = false);
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(e.toString().replaceFirst('Exception: ', ''))));
         }
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
     }
   }
 
@@ -414,7 +458,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     if (_controller.text.isNotEmpty) {
       _typingTimer = Timer(const Duration(seconds: 2), () {
         if (mounted) {
-           callProvider.service.sendTypingStatus(
+          callProvider.service.sendTypingStatus(
             targetUserId: widget.familyId,
             conversationId: _conversationId!,
             isTyping: false,
@@ -507,7 +551,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                                       _resolveAndLoadMessages();
                                     }
                                   },
-                                  child: Text(AppLocalizations.of(context)!.retryButton),
+                                  child: const Text('Réessayer'),
                                 ),
                               ],
                             ),
@@ -522,18 +566,18 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                             bottom: 24,
                           ),
                           children: [
-                             _buildDateSeparator(),
-                             const SizedBox(height: 24),
-                             ..._messages.map((m) => _buildBubble(m)),
-                             if (_isRemoteTyping) _buildTypingIndicator(),
-                           ],
-                         ),
+                            _buildDateSeparator(),
+                            const SizedBox(height: 24),
+                            ..._messages.map((m) => _buildBubble(m)),
+                            if (_isRemoteTyping) _buildTypingIndicator(),
+                          ],
+                        ),
             ),
           ),
           ChatMessageBar(
             controller: _controller,
             onSend: _sendMessage,
-            hintText: AppLocalizations.of(context)!.yourMessageHint,
+            hintText: 'Votre message...',
             sending: _sending,
             onVoiceTap: _onVoiceTap,
             onPhotoTap: _onPhotoTap,
@@ -584,7 +628,8 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 2),
                   ),
-                      child: Icon(_missionIcon(widget.missionType), color: Colors.white, size: 12),
+                  child: Icon(_missionIcon(widget.missionType),
+                      color: Colors.white, size: 12),
                 ),
               ),
             ],
@@ -596,10 +641,13 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
               children: [
                 Text(
                   widget.familyName,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _textPrimary),
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: _textPrimary),
                 ),
                 Text(
-                  '${AppLocalizations.of(context)!.missionLabel} : ${widget.missionType}',
+                  'Mission : ${widget.missionType}',
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                 ),
               ],
@@ -611,29 +659,31 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
           ),
           IconButton(
             onPressed: () => _initiateCall(context, true),
-            icon: const Icon(Icons.videocam_outlined, color: _textMuted, size: 26),
+            icon: const Icon(Icons.videocam_outlined,
+                color: _textMuted, size: 26),
           ),
         ],
       ),
     );
   }
 
-
-
   void _initiateCall(BuildContext context, bool isVideo) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final caller = auth.user;
     if (caller == null) {
-      debugPrint('📞 [VOLUNTEER_CHAT] Appel impossible: utilisateur non connecté');
+      debugPrint(
+          '📞 [VOLUNTEER_CHAT] Appel impossible: utilisateur non connecté');
       return;
     }
     if (widget.familyId.isEmpty) {
       debugPrint('📞 [VOLUNTEER_CHAT] Appel impossible: familyId vide');
       return;
     }
-    debugPrint('📞 [VOLUNTEER_CHAT] Initiation appel vers familyId=${widget.familyId} isVideo=$isVideo');
+    debugPrint(
+        '📞 [VOLUNTEER_CHAT] Initiation appel vers familyId=${widget.familyId} isVideo=$isVideo');
     final ids = [caller.id, widget.familyId]..sort();
-    final channelId = 'call_${ids[0]}_${ids[1]}_${DateTime.now().millisecondsSinceEpoch}';
+    final channelId =
+        'call_${ids[0]}_${ids[1]}_${DateTime.now().millisecondsSinceEpoch}';
     final callProvider = Provider.of<CallProvider>(context, listen: false);
     callProvider.service.initiateCall(
       targetUserId: widget.familyId,
@@ -659,9 +709,10 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
           color: Colors.white.withOpacity(0.5),
           borderRadius: BorderRadius.circular(999),
         ),
-        child: Text(
-          AppLocalizations.of(context)!.todayLabel,
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _textMuted),
+        child: const Text(
+          "AUJOURD'HUI",
+          style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w600, color: _textMuted),
         ),
       ),
     );
@@ -671,14 +722,16 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(
-        mainAxisAlignment: msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!msg.isMe) _avatar(),
           if (!msg.isMe) const SizedBox(width: 8),
           Flexible(
             child: Column(
-              crossAxisAlignment: msg.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  msg.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -698,7 +751,8 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                       ),
                     ],
                   ),
-                  child: msg.attachmentType == 'image' && msg.attachmentUrl != null
+                  child: msg.attachmentType == 'image' &&
+                          msg.attachmentUrl != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: Image.network(
@@ -713,25 +767,36 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.image_not_supported, size: 48, color: msg.isMe ? Colors.white70 : _textMuted),
+                                  Icon(Icons.image_not_supported,
+                                      size: 48,
+                                      color: msg.isMe
+                                          ? Colors.white70
+                                          : _textMuted),
                                   const SizedBox(height: 8),
                                   Text(
-                                    AppLocalizations.of(context)!.imageNotAvailable,
-                                    style: TextStyle(fontSize: 12, color: msg.isMe ? Colors.white70 : _textMuted),
+                                    'Image non disponible',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: msg.isMe
+                                            ? Colors.white70
+                                            : _textMuted),
                                   ),
                                 ],
                               ),
                             ),
                           ),
                         )
-                          : msg.attachmentType == 'voice'
+                      : msg.attachmentType == 'voice'
                           ? Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                onTap: msg.attachmentUrl != null ? () => _playVoiceMessage(msg) : null,
+                                onTap: msg.attachmentUrl != null
+                                    ? () => _playVoiceMessage(msg)
+                                    : null,
                                 borderRadius: BorderRadius.circular(8),
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
@@ -739,15 +804,24 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                                         _playingVoiceUrl == msg.attachmentUrl
                                             ? Icons.pause_circle_filled
                                             : Icons.play_circle_filled,
-                                        color: msg.isMe ? Colors.white : _primary,
+                                        color:
+                                            msg.isMe ? Colors.white : _primary,
                                         size: 32,
                                       ),
                                       const SizedBox(width: 10),
-                                      Icon(Icons.mic, color: msg.isMe ? Colors.white70 : _textMuted, size: 22),
+                                      Icon(Icons.mic,
+                                          color: msg.isMe
+                                              ? Colors.white70
+                                              : _textMuted,
+                                          size: 22),
                                       const SizedBox(width: 6),
                                       Text(
-                                        AppLocalizations.of(context)!.voiceMessage,
-                                        style: TextStyle(fontSize: 14, color: msg.isMe ? Colors.white : _textPrimary),
+                                        'Message vocal',
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            color: msg.isMe
+                                                ? Colors.white
+                                                : _textPrimary),
                                       ),
                                     ],
                                   ),
@@ -755,113 +829,168 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                               ),
                             )
                           : msg.attachmentType == 'call_missed'
-                               ? Column(
-                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                   mainAxisSize: MainAxisSize.min,
-                                   children: [
-                                     Row(
-                                       mainAxisSize: MainAxisSize.min,
-                                       children: [
-                                         Icon(
-                                           Icons.call_missed,
-                                           color: msg.isMe ? Colors.white70 : Colors.red.shade400,
-                                           size: 22,
-                                         ),
-                                         const SizedBox(width: 8),
-                                         Text(
-                                           AppLocalizations.of(context)!.missedCallLabel,
-                                           style: TextStyle(fontSize: 14, color: msg.isMe ? Colors.white : _textPrimary, fontWeight: FontWeight.bold),
-                                         ),
-                                       ],
-                                     ),
-                                     const SizedBox(height: 2),
-                                     Text(
-                                       msg.text, // "Appel vocal" or "Appel vidéo"
-                                       style: TextStyle(
-                                         fontSize: 12,
-                                         color: msg.isMe ? Colors.white70 : _textMuted,
-                                       ),
-                                     ),
-                                     const SizedBox(height: 8),
-                                     TextButton(
-                                       onPressed: () => _initiateCall(context, msg.text.contains('vidéo')),
-                                       style: TextButton.styleFrom(
-                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                         minimumSize: Size.zero,
-                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                         backgroundColor: msg.isMe ? Colors.white24 : Colors.grey.shade100,
-                                       ),
-                                       child: Text(AppLocalizations.of(context)!.callBackLabel, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: msg.isMe ? Colors.white : _primary)),
-                                     ),
-                                   ],
-                                 )
-                           : msg.attachmentType == 'call_summary'
-                               ? Column(
-                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                   mainAxisSize: MainAxisSize.min,
-                                   children: [
-                                     Row(
-                                       mainAxisSize: MainAxisSize.min,
-                                       children: [
-                                         Icon(
-                                           msg.text.contains('vidéo') ? Icons.videocam : Icons.call,
-                                           color: msg.isMe ? Colors.white70 : _primary,
-                                           size: 22,
-                                         ),
-                                          const SizedBox(width: 8),
-                                           Text(
-                                             msg.text.startsWith('Appel ') ? msg.text : AppLocalizations.of(context)!.callSummary,
-                                             style: TextStyle(
-                                               fontSize: 14,
-                                               color: msg.isMe ? Colors.white : _textPrimary,
-                                               fontWeight: FontWeight.bold,
-                                             ),
-                                           ),
-                                         ],
-                                       ),
-                                      if (!msg.text.startsWith('Appel ')) ...[
-                                        const SizedBox(height: 8),
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.call_missed,
+                                          color: msg.isMe
+                                              ? Colors.white70
+                                              : Colors.red.shade400,
+                                          size: 22,
+                                        ),
+                                        const SizedBox(width: 8),
                                         Text(
-                                          msg.text,
+                                          'Appel manqué',
                                           style: TextStyle(
-                                            fontSize: 13,
-                                            color: msg.isMe ? Colors.white.withOpacity(0.9) : _textPrimary.withOpacity(0.8),
-                                            fontStyle: FontStyle.italic,
-                                          ),
+                                              fontSize: 14,
+                                              color: msg.isMe
+                                                  ? Colors.white
+                                                  : _textPrimary,
+                                              fontWeight: FontWeight.bold),
                                         ),
                                       ],
-                                      if (msg.callDuration != null && msg.callDuration! > 0) ...[
-                                       const SizedBox(height: 2),
-                                       Text(
-                                         _formatDuration(msg.callDuration!),
-                                         style: TextStyle(
-                                           fontSize: 12,
-                                           color: msg.isMe ? Colors.white70 : _textMuted,
-                                         ),
-                                       ),
-                                     ],
-                                     const SizedBox(height: 8),
-                                     TextButton(
-                                       onPressed: () => _initiateCall(context, msg.text.contains('vidéo')),
-                                       style: TextButton.styleFrom(
-                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                         minimumSize: Size.zero,
-                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                         backgroundColor: msg.isMe ? Colors.white24 : Colors.grey.shade100,
-                                       ),
-                                       child: Text('Rappeler', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: msg.isMe ? Colors.white : _primary)),
-                                     ),
-                                   ],
-                                 )
-                          : Text(
-                              msg.text,
-                              style: TextStyle(fontSize: 14, color: msg.isMe ? Colors.white : _textPrimary, height: 1.4),
-                            ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      msg.text, // "Appel vocal" or "Appel vidéo"
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: msg.isMe
+                                            ? Colors.white70
+                                            : _textMuted,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextButton(
+                                      onPressed: () => _initiateCall(
+                                          context, msg.text.contains('vidéo')),
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 4),
+                                        minimumSize: Size.zero,
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                        backgroundColor: msg.isMe
+                                            ? Colors.white24
+                                            : Colors.grey.shade100,
+                                      ),
+                                      child: Text('Rappeler',
+                                          style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: msg.isMe
+                                                  ? Colors.white
+                                                  : _primary)),
+                                    ),
+                                  ],
+                                )
+                              : msg.attachmentType == 'call_summary'
+                                  ? Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              msg.text.contains('vidéo')
+                                                  ? Icons.videocam
+                                                  : Icons.call,
+                                              color: msg.isMe
+                                                  ? Colors.white70
+                                                  : _primary,
+                                              size: 22,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              msg.text.startsWith('Appel ')
+                                                  ? msg.text
+                                                  : 'Transcription de l\'appel',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: msg.isMe
+                                                    ? Colors.white
+                                                    : _textPrimary,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        if (!msg.text.startsWith('Appel ')) ...[
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            msg.text,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: msg.isMe
+                                                  ? Colors.white
+                                                      .withOpacity(0.9)
+                                                  : _textPrimary
+                                                      .withOpacity(0.8),
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                          ),
+                                        ],
+                                        if (msg.callDuration != null &&
+                                            msg.callDuration! > 0) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            _formatDuration(msg.callDuration!),
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: msg.isMe
+                                                  ? Colors.white70
+                                                  : _textMuted,
+                                            ),
+                                          ),
+                                        ],
+                                        const SizedBox(height: 8),
+                                        TextButton(
+                                          onPressed: () => _initiateCall(
+                                              context,
+                                              msg.text.contains('vidéo')),
+                                          style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 4),
+                                            minimumSize: Size.zero,
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
+                                            backgroundColor: msg.isMe
+                                                ? Colors.white24
+                                                : Colors.grey.shade100,
+                                          ),
+                                          child: Text('Rappeler',
+                                              style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: msg.isMe
+                                                      ? Colors.white
+                                                      : _primary)),
+                                        ),
+                                      ],
+                                    )
+                                  : Text(
+                                      msg.text,
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          color: msg.isMe
+                                              ? Colors.white
+                                              : _textPrimary,
+                                          height: 1.4),
+                                    ),
                 ),
                 const SizedBox(height: 4),
                 Row(
                   mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                  mainAxisAlignment: msg.isMe
+                      ? MainAxisAlignment.end
+                      : MainAxisAlignment.start,
                   children: [
                     if (!msg.isMe) const SizedBox(width: 8),
                     Text(
@@ -884,9 +1013,18 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
   }
 
   static IconData _missionIcon(String type) {
-    if (type.toLowerCase().contains('course') || type.toLowerCase().contains('proximité')) return Icons.shopping_basket;
-    if (type.toLowerCase().contains('lecture') || type.toLowerCase().contains('compagnie')) return Icons.menu_book;
-    if (type.toLowerCase().contains('accompagnement') || type.toLowerCase().contains('extérieur')) return Icons.directions_walk;
+    if (type.toLowerCase().contains('course') ||
+        type.toLowerCase().contains('proximité')) {
+      return Icons.shopping_basket;
+    }
+    if (type.toLowerCase().contains('lecture') ||
+        type.toLowerCase().contains('compagnie')) {
+      return Icons.menu_book;
+    }
+    if (type.toLowerCase().contains('accompagnement') ||
+        type.toLowerCase().contains('extérieur')) {
+      return Icons.directions_walk;
+    }
     return Icons.volunteer_activism;
   }
 
@@ -946,11 +1084,12 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                 const SizedBox(
                   width: 12,
                   height: 12,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: _primary),
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: _primary),
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  AppLocalizations.of(context)!.typingIndicator,
+                  'En train d\'écrire...',
                   style: TextStyle(
                     fontSize: 14,
                     color: _textMuted,

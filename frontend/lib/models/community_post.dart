@@ -6,6 +6,7 @@ class CommunityPost {
   final String text;
   final DateTime createdAt;
   final bool hasImage;
+
   /// Chemin local de l'image uploadée (après sélection galerie/caméra).
   final String? imagePath;
   final List<String> tags;

@@ -106,7 +106,8 @@ class _ChildModeScreenState extends State<ChildModeScreen> {
     );
   }
 
-  Widget _headerIconButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _headerIconButton(
+      {required IconData icon, required VoidCallback onTap}) {
     return Material(
       color: _iconCircleBg,
       borderRadius: BorderRadius.circular(24),
@@ -125,11 +126,36 @@ class _ChildModeScreenState extends State<ChildModeScreen> {
 
   Widget _buildEmotionGrid(AppLocalizations loc) {
     final emotions = [
-      (color: _happyColor, icon: Icons.sentiment_very_satisfied, label: loc.happy, key: 'happy'),
-      (color: _sadColor, icon: Icons.sentiment_very_dissatisfied, label: loc.sad, key: 'sad'),
-      (color: _angryColor, icon: Icons.sentiment_dissatisfied, label: loc.angry, key: 'angry'),
-      (color: _tiredColor, icon: Icons.nightlight_round, label: loc.tired, key: 'tired'),
-      (color: _sillyColor, icon: Icons.sentiment_satisfied_alt, label: loc.silly, key: 'silly'),
+      (
+        color: _happyColor,
+        icon: Icons.sentiment_very_satisfied,
+        label: loc.happy,
+        key: 'happy'
+      ),
+      (
+        color: _sadColor,
+        icon: Icons.sentiment_very_dissatisfied,
+        label: loc.sad,
+        key: 'sad'
+      ),
+      (
+        color: _angryColor,
+        icon: Icons.sentiment_dissatisfied,
+        label: loc.angry,
+        key: 'angry'
+      ),
+      (
+        color: _tiredColor,
+        icon: Icons.nightlight_round,
+        label: loc.tired,
+        key: 'tired'
+      ),
+      (
+        color: _sillyColor,
+        icon: Icons.sentiment_satisfied_alt,
+        label: loc.silly,
+        key: 'silly'
+      ),
     ];
 
     return Column(
@@ -171,7 +197,8 @@ class _ChildModeScreenState extends State<ChildModeScreen> {
       child: InkWell(
         onTap: () {
           setState(() => _selectedEmotion = e.label);
-          context.push(AppConstants.familyChildDashboardRoute, extra: {'emotion': e.key});
+          context.push(AppConstants.familyChildDashboardRoute,
+              extra: {'emotion': e.key});
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(
@@ -220,7 +247,8 @@ class _ChildModeScreenState extends State<ChildModeScreen> {
                   color: _iconCircleBg,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.face_rounded, color: Colors.white, size: 20),
+                child: const Icon(Icons.face_rounded,
+                    color: Colors.white, size: 20),
               ),
               const SizedBox(width: 12),
               Text(

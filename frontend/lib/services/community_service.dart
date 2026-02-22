@@ -34,7 +34,8 @@ class CommunityService {
   /// Retourne la liste des posts et un map postId -> likeCount.
   Future<Map<String, dynamic>> getPostsWithLikeCounts() async {
     final response = await _client.get(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}'),
       headers: await _headers(),
     );
     if (response.statusCode != 200) {
@@ -46,7 +47,8 @@ class CommunityService {
     for (final e in list) {
       final map = e as Map<String, dynamic>;
       posts.add(_postFromApi(map));
-      likeCounts[map['id'] as String] = (map['likeCount'] as num?)?.toInt() ?? 0;
+      likeCounts[map['id'] as String] =
+          (map['likeCount'] as num?)?.toInt() ?? 0;
     }
     return {'posts': posts, 'likeCounts': likeCounts};
   }
@@ -60,7 +62,8 @@ class CommunityService {
     List<String> tags = const [],
   }) async {
     final response = await _client.post(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}'),
       headers: await _headers(),
       body: jsonEncode({
         'text': text,
@@ -85,7 +88,8 @@ class CommunityService {
   Future<String> uploadPostImage(File imageFile) async {
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.communityUploadPostImageEndpoint}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.communityUploadPostImageEndpoint}'),
     );
     final token = await _getToken();
     if (token != null) request.headers['Authorization'] = 'Bearer $token';
@@ -109,12 +113,14 @@ class CommunityService {
   }
 
   /// Modifie un post (auteur uniquement).
-  Future<void> updatePost(String postId, { required String text, String? imageUrl, List<String>? tags }) async {
-    final body = <String, dynamic>{ 'text': text };
+  Future<void> updatePost(String postId,
+      {required String text, String? imageUrl, List<String>? tags}) async {
+    final body = <String, dynamic>{'text': text};
     if (imageUrl != null) body['imageUrl'] = imageUrl;
     if (tags != null) body['tags'] = tags;
     final response = await _client.patch(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}/$postId'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}/$postId'),
       headers: await _headers(),
       body: jsonEncode(body),
     );
@@ -126,7 +132,8 @@ class CommunityService {
   /// Supprime un post (auteur uniquement).
   Future<void> deletePost(String postId) async {
     final response = await _client.delete(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}/$postId'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}/$postId'),
       headers: await _headers(),
     );
     if (response.statusCode == 403) {
@@ -139,7 +146,8 @@ class CommunityService {
   /// Like / unlike un post. Retourne { liked, likeCount }.
   Future<Map<String, dynamic>> toggleLike(String postId) async {
     final response = await _client.post(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}/$postId/like'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}/$postId/like'),
       headers: await _headers(),
     );
     if (response.statusCode != 200) throw Exception('Failed to toggle like');
@@ -149,7 +157,8 @@ class CommunityService {
   /// Liste des commentaires d'un post.
   Future<List<FeedComment>> getComments(String postId) async {
     final response = await _client.get(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}/$postId/comments'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}/$postId/comments'),
       headers: await _headers(),
     );
     if (response.statusCode != 200) throw Exception('Failed to load comments');
@@ -162,7 +171,8 @@ class CommunityService {
   /// Ajoute un commentaire à un post.
   Future<FeedComment> addComment(String postId, String text) async {
     final response = await _client.post(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}/$postId/comments'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}/$postId/comments'),
       headers: await _headers(),
       body: jsonEncode({'text': text}),
     );
@@ -176,7 +186,8 @@ class CommunityService {
     if (postIds.isEmpty) return {};
     final query = postIds.join(',');
     final response = await _client.get(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.communityPostLikeStatusEndpoint}?postIds=$query'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.communityPostLikeStatusEndpoint}?postIds=$query'),
       headers: await _headers(),
     );
     if (response.statusCode != 200) return {};

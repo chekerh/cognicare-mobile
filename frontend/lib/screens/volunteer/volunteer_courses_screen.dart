@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../l10n/app_localizations.dart';
 import '../../services/courses_service.dart';
 
 const Color _primary = Color(0xFFA4D9E5);
@@ -32,7 +31,8 @@ class _VolunteerCoursesScreenState extends State<VolunteerCoursesScreen> {
       _error = null;
     });
     try {
-      final courses = await _coursesService.getCourses(qualificationOnly: _qualificationOnly);
+      final courses = await _coursesService.getCourses(
+          qualificationOnly: _qualificationOnly);
       final enrollments = await _coursesService.myEnrollments();
       if (mounted) {
         setState(() {
@@ -54,7 +54,9 @@ class _VolunteerCoursesScreenState extends State<VolunteerCoursesScreen> {
       await _coursesService.enroll(courseId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.enrollmentSuccess), backgroundColor: Colors.green),
+          const SnackBar(
+              content: Text('Inscription enregistrée'),
+              backgroundColor: Colors.green),
         );
         _load();
       }
@@ -77,7 +79,7 @@ class _VolunteerCoursesScreenState extends State<VolunteerCoursesScreen> {
       backgroundColor: _background,
       appBar: AppBar(
         backgroundColor: _primary,
-        title: Text(AppLocalizations.of(context)!.qualifyingCoursesTitle),
+        title: const Text('Formations qualifiantes'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
@@ -94,7 +96,8 @@ class _VolunteerCoursesScreenState extends State<VolunteerCoursesScreen> {
                       children: [
                         Text(_error!, textAlign: TextAlign.center),
                         const SizedBox(height: 16),
-                        ElevatedButton(onPressed: _load, child: Text(AppLocalizations.of(context)!.retry)),
+                        ElevatedButton(
+                            onPressed: _load, child: const Text('Réessayer')),
                       ],
                     ),
                   ),
@@ -107,7 +110,8 @@ class _VolunteerCoursesScreenState extends State<VolunteerCoursesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         SwitchListTile(
-                          title: Text(AppLocalizations.of(context)!.qualificationOnlyFilter),
+                          title:
+                              const Text('Formations qualifiantes uniquement'),
                           value: _qualificationOnly,
                           onChanged: (v) {
                             setState(() => _qualificationOnly = v);
@@ -115,16 +119,17 @@ class _VolunteerCoursesScreenState extends State<VolunteerCoursesScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
-                        Text(
-                          AppLocalizations.of(context)!.myEnrollmentsTitle,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        const Text(
+                          'Mes inscriptions',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
                         if (_enrollments.isEmpty)
-                          Card(
+                          const Card(
                             child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Text(AppLocalizations.of(context)!.noEnrollmentsMessage),
+                              padding: EdgeInsets.all(16),
+                              child: Text('Aucune inscription pour le moment.'),
                             ),
                           )
                         else
@@ -139,27 +144,31 @@ class _VolunteerCoursesScreenState extends State<VolunteerCoursesScreen> {
                                 leading: CircleAvatar(
                                   backgroundColor: _primary.withOpacity(0.3),
                                   child: Icon(
-                                    status == 'completed' ? Icons.check : Icons.school,
+                                    status == 'completed'
+                                        ? Icons.check
+                                        : Icons.school,
                                     color: _primary,
                                   ),
                                 ),
                                 title: Text(title),
-                                subtitle: Text('$progress% • ${status == 'completed' ? AppLocalizations.of(context)!.completedStatus : AppLocalizations.of(context)!.inProgressStatus}'),
+                                subtitle: Text(
+                                    '$progress% • ${status == 'completed' ? 'Terminé' : 'En cours'}'),
                               ),
                             );
                           }),
                         const SizedBox(height: 24),
-                        Text(
-                          AppLocalizations.of(context)!.availableCoursesTitle,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        const Text(
+                          'Cours disponibles',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
                         if (_courses.isEmpty)
-                          Card(
+                          const Card(
                             child: Padding(
-                              padding: const EdgeInsets.all(16),
+                              padding: EdgeInsets.all(16),
                               child: Text(
-                                AppLocalizations.of(context)!.noAvailableCoursesMessage,
+                                'Aucun cours disponible pour le moment. Revenez plus tard.',
                               ),
                             ),
                           )
@@ -188,14 +197,14 @@ class _VolunteerCoursesScreenState extends State<VolunteerCoursesScreen> {
                                           ),
                                         ),
                                         if (enrolled)
-                                          Chip(
-                                            label: Text(AppLocalizations.of(context)!.enrolledLabel),
+                                          const Chip(
+                                            label: Text('Inscrit'),
                                             backgroundColor: Colors.green,
                                           )
                                         else
                                           TextButton(
                                             onPressed: () => _enroll(id),
-                                            child: Text(AppLocalizations.of(context)!.enrollButton),
+                                            child: const Text('S\'inscrire'),
                                           ),
                                       ],
                                     ),
@@ -203,7 +212,8 @@ class _VolunteerCoursesScreenState extends State<VolunteerCoursesScreen> {
                                       const SizedBox(height: 8),
                                       Text(
                                         desc,
-                                        style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                        style: const TextStyle(
+                                            fontSize: 14, color: Colors.grey),
                                       ),
                                     ],
                                   ],

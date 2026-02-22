@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
-import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 import '../../services/volunteer_service.dart';
 
@@ -18,7 +17,8 @@ class VolunteerApplicationScreen extends StatefulWidget {
       _VolunteerApplicationScreenState();
 }
 
-class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen> {
+class _VolunteerApplicationScreenState
+    extends State<VolunteerApplicationScreen> {
   final VolunteerService _volunteerService = VolunteerService();
   Map<String, dynamic>? _application;
   bool _loading = true;
@@ -62,12 +62,13 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
     if (path == null || path.isEmpty) {
       if (!mounted) return;
       _showErrorDialog(
-        title: AppLocalizations.of(context)!.fileNotAccessibleTitle,
-        message: AppLocalizations.of(context)!.fileNotAccessibleMessage,
+        title: 'Fichier non accessible',
+        message:
+            'Le fichier sélectionné n\'est pas accessible sur cet appareil.',
         suggestions: [
-          AppLocalizations.of(context)!.checkPermissionsSuggestion,
-          AppLocalizations.of(context)!.copyFileSuggestion,
-          AppLocalizations.of(context)!.restartAppSuggestion,
+          'Vérifiez les permissions de l\'application',
+          'Essayez de copier le fichier dans un autre dossier',
+          'Redémarrez l\'application et réessayez',
         ],
       );
       return;
@@ -76,45 +77,46 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
     if (!await f.exists()) {
       if (!mounted) return;
       _showErrorDialog(
-        title: AppLocalizations.of(context)!.fileNotFoundTitle,
-        message: AppLocalizations.of(context)!.fileNotFoundMessage,
+        title: 'Fichier introuvable',
+        message: 'Le fichier n\'existe plus ou a été déplacé.',
         suggestions: [
-          AppLocalizations.of(context)!.checkFileExistsSuggestion,
-          AppLocalizations.of(context)!.selectOtherFileSuggestion,
+          'Vérifiez que le fichier existe toujours',
+          'Sélectionnez un autre fichier',
         ],
       );
       return;
     }
-    
+
     // Check file extension
     final extension = path.split('.').last.toLowerCase();
     final allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'pdf'];
     if (!allowedExtensions.contains(extension)) {
       if (!mounted) return;
       _showErrorDialog(
-        title: AppLocalizations.of(context)!.invalidFileTypeTitle,
-        message: AppLocalizations.of(context)!.invalidFileTypeMessage(extension),
+        title: 'Type de fichier invalide',
+        message: 'Le format .$extension n\'est pas accepté.',
         suggestions: [
-          AppLocalizations.of(context)!.allowedFormatsMessage,
-          AppLocalizations.of(context)!.convertFileSuggestion,
-          AppLocalizations.of(context)!.useScannerSuggestion,
+          'Formats acceptés : JPG, JPEG, PNG, WebP, PDF',
+          'Convertissez votre fichier en un format accepté',
+          'Pour les documents : utilisez un scanner d\'application pour créer un PDF',
         ],
       );
       return;
     }
-    
+
     final length = await f.length();
     if (length > _maxFileSizeBytes) {
       if (!mounted) return;
       final fileSizeMB = (length / (1024 * 1024)).toStringAsFixed(2);
       _showErrorDialog(
-        title: AppLocalizations.of(context)!.fileTooLargeTitle,
-        message: AppLocalizations.of(context)!.fileTooLargeMessage(fileSizeMB),
+        title: 'Fichier trop volumineux',
+        message:
+            'La taille du fichier ($fileSizeMB Mo) dépasse la limite de 5 Mo.',
         suggestions: [
-          AppLocalizations.of(context)!.compressImageSuggestion,
-          AppLocalizations.of(context)!.reduceResolutionSuggestion,
-          AppLocalizations.of(context)!.usePdfCompressorSuggestion,
-          AppLocalizations.of(context)!.retakePhotoSuggestion,
+          'Compressez votre image en ligne (ex: tinypng.com, compressjpeg.com)',
+          'Réduisez la résolution de l\'image avant de l\'uploader',
+          'Pour les PDF : utilisez un compresseur PDF en ligne',
+          'Prenez une nouvelle photo avec une qualité réduite',
         ],
       );
       return;
@@ -126,7 +128,9 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
         final messenger = ScaffoldMessenger.maybeOf(context);
         if (mounted && messenger != null) {
           messenger.showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.documentUploadSuccess), backgroundColor: Colors.green),
+            const SnackBar(
+                content: Text('✅ Document ajouté avec succès'),
+                backgroundColor: Colors.green),
           );
         }
         _load();
@@ -134,49 +138,49 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
     } catch (e) {
       if (mounted) {
         final errorMessage = e.toString().replaceFirst('Exception: ', '');
-        
+
         // Parse backend errors to provide better messages
-        if (errorMessage.toLowerCase().contains('file size') || 
+        if (errorMessage.toLowerCase().contains('file size') ||
             errorMessage.toLowerCase().contains('taille')) {
           _showErrorDialog(
-            title: AppLocalizations.of(context)!.fileTooLargeTitle,
+            title: 'Fichier trop volumineux',
             message: errorMessage,
             suggestions: [
-              AppLocalizations.of(context)!.compressImageSuggestion,
-              AppLocalizations.of(context)!.reduceResolutionSuggestion,
-              AppLocalizations.of(context)!.usePdfCompressorSuggestion,
+              'Compressez votre fichier en ligne',
+              'Réduisez la résolution de l\'image',
+              'Utilisez un compresseur PDF pour les documents',
             ],
           );
-        } else if (errorMessage.toLowerCase().contains('type') || 
-                   errorMessage.toLowerCase().contains('format') ||
-                   errorMessage.toLowerCase().contains('allowed')) {
+        } else if (errorMessage.toLowerCase().contains('type') ||
+            errorMessage.toLowerCase().contains('format') ||
+            errorMessage.toLowerCase().contains('allowed')) {
           _showErrorDialog(
-            title: AppLocalizations.of(context)!.invalidFileTypeTitle,
+            title: 'Format de fichier invalide',
             message: errorMessage,
             suggestions: [
-              AppLocalizations.of(context)!.allowedFormatsMessage,
-              AppLocalizations.of(context)!.convertFileSuggestion,
+              'Formats acceptés : JPG, JPEG, PNG, WebP, PDF',
+              'Convertissez votre fichier dans un format compatible',
             ],
           );
-        } else if (errorMessage.toLowerCase().contains('network') || 
-                   errorMessage.toLowerCase().contains('connexion')) {
+        } else if (errorMessage.toLowerCase().contains('network') ||
+            errorMessage.toLowerCase().contains('connexion')) {
           _showErrorDialog(
-            title: AppLocalizations.of(context)!.connectionErrorTitle,
-            message: AppLocalizations.of(context)!.connectionErrorMessage,
+            title: 'Erreur de connexion',
+            message: 'Impossible de se connecter au serveur.',
             suggestions: [
-              AppLocalizations.of(context)!.checkInternetSuggestion,
-              AppLocalizations.of(context)!.retryLaterSuggestion,
-              AppLocalizations.of(context)!.contactSupportSuggestion,
+              'Vérifiez votre connexion internet',
+              'Réessayez dans quelques instants',
+              'Contactez le support si le problème persiste',
             ],
           );
         } else {
           _showErrorDialog(
-            title: AppLocalizations.of(context)!.uploadErrorTitle,
+            title: 'Erreur d\'upload',
             message: errorMessage,
             suggestions: [
-              AppLocalizations.of(context)!.checkInternetSuggestion,
-              AppLocalizations.of(context)!.selectOtherFileSuggestion,
-              AppLocalizations.of(context)!.contactSupportSuggestion,
+              'Vérifiez votre connexion internet',
+              'Réessayez avec un autre fichier',
+              'Contactez le support si le problème persiste',
             ],
           );
         }
@@ -220,9 +224,9 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
                 style: const TextStyle(fontSize: 16, color: Colors.black87),
               ),
               const SizedBox(height: 16),
-              Text(
-                AppLocalizations.of(context)!.possibleSolutionsLabel,
-                style: const TextStyle(
+              const Text(
+                'Solutions possibles :',
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -230,27 +234,32 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
               ),
               const SizedBox(height: 8),
               ...suggestions.map((suggestion) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('• ', style: TextStyle(fontSize: 16, color: _primary, fontWeight: FontWeight.bold)),
-                    Expanded(
-                      child: Text(
-                        suggestion,
-                        style: const TextStyle(fontSize: 14, color: Colors.black87),
-                      ),
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('• ',
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: _primary,
+                                fontWeight: FontWeight.bold)),
+                        Expanded(
+                          child: Text(
+                            suggestion,
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.black87),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              )),
+                  )),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(AppLocalizations.of(context)!.closeLabel),
+            child: const Text('Fermer'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -261,7 +270,7 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
               backgroundColor: _primary,
               foregroundColor: Colors.white,
             ),
-            child: Text(AppLocalizations.of(context)!.retry),
+            child: const Text('Réessayer'),
           ),
         ],
       ),
@@ -277,7 +286,8 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
         final messenger = ScaffoldMessenger.maybeOf(context);
         if (mounted && messenger != null) {
           messenger.showSnackBar(
-            SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+            SnackBar(
+                content: Text(e.toString().replaceFirst('Exception: ', ''))),
           );
         }
       }
@@ -291,7 +301,7 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
         backgroundColor: _background,
         appBar: AppBar(
           backgroundColor: _primary,
-          title: Text(AppLocalizations.of(context)!.volunteerApplicationTitle),
+          title: const Text('Candidature bénévole'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => context.pop(),
@@ -309,7 +319,7 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
       backgroundColor: _background,
       appBar: AppBar(
         backgroundColor: _primary,
-        title: Text(AppLocalizations.of(context)!.volunteerApplicationTitle),
+        title: const Text('Candidature bénévole'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -326,7 +336,7 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _load,
-                      child: Text(AppLocalizations.of(context)!.retry),
+                      child: const Text('Réessayer'),
                     ),
                   ],
                 ),
@@ -347,14 +357,14 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
                     OutlinedButton.icon(
                       onPressed: () => context.push(AppConstants.coursesRoute),
                       icon: const Icon(Icons.school),
-                      label: Text(AppLocalizations.of(context)!.qualifyingCoursesTitle),
+                      label: const Text('Voir les formations qualifiantes'),
                     ),
                   ] else ...[
                     _buildDocumentsSection(documents),
                     const SizedBox(height: 16),
-                    Text(
-                      AppLocalizations.of(context)!.acceptedFileTypesHint,
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    const Text(
+                      'Types acceptés : images (JPEG, PNG, WebP) ou PDF. Max 5 Mo par fichier.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
                   if (_uploading)
@@ -365,8 +375,9 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
                           const LinearProgressIndicator(),
                           const SizedBox(height: 8),
                           Text(
-                            AppLocalizations.of(context)!.uploadInProgressStatus,
-                            style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                            'Upload en cours…',
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey.shade700),
                           ),
                         ],
                       ),
@@ -383,20 +394,21 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
     switch (status) {
       case 'approved':
         color = Colors.green;
-        label = AppLocalizations.of(context)!.statusConfirmed;
+        label = 'Approuvée';
         break;
       case 'denied':
         color = Colors.red;
-        label = AppLocalizations.of(context)!.statusCancelled;
+        label = 'Refusée';
         break;
       default:
         color = Colors.orange;
-        label = AppLocalizations.of(context)!.statusPending;
+        label = 'En attente';
     }
     return Center(
       child: Chip(
         backgroundColor: color.withOpacity(0.2),
-        label: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
+        label: Text(label,
+            style: TextStyle(color: color, fontWeight: FontWeight.w600)),
       ),
     );
   }
@@ -409,10 +421,10 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
           children: [
             Icon(Icons.check_circle, size: 64, color: Colors.green.shade700),
             const SizedBox(height: 16),
-            Text(
-              AppLocalizations.of(context)!.applicationApprovedMessage,
+            const Text(
+              'Votre candidature a été approuvée. Vous pouvez accéder à toutes les fonctionnalités bénévole.',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: 16),
             ),
           ],
         ),
@@ -433,7 +445,7 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
                 Icon(Icons.info_outline, color: Colors.red.shade700),
                 const SizedBox(width: 8),
                 Text(
-                  AppLocalizations.of(context)!.applicationDeniedTitle,
+                  'Candidature refusée',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.red.shade700,
@@ -446,9 +458,9 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
               Text(reason, style: const TextStyle(fontSize: 14)),
             ],
             const SizedBox(height: 12),
-            Text(
-              AppLocalizations.of(context)!.applicationDeniedFollowUp,
-              style: const TextStyle(fontSize: 14),
+            const Text(
+              'Vous pouvez suivre une formation qualifiante pour postuler à nouveau.',
+              style: TextStyle(fontSize: 14),
             ),
           ],
         ),
@@ -463,15 +475,16 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              AppLocalizations.of(context)!.depositedDocumentsTitle,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            const Text(
+              'Documents déposés',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             ...List.generate(documents.length, (i) {
               final doc = documents[i] as Map<String, dynamic>? ?? {};
               final type = doc['type'] as String? ?? 'other';
-              final fileName = doc['fileName'] as String? ?? 'Document ${i + 1}';
+              final fileName =
+                  doc['fileName'] as String? ?? 'Document ${i + 1}';
               return ListTile(
                 leading: Icon(
                   (doc['mimeType'] as String? ?? '').contains('pdf')
@@ -479,12 +492,12 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
                       : Icons.image,
                   color: _primary,
                 ),
-                title: Text(AppLocalizations.of(context)!.documentWithIndex(i + 1)),
+                title: Text(fileName),
                 subtitle: Text(type == 'id'
-                    ? AppLocalizations.of(context)!.identityDocumentLabel
+                    ? 'Pièce d\'identité'
                     : type == 'certificate'
-                        ? AppLocalizations.of(context)!.certificateDocumentLabel
-                        : AppLocalizations.of(context)!.otherDocumentLabel),
+                        ? 'Certificat'
+                        : 'Autre'),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline, color: Colors.red),
                   onPressed: _uploading ? null : () => _removeDocument(i),
@@ -497,17 +510,18 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
               children: [
                 ActionChip(
                   avatar: const Icon(Icons.add, size: 18, color: Colors.white),
-                  label: Text(AppLocalizations.of(context)!.identityDocumentLabel),
+                  label: const Text('Pièce d\'identité'),
                   onPressed: _uploading ? null : () => _pickAndUpload('id'),
                 ),
                 ActionChip(
                   avatar: const Icon(Icons.add, size: 18, color: Colors.white),
-                  label: Text(AppLocalizations.of(context)!.certificateDocumentLabel),
-                  onPressed: _uploading ? null : () => _pickAndUpload('certificate'),
+                  label: const Text('Certificat'),
+                  onPressed:
+                      _uploading ? null : () => _pickAndUpload('certificate'),
                 ),
                 ActionChip(
                   avatar: const Icon(Icons.add, size: 18, color: Colors.white),
-                  label: Text(AppLocalizations.of(context)!.otherDocumentLabel),
+                  label: const Text('Autre'),
                   onPressed: _uploading ? null : () => _pickAndUpload('other'),
                 ),
               ],

@@ -42,31 +42,41 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
   int _selectedTimeIndex = 1; // 10:30
   int _consultationType = 0; // 0: video, 1: in person
 
-  static const List<String> _timeSlots = ['09:00', '10:30', '14:00', '15:30', '16:45', '18:00'];
+  static const List<String> _timeSlots = [
+    '09:00',
+    '10:30',
+    '14:00',
+    '15:30',
+    '16:45',
+    '18:00'
+  ];
+  static const List<String> _monthNames = [
+    'Janvier',
+    'Février',
+    'Mars',
+    'Avril',
+    'Mai',
+    'Juin',
+    'Juillet',
+    'Août',
+    'Septembre',
+    'Octobre',
+    'Novembre',
+    'Décembre',
+  ];
 
-  void _confirmAppointment(AppLocalizations loc) {
+  void _confirmAppointment() {
     final time = _timeSlots[_selectedTimeIndex];
     final mode = _consultationType == 0 ? 'video' : 'in_person';
-    final monthNames = _getMonthNames(loc);
     context.push(AppConstants.familyExpertBookingConfirmationRoute, extra: {
       'expertName': widget.expertName,
       'expertSpecialty': widget.expertSpecialty,
       'expertImageUrl': widget.expertImageUrl,
-      'date': '${_selectedDate.day} ${monthNames[_selectedDate.month - 1]} ${_selectedDate.year}',
+      'date':
+          '${_selectedDate.day} ${_monthNames[_selectedDate.month - 1]} ${_selectedDate.year}',
       'time': time,
       'mode': mode,
     });
-  }
-
-  List<String> _getMonthNames(AppLocalizations loc) {
-    return [
-      loc.january, loc.february, loc.march, loc.april, loc.may, loc.june,
-      loc.july, loc.august, loc.september, loc.october, loc.november, loc.december,
-    ];
-  }
-
-  List<String> _getDaysShort(AppLocalizations loc) {
-    return [loc.monShort, loc.tueShort, loc.wedShort, loc.thuShort, loc.friShort, loc.satShort, loc.sunShort];
   }
 
   @override
@@ -87,7 +97,7 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
                   children: [
                     _buildExpertCard(),
                     const SizedBox(height: 16),
-                    _buildCalendarCard(loc, _getMonthNames(loc), _getDaysShort(loc)),
+                    _buildCalendarCard(),
                     const SizedBox(height: 16),
                     _buildTimeSlotsSection(loc),
                     const SizedBox(height: 16),
@@ -139,14 +149,22 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Row(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: widget.expertImageUrl.isNotEmpty
-                ? Image.network(widget.expertImageUrl, width: 64, height: 64, fit: BoxFit.cover,
+                ? Image.network(widget.expertImageUrl,
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => _placeholderAvatar())
                 : _placeholderAvatar(),
           ),
@@ -160,7 +178,10 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
                     Flexible(
                       child: Text(
                         widget.expertName,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0F172A)),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Color(0xFF0F172A)),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -170,16 +191,21 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
                 ),
                 Text(
                   widget.expertSpecialty,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: _primaryDark),
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: _primaryDark),
                 ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(Icons.location_on, size: 14, color: Colors.grey.shade500),
+                    Icon(Icons.location_on,
+                        size: 14, color: Colors.grey.shade500),
                     const SizedBox(width: 4),
                     Text(
                       widget.expertLocation,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      style:
+                          TextStyle(fontSize: 12, color: Colors.grey.shade600),
                     ),
                   ],
                 ),
@@ -198,21 +224,27 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
         child: const Icon(Icons.person, size: 32, color: _primaryDark),
       );
 
-  Widget _buildCalendarCard(AppLocalizations loc, List<String> monthNames, List<String> daysShort) {
-    final month = monthNames[_selectedDate.month - 1];
+  Widget _buildCalendarCard() {
+    final month = _monthNames[_selectedDate.month - 1];
     final year = _selectedDate.year;
     final firstDay = DateTime(_selectedDate.year, _selectedDate.month, 1);
     final lastDay = DateTime(_selectedDate.year, _selectedDate.month + 1, 0);
     final startOffset = (firstDay.weekday + 6) % 7;
     final daysInMonth = lastDay.day;
-    final prevMonthDays = DateTime(_selectedDate.year, _selectedDate.month, 0).day;
+    final prevMonthDays =
+        DateTime(_selectedDate.year, _selectedDate.month, 0).day;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -222,21 +254,39 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
             children: [
               Text(
                 '$month $year',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF334155)),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Color(0xFF334155)),
               ),
               Row(
                 children: [
                   IconButton(
                     onPressed: () => setState(() {
-                      _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1, _selectedDate.day.clamp(1, DateTime(_selectedDate.year, _selectedDate.month - 1, 0).day));
+                      _selectedDate = DateTime(
+                          _selectedDate.year,
+                          _selectedDate.month - 1,
+                          _selectedDate.day.clamp(
+                              1,
+                              DateTime(_selectedDate.year,
+                                      _selectedDate.month - 1, 0)
+                                  .day));
                     }),
                     icon: Icon(Icons.chevron_left, color: Colors.grey.shade500),
                   ),
                   IconButton(
                     onPressed: () => setState(() {
-                      _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1, _selectedDate.day.clamp(1, DateTime(_selectedDate.year, _selectedDate.month + 2, 0).day));
+                      _selectedDate = DateTime(
+                          _selectedDate.year,
+                          _selectedDate.month + 1,
+                          _selectedDate.day.clamp(
+                              1,
+                              DateTime(_selectedDate.year,
+                                      _selectedDate.month + 2, 0)
+                                  .day));
                     }),
-                    icon: Icon(Icons.chevron_right, color: Colors.grey.shade500),
+                    icon:
+                        Icon(Icons.chevron_right, color: Colors.grey.shade500),
                   ),
                 ],
               ),
@@ -245,8 +295,12 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: daysShort
-                .map((d) => Text(d, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)))
+            children: ['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM', 'DIM']
+                .map((d) => Text(d,
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade500)))
                 .toList(),
           ),
           const SizedBox(height: 12),
@@ -271,9 +325,13 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
                 displayDay = dayIndex + 1;
                 isCurrentMonth = true;
               }
-              final isSelected = isCurrentMonth && displayDay == _selectedDate.day;
+              final isSelected =
+                  isCurrentMonth && displayDay == _selectedDate.day;
               return GestureDetector(
-                onTap: isCurrentMonth ? () => setState(() => _selectedDate = DateTime(_selectedDate.year, _selectedDate.month, displayDay)) : null,
+                onTap: isCurrentMonth
+                    ? () => setState(() => _selectedDate = DateTime(
+                        _selectedDate.year, _selectedDate.month, displayDay))
+                    : null,
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
@@ -285,8 +343,13 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
                     '$displayDay',
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      color: isSelected ? Colors.white : (isCurrentMonth ? const Color(0xFF334155) : Colors.grey.shade400),
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w600,
+                      color: isSelected
+                          ? Colors.white
+                          : (isCurrentMonth
+                              ? const Color(0xFF334155)
+                              : Colors.grey.shade400),
                     ),
                   ),
                 ),
@@ -306,7 +369,8 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
           padding: const EdgeInsets.only(left: 4),
           child: Text(
             loc.expertBookingAvailableSlots,
-            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
         const SizedBox(height: 12),
@@ -328,7 +392,9 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    border: selected ? null : Border.all(color: Colors.white.withOpacity(0.3)),
+                    border: selected
+                        ? null
+                        : Border.all(color: Colors.white.withOpacity(0.3)),
                   ),
                   alignment: Alignment.center,
                   child: Text(
@@ -356,7 +422,8 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
           padding: const EdgeInsets.only(left: 4),
           child: Text(
             loc.expertBookingConsultationType,
-            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
         const SizedBox(height: 12),
@@ -408,7 +475,8 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
           ),
           child: Column(
             children: [
-              Icon(icon, color: selected ? _accentDark : Colors.white, size: 32),
+              Icon(icon,
+                  color: selected ? _accentDark : Colors.white, size: 32),
               const SizedBox(height: 8),
               Text(
                 label.toUpperCase(),
@@ -432,7 +500,7 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
       elevation: 2,
       shadowColor: _primary.withOpacity(0.5),
       child: InkWell(
-        onTap: () => _confirmAppointment(loc),
+        onTap: _confirmAppointment,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -441,7 +509,10 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
             children: [
               Text(
                 loc.expertBookingConfirmButton,
-                style: const TextStyle(color: _primaryDark, fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: _primaryDark,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
               ),
               const SizedBox(width: 8),
               const Icon(Icons.check_circle, color: _primaryDark, size: 24),

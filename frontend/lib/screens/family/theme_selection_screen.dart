@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../l10n/app_localizations.dart';
 import '../../providers/theme_provider.dart';
 import '../../utils/theme.dart';
 
@@ -34,72 +33,69 @@ class ThemeSelectionScreen extends StatefulWidget {
 }
 
 class _ThemeSelectionScreenState extends State<ThemeSelectionScreen> {
-  List<_ThemeItem> _getThemes(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
-    return [
-      _ThemeItem(
-        id: 'amour',
-        name: loc.themeAmour,
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF6B2D5C), Color(0xFF9B3D7A)],
-        ),
+  static const List<_ThemeItem> _themes = [
+    _ThemeItem(
+      id: 'amour',
+      name: 'Amour',
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF6B2D5C), Color(0xFF9B3D7A)],
       ),
-      _ThemeItem(
-        id: 'saint_valentin',
-        name: loc.themeValentines,
-        color: const Color(0xFF9B59B6),
+    ),
+    _ThemeItem(
+      id: 'saint_valentin',
+      name: 'Saint-Valentin',
+      color: Color(0xFF9B59B6),
+    ),
+    _ThemeItem(
+      id: 'simpsons',
+      name: 'The Simpsons',
+      color: Color(0xFFFFD93D),
+    ),
+    _ThemeItem(
+      id: 'football',
+      name: 'Football',
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFF2D5016), Color(0xFF1B2E0F)],
       ),
-      _ThemeItem(
-        id: 'simpsons',
-        name: loc.themeSimpsons,
-        color: const Color(0xFFFFD93D),
+    ),
+    _ThemeItem(
+      id: 'brat',
+      name: 'Brat',
+      color: Color(0xFF0D0D0D),
+    ),
+    _ThemeItem(
+      id: 'je_taime',
+      name: "Je t'aime",
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFFF69B4), Color(0xFFFFB6C1)],
       ),
-      _ThemeItem(
-        id: 'football',
-        name: loc.themeFootball,
-        gradient: const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF2D5016), Color(0xFF1B2E0F)],
-        ),
+    ),
+    _ThemeItem(
+      id: 'cool_crew',
+      name: 'The Cool Crew',
+      color: Color(0xFF1E3A5F),
+    ),
+    _ThemeItem(
+      id: 'hivernal',
+      name: 'Hivernal',
+      color: Color(0xFF2C3E50),
+    ),
+    _ThemeItem(
+      id: 'shape_friends',
+      name: 'Shape Friends',
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF74B9FF), Color(0xFF81ECEC), Color(0xFF55EFC4)],
       ),
-      _ThemeItem(
-        id: 'brat',
-        name: loc.themeBrat,
-        color: const Color(0xFF0D0D0D),
-      ),
-      _ThemeItem(
-        id: 'je_taime',
-        name: loc.themeLoveYou,
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFF69B4), Color(0xFFFFB6C1)],
-        ),
-      ),
-      _ThemeItem(
-        id: 'cool_crew',
-        name: loc.themeCoolCrew,
-        color: const Color(0xFF1E3A5F),
-      ),
-      _ThemeItem(
-        id: 'hivernal',
-        name: loc.themeWinter,
-        color: const Color(0xFF2C3E50),
-      ),
-      _ThemeItem(
-        id: 'shape_friends',
-        name: loc.themeShapeFriends,
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF74B9FF), Color(0xFF81ECEC), Color(0xFF55EFC4)],
-        ),
-      ),
-    ];
-  }
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -112,9 +108,9 @@ class _ThemeSelectionScreenState extends State<ThemeSelectionScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        title: Text(
-          AppLocalizations.of(context)!.themeTitle,
-          style: const TextStyle(
+        title: const Text(
+          'Thème',
+          style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,
             color: _textPrimary,
@@ -127,9 +123,9 @@ class _ThemeSelectionScreenState extends State<ThemeSelectionScreen> {
         actions: [
           TextButton(
             onPressed: () => context.pop(),
-            child: Text(
-              AppLocalizations.of(context)!.doneButton,
-              style: const TextStyle(
+            child: const Text(
+              'Terminé',
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: _accentBlue,
@@ -145,18 +141,22 @@ class _ThemeSelectionScreenState extends State<ThemeSelectionScreen> {
             children: [
               Expanded(
                 child: _BuildCreateCard(
-                  label: AppLocalizations.of(context)!.createWithAi,
+                  label: "Créer avec l'IA",
                   icon: Icons.auto_awesome,
                   foregroundColor: _textPrimary,
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [AppTheme.primary.withOpacity(0.9), AppTheme.primary],
+                    colors: [
+                      AppTheme.primary.withOpacity(0.9),
+                      AppTheme.primary
+                    ],
                   ),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(AppLocalizations.of(context)!.featureComingSoon(AppLocalizations.of(context)!.createWithAi)),
+                        content:
+                            const Text("Créer avec l'IA — bientôt disponible"),
                         behavior: SnackBarBehavior.floating,
                         backgroundColor: _textPrimary,
                       ),
@@ -167,14 +167,15 @@ class _ThemeSelectionScreenState extends State<ThemeSelectionScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _BuildCreateCard(
-                  label: AppLocalizations.of(context)!.importImage,
+                  label: 'Importer une image',
                   icon: Icons.image_outlined,
                   color: _cardLight,
                   foregroundColor: _textPrimary,
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(AppLocalizations.of(context)!.featureComingSoon(AppLocalizations.of(context)!.importImage)),
+                        content: const Text(
+                            'Importer une image — bientôt disponible'),
                         behavior: SnackBarBehavior.floating,
                         backgroundColor: _textPrimary,
                       ),
@@ -192,11 +193,13 @@ class _ThemeSelectionScreenState extends State<ThemeSelectionScreen> {
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
             childAspectRatio: 0.85,
-            children: _getThemes(context).map((t) => _ThemeThumbnail(
-              theme: t,
-              isSelected: selectedId == t.id,
-              onTap: () => themeProvider.setThemeId(t.id),
-            )).toList(),
+            children: _themes
+                .map((t) => _ThemeThumbnail(
+                      theme: t,
+                      isSelected: selectedId == t.id,
+                      onTap: () => themeProvider.setThemeId(t.id),
+                    ))
+                .toList(),
           ),
         ],
       ),

@@ -18,14 +18,16 @@ class HomePatientsScreen extends StatelessWidget {
         elevation: 0,
         title: Text(
           loc.parents,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style:
+              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.group_outlined, size: 56, color: AppTheme.text.withOpacity(0.3)),
+            Icon(Icons.group_outlined,
+                size: 56, color: AppTheme.text.withOpacity(0.3)),
             const SizedBox(height: 16),
             Text(
               loc.noPatientsYet,
@@ -64,14 +66,16 @@ class HomeMessagesScreen extends StatelessWidget {
         elevation: 0,
         title: Text(
           loc.messages,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style:
+              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.chat_bubble_outline, size: 56, color: AppTheme.text.withOpacity(0.3)),
+            Icon(Icons.chat_bubble_outline,
+                size: 56, color: AppTheme.text.withOpacity(0.3)),
             const SizedBox(height: 16),
             Text(
               loc.noMessagesYet,
@@ -112,10 +116,10 @@ class _HomeContainerScreenState extends State<HomeContainerScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    const HomeDashboardScreen(),       // Tableau
-    const HomePatientsScreen(),        // Patients
-    const HomeMessagesScreen(),        // Messages
-    const HealthcareProfileScreen(),   // Profil professionnel de santé
+    const HomeDashboardScreen(), // Tableau
+    const HomePatientsScreen(), // Patients
+    const HomeMessagesScreen(), // Messages
+    const HealthcareProfileScreen(), // Profil professionnel de santé
   ];
 
   @override

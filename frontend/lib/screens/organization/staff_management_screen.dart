@@ -54,16 +54,20 @@ class _StaffManagementScreenState extends State<StaffManagementScreen> {
           final staff = _staff[index];
           return Card(
             margin: const EdgeInsets.only(bottom: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: AppTheme.secondary.withOpacity(0.2),
                 child: Icon(
-                  staff['role'] == 'doctor' ? Icons.medical_services : Icons.volunteer_activism,
+                  staff['role'] == 'doctor'
+                      ? Icons.medical_services
+                      : Icons.volunteer_activism,
                   color: AppTheme.primary,
                 ),
               ),
-              title: Text(staff['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
+              title: Text(staff['name'],
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text('${staff['role']} • ${staff['email']}'),
               trailing: IconButton(
                 icon: const Icon(Icons.delete, color: Colors.red),

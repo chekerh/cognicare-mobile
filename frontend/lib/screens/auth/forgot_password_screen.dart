@@ -142,7 +142,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         }
       } else {
         final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? localizations.unknownError        );
+        throw Exception(error['message'] ?? localizations.unknownError);
       }
     } catch (e) {
       if (mounted) {
@@ -245,7 +245,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     child: const SizedBox(
                       width: 40,
                       height: 40,
-                      child: Icon(Icons.arrow_back_ios_new, color: AppTheme.text, size: 20),
+                      child: Icon(Icons.arrow_back_ios_new,
+                          color: AppTheme.text, size: 20),
                     ),
                   ),
                 ),
@@ -262,7 +263,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   width: double.infinity,
                   height: 56,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(_currentStep == 1 ? 28 : 20),
+                    borderRadius:
+                        BorderRadius.circular(_currentStep == 1 ? 28 : 20),
                     boxShadow: [
                       BoxShadow(
                         color: _authPrimary.withOpacity(0.4),
@@ -279,14 +281,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       elevation: 0,
                       shadowColor: Colors.transparent,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(_currentStep == 1 ? 28 : 20),
+                        borderRadius:
+                            BorderRadius.circular(_currentStep == 1 ? 28 : 20),
                       ),
                     ),
                     child: _isLoading
                         ? const SizedBox(
                             width: 24,
                             height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
                           )
                         : Text(
                             _getButtonText(),
@@ -350,10 +354,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         decoration: InputDecoration(
           hintText: localizations.emailLabel,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.w500),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          hintStyle: TextStyle(
+              color: Colors.grey.shade400, fontWeight: FontWeight.w500),
         ),
-        style: const TextStyle(color: AppTheme.text, fontSize: 15, fontWeight: FontWeight.w500),
+        style: const TextStyle(
+            color: AppTheme.text, fontSize: 15, fontWeight: FontWeight.w500),
         validator: (v) {
           if (v == null || v.isEmpty) return localizations.emailRequired;
           if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) {
@@ -386,7 +393,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.check_circle, color: Colors.grey.shade700, size: 22),
+                  Icon(Icons.check_circle,
+                      color: Colors.grey.shade700, size: 22),
                   const SizedBox(width: 10),
                   Text(
                     localizations.codeSentButton,
@@ -413,7 +421,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         _startResendCountdown();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(AppLocalizations.of(context)!.codeSentSuccess),
+                            content: Text(
+                                AppLocalizations.of(context)!.codeSentSuccess),
                             backgroundColor: Colors.green,
                           ),
                         );
@@ -496,11 +505,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: InputDecoration(
               hintText: localizations.verificationCodeLabel,
-              prefixIcon: Icon(Icons.pin_outlined, color: Colors.grey.shade400, size: 22),
+              prefixIcon: Icon(Icons.pin_outlined,
+                  color: Colors.grey.shade400, size: 22),
               counterText: '',
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              hintStyle: TextStyle(color: Colors.grey.shade400, fontWeight: FontWeight.w500),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              hintStyle: TextStyle(
+                  color: Colors.grey.shade400, fontWeight: FontWeight.w500),
             ),
             style: const TextStyle(
               color: AppTheme.text,
@@ -555,15 +567,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
       ),
       const SizedBox(height: 24),
-      _buildPasswordInput(localizations.newPasswordLabel, _passwordController, (v) {
+      _buildPasswordInput(localizations.newPasswordLabel, _passwordController,
+          (v) {
         if (v == null || v.isEmpty) return localizations.passwordRequired;
         if (v.length < 6) return localizations.passwordTooShort;
         return null;
       }),
       const SizedBox(height: 16),
-      _buildPasswordInput(localizations.confirmPasswordLabel, _confirmPasswordController, (v) {
-        if (v == null || v.isEmpty) return localizations.confirmPasswordRequired;
-        if (v != _passwordController.text) return localizations.passwordsDontMatch;
+      _buildPasswordInput(
+          localizations.confirmPasswordLabel, _confirmPasswordController, (v) {
+        if (v == null || v.isEmpty) {
+          return localizations.confirmPasswordRequired;
+        }
+        if (v != _passwordController.text) {
+          return localizations.passwordsDontMatch;
+        }
         return null;
       }),
     ];
@@ -594,9 +612,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           hintText: label,
           prefixIcon: Icon(Icons.lock, color: Colors.grey.shade400, size: 22),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
-        style: const TextStyle(color: AppTheme.text, fontSize: 15, fontWeight: FontWeight.w500),
+        style: const TextStyle(
+            color: AppTheme.text, fontSize: 15, fontWeight: FontWeight.w500),
         validator: validator,
       ),
     );

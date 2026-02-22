@@ -41,6 +41,7 @@ class ChatMessage {
 
 class InboxConversation {
   final String id;
+
   /// ID de l'autre participant (pour appels, ex. famille pour un bénévole).
   final String? otherUserId;
   final String name;
@@ -158,19 +159,25 @@ class ChatService {
   Future<List<FamilyUser>> getCachedFamiliesToContact() async {
     final list = await _loadFromCache(_familiesCacheKey);
     if (list == null) return [];
-    return list.map((e) => FamilyUser.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => FamilyUser.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<FamilyUser>> getCachedVolunteers() async {
     final list = await _loadFromCache(_volunteersCacheKey);
     if (list == null) return [];
-    return list.map((e) => FamilyUser.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => FamilyUser.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<InboxConversation>> getCachedInbox() async {
     final list = await _loadFromCache(_inboxCacheKey);
     if (list == null) return [];
-    return list.map((e) => InboxConversation.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => InboxConversation.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   /// Liste des autres familles avec qui l'utilisateur peut ouvrir une conversation.
@@ -451,28 +458,28 @@ class ChatService {
     final uri = Uri.parse(
       '${AppConstants.baseUrl}/api/v1/conversations/$conversationId',
     );
-    final response = await _client
-        .delete(
-          uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _client.delete(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ).timeout(const Duration(seconds: 20));
     if (response.statusCode != 200 && response.statusCode != 204) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;
         throw Exception(err['message'] ?? 'Failed to delete conversation');
       } catch (e) {
         if (e is Exception) rethrow;
-        throw Exception('Failed to delete conversation: ${response.statusCode}');
+        throw Exception(
+            'Failed to delete conversation: ${response.statusCode}');
       }
     }
   }
 
   /// Get conversation settings (autoSavePhotos, muted) from API.
-  Future<Map<String, dynamic>> getConversationSettings(String conversationId) async {
+  Future<Map<String, dynamic>> getConversationSettings(
+      String conversationId) async {
     final token = await AuthService().getStoredToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
@@ -532,7 +539,8 @@ class ChatService {
   }
 
   /// Get media (images, voice) shared in the conversation.
-  Future<List<Map<String, dynamic>>> getConversationMedia(String conversationId) async {
+  Future<List<Map<String, dynamic>>> getConversationMedia(
+      String conversationId) async {
     final token = await AuthService().getStoredToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
@@ -621,15 +629,13 @@ class ChatService {
     final uri = Uri.parse(
       '${AppConstants.baseUrl}${AppConstants.usersMeBlockedEndpoint}',
     );
-    final response = await _client
-        .get(
-          uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-        )
-        .timeout(const Duration(seconds: 20));
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ).timeout(const Duration(seconds: 20));
     if (response.statusCode != 200) {
       try {
         final err = jsonDecode(response.body) as Map<String, dynamic>;

@@ -14,7 +14,23 @@ const Color _bgLight = Color(0xFFF0F7FF);
 
 /// Page détail d'une annonce de don — design aligné sur le HTML fourni.
 class DonationDetailScreen extends StatefulWidget {
-  const DonationDetailScreen({super.key, this.title, this.description, this.fullDescription, this.conditionIndex = 0, this.categoryIndex = 0, this.imageUrl = '', this.location = '', this.distanceText, this.donorId, this.donorName, this.donorAvatarUrl, this.donorRating, this.latitude, this.longitude, this.suitableAge});
+  const DonationDetailScreen(
+      {super.key,
+      this.title,
+      this.description,
+      this.fullDescription,
+      this.conditionIndex = 0,
+      this.categoryIndex = 0,
+      this.imageUrl = '',
+      this.location = '',
+      this.distanceText,
+      this.donorId,
+      this.donorName,
+      this.donorAvatarUrl,
+      this.donorRating,
+      this.latitude,
+      this.longitude,
+      this.suitableAge});
 
   final String? title;
   final String? description;
@@ -118,11 +134,23 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final conditionLabels = [loc.veryGoodCondition, loc.donationGoodCondition, loc.donationLikeNew];
+    final conditionLabels = [
+      loc.veryGoodCondition,
+      loc.goodCondition,
+      loc.likeNew
+    ];
     final conditionColors = [Colors.green, Colors.amber, Colors.green];
-    final categoryLabels = [loc.donationAll, loc.donationMobility, loc.donationEarlyLearning, loc.donationClothing];
-    final displayDescription = (widget.fullDescription ?? widget.description ?? '').trim().isNotEmpty ? (widget.fullDescription ?? widget.description)! : (widget.description ?? '');
-    final donor = widget.donorName ?? loc.donationDefaultDonor;
+    final categoryLabels = [
+      loc.all,
+      loc.mobility,
+      loc.earlyLearning,
+      loc.clothing
+    ];
+    final displayDescription =
+        (widget.fullDescription ?? widget.description ?? '').trim().isNotEmpty
+            ? (widget.fullDescription ?? widget.description)!
+            : (widget.description ?? '');
+    final donor = widget.donorName ?? 'Donateur';
     final avatarUrl = widget.donorAvatarUrl;
 
     return Scaffold(
@@ -146,9 +174,14 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
                           loc: loc,
                           title: widget.title ?? '',
                           description: displayDescription,
-                          conditionLabel: conditionLabels[widget.conditionIndex.clamp(0, 2)],
-                          conditionColor: conditionColors[widget.conditionIndex.clamp(0, 2)],
-                          categoryLabel: widget.categoryIndex >= 0 && widget.categoryIndex < categoryLabels.length ? categoryLabels[widget.categoryIndex] : loc.donationClothing,
+                          conditionLabel: conditionLabels[
+                              widget.conditionIndex.clamp(0, 2)],
+                          conditionColor: conditionColors[
+                              widget.conditionIndex.clamp(0, 2)],
+                          categoryLabel: widget.categoryIndex >= 0 &&
+                                  widget.categoryIndex < categoryLabels.length
+                              ? categoryLabels[widget.categoryIndex]
+                              : loc.clothing,
                           donorName: donor,
                           donorAvatarUrl: avatarUrl,
                           location: widget.location,
@@ -171,15 +204,15 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
     );
   }
 
-  void _shareDonation(AppLocalizations loc) {
-    final donor = widget.donorName ?? loc.donationDefaultDonor;
+  void _shareDonation() {
+    final donor = widget.donorName ?? 'Donateur';
     final t = widget.title ?? '';
-    final shareText = '$t — $donor\n${widget.location}\n\n${loc.donationShareFooter}';
-    Share.share(shareText, subject: t.isNotEmpty ? t : loc.donationShareFallbackTitle);
+    final shareText =
+        '$t — $donor\n${widget.location}\n\n— CogniCare Le Cercle du Don';
+    Share.share(shareText, subject: t.isNotEmpty ? t : 'Annonce de don');
   }
 
   Widget _buildHeader(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -194,14 +227,15 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
               child: const SizedBox(
                 width: 40,
                 height: 40,
-                child: Icon(Icons.arrow_back_ios_new, color: _primary, size: 20),
+                child:
+                    Icon(Icons.arrow_back_ios_new, color: _primary, size: 20),
               ),
             ),
           ),
           Row(
             children: [
               IconButton(
-                onPressed: () => _shareDonation(AppLocalizations.of(context)!),
+                onPressed: _shareDonation,
                 icon: const Icon(Icons.share, color: _primary),
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.white.withOpacity(0.9),
@@ -211,7 +245,6 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
               IconButton(
                 onPressed: () {},
                 icon: const Icon(Icons.report_outlined, color: _primary),
-                tooltip: loc.reportLabel,
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.white.withOpacity(0.9),
                 ),
@@ -297,7 +330,8 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: conditionColor.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(999),
@@ -313,7 +347,8 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: _primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(999),
@@ -330,7 +365,8 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
               if (suitableAge != null && suitableAge.isNotEmpty) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
                     color: _primary.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(999),
@@ -379,14 +415,18 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundImage: donorAvatarUrl != null && donorAvatarUrl.isNotEmpty
-                    ? NetworkImage(donorAvatarUrl)
-                    : null,
+                backgroundImage:
+                    donorAvatarUrl != null && donorAvatarUrl.isNotEmpty
+                        ? NetworkImage(donorAvatarUrl)
+                        : null,
                 onBackgroundImageError: (_, __) {},
                 child: donorAvatarUrl == null || donorAvatarUrl.isEmpty
                     ? Text(
                         donorName.isNotEmpty ? donorName[0].toUpperCase() : '?',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _primary),
+                        style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: _primary),
                       )
                     : null,
               ),
@@ -443,9 +483,15 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2, color: _primary)),
+                      SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: _primary)),
                       const SizedBox(height: 8),
-                      Text(loc.loadingMapLabel, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                      Text('Chargement de la carte...',
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey.shade600)),
                     ],
                   ),
                 ),
@@ -469,7 +515,8 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
                   height: 160,
                   color: Colors.grey.shade100,
                   child: Center(
-                    child: Icon(Icons.map_outlined, size: 48, color: Colors.grey.shade400),
+                    child: Icon(Icons.map_outlined,
+                        size: 48, color: Colors.grey.shade400),
                   ),
                 ),
               ),
@@ -501,8 +548,11 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
                   Icon(Icons.directions, color: Colors.white, size: 18),
                   const SizedBox(width: 6),
                   Text(
-                    AppLocalizations.of(context)!.viewItineraryGoogleMaps,
-                    style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500),
+                    'Voir l\'itinéraire (Google Maps)',
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
@@ -535,14 +585,15 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
                   path: AppConstants.familyPrivateChatRoute,
                   queryParameters: {
                     'personId': widget.donorId!,
-                    'personName': widget.donorName ?? loc.donationDefaultDonor,
-                    if (widget.donorAvatarUrl != null) 'personImageUrl': widget.donorAvatarUrl!,
+                    'personName': widget.donorName ?? 'Donateur',
+                    if (widget.donorAvatarUrl != null)
+                      'personImageUrl': widget.donorAvatarUrl!,
                   },
                 ).toString(),
               );
             } else {
               context.push(AppConstants.familyDonationChatRoute, extra: {
-                'donorName': widget.donorName ?? loc.donationDefaultDonor,
+                'donorName': widget.donorName ?? 'Donateur',
                 'donationTitle': widget.title ?? '',
                 'donorAvatarUrl': widget.donorAvatarUrl,
                 'donationImageUrl': widget.imageUrl,
@@ -555,7 +606,8 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 24),
+                const Icon(Icons.chat_bubble_outline,
+                    color: Colors.white, size: 24),
                 const SizedBox(width: 12),
                 Text(
                   loc.contactDonor,

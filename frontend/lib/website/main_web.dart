@@ -25,7 +25,8 @@ class CogniCareWebsite extends StatelessWidget {
         '/admin-login': (context) => const AdminLoginScreen(),
         '/admin-dashboard': (context) => const AdminDashboardScreen(),
         '/admin-users': (context) => const UserManagementScreen(),
-        '/admin-volunteers': (context) => const AdminVolunteerApplicationsScreen(),
+        '/admin-volunteers': (context) =>
+            const AdminVolunteerApplicationsScreen(),
       },
     );
   }

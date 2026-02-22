@@ -104,8 +104,7 @@ class HomeDashboardScreen extends StatelessWidget {
                                 ),
                                 children: const [
                                   TextSpan(
-                                    text:
-                                        'Leo is showing 20% more focus ',
+                                    text: 'Leo is showing 20% more focus ',
                                     style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       color: AppTheme.text,
@@ -177,7 +176,8 @@ class HomeDashboardScreen extends StatelessWidget {
                         trailing: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.trending_up, size: 14, color: Colors.green),
+                            Icon(Icons.trending_up,
+                                size: 14, color: Colors.green),
                             SizedBox(width: 2),
                             Text(
                               '12%',
@@ -226,7 +226,8 @@ class HomeDashboardScreen extends StatelessWidget {
                         trailing: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.trending_up, size: 14, color: Colors.green),
+                            Icon(Icons.trending_up,
+                                size: 14, color: Colors.green),
                             SizedBox(width: 2),
                             Text(
                               '0.5h',

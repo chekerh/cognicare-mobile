@@ -18,7 +18,8 @@ class CoursesService {
   }
 
   /// List courses. [qualificationOnly] true for qualification courses only.
-  Future<List<Map<String, dynamic>>> getCourses({bool qualificationOnly = false}) async {
+  Future<List<Map<String, dynamic>>> getCourses(
+      {bool qualificationOnly = false}) async {
     var url = '${AppConstants.baseUrl}${AppConstants.coursesEndpoint}';
     if (qualificationOnly) url += '?qualification=true';
     final response = await _client.get(Uri.parse(url));

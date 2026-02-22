@@ -103,7 +103,8 @@ class _SplashScreenState extends State<SplashScreen>
       if (mounted) {
         final prefs = await SharedPreferences.getInstance();
         if (!mounted) return;
-        final onboardingComplete = prefs.getBool('onboarding_complete') ?? false;
+        final onboardingComplete =
+            prefs.getBool('onboarding_complete') ?? false;
         if (!onboardingComplete) {
           router.go(AppConstants.onboardingRoute);
         } else {

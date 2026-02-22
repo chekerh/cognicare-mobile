@@ -7,6 +7,7 @@ enum GameType {
   shapeSorting,
   starTracer,
   basketSort,
+
   /// Temps passé en mode enfant (session ouverte).
   childMode,
 }

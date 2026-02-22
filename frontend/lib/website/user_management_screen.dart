@@ -55,10 +55,15 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void _filterUsers() {
     setState(() {
       _filteredUsers = _users.where((user) {
-        final matchesRole = _selectedRole == 'all' || user.role == _selectedRole;
+        final matchesRole =
+            _selectedRole == 'all' || user.role == _selectedRole;
         final matchesSearch = _searchController.text.isEmpty ||
-            user.fullName.toLowerCase().contains(_searchController.text.toLowerCase()) ||
-            user.email.toLowerCase().contains(_searchController.text.toLowerCase());
+            user.fullName
+                .toLowerCase()
+                .contains(_searchController.text.toLowerCase()) ||
+            user.email
+                .toLowerCase()
+                .contains(_searchController.text.toLowerCase());
         return matchesRole && matchesSearch;
       }).toList();
     });
@@ -117,16 +122,20 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           border: OutlineInputBorder(),
                         ),
                         items: const [
-                          DropdownMenuItem(value: 'family', child: Text('Family')),
-                          DropdownMenuItem(value: 'doctor', child: Text('Doctor')),
-                          DropdownMenuItem(value: 'volunteer', child: Text('Volunteer')),
+                          DropdownMenuItem(
+                              value: 'family', child: Text('Family')),
+                          DropdownMenuItem(
+                              value: 'doctor', child: Text('Doctor')),
+                          DropdownMenuItem(
+                              value: 'volunteer', child: Text('Volunteer')),
                           DropdownMenuItem(
                             value: 'admin',
                             child: Row(
                               children: [
                                 Text('Admin'),
                                 SizedBox(width: 8),
-                                Icon(Icons.admin_panel_settings, size: 18, color: Colors.purple),
+                                Icon(Icons.admin_panel_settings,
+                                    size: 18, color: Colors.purple),
                               ],
                             ),
                           ),
@@ -148,7 +157,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.warning_amber, color: Colors.orange.shade700, size: 20),
+                              Icon(Icons.warning_amber,
+                                  color: Colors.orange.shade700, size: 20),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -207,10 +217,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     ],
                   ),
                 );
-                
+
                 if (confirmed != true) return;
               }
-              
+
               if (!context.mounted) return;
               Navigator.pop(context);
               await _updateUser(
@@ -218,7 +228,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 {
                   'fullName': fullNameController.text,
                   'email': emailController.text,
-                  'phone': phoneController.text.isEmpty ? null : phoneController.text,
+                  'phone': phoneController.text.isEmpty
+                      ? null
+                      : phoneController.text,
                   'role': selectedRole,
                 },
               );
@@ -260,7 +272,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete User'),
-        content: Text('Are you sure you want to delete ${user.fullName}? This action cannot be undone.'),
+        content: Text(
+            'Are you sure you want to delete ${user.fullName}? This action cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -332,7 +345,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
+                      Icon(Icons.error_outline,
+                          size: 64, color: Colors.red.shade300),
                       const SizedBox(height: 16),
                       Text(
                         _errorMessage!,
@@ -407,7 +421,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     ),
                     // Users Count
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
                       color: Colors.grey.shade100,
                       child: Row(
                         children: [
@@ -428,7 +443,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.people_outline, size: 64, color: Colors.grey.shade300),
+                                  Icon(Icons.people_outline,
+                                      size: 64, color: Colors.grey.shade300),
                                   const SizedBox(height: 16),
                                   Text(
                                     'No users found',
@@ -552,7 +568,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               ],
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: _getRoleColor(user.role).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),

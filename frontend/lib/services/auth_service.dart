@@ -103,15 +103,13 @@ class AuthService {
         throw Exception('No authentication token found');
       }
 
-      final response = await _client
-          .get(
-            Uri.parse('${AppConstants.baseUrl}${AppConstants.profileEndpoint}'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-          )
-          .timeout(const Duration(seconds: 10));
+      final response = await _client.get(
+        Uri.parse('${AppConstants.baseUrl}${AppConstants.profileEndpoint}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         return User.fromJson(jsonDecode(response.body));
@@ -182,7 +180,8 @@ class AuthService {
     }
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.uploadProfilePictureEndpoint}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.uploadProfilePictureEndpoint}'),
     );
     request.headers['Authorization'] = 'Bearer $token';
     final contentType = mimeType ?? 'image/jpeg';
@@ -212,7 +211,8 @@ class AuthService {
     if (token == null) return;
     try {
       await _client.post(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.authPresenceEndpoint}'),
+        Uri.parse(
+            '${AppConstants.baseUrl}${AppConstants.authPresenceEndpoint}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -229,7 +229,8 @@ class AuthService {
     if (token == null) return [];
     try {
       final response = await _client.get(
-        Uri.parse('${AppConstants.baseUrl}${AppConstants.familyMembersEndpoint}'),
+        Uri.parse(
+            '${AppConstants.baseUrl}${AppConstants.familyMembersEndpoint}'),
         headers: {'Authorization': 'Bearer $token'},
       ).timeout(const Duration(seconds: 10));
       if (response.statusCode != 200) return [];
@@ -237,7 +238,9 @@ class AuthService {
       if (list == null) return [];
       return list.map((e) {
         final m = e as Map<String, dynamic>;
-        final imageUrl = m['imageUrl']?.toString().trim() ?? m['image_url']?.toString().trim() ?? '';
+        final imageUrl = m['imageUrl']?.toString().trim() ??
+            m['image_url']?.toString().trim() ??
+            '';
         return <String, String>{
           'id': m['id']?.toString() ?? '',
           'name': m['name']?.toString() ?? '',
@@ -250,7 +253,8 @@ class AuthService {
   }
 
   /// Add family member with photo (upload to Cloudinary via backend). Returns {id, name, imageUrl}.
-  Future<Map<String, String>> addFamilyMember(File imageFile, String name) async {
+  Future<Map<String, String>> addFamilyMember(
+      File imageFile, String name) async {
     final token = await getStoredToken();
     if (token == null) throw Exception('No authentication token found');
     if (!await imageFile.exists()) throw Exception('Image file does not exist');
@@ -290,7 +294,8 @@ class AuthService {
     final token = await getStoredToken();
     if (token == null) throw Exception('No authentication token found');
     final response = await _client.delete(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.familyMemberEndpoint(memberId)}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.familyMemberEndpoint(memberId)}'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (response.statusCode != 200 && response.statusCode != 204) {
@@ -308,7 +313,8 @@ class AuthService {
     final token = await getStoredToken();
     if (token == null) return false;
     final response = await _client.get(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.userPresenceEndpoint(userId)}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.userPresenceEndpoint(userId)}'),
       headers: {'Authorization': 'Bearer $token'},
     ).timeout(const Duration(seconds: 5));
     if (response.statusCode != 200) return false;

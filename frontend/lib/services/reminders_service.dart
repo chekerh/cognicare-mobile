@@ -13,7 +13,8 @@ class RemindersService {
     if (token == null) throw Exception('Not authenticated');
 
     final response = await http.get(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.todayRemindersByChildEndpoint(childId)}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.todayRemindersByChildEndpoint(childId)}'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -22,7 +23,9 @@ class RemindersService {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
-      return data.map((json) => TaskReminder.fromJson(json as Map<String, dynamic>)).toList();
+      return data
+          .map((json) => TaskReminder.fromJson(json as Map<String, dynamic>))
+          .toList();
     } else {
       final error = jsonDecode(response.body) as Map<String, dynamic>;
       throw Exception(error['message'] ?? 'Failed to get today\'s reminders');
@@ -43,7 +46,8 @@ class RemindersService {
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      return TaskReminder.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+      return TaskReminder.fromJson(
+          jsonDecode(response.body) as Map<String, dynamic>);
     } else {
       final error = jsonDecode(response.body) as Map<String, dynamic>;
       throw Exception(error['message'] ?? 'Failed to create reminder');
@@ -95,16 +99,17 @@ class RemindersService {
     if (token == null) throw Exception('Not authenticated');
 
     // Create multipart request for image upload
-    final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.completeTaskEndpoint}');
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.completeTaskEndpoint}');
     final request = http.MultipartRequest('POST', uri);
-    
+
     request.headers['Authorization'] = 'Bearer $token';
-    
+
     // Add fields
     request.fields['reminderId'] = reminderId;
     request.fields['completed'] = completed.toString();
     request.fields['date'] = date.toIso8601String();
-    
+
     // Add proof image
     request.files.add(await http.MultipartFile.fromPath(
       'proofImage',
@@ -123,7 +128,8 @@ class RemindersService {
   }
 
   /// GET /reminders/child/:childId/stats?days=N - completion stats for charts.
-  Future<Map<String, dynamic>> getReminderStats(String childId, {int days = 7}) async {
+  Future<Map<String, dynamic>> getReminderStats(String childId,
+      {int days = 7}) async {
     final token = await getToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
@@ -148,7 +154,8 @@ class RemindersService {
     if (token == null) throw Exception('Not authenticated');
 
     final response = await http.delete(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.reminderEndpoint(reminderId)}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.reminderEndpoint(reminderId)}'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',

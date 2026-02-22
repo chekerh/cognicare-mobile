@@ -92,7 +92,8 @@ class CallService {
   final _incomingMessageController =
       StreamController<IncomingMessageEvent>.broadcast();
   final _typingController = StreamController<TypingEvent>.broadcast();
-  final _transcriptionController = StreamController<TranscriptionEvent>.broadcast();
+  final _transcriptionController =
+      StreamController<TranscriptionEvent>.broadcast();
 
   // WebRTC signaling streams
   final _remoteOfferController =
@@ -113,7 +114,8 @@ class CallService {
   Stream<IncomingMessageEvent> get onIncomingMessage =>
       _incomingMessageController.stream;
   Stream<TypingEvent> get onTyping => _typingController.stream;
-  Stream<TranscriptionEvent> get onTranscription => _transcriptionController.stream;
+  Stream<TranscriptionEvent> get onTranscription =>
+      _transcriptionController.stream;
 
   // WebRTC signaling
   Stream<Map<String, dynamic>> get onRemoteOffer =>
@@ -165,8 +167,7 @@ class CallService {
       debugPrint('📞 [CALL] WebSocket connecté pour userId=$userId');
     });
     _socket!.on('error', (e) => debugPrint('📞 [CALL] WebSocket error: $e'));
-    _socket!
-        .onDisconnect((_) => debugPrint('📞 [CALL] WebSocket déconnecté'));
+    _socket!.onDisconnect((_) => debugPrint('📞 [CALL] WebSocket déconnecté'));
 
     // ─── Call lifecycle events ───
     _socket!.on('call:incoming', (data) {
@@ -174,7 +175,7 @@ class CallService {
       if (data is Map) {
         final callerName = (data['fromUserName'] ?? 'Appelant').toString();
         final isVideo = data['isVideo'] == true;
-        
+
         // Show local notification for visibility
         NotificationService().showIncomingCall(
           callerName: callerName,
@@ -190,10 +191,8 @@ class CallService {
       }
     });
     _socket!.on('call:accepted', (data) {
-      final channelId =
-          data is Map ? (data['channelId'] ?? '').toString() : '';
-      debugPrint(
-          '📞 [CALL] call:accepted reçu channelId=$channelId');
+      final channelId = data is Map ? (data['channelId'] ?? '').toString() : '';
+      debugPrint('📞 [CALL] call:accepted reçu channelId=$channelId');
       _callAcceptedController.add(channelId);
     });
     _socket!.on('call:rejected', (_) {
@@ -220,9 +219,9 @@ class CallService {
     });
     _socket!.on('webrtc:ice-candidate', (data) {
       if (data is Map) {
-        debugPrint('📞 [WEBRTC] ice-candidate reçu de=${data['fromUserId']} candidate=${data['candidate']}');
-        _remoteIceCandidateController
-            .add(Map<String, dynamic>.from(data));
+        debugPrint(
+            '📞 [WEBRTC] ice-candidate reçu de=${data['fromUserId']} candidate=${data['candidate']}');
+        _remoteIceCandidateController.add(Map<String, dynamic>.from(data));
       }
     });
 
@@ -230,8 +229,7 @@ class CallService {
     _socket!.on('message:new', (data) {
       debugPrint('📞 [CALL] message:new reçu: $data');
       if (data is Map) {
-        final senderName =
-            (data['senderName'] ?? 'Quelqu\'un').toString();
+        final senderName = (data['senderName'] ?? 'Quelqu\'un').toString();
         final senderId = (data['senderId'] ?? '').toString();
         final preview = (data['preview'] ?? '').toString();
         final text = data['text']?.toString();
@@ -241,8 +239,7 @@ class CallService {
         final callDuration = callDurationRaw != null
             ? int.tryParse(callDurationRaw.toString())
             : null;
-        final conversationId =
-            (data['conversationId'] ?? '').toString();
+        final conversationId = (data['conversationId'] ?? '').toString();
         final messageIdRaw = data['messageId'];
         final createdAtRaw = data['createdAt'];
         final createdAt = createdAtRaw != null
@@ -266,11 +263,10 @@ class CallService {
         }
         _notificationsFeedService
             .createNotification(
-              type: 'family_message',
-              title: senderName,
-              description:
-                  preview.isNotEmpty ? preview : 'Nouveau message',
-            )
+          type: 'family_message',
+          title: senderName,
+          description: preview.isNotEmpty ? preview : 'Nouveau message',
+        )
             .catchError((e) {
           debugPrint('🔔 [NOTIF] Échec enregistrement feed notif: $e');
         });
@@ -385,8 +381,8 @@ class CallService {
     required RTCIceCandidate candidate,
   }) {
     if (candidate.candidate == null) {
-       debugPrint('📞 [WEBRTC] end-of-gathering candidate skip');
-       return;
+      debugPrint('📞 [WEBRTC] end-of-gathering candidate skip');
+      return;
     }
     debugPrint('📞 [WEBRTC] sendIceCandidate to=$targetUserId');
     _socket?.emit('webrtc:ice-candidate', {

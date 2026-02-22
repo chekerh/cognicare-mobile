@@ -23,8 +23,10 @@ class _Conversation {
   final String timeAgo;
   final String imageUrl;
   final bool unread;
+
   /// When set, opening this chat uses API (real messages).
   final String? conversationId;
+
   /// persons | families | benevole (from API inbox)
   final String? segment;
 
@@ -63,7 +65,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
 
   Future<void> _loadInbox() async {
     final chatService = ChatService();
-    
+
     // Load from cache first
     try {
       final cached = await chatService.getCachedInbox();
@@ -122,7 +124,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
 
   Future<void> _loadFamiliesToContact() async {
     if (_familiesLoading || _familiesToContact != null) return;
-    
+
     final chatService = ChatService();
 
     // Load from cache first
@@ -159,7 +161,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
 
   Future<void> _loadVolunteersToContact() async {
     if (_volunteersLoading || _volunteersToContact != null) return;
-    
+
     final chatService = ChatService();
 
     // Load from cache first
@@ -193,7 +195,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
     }
   }
 
-  Future<void> _openChatWithFamily(BuildContext context, FamilyUser family) async {
+  Future<void> _openChatWithFamily(
+      BuildContext context, FamilyUser family) async {
     try {
       final chatService = ChatService();
       final conv = await chatService.getOrCreateConversation(family.id);
@@ -328,9 +331,11 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
           decoration: InputDecoration(
             hintText: AppLocalizations.of(context)!.searchFamilyFriends,
             hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-            prefixIcon: Icon(Icons.search, color: Colors.grey.shade500, size: 22),
+            prefixIcon:
+                Icon(Icons.search, color: Colors.grey.shade500, size: 22),
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
         ),
       ),
@@ -402,8 +407,9 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     if (_inboxError != null) {
-      final isUnauthorized = _inboxError!.toLowerCase().contains('unauthorized') ||
-          _inboxError!.toLowerCase().contains('not authenticated');
+      final isUnauthorized =
+          _inboxError!.toLowerCase().contains('unauthorized') ||
+              _inboxError!.toLowerCase().contains('not authenticated');
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -412,7 +418,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
             children: [
               Text(
                 isUnauthorized
-                    ? (AppLocalizations.of(context)?.sessionExpiredReconnect ?? 'Votre session a expiré. Veuillez vous reconnecter.')
+                    ? (AppLocalizations.of(context)?.sessionExpiredReconnect ??
+                        'Votre session a expiré. Veuillez vous reconnecter.')
                     : _inboxError!,
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 16, color: _textMuted),
@@ -421,16 +428,19 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
               if (isUnauthorized)
                 FilledButton.icon(
                   onPressed: () async {
-                    await Provider.of<AuthProvider>(context, listen: false).logout();
+                    await Provider.of<AuthProvider>(context, listen: false)
+                        .logout();
                     if (context.mounted) context.go(AppConstants.loginRoute);
                   },
                   icon: const Icon(Icons.login_rounded, size: 20),
-                  label: Text(AppLocalizations.of(context)?.loginButton ?? 'Se connecter'),
+                  label: Text(AppLocalizations.of(context)?.loginButton ??
+                      'Se connecter'),
                 )
               else
                 TextButton(
                   onPressed: _loadInbox,
-                  child: Text(AppLocalizations.of(context)?.retry ?? 'Réessayer'),
+                  child:
+                      Text(AppLocalizations.of(context)?.retry ?? 'Réessayer'),
                 ),
             ],
           ),
@@ -440,13 +450,11 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
     List<_Conversation> rawList;
     if (_inboxConversations != null && _inboxConversations!.isNotEmpty) {
       if (_selectedTab == 0) {
-        rawList = _inboxConversations!
-            .where((c) => c.segment == 'families')
-            .toList();
+        rawList =
+            _inboxConversations!.where((c) => c.segment == 'families').toList();
       } else if (_selectedTab == 1) {
-        rawList = _inboxConversations!
-            .where((c) => c.segment == 'benevole')
-            .toList();
+        rawList =
+            _inboxConversations!.where((c) => c.segment == 'benevole').toList();
       } else {
         rawList = _inboxConversations!
             .where((c) => c.segment == 'healthcare')
@@ -459,10 +467,12 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
     if (list.isEmpty) {
       if (_selectedTab == 0) {
         if (_familiesToContact == null && !_familiesLoading) {
-          WidgetsBinding.instance.addPostFrameCallback((_) => _loadFamiliesToContact());
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) => _loadFamiliesToContact());
         }
-        
-        final showFamiliesSpinner = _familiesLoading && !hasFamiliesToContactData;
+
+        final showFamiliesSpinner =
+            _familiesLoading && !hasFamiliesToContactData;
         if (showFamiliesSpinner) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -498,7 +508,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.people_outline, size: 64, color: Colors.grey.shade400),
+                  Icon(Icons.people_outline,
+                      size: 64, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
                   Text(
                     AppLocalizations.of(context)!.noOtherFamiliesYet,
@@ -545,7 +556,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
                 child: ListView.separated(
                   padding: EdgeInsets.zero,
                   itemCount: families.length,
-                  separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
+                  separatorBuilder: (_, __) =>
+                      Divider(height: 1, color: Colors.grey.shade100),
                   itemBuilder: (_, i) {
                     final f = families[i];
                     return _FamilyContactTile(
@@ -560,10 +572,12 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
         );
       } else if (_selectedTab == 1) {
         if (_volunteersToContact == null && !_volunteersLoading) {
-          WidgetsBinding.instance.addPostFrameCallback((_) => _loadVolunteersToContact());
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) => _loadVolunteersToContact());
         }
-        
-        final showVolunteersSpinner = _volunteersLoading && !hasVolunteersToContactData;
+
+        final showVolunteersSpinner =
+            _volunteersLoading && !hasVolunteersToContactData;
         if (showVolunteersSpinner) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -599,7 +613,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.volunteer_activism_outlined, size: 64, color: Colors.grey.shade400),
+                  Icon(Icons.volunteer_activism_outlined,
+                      size: 64, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
                   Text(
                     AppLocalizations.of(context)!.noVolunteersAvailable,
@@ -647,7 +662,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
                 padding: EdgeInsets.zero,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: volunteers.length,
-                separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
+                separatorBuilder: (_, __) =>
+                    Divider(height: 1, color: Colors.grey.shade100),
                 itemBuilder: (context, index) {
                   final vol = volunteers[index];
                   return _FamilyContactTile(
@@ -659,7 +675,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
                           queryParameters: {
                             'personId': vol.id,
                             'personName': vol.fullName,
-                            if (vol.profilePic != null) 'personImageUrl': vol.profilePic!,
+                            if (vol.profilePic != null)
+                              'personImageUrl': vol.profilePic!,
                           },
                         ).toString(),
                       );
@@ -677,7 +694,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.shade400),
+              Icon(Icons.chat_bubble_outline,
+                  size: 64, color: Colors.grey.shade400),
               const SizedBox(height: 16),
               Text(
                 AppLocalizations.of(context)!.noHealthcareConversations,
@@ -706,7 +724,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
       clipBehavior: Clip.antiAlias,
       child: ListView.separated(
         itemCount: list.length,
-        separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey.shade100),
+        separatorBuilder: (_, __) =>
+            Divider(height: 1, color: Colors.grey.shade100),
         itemBuilder: (context, index) {
           final c = list[index];
           return Dismissible(
@@ -745,8 +764,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
             },
             onDismissed: (_) async {
               final id = c.conversationId ?? c.id;
-              final chatService =
-                  ChatService();
+              final chatService = ChatService();
               try {
                 await chatService.deleteConversation(id);
               } catch (_) {
@@ -865,21 +883,20 @@ class _ConversationTile extends StatelessWidget {
                       width: 56,
                       height: 56,
                       fit: BoxFit.cover,
-                      loadingBuilder: (_, child, progress) =>
-                          progress == null
-                              ? child
-                              : SizedBox(
-                                  width: 56,
-                                  height: 56,
-                                  child: Center(
-                                    child: CircularProgressIndicator(
-                                      value: progress.expectedTotalBytes != null
-                                          ? progress.cumulativeBytesLoaded /
-                                              progress.expectedTotalBytes!
-                                          : null,
-                                    ),
-                                  ),
+                      loadingBuilder: (_, child, progress) => progress == null
+                          ? child
+                          : SizedBox(
+                              width: 56,
+                              height: 56,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  value: progress.expectedTotalBytes != null
+                                      ? progress.cumulativeBytesLoaded /
+                                          progress.expectedTotalBytes!
+                                      : null,
                                 ),
+                              ),
+                            ),
                       errorBuilder: (_, __, ___) => Container(
                         width: 56,
                         height: 56,
@@ -900,7 +917,9 @@ class _ConversationTile extends StatelessWidget {
                           conversation.name,
                           style: TextStyle(
                             fontSize: 16,
-                            fontWeight: conversation.unread ? FontWeight.bold : FontWeight.w500,
+                            fontWeight: conversation.unread
+                                ? FontWeight.bold
+                                : FontWeight.w500,
                             color: _textPrimary,
                           ),
                           maxLines: 1,
@@ -911,7 +930,9 @@ class _ConversationTile extends StatelessWidget {
                         conversation.timeAgo,
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: conversation.unread ? FontWeight.w600 : FontWeight.w500,
+                          fontWeight: conversation.unread
+                              ? FontWeight.w600
+                              : FontWeight.w500,
                           color: conversation.unread ? _primary : _textMuted,
                         ),
                       ),
@@ -925,8 +946,11 @@ class _ConversationTile extends StatelessWidget {
                           conversation.lastMessage,
                           style: TextStyle(
                             fontSize: 14,
-                            fontWeight: conversation.unread ? FontWeight.w600 : FontWeight.normal,
-                            color: conversation.unread ? _textPrimary : _textMuted,
+                            fontWeight: conversation.unread
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                            color:
+                                conversation.unread ? _textPrimary : _textMuted,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

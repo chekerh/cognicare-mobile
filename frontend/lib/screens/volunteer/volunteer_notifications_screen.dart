@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../utils/constants.dart';
-import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFF77B5D1);
 const Color _brandLight = Color(0xFFA8D9EB);
@@ -35,25 +34,28 @@ class VolunteerNotificationsScreen extends StatefulWidget {
   const VolunteerNotificationsScreen({super.key});
 
   @override
-  State<VolunteerNotificationsScreen> createState() => _VolunteerNotificationsScreenState();
+  State<VolunteerNotificationsScreen> createState() =>
+      _VolunteerNotificationsScreenState();
 }
 
-class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScreen> {
+class _VolunteerNotificationsScreenState
+    extends State<VolunteerNotificationsScreen> {
   late List<_NotificationItem> _notifications;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _notifications = _buildSampleNotifications(context);
+  void initState() {
+    super.initState();
+    _notifications = _buildSampleNotifications();
   }
 
-  static List<_NotificationItem> _buildSampleNotifications(BuildContext context) {
+  static List<_NotificationItem> _buildSampleNotifications() {
     return [
       _NotificationItem(
         id: '1',
-        title: AppLocalizations.of(context)!.notifUrgentTitle,
-        timestamp: AppLocalizations.of(context)!.justNow,
-        description: AppLocalizations.of(context)!.notifUrgentDesc,
+        title: 'Nouvelle demande urgente',
+        timestamp: "À l'instant",
+        description:
+            "La famille Martin à 0.8 km a besoin d'aide pour des courses essentielles.",
         icon: Icons.add,
         iconColor: Colors.blue,
         iconBgColor: Colors.blue.shade50,
@@ -61,9 +63,10 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
       ),
       _NotificationItem(
         id: '2',
-        title: AppLocalizations.of(context)!.notifMsgTitle,
+        title: 'Nouveau message',
         timestamp: '14:30',
-        description: AppLocalizations.of(context)!.notifMsgDesc,
+        description:
+            'Famille Dubois: "Merci encore Lucas pour votre aide précieuse aujourd\'hui !"',
         icon: Icons.chat_bubble,
         iconColor: Colors.green,
         iconBgColor: Colors.green.shade50,
@@ -71,9 +74,10 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
       ),
       _NotificationItem(
         id: '3',
-        title: AppLocalizations.of(context)!.notifReminderTitle,
+        title: 'Rappel : Mission demain',
         timestamp: '10:15',
-        description: AppLocalizations.of(context)!.notifReminderDesc,
+        description:
+            "Votre visite chez Mme. Lefebvre est prévue demain à 14:00.",
         icon: Icons.calendar_today,
         iconColor: Colors.orange,
         iconBgColor: Colors.orange.shade50,
@@ -81,9 +85,10 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
       ),
       _NotificationItem(
         id: '4',
-        title: AppLocalizations.of(context)!.notifScheduleTitle,
-        timestamp: AppLocalizations.of(context)!.yesterday,
-        description: AppLocalizations.of(context)!.notifScheduleDesc,
+        title: "Modification d'horaire",
+        timestamp: 'Hier',
+        description:
+            "Le transport médical de mercredi a été annulé par le professionnel de santé.",
         icon: Icons.event_busy,
         iconColor: Colors.grey,
         iconBgColor: Colors.grey.shade100,
@@ -91,9 +96,10 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
       ),
       _NotificationItem(
         id: '5',
-        title: AppLocalizations.of(context)!.notifNewMissionTitle,
-        timestamp: AppLocalizations.of(context)!.yesterday,
-        description: AppLocalizations.of(context)!.notifNewMissionDesc,
+        title: 'Nouvelle mission disponible',
+        timestamp: 'Hier',
+        description:
+            "Lecture & Compagnie : Marie recherche un bénévole pour demain après-midi.",
         icon: Icons.add,
         iconColor: Colors.blue,
         iconBgColor: Colors.blue.shade50,
@@ -157,8 +163,23 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
       backgroundColor: _bgLight,
       body: Stack(
         children: [
-          Positioned(top: 0, left: 0, right: 0, height: 192, child: Container(color: _brandLight.withOpacity(0.6))),
-          Positioned(top: 96, left: 0, right: 0, height: 96, child: Container(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [_brandLight.withOpacity(0.5), _bgLight])))),
+          Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 192,
+              child: Container(color: _brandLight.withOpacity(0.6))),
+          Positioned(
+              top: 96,
+              left: 0,
+              right: 0,
+              height: 96,
+              child: Container(
+                  decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [_brandLight.withOpacity(0.5), _bgLight])))),
           SafeArea(
             child: Column(
               children: [
@@ -169,25 +190,34 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
                       IconButton(
                         onPressed: () => context.pop(),
                         icon: const Icon(Icons.chevron_left),
-                        style: IconButton.styleFrom(foregroundColor: const Color(0xFF1E293B)),
+                        style: IconButton.styleFrom(
+                            foregroundColor: const Color(0xFF1E293B)),
                       ),
-                      Expanded(
+                      const Expanded(
                         child: Text(
-                          AppLocalizations.of(context)!.notificationsTitle,
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                          'Notifications',
+                          style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B)),
                           textAlign: TextAlign.center,
                         ),
                       ),
                       GestureDetector(
                         onTap: _markAllAsRead,
-                        child: Text(AppLocalizations.of(context)!.markAllAsRead, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
+                        child: const Text('Tout lire',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: _primary)),
                       ),
                     ],
                   ),
                 ),
                 Expanded(
                   child: ListView.separated(
-                    padding: EdgeInsets.fromLTRB(20, 8, 20, 100 + MediaQuery.of(context).padding.bottom),
+                    padding: EdgeInsets.fromLTRB(
+                        20, 8, 20, 100 + MediaQuery.of(context).padding.bottom),
                     itemCount: _notifications.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (_, i) {
@@ -218,7 +248,12 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.grey.shade100),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2))
+                ],
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,7 +261,9 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
                   Container(
                     width: 48,
                     height: 48,
-                    decoration: BoxDecoration(color: n.iconBgColor, borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(
+                        color: n.iconBgColor,
+                        borderRadius: BorderRadius.circular(12)),
                     child: Icon(n.icon, color: n.iconColor, size: 24),
                   ),
                   const SizedBox(width: 16),
@@ -242,20 +279,27 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
                                 padding: const EdgeInsets.only(right: 24),
                                 child: Text(
                                   n.title,
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                                  style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E293B)),
                                 ),
                               ),
                             ),
                             Text(
                               n.timestamp,
-                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: Colors.grey.shade500),
+                              style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey.shade500),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text(
                           n.description,
-                          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                          style: TextStyle(
+                              fontSize: 14, color: Colors.grey.shade600),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -272,7 +316,8 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
                 child: Container(
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(color: _unreadDot, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(
+                      color: _unreadDot, shape: BoxShape.circle),
                 ),
               ),
           ],

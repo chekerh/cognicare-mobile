@@ -11,7 +11,8 @@ const String _storageFileName = 'cognicare_feed.json';
 
 /// Vrai seulement pour les IDs de posts venant du backend (MongoDB ObjectId 24 hex).
 bool _isBackendPostId(String id) =>
-    id.length == 24 && RegExp(r'^[a-f0-9]{24}$', caseSensitive: false).hasMatch(id);
+    id.length == 24 &&
+    RegExp(r'^[a-f0-9]{24}$', caseSensitive: false).hasMatch(id);
 
 /// Provider du fil communautaire : posts, commentaires, likes.
 /// Utilise le backend en priorité (données persistées), repli sur stockage local si pas de token ou erreur.
@@ -71,7 +72,8 @@ class CommunityFeedProvider with ChangeNotifier {
     try {
       final file = await _getStorageFile();
       if (!await file.exists()) return;
-      final json = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
+      final json =
+          jsonDecode(await file.readAsString()) as Map<String, dynamic>;
       final postsList = json['posts'] as List<dynamic>?;
       if (postsList != null) {
         _posts.clear();
@@ -180,9 +182,7 @@ class CommunityFeedProvider with ChangeNotifier {
     _postComments[postId]!.insert(
       0,
       FeedComment(
-          authorName: authorName,
-          text: text.trim(),
-          createdAt: DateTime.now()),
+          authorName: authorName, text: text.trim(), createdAt: DateTime.now()),
     );
     notifyListeners();
     _saveToStorage();
@@ -264,7 +264,8 @@ class CommunityFeedProvider with ChangeNotifier {
           if (await file.exists()) {
             imageUrl = await _api.uploadPostImage(file);
           } else {
-            throw Exception('Image file not found. Try selecting the image again.');
+            throw Exception(
+                'Image file not found. Try selecting the image again.');
           }
         }
         final post = await _api.createPost(

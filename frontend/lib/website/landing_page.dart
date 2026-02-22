@@ -140,13 +140,15 @@ class LandingPage extends StatelessWidget {
                         icon: Icons.apple,
                         label: 'Download on the',
                         storeName: 'App Store',
-                        onPressed: () => _launchURL('https://apps.apple.com/app/cognicare'),
+                        onPressed: () =>
+                            _launchURL('https://apps.apple.com/app/cognicare'),
                       ),
                       _buildDownloadButton(
                         icon: Icons.android,
                         label: 'Get it on',
                         storeName: 'Google Play',
-                        onPressed: () => _launchURL('https://play.google.com/store/apps/details?id=com.cognicare.app'),
+                        onPressed: () => _launchURL(
+                            'https://play.google.com/store/apps/details?id=com.cognicare.app'),
                       ),
                     ],
                   ),
@@ -308,37 +310,43 @@ class LandingPage extends StatelessWidget {
         _buildFeatureCard(
           icon: Icons.spa,
           title: 'Simple & Accessible',
-          description: 'Easy to get started with an intuitive interface designed for everyday use.',
+          description:
+              'Easy to get started with an intuitive interface designed for everyday use.',
           isMobile: isMobile,
         ),
         _buildFeatureCard(
           icon: Icons.trending_up,
           title: 'Track Your Progress',
-          description: 'Follow your cognitive development journey and stay engaged over time.',
+          description:
+              'Follow your cognitive development journey and stay engaged over time.',
           isMobile: isMobile,
         ),
         _buildFeatureCard(
           icon: Icons.person_outline,
           title: 'Personalized Journey',
-          description: 'The app adapts to your individual needs and preferences for a unique experience.',
+          description:
+              'The app adapts to your individual needs and preferences for a unique experience.',
           isMobile: isMobile,
         ),
         _buildFeatureCard(
           icon: Icons.language,
           title: 'Multi-Language Support',
-          description: 'Available in English, French, and Arabic for inclusive and accessible care.',
+          description:
+              'Available in English, French, and Arabic for inclusive and accessible care.',
           isMobile: isMobile,
         ),
         _buildFeatureCard(
           icon: Icons.favorite_outline,
           title: 'Safe & Supportive',
-          description: 'A secure environment focused on your long-term well-being and mental health.',
+          description:
+              'A secure environment focused on your long-term well-being and mental health.',
           isMobile: isMobile,
         ),
         _buildFeatureCard(
           icon: Icons.psychology_outlined,
           title: 'Guided Experiences',
-          description: 'Expertly designed activities to help you understand, monitor, and improve cognitive health.',
+          description:
+              'Expertly designed activities to help you understand, monitor, and improve cognitive health.',
           isMobile: isMobile,
         ),
       ],

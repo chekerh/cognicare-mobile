@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
-import '../../l10n/app_localizations.dart';
 
 const Color _navPrimary = Color(0xFFA4D9E5);
 const Color _navInactive = Color(0xFF94A3B8);
@@ -26,7 +25,8 @@ class VolunteerShellScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context).user;
     final role = user?.role;
-    final currentIndex = _indexFromPath(GoRouterState.of(context).uri.path, role);
+    final currentIndex =
+        _indexFromPath(GoRouterState.of(context).uri.path, role);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -50,11 +50,16 @@ class VolunteerShellScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _navItem(context, 0, Icons.home_outlined, Icons.home_rounded, AppLocalizations.of(context)!.home, currentIndex),
-                _navItem(context, 1, Icons.calendar_today_outlined, Icons.calendar_today, AppLocalizations.of(context)!.agendaLabel, currentIndex),
-                _navItem(context, 2, Icons.school_outlined, Icons.school_rounded, AppLocalizations.of(context)!.formationsLabel, currentIndex),
-                _navItem(context, 3, Icons.chat_bubble_outline, Icons.chat_bubble, AppLocalizations.of(context)!.messages, currentIndex),
-                _navItem(context, 4, Icons.person_outline, Icons.person, AppLocalizations.of(context)!.profileTitle, currentIndex),
+                _navItem(context, 0, Icons.home_outlined, Icons.home_rounded,
+                    'Accueil', currentIndex),
+                _navItem(context, 1, Icons.calendar_today_outlined,
+                    Icons.calendar_today, 'Agenda', currentIndex),
+                _navItem(context, 2, Icons.school_outlined,
+                    Icons.school_rounded, 'Formations', currentIndex),
+                _navItem(context, 3, Icons.chat_bubble_outline,
+                    Icons.chat_bubble, 'Messages', currentIndex),
+                _navItem(context, 4, Icons.person_outline, Icons.person,
+                    'Profil', currentIndex),
               ],
             ),
           ),
@@ -66,12 +71,18 @@ class VolunteerShellScreen extends StatelessWidget {
   int _indexFromPath(String path, String? role) {
     if (path.endsWith('/dashboard')) return 0;
     if (path.endsWith('/agenda')) return 1;
-    if (path.endsWith('/formations') || path == '/volunteer' || path == '/volunteer/') return 2;
+    if (path.endsWith('/formations') ||
+        path == '/volunteer' ||
+        path == '/volunteer/') {
+      return 2;
+    }
     if (path.endsWith('/messages')) return 3;
     if (path.endsWith('/profile')) return 4;
-    
+
     // Default branch for /volunteer or unknown
-    if (AppConstants.isSpecialistRole(role)) return 0; // Dashboard (Accueil) for specialists
+    if (AppConstants.isSpecialistRole(role)) {
+      return 0; // Dashboard (Accueil) for specialists
+    }
     return 2; // Formations hub for regular volunteers
   }
 

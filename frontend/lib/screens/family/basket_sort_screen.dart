@@ -39,7 +39,8 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
   static const List<_SortItem> _items = [
     // 1. Pomme → Food
     _SortItem(
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDSzNDFIdXybA63B3hyJlf3_60pXxXpy0pc4oW4bO__FjO3PcbgMI1q59HegYo2OBPmBP6BIRxX407O2iodwQiGh-w1o7juvNqTGtP4L7nbgtGYPKJYYjiPPjl-1oBJGH76EN7exYxdHGDj9qg9g_770p7BfWH2hjwgoaYf_dHtoeSGizCJesYJYKqjoemfVcWHMJcw_o-f70eNlQ45xC7D0h7EpWl77GTJA7Ha2lGqLbijZVG6iAt8CT7uY3WyT0v7ikvgPABbMbU',
+      imageUrl:
+          'https://lh3.googleusercontent.com/aida-public/AB6AXuDSzNDFIdXybA63B3hyJlf3_60pXxXpy0pc4oW4bO__FjO3PcbgMI1q59HegYo2OBPmBP6BIRxX407O2iodwQiGh-w1o7juvNqTGtP4L7nbgtGYPKJYYjiPPjl-1oBJGH76EN7exYxdHGDj9qg9g_770p7BfWH2hjwgoaYf_dHtoeSGizCJesYJYKqjoemfVcWHMJcw_o-f70eNlQ45xC7D0h7EpWl77GTJA7Ha2lGqLbijZVG6iAt8CT7uY3WyT0v7ikvgPABbMbU',
       category: _BasketCategory.food,
     ),
     // 2. Peluche (teddy bear) → Toys (asset)
@@ -49,12 +50,14 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
     ),
     // 3. Banane → Food
     _SortItem(
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg',
+      imageUrl:
+          'https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg',
       category: _BasketCategory.food,
     ),
     // 4. Cheval à bascule (rocking horse) → Toys (asset)
     _SortItem(
-      imageAsset: 'assets/stickers/clker-free-vector-images-rocking-horse-33719_1280.png',
+      imageAsset:
+          'assets/stickers/clker-free-vector-images-rocking-horse-33719_1280.png',
       category: _BasketCategory.toys,
     ),
   ];
@@ -111,7 +114,8 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
             ctx.push(AppConstants.familyGameSuccessRoute, extra: {
               'stickerIndex': stickerIndex,
               'gameRoute': AppConstants.familyBasketSortRoute,
-              if (milestoneMessage != null) 'milestoneMessage': milestoneMessage,
+              if (milestoneMessage != null)
+                'milestoneMessage': milestoneMessage,
             });
           }
         });
@@ -179,7 +183,8 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
             const SizedBox(height: 24),
             Expanded(
               child: _gameFinished
-                  ? const Center(child: CircularProgressIndicator(color: _primary))
+                  ? const Center(
+                      child: CircularProgressIndicator(color: _primary))
                   : Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -216,7 +221,8 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
               ),
             ),
           ),
-          const ChildModeExitButton(iconColor: _textDark, textColor: _textDark, opacity: 0.9),
+          const ChildModeExitButton(
+              iconColor: _textDark, textColor: _textDark, opacity: 0.9),
         ],
       ),
     );
@@ -285,7 +291,8 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
         children: [
           _itemCard(item),
           const SizedBox(height: 16),
-          Icon(Icons.drag_indicator, color: _primary.withOpacity(0.5), size: 40),
+          Icon(Icons.drag_indicator,
+              color: _primary.withOpacity(0.5), size: 40),
         ],
       ),
     );
@@ -319,7 +326,8 @@ class _BasketSortScreenState extends State<BasketSortScreen> {
       return Image.asset(
         item.imageAsset!,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const Icon(Icons.toys, size: 64, color: _primary),
+        errorBuilder: (_, __, ___) =>
+            const Icon(Icons.toys, size: 64, color: _primary),
       );
     }
     return Image.network(
@@ -390,7 +398,9 @@ class _BasketTarget extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isHovering ? _primary.withOpacity(0.15) : _primary.withOpacity(0.08),
+            color: isHovering
+                ? _primary.withOpacity(0.15)
+                : _primary.withOpacity(0.08),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isHovering ? _primary : _primary.withOpacity(0.3),
@@ -401,7 +411,8 @@ class _BasketTarget extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.shopping_basket_outlined, color: _primary, size: 48),
+              const Icon(Icons.shopping_basket_outlined,
+                  color: _primary, size: 48),
               const SizedBox(height: 8),
               Icon(icon, color: _primary, size: 40),
               const SizedBox(height: 8),

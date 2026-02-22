@@ -55,7 +55,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
 
     try {
       final token = await _storage.read(key: AppConstants.jwtTokenKey);
-      
+
       final response = await http.post(
         Uri.parse('${AppConstants.baseUrl}/api/v1/users/update-password'),
         headers: {

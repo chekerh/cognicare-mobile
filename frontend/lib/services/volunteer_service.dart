@@ -24,7 +24,8 @@ class VolunteerService {
     final token = await _getToken();
     if (token == null) throw Exception('No authentication token');
     final response = await _client.get(
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.volunteerApplicationEndpoint}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.volunteerApplicationEndpoint}'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (response.statusCode != 200) {
@@ -43,7 +44,8 @@ class VolunteerService {
     if (token == null) throw Exception('No authentication token');
     final request = http.MultipartRequest(
       'POST',
-      Uri.parse('${AppConstants.baseUrl}${AppConstants.volunteerDocumentsEndpoint}'),
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.volunteerDocumentsEndpoint}'),
     );
     request.headers['Authorization'] = 'Bearer $token';
     request.fields['type'] = type;

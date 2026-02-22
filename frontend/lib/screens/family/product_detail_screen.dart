@@ -51,9 +51,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     setState(() => _reviewsLoading = true);
     try {
       final list = await MarketplaceService().getReviews(widget.productId);
-      if (mounted) setState(() { _reviews = list; _reviewsLoading = false; });
+      if (mounted) {
+        setState(() {
+          _reviews = list;
+          _reviewsLoading = false;
+        });
+      }
     } catch (_) {
-      if (mounted) setState(() { _reviews = []; _reviewsLoading = false; });
+      if (mounted) {
+        setState(() {
+          _reviews = [];
+          _reviewsLoading = false;
+        });
+      }
     }
   }
 
@@ -87,14 +97,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, AppLocalizations loc, double topPadding) {
+  Widget _buildHeader(
+      BuildContext context, AppLocalizations loc, double topPadding) {
     return Container(
       color: Colors.white,
       padding: EdgeInsets.fromLTRB(8, topPadding + 8, 8, 8),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.text, size: 20),
+            icon: const Icon(Icons.arrow_back_ios_new,
+                color: AppTheme.text, size: 20),
             onPressed: () => context.pop(),
           ),
           Expanded(
@@ -109,7 +121,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined, color: AppTheme.text),
+            icon:
+                const Icon(Icons.shopping_cart_outlined, color: AppTheme.text),
             onPressed: () => context.push(AppConstants.familyCartRoute),
           ),
         ],
@@ -121,7 +134,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800';
 
   Widget _buildImageCarousel() {
-    final imageUrl = widget.imageUrl.trim().isEmpty ? _placeholderImageUrl : widget.imageUrl;
+    final imageUrl =
+        widget.imageUrl.trim().isEmpty ? _placeholderImageUrl : widget.imageUrl;
     return Stack(
       children: [
         SizedBox(
@@ -141,7 +155,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               height: 300,
               color: Colors.grey.shade200,
               child: const Center(
-                child: Icon(Icons.image_not_supported, size: 64, color: Colors.grey),
+                child: Icon(Icons.image_not_supported,
+                    size: 64, color: Colors.grey),
               ),
             ),
           ),
@@ -204,7 +219,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: _marketPrimary,
                   borderRadius: BorderRadius.circular(999),
@@ -232,7 +248,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           const SizedBox(height: 16),
           Text(
             widget.title == 'Couverture Lestée'
-                ? loc.weightedBlanketDesc
+                ? 'Conçue pour offrir une thérapie par pression profonde, cette couverture aide à apaiser l\'anxiété et favorise un sommeil réparateur, particulièrement bénéfique pour les enfants autistes ou souffrant de troubles sensoriels.'
                 : widget.description,
             style: TextStyle(
               fontSize: 15,
@@ -285,7 +301,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final loc = AppLocalizations.of(context)!;
     final avgRating = _reviews.isEmpty
         ? 0.0
-        : _reviews.map((r) => r.rating).reduce((a, b) => a + b) / _reviews.length;
+        : _reviews.map((r) => r.rating).reduce((a, b) => a + b) /
+            _reviews.length;
     final ratingStr = _reviews.isEmpty
         ? '0 (0 avis)'
         : '${avgRating.toStringAsFixed(1)} (${_reviews.length} avis)';
@@ -322,7 +339,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           OutlinedButton.icon(
             onPressed: () => _showAddReviewDialog(),
             icon: const Icon(Icons.edit, size: 18),
-            label: Text(loc.writeReview),
+            label: const Text('Écrire un avis'),
             style: OutlinedButton.styleFrom(
               foregroundColor: _marketPrimary,
               side: BorderSide(color: _marketPrimary),
@@ -330,12 +347,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
           const SizedBox(height: 16),
           if (_reviewsLoading)
-            const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+            const Center(
+                child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator()))
           else if (_reviews.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
-                loc.noReviewsYet,
+                'Aucun avis pour le moment. Soyez le premier à donner votre avis !',
                 style: TextStyle(
                   fontSize: 14,
                   color: AppTheme.text.withOpacity(0.7),
@@ -345,7 +365,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           else
             ..._reviews.map(
               (r) {
-                final profileImageUrl = r.userProfileImageUrl != null && r.userProfileImageUrl!.isNotEmpty
+                final profileImageUrl = r.userProfileImageUrl != null &&
+                        r.userProfileImageUrl!.isNotEmpty
                     ? (r.userProfileImageUrl!.startsWith('http')
                         ? r.userProfileImageUrl!
                         : '${AppConstants.baseUrl}${r.userProfileImageUrl}')
@@ -355,7 +376,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   child: _buildReview(
                     name: r.userName,
                     rating: r.rating,
-                    text: r.comment.isEmpty ? loc.reviewWithoutComment : r.comment,
+                    text: r.comment.isEmpty
+                        ? '(Avis sans commentaire)'
+                        : r.comment,
                     profileImageUrl: profileImageUrl,
                   ),
                 );
@@ -369,7 +392,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Future<void> _showAddReviewDialog() async {
     int rating = 5;
     final commentController = TextEditingController();
-    final loc = AppLocalizations.of(context)!;
 
     final submitted = await showDialog<bool>(
       context: context,
@@ -377,13 +399,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
             return AlertDialog(
-              title: Text(loc.writeReview),
+              title: const Text('Écrire un avis'),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(loc.ratingLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    const Text('Note :',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -400,14 +423,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       }),
                     ),
                     const SizedBox(height: 16),
-                    Text(loc.commentOptional, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    const Text('Commentaire (optionnel) :',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
                     TextField(
                       controller: commentController,
                       maxLines: 3,
-                      decoration: InputDecoration(
-                        hintText: loc.shareYourExperience,
-                        border: const OutlineInputBorder(),
+                      decoration: const InputDecoration(
+                        hintText: 'Partagez votre expérience...',
+                        border: OutlineInputBorder(),
                       ),
                     ),
                   ],
@@ -416,11 +440,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(false),
-                  child: Text(loc.cancel),
+                  child: const Text('Annuler'),
                 ),
                 FilledButton(
                   onPressed: () => Navigator.of(ctx).pop(true),
-                  child: Text(loc.publishLabel),
+                  child: const Text('Publier'),
                 ),
               ],
             );
@@ -440,8 +464,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       commentController.dispose();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(loc.reviewPublished),
+        const SnackBar(
+          content: Text('Votre avis a été publié.'),
           backgroundColor: Colors.green,
         ),
       );
@@ -478,12 +502,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               CircleAvatar(
                 radius: 20,
                 backgroundColor: _marketPrimary.withOpacity(0.3),
-                backgroundImage: (profileImageUrl != null && profileImageUrl.isNotEmpty)
-                    ? NetworkImage(profileImageUrl)
-                    : null,
-                onBackgroundImageError: (profileImageUrl != null && profileImageUrl.isNotEmpty)
-                    ? (_, __) {}
-                    : null,
+                backgroundImage:
+                    (profileImageUrl != null && profileImageUrl.isNotEmpty)
+                        ? NetworkImage(profileImageUrl)
+                        : null,
+                onBackgroundImageError:
+                    (profileImageUrl != null && profileImageUrl.isNotEmpty)
+                        ? (_, __) {}
+                        : null,
                 child: (profileImageUrl == null || profileImageUrl.isEmpty)
                     ? Text(
                         name.isNotEmpty ? name[0] : '?',
@@ -513,7 +539,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         (index) => Icon(
                           Icons.star,
                           size: 16,
-                          color: index < rating ? Colors.amber : Colors.grey.shade300,
+                          color: index < rating
+                              ? Colors.amber
+                              : Colors.grey.shade300,
                         ),
                       ),
                     ),
@@ -551,71 +579,71 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ],
       ),
       child: Row(
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: _marketPrimary, width: 2),
-              ),
-              child: IconButton(
-                icon: Icon(
-                  _isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: _marketPrimary,
-                ),
-                onPressed: () {
-                  setState(() => _isFavorite = !_isFavorite);
-                },
-              ),
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: _marketPrimary, width: 2),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  Provider.of<CartProvider>(context, listen: false).addItem(
-                    productId: widget.productId,
-                    title: widget.title,
-                    price: widget.price,
-                    imageUrl: widget.imageUrl.trim().isEmpty
-                        ? 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800'
-                        : widget.imageUrl,
-                  );
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(loc.productAddedToCart),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _marketPrimary,
-                  foregroundColor: AppTheme.text,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.shopping_cart),
-                    const SizedBox(width: 8),
-                    Text(
-                      loc.addToCart,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+            child: IconButton(
+              icon: Icon(
+                _isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: _marketPrimary,
+              ),
+              onPressed: () {
+                setState(() => _isFavorite = !_isFavorite);
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                Provider.of<CartProvider>(context, listen: false).addItem(
+                  productId: widget.productId,
+                  title: widget.title,
+                  price: widget.price,
+                  imageUrl: widget.imageUrl.trim().isEmpty
+                      ? 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800'
+                      : widget.imageUrl,
+                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(loc.productAddedToCart),
+                      backgroundColor: Colors.green,
                     ),
-                  ],
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _marketPrimary,
+                foregroundColor: AppTheme.text,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.shopping_cart),
+                  const SizedBox(width: 8),
+                  Text(
+                    loc.addToCart,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
     );
   }
 }

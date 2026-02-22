@@ -63,7 +63,10 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
         _level++;
         _levelProgress = 0.0;
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) Provider.of<StickerBookProvider>(context, listen: false).recordLevelCompleted(k);
+          if (mounted) {
+            Provider.of<StickerBookProvider>(context, listen: false)
+                .recordLevelCompleted(k);
+          }
         });
       } else if (_level == _maxLevel && _levelProgress >= 1.0) {
         final k = StickerBookProvider.levelKeyForShapeSortingLevel(_maxLevel);
@@ -82,14 +85,16 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
             metrics: {'score': _score},
           );
           if (!context.mounted) return;
-          final provider = Provider.of<StickerBookProvider>(context, listen: false);
+          final provider =
+              Provider.of<StickerBookProvider>(context, listen: false);
           final stickerIndex = provider.unlockedCount - 1;
           final completed = provider.tasksCompletedCount;
           final milestoneSteps = [5, 10, 15, 20, 25, 30];
           final loc = AppLocalizations.of(context);
-          final milestoneMessage = (loc != null && milestoneSteps.contains(completed))
-              ? loc.milestoneLevelsCompleted(completed)
-              : null;
+          final milestoneMessage =
+              (loc != null && milestoneSteps.contains(completed))
+                  ? loc.milestoneLevelsCompleted(completed)
+                  : null;
           if (!context.mounted) return;
           if (widget.inSequence) {
             context.pushReplacement(
@@ -100,7 +105,8 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
             context.push(AppConstants.familyGameSuccessRoute, extra: {
               'stickerIndex': stickerIndex,
               'gameRoute': AppConstants.familyShapeSortingRoute,
-              if (milestoneMessage != null) 'milestoneMessage': milestoneMessage,
+              if (milestoneMessage != null)
+                'milestoneMessage': milestoneMessage,
             });
           }
         });
@@ -120,7 +126,10 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
         _level++;
         _levelProgress = 0.0;
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) Provider.of<StickerBookProvider>(context, listen: false).recordLevelCompleted(k);
+          if (mounted) {
+            Provider.of<StickerBookProvider>(context, listen: false)
+                .recordLevelCompleted(k);
+          }
         });
       } else if (_level == _maxLevel && _levelProgress >= 1.0) {
         final k = StickerBookProvider.levelKeyForShapeSortingLevel(_maxLevel);
@@ -139,14 +148,16 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
             metrics: {'score': _score},
           );
           if (!context.mounted) return;
-          final provider = Provider.of<StickerBookProvider>(context, listen: false);
+          final provider =
+              Provider.of<StickerBookProvider>(context, listen: false);
           final stickerIndex = provider.unlockedCount - 1;
           final completed = provider.tasksCompletedCount;
           final milestoneSteps = [5, 10, 15, 20, 25, 30];
           final loc = AppLocalizations.of(context);
-          final milestoneMessage = (loc != null && milestoneSteps.contains(completed))
-              ? loc.milestoneLevelsCompleted(completed)
-              : null;
+          final milestoneMessage =
+              (loc != null && milestoneSteps.contains(completed))
+                  ? loc.milestoneLevelsCompleted(completed)
+                  : null;
           if (!context.mounted) return;
           if (widget.inSequence) {
             context.pushReplacement(
@@ -157,7 +168,8 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
             context.push(AppConstants.familyGameSuccessRoute, extra: {
               'stickerIndex': stickerIndex,
               'gameRoute': AppConstants.familyShapeSortingRoute,
-              if (milestoneMessage != null) 'milestoneMessage': milestoneMessage,
+              if (milestoneMessage != null)
+                'milestoneMessage': milestoneMessage,
             });
           }
         });
@@ -167,7 +179,10 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
     });
     if (!_gameFinished) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.wellDone), duration: const Duration(milliseconds: 800), behavior: SnackBarBehavior.floating),
+        const SnackBar(
+            content: Text('Bien joué !'),
+            duration: Duration(milliseconds: 800),
+            behavior: SnackBarBehavior.floating),
       );
     }
   }
@@ -184,7 +199,8 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
     if (_attempts > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.wrongShapeAttemptsRemaining(_attempts)),
+          content: Text(
+              'Pas la bonne forme. Il te reste $_attempts tentative${_attempts > 1 ? 's' : ''}.'),
           duration: const Duration(milliseconds: 1200),
           behavior: SnackBarBehavior.floating,
         ),
@@ -197,9 +213,9 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.outOfAttemptsTitle),
-        content: Text(
-          AppLocalizations.of(context)!.outOfAttemptsDesc,
+        title: const Text('Plus de tentatives !'),
+        content: const Text(
+          'Tu as utilisé tes 3 tentatives pour cette forme. Tu peux réessayer ou passer au jeu suivant.',
         ),
         actions: [
           TextButton(
@@ -210,14 +226,14 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
                 _blocked = false;
               });
             },
-            child: Text(AppLocalizations.of(context)!.tryAgain),
+            child: const Text('Réessayer'),
           ),
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop();
               context.pop();
             },
-            child: Text(AppLocalizations.of(context)!.nextGame),
+            child: const Text('Jeu suivant'),
           ),
         ],
       ),
@@ -258,20 +274,22 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
         children: [
           IconButton(
             onPressed: () => context.pop(),
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: _textDark, size: 28),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: _textDark, size: 28),
           ),
-          Expanded(
+          const Expanded(
             child: Text(
-              AppLocalizations.of(context)!.gameShapeSorting,
+              'Shape Sorting',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: _textDark,
               ),
             ),
           ),
-          const ChildModeExitButton(iconColor: _textDark, textColor: _textDark, opacity: 0.9),
+          const ChildModeExitButton(
+              iconColor: _textDark, textColor: _textDark, opacity: 0.9),
         ],
       ),
     );
@@ -287,7 +305,7 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                AppLocalizations.of(context)!.levelXOfY(_level, _maxLevel),
+                'Level $_level of $_maxLevel',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
@@ -300,14 +318,17 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: List.generate(_maxAttempts, (i) {
                       return Icon(
-                        i < _attempts ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                        i < _attempts
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
                         size: 20,
                         color: i < _attempts ? _shapeRed : _textMuted,
                       );
                     }),
                   ),
                   const SizedBox(width: 12),
-                  const Icon(Icons.stars_rounded, color: _primaryDark, size: 22),
+                  const Icon(Icons.stars_rounded,
+                      color: _primaryDark, size: 22),
                   const SizedBox(width: 4),
                   Text(
                     '$_score',
@@ -337,11 +358,11 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
   }
 
   Widget _buildInstruction() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 16),
       child: Text(
-        AppLocalizations.of(context)!.matchTheShapes,
-        style: const TextStyle(
+        'Match the shapes!',
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: _textMuted,
@@ -415,7 +436,8 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
     );
   }
 
-  Widget _buildShapeOutline(_ShapeType type, {required double size, double opacity = 1.0}) {
+  Widget _buildShapeOutline(_ShapeType type,
+      {required double size, double opacity = 1.0}) {
     final color = Colors.black.withOpacity(0.05 * opacity);
     switch (type) {
       case _ShapeType.square:
@@ -447,9 +469,9 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
   Widget _buildDraggableShapes(BuildContext context) {
     return Column(
       children: [
-        Text(
-          AppLocalizations.of(context)!.dragAShape,
-          style: const TextStyle(
+        const Text(
+          'DRAG A SHAPE',
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
             color: _textMuted,
@@ -548,7 +570,8 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
       height: size,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: type == _ShapeType.circle ? null : BorderRadius.circular(12),
+        borderRadius:
+            type == _ShapeType.circle ? null : BorderRadius.circular(12),
         shape: type == _ShapeType.circle ? BoxShape.circle : BoxShape.rectangle,
         boxShadow: [
           BoxShadow(
@@ -575,16 +598,16 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
             child: InkWell(
               onTap: () {},
               borderRadius: BorderRadius.circular(999),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.volume_up_rounded, color: _primaryDark),
-                    const SizedBox(width: 8),
+                    Icon(Icons.volume_up_rounded, color: _primaryDark),
+                    SizedBox(width: 8),
                     Text(
-                      AppLocalizations.of(context)!.soundOn,
-                      style: const TextStyle(
+                      'Sound On',
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: _textDark,
@@ -602,21 +625,22 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
             child: InkWell(
               onTap: _nextShape,
               borderRadius: BorderRadius.circular(999),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.nextShape,
-                      style: const TextStyle(
+                      'Next Shape',
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 24),
+                    SizedBox(width: 4),
+                    Icon(Icons.chevron_right_rounded,
+                        color: Colors.white, size: 24),
                   ],
                 ),
               ),

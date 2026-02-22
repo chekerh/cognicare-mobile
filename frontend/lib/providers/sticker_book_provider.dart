@@ -42,8 +42,10 @@ class StickerBookProvider with ChangeNotifier {
 
   /// Progression vers la prochaine récompense (Super Hero Pack) : jusqu’à 16 tâches.
   int get nextRewardTarget => kNextRewardTarget;
-  int get progressTowardNextReward => _totalTasksCompleted.clamp(0, nextRewardTarget);
-  int get tasksRemainingForNextReward => (nextRewardTarget - progressTowardNextReward).clamp(0, nextRewardTarget);
+  int get progressTowardNextReward =>
+      _totalTasksCompleted.clamp(0, nextRewardTarget);
+  int get tasksRemainingForNextReward =>
+      (nextRewardTarget - progressTowardNextReward).clamp(0, nextRewardTarget);
 
   /// True si la récompense "Super Hero Pack" est atteinte (16 tâches).
   bool get hasReachedNextReward => _totalTasksCompleted >= nextRewardTarget;
@@ -85,7 +87,8 @@ class StickerBookProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(_keyTotalTasksCompleted, _totalTasksCompleted);
       await prefs.setInt(_keyStickersEarnedToday, _stickersEarnedToday);
-      await prefs.setString(_keyLastEarnedDate, _lastEarnedDate ?? _todayString());
+      await prefs.setString(
+          _keyLastEarnedDate, _lastEarnedDate ?? _todayString());
     } catch (_) {}
 
     notifyListeners();

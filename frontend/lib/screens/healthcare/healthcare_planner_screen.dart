@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart' as intl;
-import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFF2b8cee);
 
@@ -18,13 +16,13 @@ class HealthcarePlannerScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_new),
           onPressed: () => context.pop(),
         ),
-        title: Row(
+        title: const Row(
           children: [
-            const Icon(Icons.psychology, color: _primary, size: 28),
-            const SizedBox(width: 8),
+            Icon(Icons.psychology, color: _primary, size: 28),
+            SizedBox(width: 8),
             Text(
-              AppLocalizations.of(context)!.sessionPlannerLabel,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              'Session Planner',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -43,13 +41,15 @@ class HealthcarePlannerScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _monthBar(context),
+            _monthBar(),
             const SizedBox(height: 16),
-            _weekStrip(context),
+            _weekStrip(),
             const SizedBox(height: 24),
-            _slot(context, '09:00', AppLocalizations.of(context)!.gameSessionLabel, 'Leo Miller', 'Spatial Focus • Level 2', _primary),
-            _slot(context, '10:30', AppLocalizations.of(context)!.clinicalCheckupLabel, 'Sarah Chen', 'Monthly Assessment', Colors.green),
-            _slotEmpty(context, '14:00'),
+            _slot(context, '09:00', 'Game Session', 'Leo Miller',
+                'Spatial Focus • Level 2', _primary),
+            _slot(context, '10:30', 'Clinical Check-up', 'Sarah Chen',
+                'Monthly Assessment', Colors.green),
+            _slotEmpty('14:00'),
             const SizedBox(height: 24),
             _aiInsightsSection(context),
             const SizedBox(height: 100),
@@ -64,12 +64,12 @@ class HealthcarePlannerScreen extends StatelessWidget {
     );
   }
 
-  Widget _monthBar(BuildContext context) {
+  Widget _monthBar() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          intl.DateFormat.yMMMM(Localizations.localeOf(context).languageCode).format(DateTime(2023, 10)).toUpperCase(),
+          'OCTOBER 2023',
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -79,13 +79,14 @@ class HealthcarePlannerScreen extends StatelessWidget {
         ),
         TextButton(
           onPressed: () {},
-          child: Text(AppLocalizations.of(context)!.todayLabel, style: const TextStyle(color: _primary, fontWeight: FontWeight.w600)),
+          child: const Text('Today',
+              style: TextStyle(color: _primary, fontWeight: FontWeight.w600)),
         ),
       ],
     );
   }
 
-  Widget _weekStrip(BuildContext context) {
+  Widget _weekStrip() {
     final days = ['Mon 2', 'Tue 3', 'Wed 4', 'Thu 5', 'Fri 6', 'Sat 7'];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -101,7 +102,9 @@ class HealthcarePlannerScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: isThu ? _primary.withOpacity(0.3) : Colors.black.withOpacity(0.05),
+                  color: isThu
+                      ? _primary.withOpacity(0.3)
+                      : Colors.black.withOpacity(0.05),
                   blurRadius: isThu ? 12 : 4,
                   offset: const Offset(0, 2),
                 ),
@@ -110,7 +113,7 @@ class HealthcarePlannerScreen extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  intl.DateFormat.E(Localizations.localeOf(context).languageCode).format(DateTime(2023, 10, 2 + e.key)),
+                  e.value.split(' ')[0],
                   style: TextStyle(
                     fontSize: 11,
                     color: isThu ? Colors.white70 : Colors.grey,
@@ -118,7 +121,7 @@ class HealthcarePlannerScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  (2 + e.key).toString(),
+                  e.value.split(' ')[1],
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -179,7 +182,8 @@ class HealthcarePlannerScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: borderColor.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(999),
@@ -203,7 +207,11 @@ class HealthcarePlannerScreen extends StatelessWidget {
                         radius: 20,
                         backgroundColor: Colors.grey.shade200,
                         child: Text(
-                          patientName.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join(),
+                          patientName
+                              .split(' ')
+                              .map((e) => e.isNotEmpty ? e[0] : '')
+                              .take(2)
+                              .join(),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF111418),
@@ -245,7 +253,7 @@ class HealthcarePlannerScreen extends StatelessWidget {
     );
   }
 
-  Widget _slotEmpty(BuildContext context, String time) {
+  Widget _slotEmpty(String time) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -268,10 +276,11 @@ class HealthcarePlannerScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.6),
                 borderRadius: BorderRadius.circular(16),
-                border: Border(left: BorderSide(color: Colors.grey.shade300, width: 4)),
+                border: Border(
+                    left: BorderSide(color: Colors.grey.shade300, width: 4)),
               ),
               child: Text(
-                AppLocalizations.of(context)!.noSessionScheduledLabel,
+                'No session scheduled',
                 style: TextStyle(
                   fontSize: 12,
                   fontStyle: FontStyle.italic,
@@ -289,13 +298,13 @@ class HealthcarePlannerScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        const Row(
           children: [
-            const Icon(Icons.auto_awesome, color: _primary, size: 22),
-            const SizedBox(width: 8),
+            Icon(Icons.auto_awesome, color: _primary, size: 22),
+            SizedBox(width: 8),
             Text(
-              AppLocalizations.of(context)!.aiInsightsLabel,
-              style: const TextStyle(
+              'AI Insights',
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF111418),
@@ -315,16 +324,18 @@ class HealthcarePlannerScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                AppLocalizations.of(context)!.recommendedForPatient('Leo Miller'),
+                'Recommended for Leo Miller based on yesterday\'s performance:',
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey.shade700,
                 ),
               ),
               const SizedBox(height: 12),
-              _insightCard(context, 'Visual Memory Plus', 'Focus: Pattern Recognition', Icons.extension),
+              _insightCard('Visual Memory Plus', 'Focus: Pattern Recognition',
+                  Icons.extension),
               const SizedBox(height: 8),
-              _insightCard(context, 'Reaction Sprint', 'Focus: Motor Response', Icons.timer),
+              _insightCard(
+                  'Reaction Sprint', 'Focus: Motor Response', Icons.timer),
             ],
           ),
         ),
@@ -332,7 +343,7 @@ class HealthcarePlannerScreen extends StatelessWidget {
     );
   }
 
-  Widget _insightCard(BuildContext context, String title, String subtitle, IconData icon) {
+  Widget _insightCard(String title, String subtitle, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -387,7 +398,8 @@ class HealthcarePlannerScreen extends StatelessWidget {
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             ),
-            child: Text(AppLocalizations.of(context)!.addToSessionLabel, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+            child: const Text('Add to Session',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

@@ -88,7 +88,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   // Language button
                   TextButton.icon(
-                    onPressed: () => context.push(AppConstants.languageSelectionRoute),
+                    onPressed: () =>
+                        context.push(AppConstants.languageSelectionRoute),
                     icon: const Icon(Icons.language, size: 20),
                     label: Text(
                       localizations.changeLanguage,

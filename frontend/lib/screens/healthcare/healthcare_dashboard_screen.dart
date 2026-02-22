@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/children_service.dart';
 import '../../services/progress_ai_service.dart';
-import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFFA2D9E7);
@@ -15,7 +14,8 @@ class HealthcareDashboardScreen extends StatefulWidget {
   const HealthcareDashboardScreen({super.key});
 
   @override
-  State<HealthcareDashboardScreen> createState() => _HealthcareDashboardScreenState();
+  State<HealthcareDashboardScreen> createState() =>
+      _HealthcareDashboardScreenState();
 }
 
 class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
@@ -33,23 +33,45 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
 
   Future<void> _loadPatients() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final service = ChildrenService(getToken: () async => authProvider.accessToken);
+    final service =
+        ChildrenService(getToken: () async => authProvider.accessToken);
     try {
       final list = await service.getOrganizationChildren();
-      if (mounted) setState(() { _patients = list; _patientsLoading = false; });
+      if (mounted) {
+        setState(() {
+          _patients = list;
+          _patientsLoading = false;
+        });
+      }
     } catch (_) {
-      if (mounted) setState(() { _patients = []; _patientsLoading = false; });
+      if (mounted) {
+        setState(() {
+          _patients = [];
+          _patientsLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _loadActivitySuggestions() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final service = ProgressAiService(getToken: () async => authProvider.accessToken);
+    final service =
+        ProgressAiService(getToken: () async => authProvider.accessToken);
     try {
       final list = await service.getActivitySuggestions();
-      if (mounted) setState(() { _activitySuggestions = list; _suggestionsLoading = false; });
+      if (mounted) {
+        setState(() {
+          _activitySuggestions = list;
+          _suggestionsLoading = false;
+        });
+      }
     } catch (_) {
-      if (mounted) setState(() { _activitySuggestions = []; _suggestionsLoading = false; });
+      if (mounted) {
+        setState(() {
+          _activitySuggestions = [];
+          _suggestionsLoading = false;
+        });
+      }
     }
   }
 
@@ -73,7 +95,9 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                     const SizedBox(height: 24),
                     _activitySuggestionsCard(context),
                     const SizedBox(height: 24),
-                    _sectionTitle(context, AppLocalizations.of(context)!.myPatientsLabel, onSeeAll: () => context.go(AppConstants.healthcarePatientsRoute)),
+                    _sectionTitle(context, 'Mes Patients',
+                        onSeeAll: () =>
+                            context.go(AppConstants.healthcarePatientsRoute)),
                     const SizedBox(height: 12),
                     if (_patientsLoading)
                       const Padding(
@@ -85,11 +109,13 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: Text(
                           'Aucun patient assigné. Consultez la liste pour plus de détails.',
-                          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                          style: TextStyle(
+                              fontSize: 14, color: Colors.grey.shade600),
                         ),
                       )
                     else
-                      ...previewPatients.map((c) => _patientCardFromChild(context, c)),
+                      ...previewPatients
+                          .map((c) => _patientCardFromChild(context, c)),
                     const SizedBox(height: 24),
                     _quickActions(context),
                     const SizedBox(height: 24),
@@ -106,7 +132,11 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
   }
 
   Widget _patientCardFromChild(BuildContext context, ChildModel child) {
-    final initials = child.fullName.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join();
+    final initials = child.fullName
+        .split(' ')
+        .map((e) => e.isNotEmpty ? e[0] : '')
+        .take(2)
+        .join();
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
@@ -131,7 +161,8 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                   alignment: Alignment.center,
                   child: Text(
                     initials,
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: _brand),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: _brand),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -149,7 +180,8 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                       ),
                       Text(
                         child.diagnosis ?? 'Suivi',
-                        style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                        style: TextStyle(
+                            fontSize: 13, color: Colors.grey.shade600),
                       ),
                     ],
                   ),
@@ -173,7 +205,7 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                AppLocalizations.of(context)!.healthcareProfessionalLabel,
+                'PROFESSIONNEL DE SANTÉ',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -182,9 +214,9 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                AppLocalizations.of(context)!.helloDr('Martin'),
-                style: const TextStyle(
+              const Text(
+                'Bonjour, Dr. Martin',
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF0F172A),
@@ -225,13 +257,13 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   children: [
-                    const Icon(Icons.auto_awesome, color: _primary, size: 20),
-                    const SizedBox(width: 8),
+                    Icon(Icons.auto_awesome, color: _primary, size: 20),
+                    SizedBox(width: 8),
                     Text(
-                      AppLocalizations.of(context)!.clinicalOverviewIALabel,
-                      style: const TextStyle(
+                      'APERÇU CLINIQUE (IA)',
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
@@ -241,9 +273,9 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  AppLocalizations.of(context)!.clinicalSummaryIALabel,
-                  style: const TextStyle(
+                const Text(
+                  '3 patients montrent une progression stable cette semaine. Attention requise pour Thomas B.',
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: Colors.white,
@@ -256,11 +288,15 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                     AppConstants.healthcareComparativeRoute,
                     extra: {'highlightPatientId': 'thomas-bernard'},
                   ),
-                  icon: const Icon(Icons.arrow_forward, size: 16, color: Colors.white),
-                  label: Text(AppLocalizations.of(context)!.seeDetailsLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                  icon: const Icon(Icons.arrow_forward,
+                      size: 16, color: Colors.white),
+                  label: const Text('Voir les détails',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.w600)),
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.white.withOpacity(0.2),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                   ),
                 ),
               ],
@@ -312,8 +348,11 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                   ],
                 ),
                 TextButton(
-                  onPressed: () => context.go(AppConstants.healthcarePatientsRoute),
-                  child: const Text('Voir patients', style: TextStyle(color: _brand, fontWeight: FontWeight.w600)),
+                  onPressed: () =>
+                      context.go(AppConstants.healthcarePatientsRoute),
+                  child: const Text('Voir patients',
+                      style: TextStyle(
+                          color: _brand, fontWeight: FontWeight.w600)),
                 ),
               ],
             ),
@@ -321,7 +360,11 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
             if (_suggestionsLoading)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
-                child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
+                child: Center(
+                    child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2))),
               )
             else if (_activitySuggestions.isEmpty)
               Text(
@@ -335,8 +378,17 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('• ', style: TextStyle(fontSize: 14, color: _brand, fontWeight: FontWeight.bold)),
-                      Expanded(child: Text(s, style: const TextStyle(fontSize: 14, color: Color(0xFF334155), height: 1.35))),
+                      Text('• ',
+                          style: TextStyle(
+                              fontSize: 14,
+                              color: _brand,
+                              fontWeight: FontWeight.bold)),
+                      Expanded(
+                          child: Text(s,
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF334155),
+                                  height: 1.35))),
                     ],
                   ),
                 ),
@@ -347,7 +399,8 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
     );
   }
 
-  Widget _sectionTitle(BuildContext context, String title, {VoidCallback? onSeeAll}) {
+  Widget _sectionTitle(BuildContext context, String title,
+      {VoidCallback? onSeeAll}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -362,7 +415,8 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
         if (onSeeAll != null)
           TextButton(
             onPressed: onSeeAll,
-            child: Text(AppLocalizations.of(context)!.seeAllLabel, style: const TextStyle(color: _brand, fontWeight: FontWeight.w600)),
+            child: const Text('Voir tout',
+                style: TextStyle(color: _brand, fontWeight: FontWeight.w600)),
           ),
       ],
     );
@@ -375,7 +429,7 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
           child: _actionCard(
             context,
             icon: Icons.description_outlined,
-            label: AppLocalizations.of(context)!.medicalReportsLabel,
+            label: 'Rapports Médicaux',
             color: Colors.blue,
             onTap: () => context.go(AppConstants.healthcareReportsRoute),
           ),
@@ -385,7 +439,7 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
           child: _actionCard(
             context,
             icon: Icons.event_outlined,
-            label: AppLocalizations.of(context)!.consultationsLabel,
+            label: 'Consultations',
             color: Colors.purple,
             onTap: () => context.push(AppConstants.healthcarePlannerRoute),
           ),
@@ -441,9 +495,9 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          AppLocalizations.of(context)!.nextConsultationLabel,
-          style: const TextStyle(
+        const Text(
+          'Prochaine consultation',
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: Color(0xFF0F172A),
@@ -465,9 +519,9 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      AppLocalizations.of(context)!.todayAtTime('14:30'),
-                      style: const TextStyle(
+                    const Text(
+                      'AUJOURD\'HUI • 14:30',
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: _brand,
@@ -475,14 +529,15 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
                         color: _primary.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(999),
                       ),
-                      child: Text(
-                        AppLocalizations.of(context)!.telemedicineLabel,
-                        style: const TextStyle(
+                      child: const Text(
+                        'TÉLÉMÉDECINE',
+                        style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: _brand,
@@ -516,7 +571,7 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text(AppLocalizations.of(context)!.startCallLabel),
+                        child: const Text('Démarrer l\'appel'),
                       ),
                     ),
                     const SizedBox(width: 8),

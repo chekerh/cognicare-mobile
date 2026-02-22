@@ -33,7 +33,9 @@ class VolunteerAvailability {
       volunteerId: json['volunteerId']?.toString() ?? '',
       volunteerName: json['volunteerName'] as String? ?? 'Bénévole',
       volunteerProfilePic: json['volunteerProfilePic'] as String? ?? '',
-      dates: datesList is List ? (datesList).map((e) => e.toString()).toList() : [],
+      dates: datesList is List
+          ? (datesList).map((e) => e.toString()).toList()
+          : [],
       startTime: json['startTime'] as String? ?? '14:00',
       endTime: json['endTime'] as String? ?? '18:00',
       recurrence: json['recurrence'] as String? ?? 'weekly',

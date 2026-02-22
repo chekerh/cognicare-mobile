@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../models/task_reminder.dart';
 import '../../services/reminders_service.dart';
 import '../../providers/auth_provider.dart';
-import '../../l10n/app_localizations.dart';
 
 // Couleurs alignées avec le dashboard famille
 const Color _primary = Color(0xFFA3D9E5);
@@ -54,79 +53,79 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
-  // Templates de rappels pré-configurés (méthode pour accès l10n)
-  List<ReminderTemplate> _getTemplates(AppLocalizations l10n) => [
+  // Templates de rappels pré-configurés
+  final List<ReminderTemplate> _templates = const [
     ReminderTemplate(
-      title: l10n.templateBrushTeethTitle,
-      description: l10n.templateBrushTeethDesc,
+      title: 'Brush Teeth',
+      description: '2 minutes',
       icon: '🪥',
       type: ReminderType.hygiene,
       frequency: ReminderFrequency.daily,
       time: '08:00',
-      color: const Color(0xFF8B5CF6),
+      color: Color(0xFF8B5CF6),
     ),
     ReminderTemplate(
-      title: l10n.templateTakeMedicineTitle,
+      title: 'Take Medicine',
       description: '',
       icon: '💊',
       type: ReminderType.medication,
       frequency: ReminderFrequency.daily,
       time: '09:00',
-      color: const Color(0xFFEC4899),
+      color: Color(0xFFEC4899),
     ),
     ReminderTemplate(
-      title: l10n.templateWashFaceTitle,
-      description: l10n.templateWashFaceDesc,
+      title: 'Wash Face',
+      description: 'Fresh and clean!',
       icon: '😊',
       type: ReminderType.hygiene,
       frequency: ReminderFrequency.daily,
       time: '08:30',
-      color: const Color(0xFF60A5FA),
+      color: Color(0xFF60A5FA),
     ),
     ReminderTemplate(
-      title: l10n.templateGetDressedTitle,
-      description: l10n.templateGetDressedDesc,
+      title: 'Get Dressed',
+      description: 'Choose your favorite shirt',
       icon: '👕',
       type: ReminderType.activity,
       frequency: ReminderFrequency.daily,
       time: '08:45',
-      color: const Color(0xFFFB923C),
+      color: Color(0xFFFB923C),
     ),
     ReminderTemplate(
-      title: l10n.templateEatBreakfastTitle,
-      description: l10n.templateEatBreakfastDesc,
+      title: 'Eat Breakfast',
+      description: 'Yummy time!',
       icon: '🍴',
       type: ReminderType.meal,
       frequency: ReminderFrequency.daily,
       time: '09:00',
-      color: const Color(0xFFFB923C),
+      color: Color(0xFFFB923C),
     ),
     ReminderTemplate(
-      title: l10n.templateDrinkWaterTitle,
+      title: 'Drink Water',
       description: '',
       icon: '💧',
       type: ReminderType.water,
       frequency: ReminderFrequency.interval,
       intervalMinutes: 120,
-      color: const Color(0xFF60A5FA),
+      color: Color(0xFF60A5FA),
     ),
     ReminderTemplate(
-      title: l10n.templatePackBagTitle,
-      description: l10n.templatePackBagDesc,
+      title: 'Pack Bag',
+      description: 'Ready for school!',
       icon: '🎒',
       type: ReminderType.activity,
       frequency: ReminderFrequency.daily,
       time: '10:00',
-      color: const Color(0xFF8B5CF6),
+      color: Color(0xFF8B5CF6),
     ),
     ReminderTemplate(
-      title: l10n.templateDoHomeworkTitle,
-      description: l10n.templateDoHomeworkDesc,
+      title: 'Do Homework',
+      description: 'Study time',
       icon: '📚',
       type: ReminderType.homework,
       frequency: ReminderFrequency.daily,
       time: '16:00',
-      color: const Color(0xFF10B981),
+      color: Color(0xFF10B981),
     ),
   ];
 
@@ -135,14 +134,16 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
   String _customIcon = '📝';
   List<TimeOfDay> _selectedTimes = [const TimeOfDay(hour: 8, minute: 0)];
 
-  Future<void> _showConfigDialog(ReminderTemplate template, {bool isCustom = false}) async {
+  Future<void> _showConfigDialog(ReminderTemplate template,
+      {bool isCustom = false}) async {
     _customTitle = isCustom ? '' : template.title;
     _customIcon = isCustom ? '📝' : template.icon;
-    _selectedTimes = template.time != null 
-        ? [TimeOfDay(
-            hour: int.parse(template.time!.split(':')[0]), 
-            minute: int.parse(template.time!.split(':')[1])
-          )]
+    _selectedTimes = template.time != null
+        ? [
+            TimeOfDay(
+                hour: int.parse(template.time!.split(':')[0]),
+                minute: int.parse(template.time!.split(':')[1]))
+          ]
         : [TimeOfDay.now()];
 
     final result = await showModalBottomSheet<bool>(
@@ -178,40 +179,45 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  isCustom ? AppLocalizations.of(context)!.newTaskTitle : AppLocalizations.of(context)!.configureTask(template.title),
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                  isCustom ? 'Nouvelle Tâche' : 'Configurer ${template.title}',
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 24),
                 if (isCustom) ...[
                   TextField(
                     decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!.taskNameLabel,
+                      labelText: 'Nom de la tâche',
                       prefixIcon: const Icon(Icons.edit_note),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16)),
                     ),
                     onChanged: (val) => _customTitle = val,
                   ),
                   const SizedBox(height: 16),
                 ],
-                Text(AppLocalizations.of(context)!.notificationTimesHeader, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                const Text('Horaires de notification',
+                    style:
+                        TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   children: [
                     ..._selectedTimes.asMap().entries.map((entry) => Chip(
-                      label: Text(entry.value.format(context)),
-                      onDeleted: () {
-                        setModalState(() {
-                          _selectedTimes.removeAt(entry.key);
-                        });
-                      },
-                      deleteIcon: const Icon(Icons.close, size: 16),
-                      backgroundColor: _primary.withOpacity(0.2),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    )),
+                          label: Text(entry.value.format(context)),
+                          onDeleted: () {
+                            setModalState(() {
+                              _selectedTimes.removeAt(entry.key);
+                            });
+                          },
+                          deleteIcon: const Icon(Icons.close, size: 16),
+                          backgroundColor: _primary.withOpacity(0.2),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        )),
                     ActionChip(
                       avatar: const Icon(Icons.add, size: 16),
-                      label: Text(AppLocalizations.of(context)!.addTimeButton),
+                      label: const Text('Ajouter'),
                       onPressed: () async {
                         final time = await showTimePicker(
                           context: context,
@@ -223,7 +229,8 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
                           });
                         }
                       },
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                   ],
                 ),
@@ -231,15 +238,19 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _selectedTimes.isEmpty ? null : () => Navigator.pop(context, true),
+                    onPressed: _selectedTimes.isEmpty
+                        ? null
+                        : () => Navigator.pop(context, true),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _primaryDark,
                       foregroundColor: Colors.white,
                       disabledBackgroundColor: Colors.grey.shade300,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
                     ),
-                    child: Text(AppLocalizations.of(context)!.confirmAndCreateButton, style: const TextStyle(fontWeight: FontWeight.w700)),
+                    child: const Text('Confirmer et Créer',
+                        style: TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -258,7 +269,7 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
   Future<void> _saveReminder(ReminderTemplate template, bool isCustom) async {
     if (isCustom && _customTitle.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.taskNameRequired)),
+        const SnackBar(content: Text('Veuillez donner un nom à la tâche')),
       );
       return;
     }
@@ -283,9 +294,12 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
         'childId': widget.childId,
         'type': isCustom ? 'custom' : template.type.name,
         'title': isCustom ? _customTitle : template.title,
-        'description': isCustom ? null : (template.description.isNotEmpty ? template.description : null),
+        'description': isCustom
+            ? null
+            : (template.description.isNotEmpty ? template.description : null),
         'icon': isCustom ? _customIcon : template.icon,
-        'color': '#${template.color.value.toRadixString(16).substring(2).toUpperCase()}',
+        'color':
+            '#${template.color.value.toRadixString(16).substring(2).toUpperCase()}',
         'frequency': template.frequency.name,
         'times': timesStr,
         'soundEnabled': true,
@@ -299,7 +313,8 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.taskAddedSuccess(isCustom ? _customTitle : template.title)),
+          content:
+              Text('✅ "${isCustom ? _customTitle : template.title}" ajouté !'),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
         ),
@@ -324,7 +339,7 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
           children: [
             // Header
             _buildHeader(),
-            
+
             // Content
             Expanded(
               child: _isLoading
@@ -360,7 +375,7 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: Text(
-                                    AppLocalizations.of(context)!.selectTaskFor(widget.childName),
+                                    'Sélectionnez une tâche pour ${widget.childName}',
                                     style: const TextStyle(
                                       fontSize: 15,
                                       color: Color(0xFF1E293B),
@@ -371,21 +386,21 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
                               ],
                             ),
                           ),
-                          
+
                           const SizedBox(height: 24),
-                          
+
                           // Title
-                          Text(
-                            AppLocalizations.of(context)!.dailyTasksHeader,
-                            style: const TextStyle(
+                          const Text(
+                            'Tâches Quotidiennes',
+                            style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
                               color: Color(0xFF1E293B),
                             ),
                           ),
-                          
+
                           const SizedBox(height: 16),
-                          
+
                           // Templates grid
                           GridView.count(
                             shrinkWrap: true,
@@ -396,11 +411,11 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
                             childAspectRatio: 0.85,
                             children: [
                               // Bouton Tâche Personnalisée
-                              _buildCustomTaskCard(AppLocalizations.of(context)!),
-                              ..._getTemplates(AppLocalizations.of(context)!).map((t) => _buildTemplateCard(t)),
+                              _buildCustomTaskCard(),
+                              ..._templates.map((t) => _buildTemplateCard(t)),
                             ],
                           ),
-                          
+
                           const SizedBox(height: 100),
                         ],
                       ),
@@ -429,24 +444,24 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
             ),
           ),
           const SizedBox(width: 16),
-          
+
           // Title
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppLocalizations.of(context)!.addTasksViewTitle,
-                  style: const TextStyle(
+                  'Ajouter une Tâche',
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
-                  AppLocalizations.of(context)!.routineDailySubtitle,
-                  style: const TextStyle(
+                  'Routine quotidienne',
+                  style: TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
                   ),
@@ -459,11 +474,11 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
     );
   }
 
-  Widget _buildCustomTaskCard(AppLocalizations l10n) {
+  Widget _buildCustomTaskCard() {
     return _buildTemplateCard(
-      ReminderTemplate(
-        title: l10n.customTaskTitle,
-        description: l10n.customTaskDescription,
+      const ReminderTemplate(
+        title: 'Tâche Personnalisée',
+        description: 'Libre choix',
         icon: '📝',
         type: ReminderType.custom,
         frequency: ReminderFrequency.daily,
@@ -473,7 +488,8 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
     );
   }
 
-  Widget _buildTemplateCard(ReminderTemplate template, {bool isCustom = false}) {
+  Widget _buildTemplateCard(ReminderTemplate template,
+      {bool isCustom = false}) {
     return GestureDetector(
       onTap: () => _showConfigDialog(template, isCustom: isCustom),
       child: Container(
@@ -506,9 +522,9 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Title
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -524,7 +540,7 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            
+
             // Description
             if (template.description.isNotEmpty) ...[
               const SizedBox(height: 4),
@@ -542,9 +558,9 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
                 ),
               ),
             ],
-            
+
             const SizedBox(height: 8),
-            
+
             // Frequency badge
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

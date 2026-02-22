@@ -17,23 +17,34 @@ class StickerBookScreen extends StatelessWidget {
 
   static String _stickerName(AppLocalizations loc, String nameKey) {
     switch (nameKey) {
-      case 'stickerLeoTheLion': return loc.stickerLeoTheLion;
-      case 'stickerHappyHippo': return loc.stickerHappyHippo;
-      case 'stickerBraveBear': return loc.stickerBraveBear;
-      case 'stickerSmartyPaws': return loc.stickerSmartyPaws;
-      case 'stickerComingSoon': return loc.stickerComingSoon;
-      default: return nameKey;
+      case 'stickerLeoTheLion':
+        return loc.stickerLeoTheLion;
+      case 'stickerHappyHippo':
+        return loc.stickerHappyHippo;
+      case 'stickerBraveBear':
+        return loc.stickerBraveBear;
+      case 'stickerSmartyPaws':
+        return loc.stickerSmartyPaws;
+      case 'stickerComingSoon':
+        return loc.stickerComingSoon;
+      default:
+        return nameKey;
     }
   }
 
   static String? _stickerSkill(AppLocalizations loc, String? skillKey) {
     if (skillKey == null) return null;
     switch (skillKey) {
-      case 'stickerSortingChamp': return loc.stickerSortingChamp;
-      case 'stickerMemoryMaster': return loc.stickerMemoryMaster;
-      case 'stickerPatternPro': return loc.stickerPatternPro;
-      case 'stickerFocusStar': return loc.stickerFocusStar;
-      default: return skillKey;
+      case 'stickerSortingChamp':
+        return loc.stickerSortingChamp;
+      case 'stickerMemoryMaster':
+        return loc.stickerMemoryMaster;
+      case 'stickerPatternPro':
+        return loc.stickerPatternPro;
+      case 'stickerFocusStar':
+        return loc.stickerFocusStar;
+      default:
+        return skillKey;
     }
   }
 
@@ -52,30 +63,31 @@ class StickerBookScreen extends StatelessWidget {
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildRewardCard(context, loc),
-                    const SizedBox(height: 32),
-                    _buildUnlockedSection(context, loc),
-                    const SizedBox(height: 40),
-                    _buildComingSoonSection(context, loc),
-                    const SizedBox(height: 24),
-                    Text(
-                      stickerProvider.hasReachedNextReward
-                          ? loc.superHeroPackUnlocked
-                          : loc.completeXMoreTasksToUnlock(stickerProvider.tasksRemainingForNextReward),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: _textMuted,
-                      ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildRewardCard(context, loc),
+                  const SizedBox(height: 32),
+                  _buildUnlockedSection(context, loc),
+                  const SizedBox(height: 40),
+                  _buildComingSoonSection(context, loc),
+                  const SizedBox(height: 24),
+                  Text(
+                    stickerProvider.hasReachedNextReward
+                        ? loc.superHeroPackUnlocked
+                        : loc.completeXMoreTasksToUnlock(
+                            stickerProvider.tasksRemainingForNextReward),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: _textMuted,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
+          ),
           _buildKeepGoingButton(context, loc, padding),
         ],
       ),
@@ -108,7 +120,8 @@ class StickerBookScreen extends StatelessWidget {
               ),
             ),
           ),
-          const ChildModeExitButton(iconColor: _primary, textColor: _primary, opacity: 0.9),
+          const ChildModeExitButton(
+              iconColor: _primary, textColor: _primary, opacity: 0.9),
         ],
       ),
     );
@@ -151,7 +164,8 @@ class StickerBookScreen extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(Icons.auto_awesome, color: Colors.white, size: 48),
+            child:
+                const Icon(Icons.auto_awesome, color: Colors.white, size: 48),
           ),
           const SizedBox(height: 16),
           Text(
@@ -229,7 +243,9 @@ class StickerBookScreen extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                rewardReached ? loc.rewardReached : loc.justXMoreTasksToGo(remaining),
+                rewardReached
+                    ? loc.rewardReached
+                    : loc.justXMoreTasksToGo(remaining),
                 style: const TextStyle(
                   fontSize: 14,
                   color: _textMuted,
@@ -268,7 +284,8 @@ class StickerBookScreen extends StatelessWidget {
               color: _primary.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.workspace_premium, color: _primary, size: 36),
+            child:
+                const Icon(Icons.workspace_premium, color: _primary, size: 36),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -303,7 +320,8 @@ class StickerBookScreen extends StatelessWidget {
 
   Widget _buildUnlockedSection(BuildContext context, AppLocalizations loc) {
     final provider = Provider.of<StickerBookProvider>(context);
-    final animalStickers = kStickerDefinitions.where((s) => !s.isComingSoon).toList();
+    final animalStickers =
+        kStickerDefinitions.where((s) => !s.isComingSoon).toList();
     final rewardReached = provider.hasReachedNextReward;
     final itemCount = animalStickers.length + (rewardReached ? 1 : 0);
 
@@ -402,7 +420,8 @@ class StickerBookScreen extends StatelessWidget {
               final globalIndex = firstComingSoonIndex + index;
               final isUnlocked = provider.isUnlocked(globalIndex);
               final sticker = kStickerDefinitions[globalIndex];
-              final hasImage = sticker.imageUrl != null || sticker.imageAsset != null;
+              final hasImage =
+                  sticker.imageUrl != null || sticker.imageAsset != null;
               return Container(
                 decoration: BoxDecoration(
                   color: _primary.withOpacity(0.2),
@@ -421,7 +440,10 @@ class StickerBookScreen extends StatelessWidget {
                               fit: BoxFit.contain,
                               width: 56,
                               height: 56,
-                              errorBuilder: (_, __, ___) => const Icon(Icons.auto_awesome, color: _primary, size: 32),
+                              errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.auto_awesome,
+                                  color: _primary,
+                                  size: 32),
                             )
                           : (sticker.imageUrl != null
                               ? Image.network(
@@ -429,10 +451,15 @@ class StickerBookScreen extends StatelessWidget {
                                   fit: BoxFit.contain,
                                   width: 56,
                                   height: 56,
-                                  errorBuilder: (_, __, ___) => const Icon(Icons.auto_awesome, color: _primary, size: 32),
+                                  errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.auto_awesome,
+                                      color: _primary,
+                                      size: 32),
                                 )
-                              : const Icon(Icons.auto_awesome, color: _primary, size: 32)))
-                      : Icon(Icons.help_outline, color: _primary.withOpacity(0.6), size: 32),
+                              : const Icon(Icons.auto_awesome,
+                                  color: _primary, size: 32)))
+                      : Icon(Icons.help_outline,
+                          color: _primary.withOpacity(0.6), size: 32),
                 ),
               );
             },
@@ -442,7 +469,8 @@ class StickerBookScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildKeepGoingButton(BuildContext context, AppLocalizations loc, EdgeInsets padding) {
+  Widget _buildKeepGoingButton(
+      BuildContext context, AppLocalizations loc, EdgeInsets padding) {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 12, 20, padding.bottom + 20),
       child: Material(
@@ -620,7 +648,8 @@ class _SuperHeroPackStickerCard extends StatelessWidget {
                   color: _primary.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.workspace_premium, color: _primary, size: 48),
+                child: const Icon(Icons.workspace_premium,
+                    color: _primary, size: 48),
               ),
             ),
           ),

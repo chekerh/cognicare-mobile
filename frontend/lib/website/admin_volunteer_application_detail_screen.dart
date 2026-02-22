@@ -38,13 +38,15 @@ class _AdminVolunteerApplicationDetailScreenState
       _error = null;
     });
     try {
-      final app = await _adminService.getVolunteerApplication(widget.applicationId);
+      final app =
+          await _adminService.getVolunteerApplication(widget.applicationId);
       if (mounted) {
         setState(() => _application = app);
         final userId = app['userId'] as String?;
         if (userId != null && userId.isNotEmpty) {
           try {
-            final list = await _adminService.getVolunteerCourseEnrollments(userId: userId);
+            final list = await _adminService.getVolunteerCourseEnrollments(
+                userId: userId);
             if (mounted) setState(() => _enrollments = list);
           } catch (_) {
             if (mounted) setState(() => _enrollments = []);
@@ -71,7 +73,9 @@ class _AdminVolunteerApplicationDetailScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(decision == 'approved' ? 'Candidature approuvée' : 'Candidature refusée'),
+            content: Text(decision == 'approved'
+                ? 'Candidature approuvée'
+                : 'Candidature refusée'),
             backgroundColor: Colors.green,
           ),
         );
@@ -93,7 +97,8 @@ class _AdminVolunteerApplicationDetailScreenState
 
   void _showDenyDialog() {
     final reasonController = TextEditingController(
-      text: 'Votre candidature n\'a pas été retenue. Vous pouvez suivre notre formation qualifiante pour repostuler.',
+      text:
+          'Votre candidature n\'a pas été retenue. Vous pouvez suivre notre formation qualifiante pour repostuler.',
     );
     showDialog<void>(
       context: context,
@@ -104,7 +109,8 @@ class _AdminVolunteerApplicationDetailScreenState
           maxLines: 4,
           decoration: const InputDecoration(
             labelText: 'Message au bénévole (obligatoire)',
-            hintText: 'Indiquez la raison et le lien vers la formation qualifiante si souhaité.',
+            hintText:
+                'Indiquez la raison et le lien vers la formation qualifiante si souhaité.',
             border: OutlineInputBorder(),
           ),
         ),
@@ -147,7 +153,8 @@ class _AdminVolunteerApplicationDetailScreenState
       return Scaffold(
         appBar: AppBar(
           backgroundColor: AppTheme.primary,
-          title: const Text('Détail candidature', style: TextStyle(color: Colors.white)),
+          title: const Text('Détail candidature',
+              style: TextStyle(color: Colors.white)),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => Navigator.of(context).pop(),
@@ -161,7 +168,8 @@ class _AdminVolunteerApplicationDetailScreenState
       return Scaffold(
         appBar: AppBar(
           backgroundColor: AppTheme.primary,
-          title: const Text('Détail candidature', style: TextStyle(color: Colors.white)),
+          title: const Text('Détail candidature',
+              style: TextStyle(color: Colors.white)),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => Navigator.of(context).pop(),
@@ -193,7 +201,8 @@ class _AdminVolunteerApplicationDetailScreenState
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         backgroundColor: AppTheme.primary,
-        title: const Text('Détail candidature', style: TextStyle(color: Colors.white)),
+        title: const Text('Détail candidature',
+            style: TextStyle(color: Colors.white)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
@@ -229,7 +238,9 @@ class _AdminVolunteerApplicationDetailScreenState
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Text(name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text(name,
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
                     Text('Email: $email'),
                     if (phone.isNotEmpty) Text('Téléphone: $phone'),
@@ -246,7 +257,8 @@ class _AdminVolunteerApplicationDetailScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Raison du refus', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Text('Raison du refus',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       Text(deniedReason),
                     ],
@@ -255,7 +267,8 @@ class _AdminVolunteerApplicationDetailScreenState
               ),
             ],
             const SizedBox(height: 16),
-            const Text('Documents', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Documents',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             if (documents.isEmpty)
               const Card(
@@ -270,7 +283,9 @@ class _AdminVolunteerApplicationDetailScreenState
                 final type = doc['type'] as String? ?? 'other';
                 final url = doc['url'] as String? ?? '';
                 final fileName = doc['fileName'] as String? ?? 'Document';
-                final fullUrl = url.startsWith('http') ? url : '${AppConstants.baseUrl}$url';
+                final fullUrl = url.startsWith('http')
+                    ? url
+                    : '${AppConstants.baseUrl}$url';
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
@@ -281,7 +296,11 @@ class _AdminVolunteerApplicationDetailScreenState
                       color: AppTheme.primary,
                     ),
                     title: Text(fileName),
-                    subtitle: Text(type == 'id' ? 'Pièce d\'identité' : type == 'certificate' ? 'Certificat' : 'Autre'),
+                    subtitle: Text(type == 'id'
+                        ? 'Pièce d\'identité'
+                        : type == 'certificate'
+                            ? 'Certificat'
+                            : 'Autre'),
                     trailing: IconButton(
                       icon: const Icon(Icons.open_in_new),
                       onPressed: () => _openUrl(fullUrl),
@@ -290,7 +309,8 @@ class _AdminVolunteerApplicationDetailScreenState
                 );
               }).toList(),
             const SizedBox(height: 16),
-            const Text('Formations suivies', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Formations suivies',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             if (_enrollments.isEmpty)
               const Card(
@@ -311,12 +331,15 @@ class _AdminVolunteerApplicationDetailScreenState
                     leading: CircleAvatar(
                       backgroundColor: AppTheme.primary.withOpacity(0.2),
                       child: Icon(
-                        statusEnroll == 'completed' ? Icons.check_circle : Icons.school,
+                        statusEnroll == 'completed'
+                            ? Icons.check_circle
+                            : Icons.school,
                         color: AppTheme.primary,
                       ),
                     ),
                     title: Text(title),
-                    subtitle: Text('$progress% • ${statusEnroll == 'completed' ? 'Terminé' : 'En cours'}'),
+                    subtitle: Text(
+                        '$progress% • ${statusEnroll == 'completed' ? 'Terminé' : 'En cours'}'),
                   ),
                 );
               }),
@@ -332,7 +355,8 @@ class _AdminVolunteerApplicationDetailScreenState
                         onPressed: () => _review('approved'),
                         icon: const Icon(Icons.check),
                         label: const Text('Approuver'),
-                        style: FilledButton.styleFrom(backgroundColor: Colors.green),
+                        style: FilledButton.styleFrom(
+                            backgroundColor: Colors.green),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -341,7 +365,8 @@ class _AdminVolunteerApplicationDetailScreenState
                         onPressed: _showDenyDialog,
                         icon: const Icon(Icons.close),
                         label: const Text('Refuser'),
-                        style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                        style:
+                            FilledButton.styleFrom(backgroundColor: Colors.red),
                       ),
                     ),
                   ],

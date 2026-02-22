@@ -16,7 +16,6 @@ import '../../services/auth_service.dart';
 import '../../services/call_service.dart';
 import '../../utils/theme.dart';
 import '../../services/chat_service.dart';
-import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 import '../../widgets/chat_message_bar.dart';
 
@@ -35,8 +34,6 @@ class _Msg {
   final String? attachmentUrl;
   final String? attachmentType;
   final int? callDuration;
-  /// Call status: 'refused', 'missed', 'ended' (optional, for call_missed bubbles).
-  final String? callStatus;
 
   const _Msg({
     required this.text,
@@ -46,7 +43,6 @@ class _Msg {
     this.attachmentUrl,
     this.attachmentType,
     this.callDuration,
-    this.callStatus,
   });
 }
 
@@ -64,11 +60,13 @@ class FamilyPrivateChatScreen extends StatefulWidget {
   final String personId;
   final String personName;
   final String? personImageUrl;
+
   /// When set, messages are loaded and sent via API.
   final String? conversationId;
 
   @override
-  State<FamilyPrivateChatScreen> createState() => _FamilyPrivateChatScreenState();
+  State<FamilyPrivateChatScreen> createState() =>
+      _FamilyPrivateChatScreenState();
 }
 
 class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
@@ -140,7 +138,8 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       final cid = _conversationId;
       if (cid == null) return;
       if (evt.conversationId != cid) {
-        debugPrint('💬 [CHAT] Event conversationId mismatch: ${evt.conversationId} != $cid');
+        debugPrint(
+            '💬 [CHAT] Event conversationId mismatch: ${evt.conversationId} != $cid');
         return;
       }
       debugPrint('💬 [CHAT] Real-time message received, reloading...');
@@ -150,10 +149,13 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     _typingSub?.cancel();
     _typingSub = callProvider.service.onTyping.listen((evt) {
       if (!mounted) return;
-      if (evt.conversationId != _conversationId || evt.userId != widget.personId) return;
-      
+      if (evt.conversationId != _conversationId ||
+          evt.userId != widget.personId) {
+        return;
+      }
+
       setState(() => _isRemoteTyping = evt.isTyping);
-      
+
       // Auto-clear typing indicator after 5 seconds if no stop event received
       _remoteTypingTimer?.cancel();
       if (evt.isTyping) {
@@ -189,8 +191,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       _loadError = null;
     });
     try {
-      final chatService =
-          ChatService();
+      final chatService = ChatService();
       final conv = await chatService.getOrCreateConversation(widget.personId);
       if (!mounted) return;
       setState(() {
@@ -253,23 +254,27 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   List<_Msg> _defaultMessages() {
     return [
       const _Msg(
-        text: "Hi! How's your mother doing today? I heard she had a follow-up appointment this morning. 😊",
+        text:
+            "Hi! How's your mother doing today? I heard she had a follow-up appointment this morning. 😊",
         isMe: false,
         time: '10:40 AM',
       ),
       const _Msg(
-        text: "She's doing much better! The doctor was very pleased with her recovery progress.",
+        text:
+            "She's doing much better! The doctor was very pleased with her recovery progress.",
         isMe: true,
         time: '10:42 AM',
       ),
       const _Msg(
-        text: "Thank you so much for checking in. It means a lot to our family.",
+        text:
+            "Thank you so much for checking in. It means a lot to our family.",
         isMe: true,
         time: '10:43 AM',
         read: true,
       ),
       const _Msg(
-        text: "That's wonderful news! I'm around this weekend if you need any help with groceries or just some company.",
+        text:
+            "That's wonderful news! I'm around this weekend if you need any help with groceries or just some company.",
         isMe: false,
         time: '10:45 AM',
       ),
@@ -307,6 +312,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
         );
       }
     }
+
     runZonedGuarded(() {
       _audioPlayer.play(UrlSource(url, mimeType: 'audio/mp4')).then((_) {
         if (mounted) setState(() => _playingVoiceUrl = msg.attachmentUrl);
@@ -321,7 +327,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     if (_conversationId == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.chatConversationNotLoaded)),
+          const SnackBar(content: Text('Conversation non chargée')),
         );
       }
       return;
@@ -334,15 +340,18 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     if (!hasPermission) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.chatMicPermissionRequired)),
+          const SnackBar(
+              content: Text('Autorisez l\'accès au micro pour enregistrer.')),
         );
       }
       return;
     }
     try {
       final dir = await getTemporaryDirectory();
-      _currentRecordPath = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
-      await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: _currentRecordPath!);
+      _currentRecordPath =
+          '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      await _recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc),
+          path: _currentRecordPath!);
       if (!mounted) return;
       setState(() {
         _isRecording = true;
@@ -379,7 +388,8 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
         setState(() => _sending = true);
         try {
           final url = await chatService.uploadAttachment(file, 'voice');
-          await chatService.sendMessage(_conversationId!, 'Message vocal', attachmentUrl: url, attachmentType: 'voice');
+          await chatService.sendMessage(_conversationId!, 'Message vocal',
+              attachmentUrl: url, attachmentType: 'voice');
           if (!mounted) return;
           setState(() {
             _messages.add(_Msg(
@@ -395,7 +405,8 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
           if (mounted) {
             setState(() => _sending = false);
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+              SnackBar(
+                  content: Text(e.toString().replaceFirst('Exception: ', ''))),
             );
           }
         }
@@ -409,13 +420,14 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     if (_conversationId == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.chatConversationNotLoaded)),
+          const SnackBar(content: Text('Conversation non chargée')),
         );
       }
       return;
     }
     try {
-      final XFile? picked = await _imagePicker.pickImage(source: ImageSource.gallery);
+      final XFile? picked =
+          await _imagePicker.pickImage(source: ImageSource.gallery);
       if (picked == null || !mounted) return;
       final file = File(picked.path);
       // Priorité au token stocké pour éviter 401 si AuthProvider pas encore rechargé
@@ -423,7 +435,8 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       setState(() => _sending = true);
       try {
         final url = await chatService.uploadAttachment(file, 'image');
-        await chatService.sendMessage(_conversationId!, 'Photo', attachmentUrl: url, attachmentType: 'image');
+        await chatService.sendMessage(_conversationId!, 'Photo',
+            attachmentUrl: url, attachmentType: 'image');
         if (!mounted) return;
         setState(() {
           _messages.add(_Msg(
@@ -439,19 +452,25 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
         if (mounted) {
           setState(() => _sending = false);
           final msg = e.toString().replaceFirst('Exception: ', '');
-          final isUnauthorized = msg.toLowerCase().contains('unauthorized') || msg.toLowerCase().contains('session expirée');
+          final isUnauthorized = msg.toLowerCase().contains('unauthorized') ||
+              msg.toLowerCase().contains('session expirée');
           if (isUnauthorized) {
             setState(() => _loadError = msg);
           }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(isUnauthorized ? 'Session expirée. Veuillez vous reconnecter.' : msg),
+              content: Text(isUnauthorized
+                  ? 'Session expirée. Veuillez vous reconnecter.'
+                  : msg),
               action: isUnauthorized
                   ? SnackBarAction(
                       label: 'Reconnecter',
                       onPressed: () async {
-                        await Provider.of<AuthProvider>(context, listen: false).logout();
-                        if (context.mounted) context.go(AppConstants.loginRoute);
+                        await Provider.of<AuthProvider>(context, listen: false)
+                            .logout();
+                        if (context.mounted) {
+                          context.go(AppConstants.loginRoute);
+                        }
                       },
                     )
                   : null,
@@ -462,10 +481,14 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     } catch (e) {
       if (mounted) {
         final msg = e.toString().replaceFirst('Exception: ', '');
-        final isUnauthorized = msg.toLowerCase().contains('unauthorized') || msg.toLowerCase().contains('session expirée');
+        final isUnauthorized = msg.toLowerCase().contains('unauthorized') ||
+            msg.toLowerCase().contains('session expirée');
         if (isUnauthorized) setState(() => _loadError = msg);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isUnauthorized ? 'Session expirée. Veuillez vous reconnecter.' : msg)),
+          SnackBar(
+              content: Text(isUnauthorized
+                  ? 'Session expirée. Veuillez vous reconnecter.'
+                  : msg)),
         );
       }
     }
@@ -474,7 +497,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   void _onTypingChanged() {
     if (_conversationId == null) return;
     _typingTimer?.cancel();
-    
+
     // Emit "typing" status
     final callProvider = Provider.of<CallProvider>(context, listen: false);
     callProvider.service.sendTypingStatus(
@@ -487,7 +510,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     if (_controller.text.isNotEmpty) {
       _typingTimer = Timer(const Duration(seconds: 2), () {
         if (mounted) {
-           callProvider.service.sendTypingStatus(
+          callProvider.service.sendTypingStatus(
             targetUserId: widget.personId,
             conversationId: _conversationId!,
             isTyping: false,
@@ -552,7 +575,6 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -576,26 +598,38 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  _loadError!.toLowerCase().contains('unauthorized') ||
-                                          _loadError!.toLowerCase().contains('not authenticated')
+                                  _loadError!
+                                              .toLowerCase()
+                                              .contains('unauthorized') ||
+                                          _loadError!
+                                              .toLowerCase()
+                                              .contains('not authenticated')
                                       ? 'Session expirée. Veuillez vous reconnecter.'
                                       : _loadError!,
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 16),
-                                if (_loadError!.toLowerCase().contains('unauthorized') ||
-                                    _loadError!.toLowerCase().contains('not authenticated'))
+                                if (_loadError!
+                                        .toLowerCase()
+                                        .contains('unauthorized') ||
+                                    _loadError!
+                                        .toLowerCase()
+                                        .contains('not authenticated'))
                                   TextButton(
                                     onPressed: () async {
-                                      await Provider.of<AuthProvider>(context, listen: false).logout();
-                                      if (context.mounted) context.go(AppConstants.loginRoute);
+                                      await Provider.of<AuthProvider>(context,
+                                              listen: false)
+                                          .logout();
+                                      if (context.mounted) {
+                                        context.go(AppConstants.loginRoute);
+                                      }
                                     },
-                                    child: Text(loc.chatReconnect),
+                                    child: const Text('Se reconnecter'),
                                   )
                                 else
                                   TextButton(
                                     onPressed: _loadMessages,
-                                    child: Text(loc.chatRetry),
+                                    child: const Text('Réessayer'),
                                   ),
                               ],
                             ),
@@ -603,14 +637,15 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                         )
                       : ListView(
                           controller: _scrollController,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 16),
                           children: [
-                             _buildDateSeparator(),
-                             const SizedBox(height: 24),
-                             ..._messages.map((m) => _buildBubble(m)),
-                             if (_isRemoteTyping) _buildTypingIndicator(),
-                           ],
-                         ),
+                            _buildDateSeparator(),
+                            const SizedBox(height: 24),
+                            ..._messages.map((m) => _buildBubble(m)),
+                            if (_isRemoteTyping) _buildTypingIndicator(),
+                          ],
+                        ),
             ),
           ),
           ChatMessageBar(
@@ -629,8 +664,6 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     );
   }
 
-
-
   void _initiateCall(BuildContext context, bool isVideo) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final caller = auth.user;
@@ -642,9 +675,11 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       debugPrint('📞 [FAMILY_CHAT] Appel impossible: personId vide');
       return;
     }
-    debugPrint('📞 [FAMILY_CHAT] Initiation appel vers personId=${widget.personId} isVideo=$isVideo');
+    debugPrint(
+        '📞 [FAMILY_CHAT] Initiation appel vers personId=${widget.personId} isVideo=$isVideo');
     final ids = [caller.id, widget.personId]..sort();
-    final channelId = 'call_${ids[0]}_${ids[1]}_${DateTime.now().millisecondsSinceEpoch}';
+    final channelId =
+        'call_${ids[0]}_${ids[1]}_${DateTime.now().millisecondsSinceEpoch}';
     final callProvider = Provider.of<CallProvider>(context, listen: false);
     callProvider.service.initiateCall(
       targetUserId: widget.personId,
@@ -675,7 +710,8 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
               borderRadius: BorderRadius.circular(12),
               child: const Padding(
                 padding: EdgeInsets.all(8),
-                child: Icon(Icons.arrow_back_ios, color: _textPrimary, size: 20),
+                child:
+                    Icon(Icons.arrow_back_ios, color: _textPrimary, size: 20),
               ),
             ),
           ),
@@ -690,10 +726,12 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                       path: AppConstants.familyConversationSettingsRoute,
                       queryParameters: {
                         'title': widget.personName,
-                        if (widget.conversationId != null) 'conversationId': widget.conversationId!,
+                        if (widget.conversationId != null)
+                          'conversationId': widget.conversationId!,
                         'personId': widget.personId,
                         'isGroup': '0',
-                        if (widget.personImageUrl != null && widget.personImageUrl!.isNotEmpty)
+                        if (widget.personImageUrl != null &&
+                            widget.personImageUrl!.isNotEmpty)
                           'personImageUrl': widget.personImageUrl!,
                       },
                     ).toString(),
@@ -707,11 +745,14 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                         CircleAvatar(
                           radius: 24,
                           backgroundColor: _primary.withOpacity(0.3),
-                          backgroundImage: widget.personImageUrl != null && widget.personImageUrl!.isNotEmpty
+                          backgroundImage: widget.personImageUrl != null &&
+                                  widget.personImageUrl!.isNotEmpty
                               ? NetworkImage(widget.personImageUrl!)
                               : null,
-                          child: widget.personImageUrl == null || widget.personImageUrl!.isEmpty
-                              ? const Icon(Icons.person, color: _textMuted, size: 28)
+                          child: widget.personImageUrl == null ||
+                                  widget.personImageUrl!.isEmpty
+                              ? const Icon(Icons.person,
+                                  color: _textMuted, size: 28)
                               : null,
                         ),
                         if (_isOnline == true)
@@ -724,7 +765,8 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.green,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
+                                border:
+                                    Border.all(color: Colors.white, width: 2),
                               ),
                             ),
                           ),
@@ -749,7 +791,9 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                             _isOnline == true ? 'En ligne' : 'Hors ligne',
                             style: TextStyle(
                               fontSize: 13,
-                              color: _isOnline == true ? Colors.green.shade700 : _textMuted,
+                              color: _isOnline == true
+                                  ? Colors.green.shade700
+                                  : _textMuted,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -768,7 +812,8 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
           ),
           IconButton(
             onPressed: () => _initiateCall(context, true),
-            icon: const Icon(Icons.videocam_outlined, color: _textPrimary, size: 26),
+            icon: const Icon(Icons.videocam_outlined,
+                color: _textPrimary, size: 26),
           ),
         ],
       ),
@@ -796,21 +841,23 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   }
 
   Widget _buildBubble(_Msg msg) {
-    final loc = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(
-        mainAxisAlignment: msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!msg.isMe) _avatar(),
           if (!msg.isMe) const SizedBox(width: 10),
           Flexible(
             child: Column(
-              crossAxisAlignment: msg.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  msg.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: msg.isMe ? _primary : Colors.white,
                     borderRadius: BorderRadius.only(
@@ -827,7 +874,8 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                       ),
                     ],
                   ),
-                  child: msg.attachmentType == 'image' && msg.attachmentUrl != null
+                  child: msg.attachmentType == 'image' &&
+                          msg.attachmentUrl != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: Image.network(
@@ -838,29 +886,42 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                             errorBuilder: (_, __, ___) => Container(
                               width: 200,
                               height: 200,
-                              color: msg.isMe ? Colors.white12 : const Color(0xFFF1F5F9),
+                              color: msg.isMe
+                                  ? Colors.white12
+                                  : const Color(0xFFF1F5F9),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.image_not_supported, size: 48, color: msg.isMe ? Colors.white70 : _textMuted),
+                                  Icon(Icons.image_not_supported,
+                                      size: 48,
+                                      color: msg.isMe
+                                          ? Colors.white70
+                                          : _textMuted),
                                   const SizedBox(height: 8),
                                   Text(
                                     'Image non disponible',
-                                    style: TextStyle(fontSize: 12, color: msg.isMe ? Colors.white70 : _textMuted),
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: msg.isMe
+                                            ? Colors.white70
+                                            : _textMuted),
                                   ),
                                 ],
                               ),
                             ),
                           ),
                         )
-                          : msg.attachmentType == 'voice'
+                      : msg.attachmentType == 'voice'
                           ? Material(
                               color: Colors.transparent,
                               child: InkWell(
-                                onTap: msg.attachmentUrl != null ? () => _playVoiceMessage(msg) : null,
+                                onTap: msg.attachmentUrl != null
+                                    ? () => _playVoiceMessage(msg)
+                                    : null,
                                 borderRadius: BorderRadius.circular(8),
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
@@ -868,17 +929,24 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                                         _playingVoiceUrl == msg.attachmentUrl
                                             ? Icons.pause_circle_filled
                                             : Icons.play_circle_filled,
-                                        color: msg.isMe ? Colors.white : _primary,
+                                        color:
+                                            msg.isMe ? Colors.white : _primary,
                                         size: 32,
                                       ),
                                       const SizedBox(width: 10),
-                                      Icon(Icons.mic, color: msg.isMe ? Colors.white70 : _textMuted, size: 22),
+                                      Icon(Icons.mic,
+                                          color: msg.isMe
+                                              ? Colors.white70
+                                              : _textMuted,
+                                          size: 22),
                                       const SizedBox(width: 6),
                                       Text(
                                         'Message vocal',
                                         style: TextStyle(
                                           fontSize: 14,
-                                          color: msg.isMe ? Colors.white : _textPrimary,
+                                          color: msg.isMe
+                                              ? Colors.white
+                                              : _textPrimary,
                                         ),
                                       ),
                                     ],
@@ -896,36 +964,21 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                                       children: [
                                         Icon(
                                           Icons.call_missed,
-                                          color: msg.isMe ? Colors.white70 : Colors.red.shade400,
+                                          color: msg.isMe
+                                              ? Colors.white70
+                                              : Colors.red.shade400,
                                           size: 22,
                                         ),
                                         const SizedBox(width: 8),
-                                        Builder(builder: (context) {
-                                          final loc = AppLocalizations.of(context)!;
-                                          String label = '';
-                                          final status = msg.callStatus;
-                                          final duration = msg.callDuration ?? 0;
-                                          if (status == 'refused') {
-                                            label = loc.chatCallRefused;
-                                          } else if (status == 'missed' || status == null) {
-                                            label = loc.chatCallMissed;
-                                          } else if (status == 'ended') {
-                                            label = loc.chatCallEnded;
-                                          }
-                                          if (duration > 0 && label.isNotEmpty) {
-                                            final mins = duration ~/ 60;
-                                            final secs = duration % 60;
-                                            final timeStr = '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
-                                            label += ' • ${loc.chatCallDuration(timeStr)}';
-                                          }
-                                          return Text(
-                                            label,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: msg.isMe ? Colors.white : _textPrimary,
-                                            ),
-                                          );
-                                        }),
+                                        Text(
+                                          'Appel manqué',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: msg.isMe
+                                                ? Colors.white
+                                                : _textPrimary,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                     const SizedBox(height: 2),
@@ -933,93 +986,138 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                                       msg.text, // "Appel vocal" or "Appel vidéo"
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: msg.isMe ? Colors.white70 : _textMuted,
+                                        color: msg.isMe
+                                            ? Colors.white70
+                                            : _textMuted,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
                                     TextButton(
-                                      onPressed: () => _initiateCall(context, msg.text.contains('vidéo')),
+                                      onPressed: () => _initiateCall(
+                                          context, msg.text.contains('vidéo')),
                                       style: TextButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 4),
                                         minimumSize: Size.zero,
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                        backgroundColor: msg.isMe ? Colors.white24 : Colors.grey.shade100,
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                        backgroundColor: msg.isMe
+                                            ? Colors.white24
+                                            : Colors.grey.shade100,
                                       ),
-                                      child: Text(loc.chatCallback, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: msg.isMe ? Colors.white : _primary)),
+                                      child: Text('Rappeler',
+                                          style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: msg.isMe
+                                                  ? Colors.white
+                                                  : _primary)),
                                     ),
                                   ],
                                 )
-                           : msg.attachmentType == 'call_summary'
-                               ? Column(
-                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                   mainAxisSize: MainAxisSize.min,
-                                   children: [
-                                     Row(
-                                       mainAxisSize: MainAxisSize.min,
-                                       children: [
-                                         Icon(
-                                           msg.text.contains('vidéo') ? Icons.videocam : Icons.call,
-                                           color: msg.isMe ? Colors.white70 : _primary,
-                                           size: 22,
-                                         ),
-                                         const SizedBox(width: 8),
+                              : msg.attachmentType == 'call_summary'
+                                  ? Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              msg.text.contains('vidéo')
+                                                  ? Icons.videocam
+                                                  : Icons.call,
+                                              color: msg.isMe
+                                                  ? Colors.white70
+                                                  : _primary,
+                                              size: 22,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              msg.text.startsWith('Appel ')
+                                                  ? msg.text
+                                                  : 'Transcription de l\'appel',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: msg.isMe
+                                                    ? Colors.white
+                                                    : _textPrimary,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        if (!msg.text.startsWith('Appel ')) ...[
+                                          const SizedBox(height: 8),
                                           Text(
-                                            msg.text.startsWith('Appel ') ? msg.text : 'Transcription de l\'appel',
+                                            msg.text,
                                             style: TextStyle(
-                                              fontSize: 14,
-                                              color: msg.isMe ? Colors.white : _textPrimary,
-                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                              color: msg.isMe
+                                                  ? Colors.white
+                                                      .withOpacity(0.9)
+                                                  : _textPrimary
+                                                      .withOpacity(0.8),
+                                              fontStyle: FontStyle.italic,
                                             ),
                                           ),
                                         ],
-                                      ),
-                                      if (!msg.text.startsWith('Appel ')) ...[
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          msg.text,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: msg.isMe ? Colors.white.withOpacity(0.9) : _textPrimary.withOpacity(0.8),
-                                            fontStyle: FontStyle.italic,
+                                        if (msg.callDuration != null &&
+                                            msg.callDuration! > 0) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            _formatDuration(msg.callDuration!),
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: msg.isMe
+                                                  ? Colors.white70
+                                                  : _textMuted,
+                                            ),
                                           ),
+                                        ],
+                                        const SizedBox(height: 8),
+                                        TextButton(
+                                          onPressed: () => _initiateCall(
+                                              context,
+                                              msg.text.contains('vidéo')),
+                                          style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 4),
+                                            minimumSize: Size.zero,
+                                            tapTargetSize: MaterialTapTargetSize
+                                                .shrinkWrap,
+                                            backgroundColor: msg.isMe
+                                                ? Colors.white24
+                                                : Colors.grey.shade100,
+                                          ),
+                                          child: Text('Rappeler',
+                                              style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: msg.isMe
+                                                      ? Colors.white
+                                                      : _primary)),
                                         ),
                                       ],
-                                     if (msg.callDuration != null && msg.callDuration! > 0) ...[
-                                       const SizedBox(height: 2),
-                                       Text(
-                                         _formatDuration(msg.callDuration!),
-                                         style: TextStyle(
-                                           fontSize: 12,
-                                           color: msg.isMe ? Colors.white70 : _textMuted,
-                                         ),
-                                       ),
-                                     ],
-                                     const SizedBox(height: 8),
-                                     TextButton(
-                                       onPressed: () => _initiateCall(context, msg.text.contains('vidéo')),
-                                       style: TextButton.styleFrom(
-                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                         minimumSize: Size.zero,
-                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                         backgroundColor: msg.isMe ? Colors.white24 : Colors.grey.shade100,
-                                       ),
-                                       child: Text(loc.chatCallback, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: msg.isMe ? Colors.white : _primary)),
-                                     ),
-                                   ],
-                                 )
-                          : Text(
-                              msg.text,
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: msg.isMe ? Colors.white : _textPrimary,
-                                height: 1.4,
-                              ),
-                            ),
+                                    )
+                                  : Text(
+                                      msg.text,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: msg.isMe
+                                            ? Colors.white
+                                            : _textPrimary,
+                                        height: 1.4,
+                                      ),
+                                    ),
                 ),
                 const SizedBox(height: 6),
                 Row(
                   mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                  mainAxisAlignment: msg.isMe
+                      ? MainAxisAlignment.end
+                      : MainAxisAlignment.start,
                   children: [
                     Text(
                       msg.time,
@@ -1044,9 +1142,10 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     return CircleAvatar(
       radius: 14,
       backgroundColor: _primary.withOpacity(0.3),
-      backgroundImage: widget.personImageUrl != null && widget.personImageUrl!.isNotEmpty
-          ? NetworkImage(widget.personImageUrl!)
-          : null,
+      backgroundImage:
+          widget.personImageUrl != null && widget.personImageUrl!.isNotEmpty
+              ? NetworkImage(widget.personImageUrl!)
+              : null,
       child: widget.personImageUrl == null || widget.personImageUrl!.isEmpty
           ? const Icon(Icons.person, size: 16, color: _textMuted)
           : null,
@@ -1097,7 +1196,8 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                 const SizedBox(
                   width: 12,
                   height: 12,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: _primary),
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: _primary),
                 ),
                 const SizedBox(width: 10),
                 Text(

@@ -34,7 +34,8 @@ class ChildProfileSetupScreen extends StatefulWidget {
   }
 
   @override
-  State<ChildProfileSetupScreen> createState() => _ChildProfileSetupScreenState();
+  State<ChildProfileSetupScreen> createState() =>
+      _ChildProfileSetupScreenState();
 }
 
 class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
@@ -45,18 +46,21 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
 
   int _ageYears = 4;
   String _gender = 'other'; // male | female | other
-  final Set<int> _selectedMedicalCare = {0, 2}; // 0: Orthophoniste, 1: Psychomotricien, 2: Ergothérapeute, 3: Pédiatre
+  final Set<int> _selectedMedicalCare = {
+    0,
+    2
+  }; // 0: Orthophoniste, 1: Psychomotricien, 2: Ergothérapeute, 3: Pédiatre
   int _sensitivityLoudNoises = 2; // 0: Bas, 1: Moyen, 2: Haut
   int _sensitivityLight = 1; // 0: Bas, 1: Moyen, 2: Haut
   int _sensitivityTexture = 0; // 0: Bas, 1: Moyen, 2: Haut
   double _sleepHours = 10.5;
   bool _isSaving = false;
 
-  List<({String label, IconData icon})> _getMedicalCareOptions(AppLocalizations loc) => [
-    (label: loc.medCareSpeechTherapist, icon: Icons.psychology),
-    (label: loc.medCarePsychomotorTherapist, icon: Icons.accessibility_new),
-    (label: loc.medCareOccupationalTherapist, icon: Icons.precision_manufacturing),
-    (label: loc.medCarePediatrician, icon: Icons.medical_services),
+  static const List<({String label, IconData icon})> _medicalCareOptions = [
+    (label: 'Orthophoniste', icon: Icons.psychology),
+    (label: 'Psychomotricien', icon: Icons.accessibility_new),
+    (label: 'Ergothérapeute', icon: Icons.precision_manufacturing),
+    (label: 'Pédiatre', icon: Icons.medical_services),
   ];
 
   @override
@@ -79,16 +83,17 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
 
     final fullName = _nameController.text.trim();
     final dateOfBirth = _dateOfBirthFromAge(_ageYears);
-    final loc = AppLocalizations.of(context)!;
-    final sensitivityLabels = [loc.sensitivityLow, loc.sensitivityMedium, loc.sensitivityHigh];
-    final sensitivityText = 'Bruit: ${sensitivityLabels[_sensitivityLoudNoises]}, '
+    const sensitivityLabels = ['Bas', 'Moyen', 'Haut'];
+    final sensitivityText =
+        'Bruit: ${sensitivityLabels[_sensitivityLoudNoises]}, '
         'Lumière: ${sensitivityLabels[_sensitivityLight]}, '
         'Texture: ${sensitivityLabels[_sensitivityTexture]}. '
         'Sommeil: $_sleepHours h.';
-    final medicalOptions = _getMedicalCareOptions(loc);
     final diagnosis = _selectedMedicalCare.isEmpty
         ? null
-        : _selectedMedicalCare.map((i) => medicalOptions[i].label).join(', ');
+        : _selectedMedicalCare
+            .map((i) => _medicalCareOptions[i].label)
+            .join(', ');
     final medications = _medicationsController.text.trim();
     final medicalHistory = _specialNotesController.text.trim();
     final notes = sensitivityText;
@@ -103,17 +108,21 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
       notes: notes,
     );
 
+    final loc = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      final childrenService = ChildrenService(getToken: () => AuthService().getStoredToken());
+      final childrenService =
+          ChildrenService(getToken: () => AuthService().getStoredToken());
       await childrenService.addChild(dto);
     } catch (e) {
       setState(() => _isSaving = false);
       if (!mounted) return;
       messenger.showSnackBar(
         SnackBar(
-          content: Text(e is Exception ? e.toString().replaceFirst('Exception: ', '') : loc.childProfileSaved),
+          content: Text(e is Exception
+              ? e.toString().replaceFirst('Exception: ', '')
+              : loc.childProfileSaved),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red,
         ),
@@ -134,7 +143,8 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
     };
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(ChildProfileSetupScreen.storageKey, jsonEncode(data));
+      await prefs.setString(
+          ChildProfileSetupScreen.storageKey, jsonEncode(data));
     } catch (_) {}
 
     setState(() => _isSaving = false);
@@ -234,7 +244,8 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+              border:
+                  Border.all(color: Colors.white.withOpacity(0.3), width: 2),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
@@ -245,9 +256,20 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
             ),
             child: const Icon(Icons.child_care, color: Colors.white, size: 56),
           ),
-          Positioned(top: -16, left: -8, child: Icon(Icons.star, color: Colors.yellow.shade300, size: 28)),
-          Positioned(top: 8, right: -24, child: Icon(Icons.extension, color: Colors.pink.shade300, size: 32)),
-          Positioned(bottom: -8, right: -16, child: Icon(Icons.auto_awesome, color: Colors.blue.shade300, size: 28)),
+          Positioned(
+              top: -16,
+              left: -8,
+              child: Icon(Icons.star, color: Colors.yellow.shade300, size: 28)),
+          Positioned(
+              top: 8,
+              right: -24,
+              child:
+                  Icon(Icons.extension, color: Colors.pink.shade300, size: 32)),
+          Positioned(
+              bottom: -8,
+              right: -16,
+              child: Icon(Icons.auto_awesome,
+                  color: Colors.blue.shade300, size: 28)),
         ],
       ),
     );
@@ -274,7 +296,10 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
           children: [
             Text(
               loc.childProfileConfigTitle,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+              style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B)),
             ),
             const SizedBox(height: 4),
             Text(
@@ -302,17 +327,22 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
                     ? const SizedBox(
                         width: 24,
                         height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
                       )
                     : const Icon(Icons.verified, color: Colors.white),
                 label: Text(
                   loc.childProfileSaveButton,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _primary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                   elevation: 2,
                 ),
               ),
@@ -325,7 +355,10 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
                 const SizedBox(width: 8),
                 Text(
                   loc.childProfileEncryptedNote,
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade500),
                 ),
               ],
             ),
@@ -341,7 +374,10 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
       children: [
         Text(
           loc.childProfileIdentityLabel,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
+          style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade500),
         ),
         const SizedBox(height: 8),
         Row(
@@ -353,10 +389,15 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
                   hintText: loc.childProfileFirstNameHint,
                   filled: true,
                   fillColor: Colors.grey.shade100,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
-                validator: (v) => (v == null || v.trim().isEmpty) ? loc.childProfileNameRequired : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? loc.childProfileNameRequired
+                    : null,
               ),
             ),
             const SizedBox(width: 8),
@@ -372,7 +413,9 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton(
-                    onPressed: _ageYears > 1 ? () => setState(() => _ageYears--) : null,
+                    onPressed: _ageYears > 1
+                        ? () => setState(() => _ageYears--)
+                        : null,
                     icon: const Icon(Icons.remove, color: _primary, size: 20),
                     style: IconButton.styleFrom(
                       padding: const EdgeInsets.all(8),
@@ -386,14 +429,19 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: Text(
                           '$_ageYears ${loc.childProfileYears}',
-                          style: const TextStyle(color: _primary, fontWeight: FontWeight.bold, fontSize: 14),
+                          style: const TextStyle(
+                              color: _primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
                   ),
                   IconButton(
-                    onPressed: _ageYears < 18 ? () => setState(() => _ageYears++) : null,
+                    onPressed: _ageYears < 18
+                        ? () => setState(() => _ageYears++)
+                        : null,
                     icon: const Icon(Icons.add, color: _primary, size: 20),
                     style: IconButton.styleFrom(
                       padding: const EdgeInsets.all(8),
@@ -413,13 +461,16 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
             labelText: 'Genre',
             filled: true,
             fillColor: Colors.grey.shade100,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
-          items: [
-            DropdownMenuItem(value: 'male', child: Text(loc.genderBoy)),
-            DropdownMenuItem(value: 'female', child: Text(loc.genderGirl)),
-            DropdownMenuItem(value: 'other', child: Text(loc.genderOther)),
+          items: const [
+            DropdownMenuItem(value: 'male', child: Text('Garçon')),
+            DropdownMenuItem(value: 'female', child: Text('Fille')),
+            DropdownMenuItem(value: 'other', child: Text('Autre')),
           ],
           onChanged: (v) => setState(() => _gender = v ?? 'other'),
         ),
@@ -433,18 +484,26 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
       children: [
         Text(
           loc.childProfileMedicalCareLabel,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
+          style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade500),
         ),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
-            ..._getMedicalCareOptions(loc).asMap().entries.map((e) {
+            ..._medicalCareOptions.asMap().entries.map((e) {
               final selected = _selectedMedicalCare.contains(e.key);
               return ActionChip(
-                avatar: Icon(e.value.icon, size: 20, color: selected ? _primary : Colors.grey),
-                label: Text(e.value.label, style: TextStyle(color: selected ? _primary : Colors.grey.shade600, fontWeight: selected ? FontWeight.w600 : FontWeight.normal)),
+                avatar: Icon(e.value.icon,
+                    size: 20, color: selected ? _primary : Colors.grey),
+                label: Text(e.value.label,
+                    style: TextStyle(
+                        color: selected ? _primary : Colors.grey.shade600,
+                        fontWeight:
+                            selected ? FontWeight.w600 : FontWeight.normal)),
                 onPressed: () => setState(() {
                   if (selected) {
                     _selectedMedicalCare.remove(e.key);
@@ -452,18 +511,27 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
                     _selectedMedicalCare.add(e.key);
                   }
                 }),
-                backgroundColor: selected ? _primary.withOpacity(0.1) : Colors.grey.shade100,
-                side: BorderSide(color: selected ? _primary : Colors.grey.shade300, width: 2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                backgroundColor:
+                    selected ? _primary.withOpacity(0.1) : Colors.grey.shade100,
+                side: BorderSide(
+                    color: selected ? _primary : Colors.grey.shade300,
+                    width: 2),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               );
             }),
             ActionChip(
               avatar: Icon(Icons.add, size: 20, color: Colors.grey.shade500),
-              label: Text(loc.childProfileAddLabel, style: TextStyle(color: Colors.grey.shade500)),
+              label: Text(loc.childProfileAddLabel,
+                  style: TextStyle(color: Colors.grey.shade500)),
               onPressed: () {},
               backgroundColor: Colors.transparent,
-              side: BorderSide(color: Colors.grey.shade400, width: 2, style: BorderStyle.solid),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              side: BorderSide(
+                  color: Colors.grey.shade400,
+                  width: 2,
+                  style: BorderStyle.solid),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           ],
         ),
@@ -477,7 +545,10 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
       children: [
         Text(
           loc.childProfileMedicationsLabel,
-          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
+          style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade500),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -485,10 +556,13 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
           maxLines: 3,
           decoration: InputDecoration(
             hintText: loc.childProfileMedicationsHint,
-            suffixIcon: Icon(Icons.medication, color: Colors.grey.shade400, size: 22),
+            suffixIcon:
+                Icon(Icons.medication, color: Colors.grey.shade400, size: 22),
             filled: true,
             fillColor: Colors.grey.shade100,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none),
             contentPadding: const EdgeInsets.all(16),
           ),
         ),
@@ -502,20 +576,39 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
       children: [
         Text(
           loc.childProfileSensitivitiesLabel,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
+          style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade500),
         ),
         const SizedBox(height: 12),
-        _buildSensitivityCard(loc, loc.childProfileSensitivityLoudNoises, Icons.volume_up, _sensitivityLoudNoises, (v) => setState(() => _sensitivityLoudNoises = v)),
+        _buildSensitivityCard(
+            loc,
+            loc.childProfileSensitivityLoudNoises,
+            Icons.volume_up,
+            _sensitivityLoudNoises,
+            (v) => setState(() => _sensitivityLoudNoises = v)),
         const SizedBox(height: 12),
-        _buildSensitivityCard(loc, loc.childProfileSensitivityLight, Icons.light_mode, _sensitivityLight, (v) => setState(() => _sensitivityLight = v)),
+        _buildSensitivityCard(
+            loc,
+            loc.childProfileSensitivityLight,
+            Icons.light_mode,
+            _sensitivityLight,
+            (v) => setState(() => _sensitivityLight = v)),
         const SizedBox(height: 12),
-        _buildSensitivityCard(loc, loc.childProfileSensitivityTexture, Icons.texture, _sensitivityTexture, (v) => setState(() => _sensitivityTexture = v)),
+        _buildSensitivityCard(
+            loc,
+            loc.childProfileSensitivityTexture,
+            Icons.texture,
+            _sensitivityTexture,
+            (v) => setState(() => _sensitivityTexture = v)),
       ],
     );
   }
 
-  Widget _buildSensitivityCard(AppLocalizations loc, String label, IconData icon, int value, ValueChanged<int> onChanged) {
-    final labels = [loc.sensitivityLow, loc.sensitivityMedium, loc.sensitivityHigh];
+  Widget _buildSensitivityCard(AppLocalizations loc, String label,
+      IconData icon, int value, ValueChanged<int> onChanged) {
+    const labels = ['Bas', 'Moyen', 'Haut'];
     final colors = [Colors.green, Colors.amber, Colors.red];
     return Container(
       padding: const EdgeInsets.all(12),
@@ -534,12 +627,18 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
                 children: [
                   Icon(icon, color: _primary, size: 22),
                   const SizedBox(width: 8),
-                  Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF334155))),
+                  Text(label,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF334155))),
                 ],
               ),
               Text(
                 labels[value],
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: colors[value].shade600),
+                style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: colors[value].shade600),
               ),
             ],
           ),
@@ -553,12 +652,17 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
                   child: OutlinedButton(
                     onPressed: () => onChanged(i),
                     style: OutlinedButton.styleFrom(
-                      backgroundColor: selected ? _primary.withOpacity(0.2) : Colors.white,
-                      foregroundColor: selected ? _primary : Colors.grey.shade500,
-                      side: BorderSide(color: selected ? _primary : Colors.grey.shade300),
+                      backgroundColor:
+                          selected ? _primary.withOpacity(0.2) : Colors.white,
+                      foregroundColor:
+                          selected ? _primary : Colors.grey.shade500,
+                      side: BorderSide(
+                          color: selected ? _primary : Colors.grey.shade300),
                       padding: const EdgeInsets.symmetric(vertical: 8),
                     ),
-                    child: Text(labels[i], style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                    child: Text(labels[i],
+                        style: const TextStyle(
+                            fontSize: 10, fontWeight: FontWeight.bold)),
                   ),
                 ),
               );
@@ -575,7 +679,10 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
       children: [
         Text(
           loc.childProfileSpecialNotesLabel,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
+          style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade500),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -585,7 +692,9 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
             hintText: loc.childProfileSpecialNotesHint,
             filled: true,
             fillColor: Colors.grey.shade100,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none),
             contentPadding: const EdgeInsets.all(16),
           ),
         ),
@@ -602,11 +711,15 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
           children: [
             Text(
               loc.childProfileSleepLabel,
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade500),
             ),
             Text(
               '$_sleepHours h',
-              style: const TextStyle(color: _primary, fontWeight: FontWeight.bold),
+              style:
+                  const TextStyle(color: _primary, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -629,9 +742,18 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('6h', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
-            Text('${loc.childProfileTarget}: $_sleepHours h', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
-            Text('14h', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+            Text('6h',
+                style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade500)),
+            Text('${loc.childProfileTarget}: $_sleepHours h',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+            Text('14h',
+                style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade500)),
           ],
         ),
       ],

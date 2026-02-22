@@ -84,14 +84,16 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     setState(() => _creating = true);
     try {
       final chatService = ChatService();
-      final participantIds = _selectedIds.where((id) => id.trim().isNotEmpty).toList();
+      final participantIds =
+          _selectedIds.where((id) => id.trim().isNotEmpty).toList();
       final conv = await chatService.createGroup(name, participantIds);
       if (!mounted) return;
       setState(() => _creating = false);
       final convId = conv['id']?.toString() ?? '';
       final convName = conv['name']?.toString() ?? name;
-      final createdParticipants =
-          (conv['participantIds'] is List ? (conv['participantIds'] as List).length : (_selectedIds.length + 1));
+      final createdParticipants = (conv['participantIds'] is List
+          ? (conv['participantIds'] as List).length
+          : (_selectedIds.length + 1));
       context.go(
         Uri(
           path: AppConstants.familyGroupChatRoute,
@@ -140,7 +142,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               decoration: InputDecoration(
                 labelText: 'Nom du groupe',
                 hintText: 'Ex: Famille Martin',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 filled: true,
                 fillColor: Colors.white,
               ),
@@ -167,9 +170,13 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: _textMuted)),
+                            Text(_error!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: _textMuted)),
                             const SizedBox(height: 16),
-                            TextButton(onPressed: _loadFamilies, child: const Text('Réessayer')),
+                            TextButton(
+                                onPressed: _loadFamilies,
+                                child: const Text('Réessayer')),
                           ],
                         ),
                       )
@@ -194,17 +201,18 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                                   onChanged: disabled
                                       ? null
                                       : (v) {
-                                    setState(() {
-                                      if (v == true) {
-                                        _selectedIds.add(f.id);
-                                      } else {
-                                        _selectedIds.remove(f.id);
-                                      }
-                                    });
-                                  },
+                                          setState(() {
+                                            if (v == true) {
+                                              _selectedIds.add(f.id);
+                                            } else {
+                                              _selectedIds.remove(f.id);
+                                            }
+                                          });
+                                        },
                                   title: Text(
                                     f.fullName,
-                                    style: const TextStyle(fontWeight: FontWeight.w600),
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w600),
                                   ),
                                   secondary: CircleAvatar(
                                     backgroundColor: _primary.withOpacity(0.3),
@@ -217,8 +225,11 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                                             f.profilePic!.isEmpty ||
                                             !f.profilePic!.startsWith('http')
                                         ? Text(
-                                            f.fullName.isNotEmpty ? f.fullName[0].toUpperCase() : '?',
-                                            style: const TextStyle(color: _textPrimary),
+                                            f.fullName.isNotEmpty
+                                                ? f.fullName[0].toUpperCase()
+                                                : '?',
+                                            style: const TextStyle(
+                                                color: _textPrimary),
                                           )
                                         : null,
                                   ),
@@ -235,17 +246,20 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 backgroundColor: _primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
               ),
               child: _creating
                   ? const SizedBox(
                       height: 24,
                       width: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
                     )
                   : Text(
                       'Créer le groupe (${_selectedIds.length + 1} participants)',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
                     ),
             ),
           ),
