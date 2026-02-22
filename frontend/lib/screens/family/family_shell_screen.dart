@@ -42,20 +42,16 @@ class FamilyShellScreen extends StatelessWidget {
             ),
           ],
         ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _navItem(context, 1, Icons.article_outlined, Icons.article, AppLocalizations.of(context)!.navFeed, currentIndex),
-                _navItem(context, 2, Icons.chat_bubble_outline, Icons.chat_bubble, AppLocalizations.of(context)!.navChats, currentIndex),
-                _centerPlusButton(context, currentIndex),
-                _navItem(context, 3, Icons.shopping_bag_outlined, Icons.shopping_bag, AppLocalizations.of(context)!.navMarket, currentIndex),
-                _navItem(context, 4, Icons.person_outline, Icons.person, AppLocalizations.of(context)!.navProfile, currentIndex),
-              ],
-            ),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 6, bottom: 8),
+          child: Row(
+            children: [
+              Expanded(child: _navItem(context, 1, Icons.article_outlined, Icons.article, AppLocalizations.of(context)!.navFeed, currentIndex)),
+              Expanded(child: _navItem(context, 2, Icons.chat_bubble_outline, Icons.chat_bubble, AppLocalizations.of(context)!.navChats, currentIndex)),
+              Expanded(child: _centerPlusButton(context, currentIndex)),
+              Expanded(child: _navItem(context, 3, Icons.shopping_bag_outlined, Icons.shopping_bag, AppLocalizations.of(context)!.navMarket, currentIndex)),
+              Expanded(child: _navItem(context, 4, Icons.person_outline, Icons.person, AppLocalizations.of(context)!.navProfile, currentIndex)),
+            ],
           ),
         ),
       ),
@@ -76,25 +72,32 @@ class FamilyShellScreen extends StatelessWidget {
     return InkWell(
       onTap: () => _onTap(0),
       borderRadius: BorderRadius.circular(32),
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: _navPrimary,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: _navPrimary.withOpacity(0.45),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: _navPrimary,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: _navPrimary.withOpacity(0.45),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: const Icon(
-          Icons.home_rounded,
-          color: Colors.white,
-          size: 30,
-        ),
+            child: const Icon(
+              Icons.home_rounded,
+              color: Colors.white,
+              size: 30,
+            ),
+          ),
+          const SizedBox(height: 10), 
+        ],
       ),
     );
   }

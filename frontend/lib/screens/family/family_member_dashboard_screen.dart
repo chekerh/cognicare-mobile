@@ -478,7 +478,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                 ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
