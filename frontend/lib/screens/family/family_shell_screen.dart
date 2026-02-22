@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
+import 'chatbot_sheet.dart';
 
 // Barre comme la 2e photo : teal #A3D9E2, fond blanc, + central et grand
 const Color _navPrimary = Color(0xFFA3D9E2);
@@ -67,11 +68,18 @@ class FamilyShellScreen extends StatelessWidget {
     return 0;
   }
 
-  /// Bouton central Accueil : affiche le dashboard. Icône maison (Accueil).
+  /// Bouton central Accueil : tap = dashboard, appui long = chatbot Cogni.
   Widget _centerPlusButton(BuildContext context, int currentIndex) {
-    return InkWell(
+    return GestureDetector(
       onTap: () => _onTap(0),
-      borderRadius: BorderRadius.circular(32),
+      onLongPress: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => const ChatbotSheet(),
+        );
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -96,7 +104,7 @@ class FamilyShellScreen extends StatelessWidget {
               size: 30,
             ),
           ),
-          const SizedBox(height: 10), 
+          const SizedBox(height: 10),
         ],
       ),
     );
