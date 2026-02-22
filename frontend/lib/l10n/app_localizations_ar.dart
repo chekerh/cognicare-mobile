@@ -1569,7 +1569,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get familyMemberRole => 'فرد من العائلة';
 
   @override
-  String get playWithLeo => 'اللعب مع ليو';
+  String get playWithLeo => 'اللعب مع Cogni';
 
   @override
   String get launchPlayTherapy => 'بدء جلسة علاج عن طريق اللعب';

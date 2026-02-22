@@ -1176,7 +1176,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get familyMemberRole => 'Membre de la famille';
 
   @override
-  String get playWithLeo => 'Jouer avec Léo';
+  String get playWithLeo => 'Jouer avec Cogni';
 
   @override
   String get launchPlayTherapy => 'Lancer une session de thérapie ludique';
