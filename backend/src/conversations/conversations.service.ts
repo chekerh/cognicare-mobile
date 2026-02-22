@@ -23,6 +23,7 @@ import {
 } from './conversation-setting.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { CallsGateway } from '../calls/calls.gateway';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class ConversationsService {
@@ -39,12 +40,18 @@ export class ConversationsService {
     private readonly callsGateway: CallsGateway,
   ) { }
 
+  private readonly logger = new Logger(ConversationsService.name);
+
+  private _encryptionKey: Buffer | null = null;
+
   /** Derive a 32-byte AES key from env (MESSAGES_ENCRYPTION_KEY) or a fallback string. */
   private getEncryptionKey(): Buffer {
+    if (this._encryptionKey) return this._encryptionKey;
     const secret =
       this.configService.get<string>('MESSAGES_ENCRYPTION_KEY') ||
       'cognicare-dev-fallback-message-key';
-    return crypto.createHash('sha256').update(secret).digest();
+    this._encryptionKey = crypto.createHash('sha256').update(secret).digest();
+    return this._encryptionKey;
   }
 
   /** Encrypt plaintext using AES-256-GCM. Returns base64(iv + tag + ciphertext). */
@@ -52,12 +59,12 @@ export class ConversationsService {
     const key = this.getEncryptionKey();
     const iv = crypto.randomBytes(12);
     const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-    const encrypted = Buffer.concat([
-      cipher.update(plaintext, 'utf8'),
-      cipher.final(),
-    ]);
+    const encrypted = cipher.update(plaintext, 'utf8');
+    const finalEncrypted = Buffer.concat([encrypted, cipher.final()]);
     const tag = cipher.getAuthTag();
-    return Buffer.concat([iv, tag, encrypted]).toString('base64');
+    const result = Buffer.concat([iv, tag, finalEncrypted]).toString('base64');
+    // this.logger.debug(`Message encrypted: length=${result.length}`);
+    return result;
   }
 
   /**
@@ -83,21 +90,28 @@ export class ConversationsService {
         decipher.final(),
       ]);
       return decrypted.toString('utf8');
-    } catch {
+    } catch (e) {
       // Old messages stored in plaintext or invalid data: just return as-is
+      this.logger.warn(`Decryption failed, assuming plaintext: ${e.message}`);
       return possiblyEncrypted;
     }
   }
 
   async findInboxForUser(userId: string) {
-    const uid = new Types.ObjectId(userId);
+    const start = Date.now();
     const docs = await this.conversationModel
       .find({
-        $or: [{ user: uid }, { otherUserId: uid }, { participants: uid }],
+        $or: [
+          { user: new Types.ObjectId(userId) },
+          { otherUserId: new Types.ObjectId(userId) },
+          { participants: new Types.ObjectId(userId) },
+        ],
       })
       .sort({ updatedAt: -1 })
+      .limit(100)
       .lean()
       .exec();
+    this.logger.log(`findInboxForUser query took ${Date.now() - start}ms for userId: ${userId}`);
 
     type Doc = {
       user?: { toString(): string };
@@ -257,7 +271,9 @@ export class ConversationsService {
         threadId: conv.threadId?.toString(),
         name: conv.name,
         subtitle: conv.subtitle,
-        lastMessage: conv.lastMessage,
+        lastMessage: conv.lastMessage
+          ? this.decryptMessage(conv.lastMessage)
+          : '',
         timeAgo: conv.timeAgo,
         imageUrl,
         unread: conv.unread,
@@ -335,7 +351,9 @@ export class ConversationsService {
       threadId: created.threadId?.toString(),
       name: created.name,
       subtitle: created.subtitle,
-      lastMessage: created.lastMessage,
+      lastMessage: created.lastMessage
+        ? this.decryptMessage(created.lastMessage)
+        : '',
       timeAgo: created.timeAgo,
       imageUrl: otherProfilePic,
       unread: created.unread,
@@ -444,6 +462,7 @@ export class ConversationsService {
     const threadId = conv.threadId ?? conv._id;
     const isGroup = conv.participants && conv.participants.length > 0;
     const encryptedText = this.encryptMessage(text);
+    this.logger.log(`[ENCRYPTION CHECK] Thread: ${threadId}, Plaintext Length: ${text?.length}, Encrypted Length: ${encryptedText?.length}`);
     const created = await this.messageModel.create({
       threadId,
       senderId: uid,

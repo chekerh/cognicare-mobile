@@ -43,7 +43,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       _error = null;
     });
     try {
-      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final chatService = ChatService();
       final list = await chatService.getFamiliesToContact();
       if (!mounted) return;
       setState(() {
@@ -82,7 +82,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     }
     setState(() => _creating = true);
     try {
-      final chatService = ChatService(getToken: () => AuthService().getStoredToken());
+      final chatService = ChatService();
       final participantIds = _selectedIds.where((id) => id.trim().isNotEmpty).toList();
       final conv = await chatService.createGroup(name, participantIds);
       if (!mounted) return;

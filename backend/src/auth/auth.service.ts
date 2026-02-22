@@ -33,6 +33,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { MailService } from '../mail/mail.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { OrganizationService } from '../organization/organization.service';
+import { FraudAnalysisService } from '../orgScanAi/fraud-analysis.service';
 
 @Injectable()
 export class AuthService {
@@ -52,7 +53,8 @@ export class AuthService {
     private configService: ConfigService,
     private mailService: MailService,
     private organizationService: OrganizationService,
-  ) { }
+    private readonly fraudAnalysisService: FraudAnalysisService,
+  ) {}
 
   private generateTokens(user: UserDocument) {
     const payload = {
@@ -71,14 +73,17 @@ export class AuthService {
     return bcrypt.hash(refreshToken, saltRounds);
   }
 
-  async signup(signupDto: SignupDto): Promise<
+  async signup(
+    signupDto: SignupDto,
+    certificatePdfBuffer?: Buffer,
+  ): Promise<
     | { accessToken: string; refreshToken: string; user: any }
     | {
-      requiresApproval: true;
-      message: string;
-      user: any;
-      pendingOrganization: any;
-    }
+        requiresApproval: true;
+        message: string;
+        user: any;
+        pendingOrganization: any;
+      }
   > {
     const {
       email,
@@ -132,6 +137,25 @@ export class AuthService {
     // Delete the verification record
     await this.emailVerificationModel.deleteOne({ email });
 
+    // For organization leaders, check if there's a previously rejected application
+    if (userData.role === 'organization_leader') {
+      const rejectedOrg = await this.pendingOrganizationModel
+        .findOne({
+          leaderEmail: email,
+          status: 'rejected',
+        })
+        .sort({ createdAt: -1 });
+
+      if (rejectedOrg) {
+        const reason =
+          rejectedOrg.rejectionReason ||
+          'Not specified. Please contact support for details.';
+        throw new BadRequestException(
+          `A previous organization application from this email was rejected. Reason: ${reason}. Please contact support if you believe this is an error.`,
+        );
+      }
+    }
+
     // Hash password
     const saltRounds = 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
@@ -148,12 +172,43 @@ export class AuthService {
     // If role is organization_leader, create pending organization request
     let pendingOrganization: any = null;
     if (userData.role === 'organization_leader') {
+      // Certificate PDF is required for organization leaders
+      if (!certificatePdfBuffer) {
+        throw new BadRequestException(
+          'Organization registration certificate (PDF) is required for organization leaders',
+        );
+      }
+
       const orgName = organizationName || `${user.fullName}'s Organization`;
+
+      // Upload certificate PDF to Cloudinary
+      let certificateUrl: string;
+      try {
+        console.log('[SIGNUP] Uploading certificate PDF to Cloudinary');
+        certificateUrl = await this.cloudinary.uploadRawBuffer(
+          certificatePdfBuffer,
+          {
+            folder: 'organization-certificates',
+            publicId: `cert_${user._id.toString()}_${Date.now()}`,
+            resourceType: 'raw',
+          },
+        );
+        console.log('[SIGNUP] Certificate uploaded:', certificateUrl);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        console.error('[SIGNUP] Failed to upload certificate:', errorMessage);
+        throw new BadRequestException(
+          'Failed to upload organization certificate. Please try again.',
+        );
+      }
+
       pendingOrganization =
         await this.organizationService.createPendingOrganization(
           orgName,
           user._id.toString(),
           organizationDescription,
+          certificateUrl,
         );
 
       console.log(
@@ -161,12 +216,42 @@ export class AuthService {
       );
       console.log('[SIGNUP] Pending organization ID:', pendingOrganization._id);
 
+      // Trigger AI fraud analysis with certificate PDF
+      try {
+        console.log('[SIGNUP] Triggering AI fraud analysis for certificate');
+        const analysisInput = {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+          organizationId: pendingOrganization._id.toString(),
+          pdfBuffer: certificatePdfBuffer,
+          email: user.email,
+          websiteDomain: undefined, // Optional field
+          originalPdfPath: certificateUrl,
+        };
+        const fraudAnalysis =
+          await this.fraudAnalysisService.analyzeOrganization(analysisInput);
+
+        console.log(
+          '[SIGNUP] Fraud analysis completed. Risk level:',
+          fraudAnalysis.level,
+          'Score:',
+          fraudAnalysis.fraudRisk,
+        );
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        console.error(
+          '[SIGNUP] Failed to perform fraud analysis:',
+          errorMessage,
+        );
+        // Don't fail signup if fraud analysis fails - admin can review manually
+      }
+
       // For organization leaders, do NOT log them in until admin approves
       // Return a special response indicating they need to wait for approval
       return {
         requiresApproval: true,
         message:
-          'Your organization request has been submitted successfully. Please wait for admin approval. You will receive an email notification once your request is reviewed.',
+          'Your organization request has been submitted successfully. An AI-powered fraud detection system has analyzed your certificate. Please wait for admin approval. You will receive an email notification once your request is reviewed.',
         user: {
           id: user._id,
           fullName: user.fullName,
@@ -263,6 +348,21 @@ export class AuthService {
           pendingOrg ? 'YES' : 'NO',
         );
 
+        // Debug: Check ALL pending orgs for this user
+        const allPendingOrgs = await this.pendingOrganizationModel.find({
+          requestedBy: user._id,
+        });
+        console.log(
+          '[LOGIN] All pending orgs for user:',
+          allPendingOrgs.length,
+        );
+        if (allPendingOrgs.length > 0) {
+          console.log(
+            '[LOGIN] Pending org statuses:',
+            allPendingOrgs.map((org) => org.status),
+          );
+        }
+
         if (pendingOrg) {
           throw new UnauthorizedException(
             'Your organization request is pending approval. You will receive an email notification once your request is reviewed.',
@@ -281,10 +381,43 @@ export class AuthService {
           '[LOGIN] Rejected organization found:',
           rejectedOrg ? 'YES' : 'NO',
         );
+        console.log('[LOGIN] User ID being checked:', String(user._id));
+        console.log(
+          '[LOGIN] Query criteria:',
+          JSON.stringify({
+            requestedBy: String(user._id),
+            status: 'rejected',
+          }),
+        );
 
         if (rejectedOrg) {
+          const reason =
+            rejectedOrg.rejectionReason ||
+            'Not specified. Please contact support for more details.';
           throw new UnauthorizedException(
-            `Your organization request was rejected. Reason: ${rejectedOrg.rejectionReason || 'Not specified'}`,
+            `Your organization request was rejected. Reason: ${reason}. You cannot log in with this account.`,
+          );
+        }
+
+        // Also check by email (in case user account was deleted and recreated)
+        const rejectedByEmail = await this.pendingOrganizationModel
+          .findOne({
+            leaderEmail: user.email,
+            status: 'rejected',
+          })
+          .sort({ createdAt: -1 });
+
+        console.log(
+          '[LOGIN] Rejected organization by email found:',
+          rejectedByEmail ? 'YES' : 'NO',
+        );
+
+        if (rejectedByEmail) {
+          const reason =
+            rejectedByEmail.rejectionReason ||
+            'Not specified. Please contact support for more details.';
+          throw new UnauthorizedException(
+            `Your organization request was rejected. Reason: ${reason}. You cannot log in with this account. If you believe this is an error, please contact support.`,
           );
         }
 
@@ -836,18 +969,29 @@ export class AuthService {
     user.confirmationToken = undefined;
     await user.save();
 
-    console.log(`[ACTIVATE] User ${user.email} confirmed. Linking to organization...`);
+    console.log(
+      `[ACTIVATE] User ${user.email} confirmed. Linking to organization...`,
+    );
 
     // Link user to organization and update invitation status
     // We throw error here if link fails to notify the user/frontend
     try {
       await this.organizationService.acceptInvitation(token);
-      console.log(`[ACTIVATE] Success: Joined organization for token ${token.substring(0, 10)}...`);
-    } catch (error) {
-      console.error(`[ACTIVATE] Error linking to organization for token ${token.substring(0, 10)}...:`, error.message);
+      console.log(
+        `[ACTIVATE] Success: Joined organization for token ${token.substring(0, 10)}...`,
+      );
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      console.error(
+        `[ACTIVATE] Error linking to organization for token ${token.substring(0, 10)}...:`,
+        errorMessage,
+      );
       // If invitation is not found but user already has organizationId, it might be already processed
       if (!user.organizationId) {
-        throw new BadRequestException(`Password set, but failed to join organization: ${error.message}`);
+        throw new BadRequestException(
+          `Password set, but failed to join organization: ${errorMessage}`,
+        );
       }
     }
   }

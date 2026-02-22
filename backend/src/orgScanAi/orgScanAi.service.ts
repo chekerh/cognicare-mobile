@@ -1,7 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
-import pdf from 'pdf-parse';
 import * as fs from 'fs';
+
+// pdf-parse type definition
+type PDFParseResult = {
+  text: string;
+};
+type PDFParseClass = new (options: { data: Buffer }) => {
+  getText: () => Promise<PDFParseResult>;
+  destroy: () => Promise<void>;
+};
 
 // Timeout for Gemini requests (30 seconds - compatible with Render free tier)
 const GEMINI_TIMEOUT = 30000;
@@ -23,8 +31,37 @@ interface GeminiResponse {
 export class OrgScanAiService {
   private readonly logger = new Logger(OrgScanAiService.name);
   private readonly geminiApiKey = process.env.GEMINI_API_KEY;
-  private readonly geminiModel = 'gemini-1.5-flash';
+  private readonly geminiModel = 'gemma-3-4b-it'; // Using Gemma-4B (fast, quota available)
   private readonly geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${this.geminiModel}:generateContent`;
+
+  /**
+   * Lazy load pdf-parse class (CommonJS module)
+   */
+  private async getPdfParseClass(): Promise<PDFParseClass> {
+    try {
+      const importedModule = await import('pdf-parse');
+      const candidates = [
+        (importedModule as any).PDFParse,
+        (importedModule as any).default?.PDFParse,
+        (importedModule as any).default?.default?.PDFParse,
+        (importedModule as any).default,
+        importedModule,
+      ];
+      const pdfParseClass = candidates.find(
+        (candidate) =>
+          typeof candidate === 'function' &&
+          typeof candidate.prototype?.getText === 'function',
+      ) as PDFParseClass | undefined;
+      if (!pdfParseClass) {
+        throw new Error('pdf-parse module did not export PDFParse class');
+      }
+      return pdfParseClass;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to load pdf-parse module: ${message}`);
+      throw new Error(`PDF parser initialization failed: ${message}`);
+    }
+  }
 
   /**
    * Extract text content from a PDF file
@@ -34,8 +71,20 @@ export class OrgScanAiService {
   async extractText(filePath: string): Promise<string> {
     try {
       const dataBuffer = fs.readFileSync(filePath);
-      const data = await pdf(dataBuffer);
-      this.logger.log(`Successfully extracted text from PDF: ${filePath}`);
+      this.logger.log(
+        `Extracting text from PDF file: ${filePath} (${dataBuffer.length} bytes)`,
+      );
+      const PDFParse = await this.getPdfParseClass();
+      const parser = new PDFParse({ data: dataBuffer });
+      let data: PDFParseResult;
+      try {
+        data = await parser.getText();
+      } finally {
+        await parser.destroy();
+      }
+      this.logger.log(
+        `Successfully extracted ${data.text.length} characters from PDF`,
+      );
       return data.text;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -51,8 +100,20 @@ export class OrgScanAiService {
    */
   async extractTextFromBuffer(buffer: Buffer): Promise<string> {
     try {
-      const data = await pdf(buffer);
-      this.logger.log('Successfully extracted text from PDF buffer');
+      this.logger.log(
+        `Extracting text from PDF buffer (${buffer.length} bytes)`,
+      );
+      const PDFParse = await this.getPdfParseClass();
+      const parser = new PDFParse({ data: buffer });
+      let data: PDFParseResult;
+      try {
+        data = await parser.getText();
+      } finally {
+        await parser.destroy();
+      }
+      this.logger.log(
+        `Successfully extracted ${data.text.length} characters from PDF`,
+      );
       return data.text;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -62,7 +123,7 @@ export class OrgScanAiService {
   }
 
   /**
-   * Analyze document text using Google Gemini AI (gemini-1.5-flash)
+   * Analyze document text using Google Gemini AI (gemini-2.0-flash-001)
    * @param text - Document text to analyze
    * @returns AI analysis result as JSON string
    */
@@ -138,6 +199,31 @@ ${text.slice(0, 8000)}
       this.logger.log('Successfully received Gemini AI analysis');
       return aiText;
     } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        const status = error.response.status;
+        const errorData = error.response.data;
+
+        if (status === 429) {
+          this.logger.error(
+            'Gemini API quota exceeded. Enable billing at https://console.cloud.google.com/billing or wait for quota reset.',
+          );
+          throw new Error(
+            'AI analysis quota exceeded. Please contact administrator to enable billing or wait for quota reset.',
+          );
+        } else if (status === 401 || status === 403) {
+          this.logger.error('Gemini API authentication failed. Check API key.');
+          throw new Error(
+            'AI analysis authentication failed. Invalid API key.',
+          );
+        } else {
+          this.logger.error(
+            `Gemini API error (${status}): ${errorData?.error?.message || 'Unknown error'}`,
+          );
+          throw new Error(
+            `AI analysis failed: ${errorData?.error?.message || 'API error'}`,
+          );
+        }
+      }
       const message = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`Gemini AI analysis failed: ${message}`);
       throw new Error(`AI analysis failed: ${message}`);
@@ -240,8 +326,33 @@ ${text.slice(0, 8000)}
         return true;
       }
       return false;
-    } catch {
-      this.logger.error('Gemini API is not accessible');
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        const status = error.response.status;
+        const errorData = error.response.data;
+
+        if (status === 429) {
+          this.logger.error(
+            '⚠️  Gemini API quota exhausted. Enable billing at https://console.cloud.google.com/billing or wait for daily/monthly reset. Check usage: https://ai.dev/rate-limit',
+          );
+        } else if (status === 401 || status === 403) {
+          this.logger.error(
+            '🔑 Gemini API authentication failed. Verify GEMINI_API_KEY in .env file.',
+          );
+        } else if (status === 404) {
+          this.logger.error(
+            `❌ Gemini model '${this.geminiModel}' not found. Check available models at https://ai.google.dev/gemini-api/docs/models`,
+          );
+        } else {
+          this.logger.error(
+            `Gemini API error (${status}): ${errorData?.error?.message || 'Unknown error'}`,
+          );
+        }
+      } else {
+        this.logger.error(
+          'Gemini API is not accessible - Network error or timeout',
+        );
+      }
       return false;
     }
   }

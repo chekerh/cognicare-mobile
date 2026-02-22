@@ -36,7 +36,7 @@ import { AdminGuard } from '../auth/admin.guard';
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Post()
   @UseGuards(AdminGuard)
@@ -102,6 +102,19 @@ export class UsersController {
   })
   async getFamilies(@Request() req: { user: { id: string } }) {
     return this.usersService.findFamilyUsers(req.user.id);
+  }
+
+  @Get('volunteers')
+  @ApiOperation({
+    summary: 'List volunteer users',
+    description: 'Returns users with role volunteer.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of volunteer users (id, fullName, profilePic)',
+  })
+  async getVolunteers() {
+    return this.usersService.findVolunteerUsers();
   }
 
   @Get('me/blocked')

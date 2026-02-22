@@ -19,6 +19,7 @@ export class User {
 
   @Prop({
     required: true,
+    index: true,
     enum: [
       'family',
       'doctor',
@@ -44,6 +45,9 @@ export class User {
 
   @Prop({ type: 'ObjectId', ref: 'Organization' })
   organizationId?: string;
+
+  @Prop({ type: 'ObjectId', ref: 'User' })
+  specialistId?: string;
 
   @Prop()
   profilePic?: string;
@@ -80,8 +84,24 @@ export class User {
   @Prop()
   confirmationToken?: string;
 
+  /** Metadata for tracking who added the user (for families/staff) */
+  @Prop({ type: 'ObjectId', ref: 'Organization' })
+  addedByOrganizationId?: string;
+
+  @Prop({ type: 'ObjectId', ref: 'User' })
+  addedBySpecialistId?: string;
+
+  @Prop({ type: 'ObjectId', ref: 'User' })
+  lastModifiedBy?: string;
+
+  /** Timestamp for soft delete */
+  @Prop()
+  deletedAt?: Date;
+
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.index({ role: 1, fullName: 1 });

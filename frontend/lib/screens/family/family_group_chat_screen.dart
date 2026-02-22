@@ -183,11 +183,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     final cid = widget.groupId;
     if (cid == null) return;
     try {
-      final chatService = ChatService(
-        getToken: () async =>
-            Provider.of<AuthProvider>(context, listen: false).accessToken ??
-            await AuthService().getStoredToken(),
-      );
+      final chatService = ChatService();
       final families = await chatService.getFamiliesToContact();
       if (!mounted) return;
       if (families.isEmpty) {
@@ -266,11 +262,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final currentUserId = auth.user?.id;
-      final chatService = ChatService(
-        getToken: () async =>
-            Provider.of<AuthProvider>(context, listen: false).accessToken ??
-            await AuthService().getStoredToken(),
-      );
+      final chatService = ChatService();
       final list = await chatService.getMessages(cid);
       if (!mounted) return;
       setState(() {
@@ -406,11 +398,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
         final cid = widget.groupId;
         if (cid != null) {
           try {
-            final chatService = ChatService(
-              getToken: () async =>
-                  Provider.of<AuthProvider>(context, listen: false).accessToken ??
-                  await AuthService().getStoredToken(),
-            );
+            final chatService = ChatService();
             final url = await chatService.uploadAttachment(File(voicePath), 'voice');
             final sent = await chatService.sendMessage(
               cid,
@@ -492,11 +480,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
       final XFile? picked = await _imagePicker.pickImage(source: ImageSource.gallery);
       if (picked == null || !mounted) return;
       final file = File(picked.path);
-      final chatService = ChatService(
-        getToken: () async =>
-            Provider.of<AuthProvider>(context, listen: false).accessToken ??
-            await AuthService().getStoredToken(),
-      );
+      final chatService = ChatService();
       setState(() => _sending = true);
       try {
         final url = await chatService.uploadAttachment(file, 'image');
@@ -555,11 +539,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
       _messageController.clear();
       _scrollToBottom();
       try {
-        final chatService = ChatService(
-          getToken: () async =>
-              Provider.of<AuthProvider>(context, listen: false).accessToken ??
-              await AuthService().getStoredToken(),
-        );
+        final chatService = ChatService();
         final sent = await chatService.sendMessage(cid, text);
         if (!mounted) return;
         setState(() {

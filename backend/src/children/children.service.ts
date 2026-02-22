@@ -8,11 +8,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Child, ChildDocument } from './schemas/child.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
-import {
-  Organization,
-  OrganizationDocument,
-} from '../organization/schemas/organization.schema';
+import { Organization, OrganizationDocument } from '../organization/schemas/organization.schema';
+import { OrganizationService } from '../organization/organization.service';
 import { AddChildDto } from './dto/add-child.dto';
+import { CreateFamilyDto } from '../organization/dto/create-family.dto';
 
 interface UserLean {
   _id?: Types.ObjectId;
@@ -45,7 +44,8 @@ export class ChildrenService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Organization.name)
     private organizationModel: Model<OrganizationDocument>,
-  ) {}
+    private organizationService: OrganizationService,
+  ) { }
 
   /**
    * Get children for a family. Secured: only the family (parent) or org leader can list.
@@ -126,6 +126,8 @@ export class ChildrenService {
       notes: dto.notes?.trim(),
       parentId: family._id,
       organizationId: family.organizationId,
+      addedByOrganizationId: family.organizationId,
+      lastModifiedBy: new Types.ObjectId(requesterId),
     });
 
     if (family.organizationId) {
@@ -149,7 +151,58 @@ export class ChildrenService {
       allergies: child.allergies,
       medications: child.medications,
       notes: child.notes,
-      parentId: child.parentId.toString(),
+      parentId: child.parentId?.toString(),
     };
+  }
+
+  // ── Specialist Private Children ──
+
+  async findBySpecialistId(specialistId: string) {
+    const children = (await this.childModel
+      .find({ specialistId: new Types.ObjectId(specialistId) })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec()) as ChildLean[];
+
+    return children.map((c) => ({
+      _id: c._id?.toString() ?? '',
+      fullName: c.fullName ?? '',
+      dateOfBirth:
+        c.dateOfBirth instanceof Date
+          ? c.dateOfBirth.toISOString().slice(0, 10)
+          : (c.dateOfBirth ?? ''),
+      gender: c.gender ?? '',
+      diagnosis: c.diagnosis,
+      notes: c.notes,
+    }));
+  }
+
+  async createForSpecialist(specialistId: string, dto: AddChildDto) {
+    const child = await this.childModel.create({
+      fullName: dto.fullName.trim(),
+      dateOfBirth: new Date(dto.dateOfBirth),
+      gender: dto.gender,
+      diagnosis: dto.diagnosis?.trim(),
+      medicalHistory: dto.medicalHistory?.trim(),
+      allergies: dto.allergies?.trim(),
+      medications: dto.medications?.trim(),
+      notes: dto.notes?.trim(),
+      specialistId: new Types.ObjectId(specialistId),
+      addedBySpecialistId: new Types.ObjectId(specialistId),
+      lastModifiedBy: new Types.ObjectId(specialistId),
+    });
+
+    return {
+      _id: child._id.toString(),
+      fullName: child.fullName,
+      dateOfBirth: child.dateOfBirth,
+      gender: child.gender,
+      diagnosis: child.diagnosis,
+      notes: child.notes,
+    };
+  }
+
+  async createPrivateFamily(specialistId: string, dto: CreateFamilyDto) {
+    return this.organizationService.createFamilyMember(null, dto, specialistId);
   }
 }

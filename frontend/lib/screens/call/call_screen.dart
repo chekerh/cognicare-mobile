@@ -9,6 +9,7 @@ import '../../providers/call_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/call_service.dart';
 import '../../services/chat_service.dart';
+import 'package:record/record.dart';
 
 // ─── Colors ──────────────────────────────────────────────────────────
 const Color _primary = Color(0xFFA8DADC);
@@ -76,6 +77,13 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   Timer? _noAnswerTimer;
   bool _isEnding = false; // Guard for double-hangup/pop
 
+  // Transcription
+  final AudioRecorder _audioRecorder = AudioRecorder();
+  StreamSubscription<TranscriptionEvent>? _transcriptionSub;
+  String _currentTranscription = "";
+  final List<String> _transcriptionHistory = [];
+  bool _isTranscriptionEnabled = true;
+
   // Subscriptions
   StreamSubscription? _acceptedSub;
   StreamSubscription? _rejectedSub;
@@ -119,7 +127,25 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           _listenForResponse();
           _listenForEnd();
           _listenForWebRTCSignaling();
+          _listenForTranscription();
           _startNoAnswerTimer();
+        }
+      });
+    });
+  }
+
+  void _listenForTranscription() {
+    _transcriptionSub = _callService.onTranscription.listen((event) {
+      if (!mounted) return;
+      setState(() {
+        if (event.isFinal) {
+          _transcriptionHistory.add(event.text);
+          if (_transcriptionHistory.length > 5) {
+            _transcriptionHistory.removeAt(0);
+          }
+          _currentTranscription = "";
+        } else {
+          _currentTranscription = event.text;
         }
       });
     });
@@ -288,6 +314,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
           setState(() => _callStatus = CallStatus.connected);
           _startDurationTimer();
+          _startRecording();
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
           setState(() {
@@ -319,6 +346,39 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     };
 
     if (mounted) setState(() {});
+  }
+
+  Future<void> _startRecording() async {
+    try {
+      if (await _audioRecorder.hasPermission()) {
+        const config = RecordConfig(
+          encoder: AudioEncoder.pcm16bits,
+          sampleRate: 16000,
+          numChannels: 1,
+        );
+
+        final stream = await _audioRecorder.startStream(config);
+        stream.listen((data) {
+          if (_callStatus == CallStatus.connected && _isTranscriptionEnabled) {
+            _callService.sendAudioChunk(
+              targetUserId: widget.remoteUserId,
+              chunk: data,
+              channelId: widget.channelId,
+            );
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('🎙️ [CALL_SCREEN] Error starting recording: $e');
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    try {
+      await _audioRecorder.stop();
+    } catch (e) {
+      debugPrint('🎙️ [CALL_SCREEN] Error stopping recording: $e');
+    }
   }
 
   Future<void> _startWebRTCAsOffer() async {
@@ -420,10 +480,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       if (!mounted) return;
       final auth = Provider.of<AuthProvider>(context, listen: false);
       if (auth.user == null || widget.remoteUserId.isEmpty) return;
-      final chatService = ChatService(
-        getToken: () async =>
-            auth.accessToken ?? await AuthService().getStoredToken(),
-      );
+      final chatService = ChatService();
       final conv =
           await chatService.getOrCreateConversation(widget.remoteUserId);
       final text = widget.isVideo ? 'Appel vidéo' : 'Appel vocal';
@@ -506,10 +563,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         debugPrint('⚠️ [CALL_SCREEN] Skipped missed call message: user=${auth.user?.id}, remote=${widget.remoteUserId}');
         return;
       }
-      final chatService = ChatService(
-        getToken: () async =>
-            auth.accessToken ?? await AuthService().getStoredToken(),
-      );
+      final chatService = ChatService();
       final conv =
           await chatService.getOrCreateConversation(widget.remoteUserId);
       final text =
@@ -538,6 +592,10 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     _pendingIceCandidates.clear();
   }
 
+  void _toggleTranscription() {
+    setState(() => _isTranscriptionEnabled = !_isTranscriptionEnabled);
+  }
+
   @override
   void dispose() {
     _noAnswerTimer?.cancel();
@@ -548,8 +606,11 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     _offerSub?.cancel();
     _answerSub?.cancel();
     _iceSub?.cancel();
+    _transcriptionSub?.cancel();
     _pulseController.dispose();
     _cleanup();
+    _stopRecording();
+    _audioRecorder.dispose();
     _localRenderer.dispose();
     _remoteRenderer.dispose();
     super.dispose();
@@ -831,7 +892,48 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           bottom: 0,
           child: _buildControlBar(),
         ),
+
+        // Transcription Overlay
+        if (_isTranscriptionEnabled && _callStatus == CallStatus.connected)
+          Positioned(
+            left: 20,
+            right: 20,
+            bottom: 120,
+            child: _buildTranscriptionOverlay(),
+          ),
       ],
+    );
+  }
+
+  Widget _buildTranscriptionOverlay() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ..._transcriptionHistory.map((text) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  text,
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                ),
+              )),
+          if (_currentTranscription.isNotEmpty)
+            Text(
+              _currentTranscription,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -1034,6 +1136,12 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
             label: _isSpeakerOn ? 'HP' : 'Écouteur',
             isActive: _isSpeakerOn,
             onTap: _toggleSpeaker,
+          ),
+          _controlButton(
+            icon: _isTranscriptionEnabled ? Icons.subtitles : Icons.subtitles_off,
+            label: _isTranscriptionEnabled ? 'Texte ON' : 'Texte OFF',
+            isActive: _isTranscriptionEnabled,
+            onTap: _toggleTranscription,
           ),
           // End call
           GestureDetector(

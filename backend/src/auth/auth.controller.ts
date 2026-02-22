@@ -21,6 +21,7 @@ import {
   ApiResponse,
   ApiBody,
   ApiBearerAuth,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
@@ -45,7 +46,7 @@ import { ErrorResponseDto } from '../common/dto/error-response.dto';
 @Controller('auth')
 @UseGuards(ThrottlerGuard)
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('send-verification-code')
   @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 requests per minute
@@ -120,11 +121,41 @@ export class AuthController {
 
   @Post('signup')
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per minute for signup
+  @UseInterceptors(FileInterceptor('certificate'))
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary: 'User registration',
-    description: 'Create a new user account with email, password, and role',
+    description:
+      'Create a new user account with email, password, and role. For organization leaders, a PDF certificate is REQUIRED for AI-powered fraud verification.',
   })
-  @ApiBody({ type: SignupDto })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        fullName: { type: 'string', example: 'John Doe' },
+        email: { type: 'string', example: 'john@example.com' },
+        phone: { type: 'string', example: '+1234567890' },
+        password: { type: 'string', example: 'password123', minLength: 6 },
+        role: {
+          type: 'string',
+          enum: ['family', 'doctor', 'volunteer', 'organization_leader'],
+        },
+        organizationName: { type: 'string', example: 'Hope Care Foundation' },
+        organizationDescription: {
+          type: 'string',
+          example: 'A community center for cognitive health',
+        },
+        verificationCode: { type: 'string', example: '123456' },
+        certificate: {
+          type: 'string',
+          format: 'binary',
+          description:
+            'Organization registration certificate PDF (REQUIRED for organization_leader)',
+        },
+      },
+      required: ['fullName', 'email', 'password', 'role', 'verificationCode'],
+    },
+  })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'User successfully registered',
@@ -160,7 +191,8 @@ export class AuthController {
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid input data',
+    description:
+      'Invalid input data, missing certificate for organization leader, or invalid certificate format (must be PDF)',
     type: ErrorResponseDto,
   })
   @ApiResponse({
@@ -168,8 +200,49 @@ export class AuthController {
     description: 'Too many requests',
     type: ErrorResponseDto,
   })
-  async signup(@Body() signupDto: SignupDto) {
-    return this.authService.signup(signupDto);
+  async signup(
+    @Body() signupDto: SignupDto,
+    @UploadedFile()
+    certificate?: {
+      buffer: Buffer;
+      mimetype: string;
+      originalname: string;
+      size: number;
+    },
+  ) {
+    // Validate PDF certificate is required for organization leaders
+    if (signupDto.role === 'organization_leader') {
+      if (!certificate) {
+        throw new BadRequestException(
+          'Organization registration certificate (PDF) is required for organization leaders',
+        );
+      }
+
+      // Validate mimetype
+      if (certificate.mimetype !== 'application/pdf') {
+        throw new BadRequestException(
+          `Certificate must be a PDF file (received ${certificate.mimetype})`,
+        );
+      }
+
+      // Validate PDF magic bytes (file signature)
+      const pdfHeader = certificate.buffer.toString('utf8', 0, 5);
+      if (!pdfHeader.startsWith('%PDF-')) {
+        throw new BadRequestException(
+          'Invalid PDF file. The uploaded file does not have a valid PDF header. Please ensure you are uploading a genuine PDF document.',
+        );
+      }
+
+      // Validate file size (max 10MB for PDFs)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (certificate.size > maxSize) {
+        throw new BadRequestException(
+          `Certificate PDF file is too large (${(certificate.size / 1024 / 1024).toFixed(2)}MB). Maximum allowed size is 10MB.`,
+        );
+      }
+    }
+
+    return this.authService.signup(signupDto, certificate?.buffer);
   }
 
   @Post('login')

@@ -34,7 +34,7 @@ import { UpdateChildDto } from '../children/dto/update-child.dto';
 @Controller('organization')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class OrganizationController {
-  constructor(private readonly organizationService: OrganizationService) { }
+  constructor(private readonly organizationService: OrganizationService) {}
 
   // My Organization endpoints (uses logged-in user)
   @Get('my-organization')
@@ -208,6 +208,140 @@ export class OrganizationController {
       req.user.id as string,
       familyId,
       childId,
+    );
+  }
+
+  // Admin: Get all families (across all organizations)
+  @Get('admin/families')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get all family users (Admin only)' })
+  async adminGetAllFamilies() {
+    return await this.organizationService.adminGetAllFamilies();
+  }
+
+  // Admin: Create a new family member
+  @Post('admin/families')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Create a new family member (Admin only)' })
+  async adminCreateFamily(
+    @Body()
+    dto: {
+      fullName: string;
+      email: string;
+      password: string;
+      phone?: string;
+      organizationId?: string;
+    },
+  ) {
+    return await this.organizationService.adminCreateFamily(dto);
+  }
+
+  // Admin: Update a family member
+  @Patch('admin/families/:familyId')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Update a family member (Admin only)' })
+  async adminUpdateFamily(
+    @Param('familyId') familyId: string,
+    @Body() updateDto: { fullName?: string; email?: string; phone?: string },
+  ) {
+    return await this.organizationService.adminUpdateFamily(
+      familyId,
+      updateDto,
+    );
+  }
+
+  // Admin: Delete a family member
+  @Delete('admin/families/:familyId')
+  @Roles('admin')
+  @ApiOperation({
+    summary: 'Delete a family member and their children (Admin only)',
+  })
+  async adminDeleteFamily(@Param('familyId') familyId: string) {
+    return await this.organizationService.adminDeleteFamily(familyId);
+  }
+
+  // Admin: Assign family to an organization
+  @Patch('admin/families/:familyId/organization')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Assign a family to an organization (Admin only)' })
+  async adminAssignFamilyToOrg(
+    @Param('familyId') familyId: string,
+    @Body('orgId') orgId: string,
+  ) {
+    return await this.organizationService.adminAssignFamilyToOrg(
+      familyId,
+      orgId,
+    );
+  }
+
+  // Admin: Remove family from its organization
+  @Delete('admin/families/:familyId/organization')
+  @Roles('admin')
+  @ApiOperation({
+    summary: 'Remove a family from its organization (Admin only)',
+  })
+  async adminRemoveFamilyFromOrg(@Param('familyId') familyId: string) {
+    return await this.organizationService.adminRemoveFamilyFromOrg(familyId);
+  }
+
+  // Admin: Get children for a specific family
+  @Get('admin/families/:familyId/children')
+  @Roles('admin')
+  @ApiOperation({ summary: "Get a family's children (Admin only)" })
+  async adminGetFamilyChildren(@Param('familyId') familyId: string) {
+    return await this.organizationService.adminGetFamilyChildren(familyId);
+  }
+
+  // Admin: Add a child to a family
+  @Post('admin/families/:familyId/children')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Add a child to a family (Admin only)' })
+  async adminAddChildToFamily(
+    @Param('familyId') familyId: string,
+    @Body() addChildDto: AddChildDto,
+  ) {
+    return await this.organizationService.adminAddChildToFamily(
+      familyId,
+      addChildDto,
+    );
+  }
+
+  // Admin: Update a child
+  @Patch('admin/families/:familyId/children/:childId')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Update a child (Admin only)' })
+  async adminUpdateChild(
+    @Param('childId') childId: string,
+    @Body() updateChildDto: UpdateChildDto,
+  ) {
+    return await this.organizationService.adminUpdateChild(
+      childId,
+      updateChildDto,
+    );
+  }
+
+  // Admin: Delete a child
+  @Delete('admin/families/:familyId/children/:childId')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Delete a child (Admin only)' })
+  async adminDeleteChild(
+    @Param('familyId') familyId: string,
+    @Param('childId') childId: string,
+  ) {
+    return await this.organizationService.adminDeleteChild(familyId, childId);
+  }
+
+  // Admin: Change organization leader
+  @Patch(':id/change-leader')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Change organization leader (Admin only)' })
+  async changeOrganizationLeader(
+    @Param('id') id: string,
+    @Body('newLeaderEmail') newLeaderEmail: string,
+  ) {
+    return await this.organizationService.changeOrganizationLeader(
+      id,
+      newLeaderEmail,
     );
   }
 
@@ -592,6 +726,15 @@ export class OrganizationController {
     return await this.organizationService.getAllPendingOrganizations();
   }
 
+  @Get('admin/reviewed-requests')
+  @Roles('admin')
+  @ApiOperation({
+    summary: 'Get reviewed organization requests (Admin only)',
+  })
+  async getReviewedOrganizationRequests() {
+    return await this.organizationService.getReviewedOrganizations();
+  }
+
   @Post('admin/review/:requestId')
   @Roles('admin')
   @ApiOperation({ summary: 'Review pending organization request (Admin only)' })
@@ -601,6 +744,24 @@ export class OrganizationController {
     @Request() req: any,
   ) {
     return await this.organizationService.reviewOrganization(
+      requestId,
+      req.user.id as string,
+      reviewDto.decision,
+      reviewDto.rejectionReason,
+    );
+  }
+
+  @Post('admin/re-review/:requestId')
+  @Roles('admin')
+  @ApiOperation({
+    summary: 'Re-review previously reviewed organization request (Admin only)',
+  })
+  async reReviewOrganizationRequest(
+    @Param('requestId') requestId: string,
+    @Body() reviewDto: ReviewOrganizationDto,
+    @Request() req: any,
+  ) {
+    return await this.organizationService.reReviewOrganization(
       requestId,
       req.user.id as string,
       reviewDto.decision,

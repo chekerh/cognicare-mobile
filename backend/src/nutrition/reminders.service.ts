@@ -359,7 +359,7 @@ export class RemindersService {
       throw new ForbiddenException('User not found');
     }
 
-    const isParent = child.parentId.toString() === userId;
+    const isParent = child.parentId?.toString() === userId;
     const isHealthcare = [
       'doctor',
       'psychologist',

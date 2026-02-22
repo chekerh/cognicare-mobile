@@ -26,6 +26,9 @@ export class Organization {
   @Prop()
   contact?: string;
 
+  @Prop()
+  certificateUrl?: string;
+
   createdAt?: Date;
   updatedAt?: Date;
 }

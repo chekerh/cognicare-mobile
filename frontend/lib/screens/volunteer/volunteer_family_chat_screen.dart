@@ -161,9 +161,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
         });
         return;
       }
-      final chatService = ChatService(
-        getToken: () async => auth.accessToken ?? await AuthService().getStoredToken(),
-      );
+      final chatService = ChatService();
       final list = await chatService.getMessages(cid);
       if (!mounted) return;
       setState(() {
@@ -208,9 +206,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
         });
         return;
       }
-      final chatService = ChatService(
-        getToken: () async => auth.accessToken ?? await AuthService().getStoredToken(),
-      );
+      final chatService = ChatService();
       final conv = await chatService.getOrCreateConversation(widget.familyId);
       if (!mounted) return;
       _conversationId = conv.id;
@@ -349,9 +345,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       });
       if (voicePath != null && File(voicePath).existsSync()) {
         final auth = Provider.of<AuthProvider>(context, listen: false);
-        final chatService = ChatService(
-          getToken: () async => auth.accessToken ?? await AuthService().getStoredToken(),
-        );
+        final chatService = ChatService();
         setState(() => _sending = true);
         try {
           final url = await chatService.uploadAttachment(File(voicePath), 'voice');
@@ -382,9 +376,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       final XFile? picked = await _imagePicker.pickImage(source: ImageSource.gallery);
       if (picked == null || !mounted) return;
       final auth = Provider.of<AuthProvider>(context, listen: false);
-      final chatService = ChatService(
-        getToken: () async => auth.accessToken ?? await AuthService().getStoredToken(),
-      );
+      final chatService = ChatService();
       setState(() => _sending = true);
       try {
         final url = await chatService.uploadAttachment(File(picked.path), 'image');
@@ -446,9 +438,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       _controller.clear();
       try {
         final auth = Provider.of<AuthProvider>(context, listen: false);
-        final chatService = ChatService(
-          getToken: () async => auth.accessToken ?? await AuthService().getStoredToken(),
-        );
+        final chatService = ChatService();
         await chatService.sendMessage(cid, text);
         if (!mounted) return;
         setState(() => _sending = false);
@@ -626,6 +616,8 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       ),
     );
   }
+
+
 
   void _initiateCall(BuildContext context, bool isVideo) {
     final auth = Provider.of<AuthProvider>(context, listen: false);
@@ -816,17 +808,28 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                                            size: 22,
                                          ),
                                          const SizedBox(width: 8),
-                                         Text(
-                                           msg.text,
-                                           style: TextStyle(
-                                             fontSize: 14,
-                                             color: msg.isMe ? Colors.white : _textPrimary,
-                                             fontWeight: FontWeight.bold,
-                                           ),
-                                         ),
-                                       ],
-                                     ),
-                                     if (msg.callDuration != null && msg.callDuration! > 0) ...[
+                                          Text(
+                                            msg.text.startsWith('Appel ') ? msg.text : 'Transcription de l\'appel',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: msg.isMe ? Colors.white : _textPrimary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      if (!msg.text.startsWith('Appel ')) ...[
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          msg.text,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: msg.isMe ? Colors.white.withOpacity(0.9) : _textPrimary.withOpacity(0.8),
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                      ],
+                                      if (msg.callDuration != null && msg.callDuration! > 0) ...[
                                        const SizedBox(height: 2),
                                        Text(
                                          _formatDuration(msg.callDuration!),

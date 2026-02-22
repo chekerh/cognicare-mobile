@@ -9,6 +9,8 @@ import {
 import { ChildrenService } from './children.service';
 import { ChildrenController } from './children.controller';
 
+import { OrganizationModule } from '../organization/organization.module';
+
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -16,6 +18,7 @@ import { ChildrenController } from './children.controller';
       { name: User.name, schema: UserSchema },
       { name: Organization.name, schema: OrganizationSchema },
     ]),
+    OrganizationModule,
   ],
   controllers: [ChildrenController],
   providers: [ChildrenService],

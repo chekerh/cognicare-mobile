@@ -14,7 +14,7 @@ const Color _bgLight = Color(0xFFF0F7FF);
 
 /// Page détail d'une annonce de don — design aligné sur le HTML fourni.
 class DonationDetailScreen extends StatefulWidget {
-  const DonationDetailScreen({super.key, this.title, this.description, this.fullDescription, this.conditionIndex = 0, this.categoryIndex = 0, this.imageUrl = '', this.location = '', this.distanceText, this.donorName, this.donorAvatarUrl, this.donorRating, this.latitude, this.longitude, this.suitableAge});
+  const DonationDetailScreen({super.key, this.title, this.description, this.fullDescription, this.conditionIndex = 0, this.categoryIndex = 0, this.imageUrl = '', this.location = '', this.distanceText, this.donorId, this.donorName, this.donorAvatarUrl, this.donorRating, this.latitude, this.longitude, this.suitableAge});
 
   final String? title;
   final String? description;
@@ -24,6 +24,7 @@ class DonationDetailScreen extends StatefulWidget {
   final String imageUrl;
   final String location;
   final String? distanceText;
+  final String? donorId;
   final String? donorName;
   final String? donorAvatarUrl;
   final double? donorRating;
@@ -47,6 +48,7 @@ class DonationDetailScreen extends StatefulWidget {
       imageUrl: e['imageUrl'] as String? ?? '',
       location: e['location'] as String? ?? '',
       distanceText: e['distanceText'] as String?,
+      donorId: e['donorId'] as String?,
       donorName: e['donorName'] as String?,
       donorAvatarUrl: e['donorAvatarUrl'] as String?,
       donorRating: (e['donorRating'] as num?)?.toDouble(),
@@ -525,12 +527,25 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
         color: _primary,
         child: InkWell(
           onTap: () {
-            context.push(AppConstants.familyDonationChatRoute, extra: {
-              'donorName': widget.donorName ?? 'Donateur',
-              'donationTitle': widget.title ?? '',
-              'donorAvatarUrl': widget.donorAvatarUrl,
-              'donationImageUrl': widget.imageUrl,
-            });
+            if (widget.donorId != null && widget.donorId!.isNotEmpty) {
+              context.push(
+                Uri(
+                  path: AppConstants.familyPrivateChatRoute,
+                  queryParameters: {
+                    'personId': widget.donorId!,
+                    'personName': widget.donorName ?? 'Donateur',
+                    if (widget.donorAvatarUrl != null) 'personImageUrl': widget.donorAvatarUrl!,
+                  },
+                ).toString(),
+              );
+            } else {
+              context.push(AppConstants.familyDonationChatRoute, extra: {
+                'donorName': widget.donorName ?? 'Donateur',
+                'donationTitle': widget.title ?? '',
+                'donorAvatarUrl': widget.donorAvatarUrl,
+                'donationImageUrl': widget.imageUrl,
+              });
+            }
           },
           borderRadius: BorderRadius.circular(16),
           child: Padding(

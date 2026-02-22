@@ -20,6 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@deepgram/sdk": "^4.11.3",
+    "@google-cloud/speech": "^7.2.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -41,6 +43,7 @@
     "class-validator": "^0.14.1",
     "cloudinary": "^2.9.0",
     "compression": "^1.8.1",
+    "exceljs": "^4.4.0",
     "helmet": "^8.1.0",
     "mongoose": "^8.8.3",
     "multer": "^2.0.2",
@@ -60,6 +63,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.10.7",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",

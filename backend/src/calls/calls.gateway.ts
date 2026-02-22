@@ -8,7 +8,9 @@ import {
 import { Server } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import { TranscriptionService } from './transcription.service';
+import { ConversationsService } from '../conversations/conversations.service';
 
 interface SocketWithUserId {
   id: string;
@@ -35,9 +37,14 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
 
+  private transcriptionStreams = new Map<string, any>();
+
   constructor(
     private jwtService: JwtService,
     private config: ConfigService,
+    private transcriptionService: TranscriptionService,
+    @Inject(forwardRef(() => ConversationsService))
+    private conversationsService: ConversationsService,
   ) { }
 
   handleConnection(client: SocketWithUserId) {
@@ -81,6 +88,12 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (userIdToSocket.get(userId)!.size === 0) {
         userIdToSocket.delete(userId);
       }
+    }
+    // Cleanup transcription stream
+    const stream = this.transcriptionStreams.get(client.id);
+    if (stream) {
+      stream.end();
+      this.transcriptionStreams.delete(client.id);
     }
   }
 
@@ -243,10 +256,73 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('call:audio_chunk')
+  handleAudioChunk(
+    client: SocketWithUserId,
+    payload: { targetUserId: string; chunk: Buffer; channelId: string },
+  ) {
+    if (!client.userId) return;
+
+    let stream = this.transcriptionStreams.get(client.id);
+    if (!stream) {
+      stream = this.transcriptionService.createStream({
+        onTranscription: async (text, isFinal) => {
+          // Broadcast translation to target and back to sender
+          const transcriptionPayload = {
+            fromUserId: client.userId,
+            text,
+            isFinal,
+            channelId: payload.channelId,
+          };
+
+          client.emit('call:transcription', transcriptionPayload);
+          const targetSockets = userIdToSocket.get(payload.targetUserId);
+          if (targetSockets) {
+            for (const sid of targetSockets) {
+              const s = this.server.sockets.sockets.get(sid);
+              if (s) s.emit('call:transcription', transcriptionPayload);
+            }
+          }
+
+          // If final, save to DB
+          if (isFinal && payload.channelId) {
+            try {
+              await this.conversationsService.addMessage(
+                payload.channelId,
+                client.userId!,
+                text,
+                undefined,
+                'call_summary',
+              );
+            } catch (e) {
+              this.logger.error(`Failed to save transcription: ${e.message}`);
+            }
+          }
+        },
+        onError: (err) => {
+          this.logger.error(`Transcription stream error for ${client.id}: ${err.message}`);
+          this.transcriptionStreams.delete(client.id);
+        },
+      });
+
+      if (stream) {
+        this.transcriptionStreams.set(client.id, stream);
+      }
+    }
+
+    if (stream) {
+      stream.write(payload.chunk);
+    }
+  }
+
   @SubscribeMessage('chat:typing')
   handleChatTyping(
     client: SocketWithUserId,
-    payload: { targetUserId: string; conversationId: string; isTyping: boolean },
+    payload: {
+      targetUserId: string;
+      conversationId: string;
+      isTyping: boolean;
+    },
   ) {
     if (!client.userId) return;
     const sockets = userIdToSocket.get(payload.targetUserId);
