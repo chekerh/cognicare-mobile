@@ -46,17 +46,18 @@ export class ChatbotService {
             .exec();
         const children = await this.childModel
             .find({ parentId: userId })
-            .select('fullName dateOfBirth diagnosis _id')
+            .select('fullName dateOfBirth diagnosis')
             .lean()
             .exec();
 
         const userName = (user as any)?.fullName ?? 'utilisateur';
         const childrenInfo = children.length > 0
             ? children.map((c: any) => {
+                const childIdStr = c._id?.toString() || c.id?.toString() || '';
                 const age = c.dateOfBirth
                     ? Math.floor((Date.now() - new Date(c.dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365))
                     : null;
-                return `- ID: ${c._id.toString()}, Nom: ${c.fullName}${age ? ` (${age} ans)` : ''}${c.diagnosis ? `, suivi par ${c.diagnosis}` : ''}`;
+                return `- ID: ${childIdStr}, Nom: ${c.fullName}${age ? ` (${age} ans)` : ''}${c.diagnosis ? `, suivi par ${c.diagnosis}` : ''}`;
             }).join('\n')
             : 'Aucun enfant enregistré.';
 
@@ -67,7 +68,7 @@ Enfants suivis (utilise les ID correspondants pour l'ajout de tâches) :
 ${childrenInfo}
 
 Ton rôle : aider pour les progrès de l'enfant, suggestions thérapeutiques (PECS, TEACCH, activités sensorielles), planification de rappels, routines quotidiennes.
-Si l'utilisateur te demande d'ajouter une tâche ou un rappel, utilise l'outil "add_routine_task" avec le bon "childId". Si l'utilisateur a plusieurs enfants et ne précise pas pour lequel c'est, demande-lui avant d'ajouter.
+Si l'utilisateur te demande d'ajouter une tâche ou un rappel, utilise l'outil "add_routine_task" avec le bon "childId". Si l'utilisateur a un seul enfant, utilise automatiquement l'ID de cet enfant sans lui redemander l'ID. S'il en a plusieurs et ne précise pas pour lequel c'est, demande-lui d'abord le nom de l'enfant. Ne demande JAMAIS l'ID directement à l'utilisateur, demande juste le prénom.
 Sois chaleureux, bienveillant et encourageant. Réponds dans la langue de l'utilisateur. Sois concis (2-4 phrases max sauf si demandé). Ne donne jamais de diagnostic médical.`;
 
         // 3. Build messages array
