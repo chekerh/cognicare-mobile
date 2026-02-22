@@ -30,6 +30,9 @@ class _Conversation {
   /// persons | families | benevole (from API inbox)
   final String? segment;
 
+  /// Other participant's user id (for 1-1 calls: bénévole, healthcare, etc.)
+  final String? otherUserId;
+
   const _Conversation({
     required this.id,
     required this.name,
@@ -40,6 +43,7 @@ class _Conversation {
     this.unread = false,
     this.conversationId,
     this.segment,
+    this.otherUserId,
   });
 }
 
@@ -82,6 +86,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
                     unread: e.unread,
                     conversationId: e.id,
                     segment: e.segment,
+                    otherUserId: e.otherUserId,
                   ))
               .toList();
         });
@@ -108,6 +113,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
                   unread: e.unread,
                   conversationId: e.id,
                   segment: e.segment,
+                  otherUserId: e.otherUserId,
                 ))
             .toList();
         _inboxLoading = false;
@@ -233,8 +239,10 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
   void _openChat(BuildContext context, _Conversation c) {
     // Families (0) → groupe ; Benevole (1), Healthcare (2) → chat privé 1-à-1.
     if (_selectedTab == 1 || _selectedTab == 2) {
+      // Use otherUserId for calls (bénévole/healthcare); fallback to id for compatibility.
+      final personId = c.otherUserId ?? c.id;
       final params = <String, String>{
-        'id': c.id,
+        'id': personId,
         'name': c.name,
         if (c.imageUrl.isNotEmpty) 'imageUrl': c.imageUrl,
         if (c.conversationId != null) 'conversationId': c.conversationId!,
