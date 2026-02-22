@@ -3,6 +3,7 @@ import {
   Logger,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -142,7 +143,14 @@ export class ProgressAiService {
     userRole: string,
     options?: { planType?: string; preferences?: LlmPreferences },
   ): Promise<RecommendationResult> {
-    await this.verifySpecialistOrOrgAccessToChild(childId, userId, userRole);
+    if (!childId || typeof childId !== 'string' || !/^[a-fA-F0-9]{24}$/.test(childId)) {
+      throw new BadRequestException('Invalid child ID');
+    }
+    try {
+      await this.verifySpecialistOrOrgAccessToChild(childId, userId, userRole);
+    } catch (e) {
+      throw e;
+    }
     const specialistRoles = [
       'psychologist',
       'speech_therapist',
@@ -163,10 +171,17 @@ export class ProgressAiService {
         };
       }
     }
-    const context = await this.progressContextService.buildContext(
-      childId,
-      orgId,
-    );
+    let context;
+    try {
+      context = await this.progressContextService.buildContext(
+        childId,
+        orgId,
+      );
+    } catch (e) {
+      if (e instanceof NotFoundException || e instanceof ForbiddenException) throw e;
+      this.logger.warn(`buildContext failed: ${(e as Error)?.message}`);
+      return this.fallbackRecommendationResult();
+    }
     const planTypeFilter = options?.planType;
     let contextForPrompt = context;
     if (planTypeFilter) {
@@ -175,8 +190,13 @@ export class ProgressAiService {
         plans: context.plans.filter((p) => p.type === planTypeFilter),
       };
     }
-    const llmResult: LlmRecommendation =
-      await this.llmService.generateRecommendations(contextForPrompt, prefs);
+    let llmResult: LlmRecommendation;
+    try {
+      llmResult = await this.llmService.generateRecommendations(contextForPrompt, prefs);
+    } catch (e) {
+      this.logger.warn(`LLM generateRecommendations failed: ${(e as Error)?.message}`);
+      return this.fallbackRecommendationResult();
+    }
     const recommendationId = crypto.randomUUID();
     return {
       recommendationId,
@@ -188,6 +208,16 @@ export class ProgressAiService {
         : llmResult.recommendations,
       milestones: llmResult.milestones,
       predictions: llmResult.predictions,
+    };
+  }
+
+  private fallbackRecommendationResult(): RecommendationResult {
+    return {
+      recommendationId: crypto.randomUUID(),
+      summary: 'Recommandations temporairement indisponibles. Vérifiez que le service IA (GEMINI_API_KEY) est configuré et que le contexte enfant est accessible.',
+      recommendations: [],
+      milestones: undefined,
+      predictions: undefined,
     };
   }
 

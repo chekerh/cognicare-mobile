@@ -111,7 +111,7 @@ String? _redirect(BuildContext context, GoRouterState state) {
     if (AppConstants.isVolunteerRole(role)) return AppConstants.volunteerFormationsRoute;
     if (AppConstants.isOrganizationLeaderRole(role)) return AppConstants.organizationDashboardRoute;
     if (AppConstants.isHealthcareRole(role)) return AppConstants.healthcareDashboardRoute;
-    if (AppConstants.isSpecialistRole(role)) return AppConstants.volunteerFormationsRoute;
+    if (AppConstants.isSpecialistRole(role)) return AppConstants.healthcareDashboardRoute;
     return AppConstants.homeRoute;
   }
 
@@ -119,7 +119,7 @@ String? _redirect(BuildContext context, GoRouterState state) {
   if (location == AppConstants.homeRoute) {
     if (AppConstants.isFamilyRole(role)) return AppConstants.familyDashboardRoute;
     if (AppConstants.isHealthcareRole(role)) return AppConstants.healthcareDashboardRoute;
-    if (AppConstants.isSpecialistRole(role)) return AppConstants.volunteerDashboardRoute;
+    if (AppConstants.isSpecialistRole(role)) return AppConstants.healthcareDashboardRoute;
   }
 
   // Protéger les routes famille : seul le rôle "family" peut y accéder
@@ -139,12 +139,13 @@ String? _redirect(BuildContext context, GoRouterState state) {
     return AppConstants.homeRoute;
   }
 
-  // Protéger les routes healthcare : seul le rôle "healthcare" / "professional" peut y accéder
-  if (location.startsWith(AppConstants.healthcareRoute) && !AppConstants.isHealthcareRole(role)) {
+  // Protéger les routes healthcare : rôles "healthcare" / "professional" / "doctor" et specialists (psychologist, speech_therapist, etc.)
+  if (location.startsWith(AppConstants.healthcareRoute) &&
+      !AppConstants.isHealthcareRole(role) &&
+      !AppConstants.isSpecialistRole(role)) {
     if (AppConstants.isFamilyRole(role)) return AppConstants.familyDashboardRoute;
     if (AppConstants.isVolunteerRole(role)) return AppConstants.volunteerDashboardRoute;
     if (AppConstants.isOrganizationLeaderRole(role)) return AppConstants.organizationDashboardRoute;
-    if (AppConstants.isHealthcareRole(role)) return AppConstants.healthcareDashboardRoute;
     return AppConstants.homeRoute;
   }
 

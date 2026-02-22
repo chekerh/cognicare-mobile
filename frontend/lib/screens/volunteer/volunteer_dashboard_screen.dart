@@ -35,6 +35,17 @@ String _roleToSpecializationLabel(String role) {
   }
 }
 
+String _formatDateOfBirth(String? raw) {
+  if (raw == null || raw.isEmpty) return 'DN: —';
+  try {
+    final d = DateTime.tryParse(raw);
+    if (d == null) return 'DN: $raw';
+    return 'DN: ${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+  } catch (_) {
+    return 'DN: ${raw.length > 12 ? '${raw.substring(0, 10)}…' : raw}';
+  }
+}
+
 /// Tableau de bord bénévole — Points Impact, Missions, Compétences, Professionnels de santé (contact), Planning.
 class VolunteerDashboardScreen extends StatefulWidget {
   const VolunteerDashboardScreen({super.key});
@@ -152,9 +163,18 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Mes Patients',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Mes Patients',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+              ),
+              TextButton(
+                onPressed: () => context.go(AppConstants.healthcareDashboardRoute),
+                child: const Text('Espace pro / IA', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           if (_childrenLoading)
@@ -207,8 +227,10 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                   style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                 ),
                 Text(
-                  'DN: ${child.dateOfBirth}',
+                  _formatDateOfBirth(child.dateOfBirth),
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ],
             ),
@@ -229,21 +251,26 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Bonjour, $userName 👋',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey.shade600),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    AppConstants.isSpecialistRole(userRole) 
-                        ? _roleToSpecializationLabel(userRole!)
-                        : 'Bénévole', 
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Bonjour, $userName 👋',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey.shade600),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      AppConstants.isSpecialistRole(userRole)
+                          ? _roleToSpecializationLabel(userRole!)
+                          : 'Bénévole',
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ],
+                ),
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
