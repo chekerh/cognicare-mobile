@@ -205,17 +205,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Choisir depuis la galerie'),
+              title: Text(AppLocalizations.of(context)!.chooseFromGalleryLabel),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Prendre une photo'),
+              title: Text(AppLocalizations.of(context)!.takePhotoLabel),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.cancel),
-              title: const Text('Annuler'),
+              title: Text(AppLocalizations.of(context)!.cancel),
               onTap: () => Navigator.pop(context),
             ),
           ],
@@ -245,19 +245,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _profilePicVersion = DateTime.now().millisecondsSinceEpoch;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Photo de profil mise à jour'), backgroundColor: Colors.green),
+          SnackBar(content: Text(AppLocalizations.of(context)!.profilePicUpdated), backgroundColor: Colors.green),
         );
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur: ${e.toString().replaceFirst('Exception: ', '')}'), backgroundColor: Colors.red),
+            SnackBar(content: Text('${AppLocalizations.of(context)!.unknownError}: ${e.toString().replaceFirst('Exception: ', '')}'), backgroundColor: Colors.red),
           );
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${e.toString()}'), backgroundColor: Colors.red),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.unknownError}: ${e.toString()}'), backgroundColor: Colors.red),
         );
       }
     }
@@ -646,9 +646,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Row(
                   children: [
-                    const Text(
-                      'Account Settings',
-                      style: TextStyle(
+                    Text(
+                      loc.accountSettings,
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF64748B),
@@ -671,7 +671,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildSettingsOption(
                       icon: Icons.lock_outline,
                       iconColor: const Color(0xFFA3D9E5),
-                      title: 'Change Password',
+                      title: loc.changePassword,
                       onTap: () async {
                         Navigator.of(context).pop(); // Close drawer
                         final messenger = ScaffoldMessenger.of(context);
@@ -681,8 +681,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         );
                         if (result != true) return;
                         messenger.showSnackBar(
-                          const SnackBar(
-                            content: Text('Mot de passe mis à jour. Veuillez vous reconnecter.'),
+                          SnackBar(
+                            content: Text(loc.passwordUpdatedReconnect),
                             backgroundColor: Colors.green,
                           ),
                         );
@@ -692,7 +692,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildSettingsOption(
                       icon: Icons.email_outlined,
                       iconColor: const Color(0xFFA3D9E5),
-                      title: 'Change Email',
+                      title: loc.changeEmail,
                       onTap: () async {
                         Navigator.of(context).pop(); // Close drawer
                         final messenger = ScaffoldMessenger.of(context);
@@ -702,8 +702,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         );
                         if (result != true) return;
                         messenger.showSnackBar(
-                          const SnackBar(
-                            content: Text('Email mis à jour. Veuillez vous reconnecter.'),
+                          SnackBar(
+                            content: Text(loc.emailUpdatedReconnect),
                             backgroundColor: Colors.green,
                           ),
                         );
@@ -713,7 +713,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildSettingsOption(
                       icon: Icons.language_outlined,
                       iconColor: const Color(0xFFA3D9E5),
-                      title: 'Change Language',
+                      title: loc.changeLanguage,
                       onTap: () {
                         Navigator.of(context).pop(); // Close drawer
                         _showLanguageDialog();
@@ -722,7 +722,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildSettingsOption(
                       icon: Icons.phone_outlined,
                       iconColor: const Color(0xFFA3D9E5),
-                      title: 'Change Phone',
+                      title: loc.changePhone,
                       onTap: () async {
                         Navigator.of(context).pop(); // Close drawer
                         final messenger = ScaffoldMessenger.of(context);
@@ -734,8 +734,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         if (result != true) return;
                         _refreshProfile();
                         messenger.showSnackBar(
-                          const SnackBar(
-                            content: Text('Téléphone mis à jour'),
+                          SnackBar(
+                            content: Text(loc.phoneUpdated),
                             backgroundColor: Colors.green,
                           ),
                         );
@@ -967,13 +967,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await _saveFamilyMembers();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Membre ajouté'), backgroundColor: Colors.green),
+          SnackBar(content: Text(loc.memberAdded), backgroundColor: Colors.green),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: ${e.toString().replaceFirst('Exception: ', '')}'), backgroundColor: Colors.red),
+          SnackBar(content: Text('${loc.unknownError}: ${e.toString().replaceFirst('Exception: ', '')}'), backgroundColor: Colors.red),
         );
       }
     }

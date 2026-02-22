@@ -167,7 +167,7 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
     });
     if (!_gameFinished) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bien joué !'), duration: Duration(milliseconds: 800), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(AppLocalizations.of(context)!.wellDone), duration: const Duration(milliseconds: 800), behavior: SnackBarBehavior.floating),
       );
     }
   }
@@ -184,7 +184,7 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
     if (_attempts > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Pas la bonne forme. Il te reste $_attempts tentative${_attempts > 1 ? 's' : ''}.'),
+          content: Text(AppLocalizations.of(context)!.wrongShapeAttemptsRemaining(_attempts)),
           duration: const Duration(milliseconds: 1200),
           behavior: SnackBarBehavior.floating,
         ),
@@ -197,9 +197,9 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Plus de tentatives !'),
-        content: const Text(
-          'Tu as utilisé tes 3 tentatives pour cette forme. Tu peux réessayer ou passer au jeu suivant.',
+        title: Text(AppLocalizations.of(context)!.outOfAttemptsTitle),
+        content: Text(
+          AppLocalizations.of(context)!.outOfAttemptsDesc,
         ),
         actions: [
           TextButton(
@@ -210,14 +210,14 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
                 _blocked = false;
               });
             },
-            child: const Text('Réessayer'),
+            child: Text(AppLocalizations.of(context)!.tryAgain),
           ),
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop();
               context.pop();
             },
-            child: const Text('Jeu suivant'),
+            child: Text(AppLocalizations.of(context)!.nextGame),
           ),
         ],
       ),
@@ -260,11 +260,11 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
             onPressed: () => context.pop(),
             icon: const Icon(Icons.arrow_back_ios_new_rounded, color: _textDark, size: 28),
           ),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Shape Sorting',
+              AppLocalizations.of(context)!.gameShapeSorting,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: _textDark,
@@ -287,7 +287,7 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Level $_level of $_maxLevel',
+                AppLocalizations.of(context)!.levelXOfY(_level, _maxLevel),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
@@ -337,11 +337,11 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
   }
 
   Widget _buildInstruction() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 16),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
       child: Text(
-        'Match the shapes!',
-        style: TextStyle(
+        AppLocalizations.of(context)!.matchTheShapes,
+        style: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: _textMuted,
@@ -447,9 +447,9 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
   Widget _buildDraggableShapes(BuildContext context) {
     return Column(
       children: [
-        const Text(
-          'DRAG A SHAPE',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context)!.dragAShape,
+          style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
             color: _textMuted,
@@ -575,16 +575,16 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
             child: InkWell(
               onTap: () {},
               borderRadius: BorderRadius.circular(999),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.volume_up_rounded, color: _primaryDark),
-                    SizedBox(width: 8),
+                    const Icon(Icons.volume_up_rounded, color: _primaryDark),
+                    const SizedBox(width: 8),
                     Text(
-                      'Sound On',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.soundOn,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: _textDark,
@@ -602,21 +602,21 @@ class _ShapeSortingScreenState extends State<ShapeSortingScreen> {
             child: InkWell(
               onTap: _nextShape,
               borderRadius: BorderRadius.circular(999),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Next Shape',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.nextShape,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(width: 4),
-                    Icon(Icons.chevron_right_rounded, color: Colors.white, size: 24),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 24),
                   ],
                 ),
               ),

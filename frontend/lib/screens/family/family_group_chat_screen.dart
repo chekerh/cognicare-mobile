@@ -14,6 +14,7 @@ import '../../providers/theme_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/call_service.dart';
 import '../../services/chat_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 import '../../widgets/chat_message_bar.dart';
@@ -188,8 +189,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
       if (!mounted) return;
       if (families.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Aucune autre famille à ajouter pour le moment.'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.noOtherFamilyToAdd),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -333,7 +334,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: Impossible de lire le message vocal')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.voiceMessageReadError)),
         );
       }
     }
@@ -348,8 +349,8 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     if (!hasPermission) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Autorisez l’accès au micro pour enregistrer un message vocal.'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.chatMicPermissionRequired),
           ),
         );
       }
@@ -375,7 +376,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Impossible de démarrer l’enregistrement: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.recordingStartError}$e')),
         );
       }
     }
@@ -454,7 +455,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
       if (mounted) {
         setState(() => _isRecording = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur enregistrement: $e')),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.recordingError}$e')),
         );
       }
     }
@@ -471,7 +472,7 @@ class _FamilyGroupChatScreenState extends State<FamilyGroupChatScreen> {
     if (cid == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Conversation non chargée')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatConversationNotLoaded)),
         );
       }
       return;

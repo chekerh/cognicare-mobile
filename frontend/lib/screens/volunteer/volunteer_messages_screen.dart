@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
+import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFF77B5D1);
 const Color _textPrimary = Color(0xFF1E293B);
@@ -123,14 +124,14 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
   }
 
   Widget _buildHeader() {
-    return const Padding(
-      padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Messages',
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: _textPrimary),
+            AppLocalizations.of(context)!.messagesTitle,
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: _textPrimary),
           ),
         ],
       ),
@@ -148,7 +149,7 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
         child: TextField(
           onChanged: (value) => setState(() => _searchQuery = value.trim()),
           decoration: InputDecoration(
-            hintText: 'Rechercher...',
+            hintText: AppLocalizations.of(context)!.searchHint,
             hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
             prefixIcon: Icon(Icons.search, color: Colors.grey.shade500, size: 22),
             border: InputBorder.none,
@@ -168,8 +169,8 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
       ),
       child: Row(
         children: [
-          _tab('Familles', 0),
-          _tab('Healthcare', 1),
+          _tab(AppLocalizations.of(context)!.familiesTab, 0),
+          _tab(AppLocalizations.of(context)!.healthcareTab, 1),
         ],
       ),
     );
@@ -225,7 +226,7 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: _loadInbox,
-                child: const Text('Réessayer'),
+                child: Text(AppLocalizations.of(context)!.retryButton),
               ),
             ],
           ),
@@ -244,8 +245,8 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
       return Center(
         child: Text(
           _selectedTab == 0
-              ? 'Aucune conversation avec des familles.'
-              : 'Aucune conversation avec des professionnels de santé.',
+              ? AppLocalizations.of(context)!.noFamilyMessages
+              : AppLocalizations.of(context)!.noHealthcareMessages,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
         ),
@@ -276,20 +277,20 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
         return await showDialog<bool>(
               context: context,
               builder: (ctx) => AlertDialog(
-                title: const Text('Supprimer la conversation ?'),
-                content: const Text(
-                  'Cette action supprimera la conversation pour les deux participants.',
+                title: Text(AppLocalizations.of(ctx)!.deleteConversationTitle),
+                content: Text(
+                  AppLocalizations.of(ctx)!.deleteConversationDesc,
                 ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(ctx).pop(false),
-                    child: const Text('Annuler'),
+                    child: Text(AppLocalizations.of(ctx)!.cancel),
                   ),
                   TextButton(
                     onPressed: () => Navigator.of(ctx).pop(true),
-                    child: const Text(
-                      'Supprimer',
-                      style: TextStyle(color: Colors.red),
+                    child: Text(
+                      AppLocalizations.of(ctx)!.deleteLabel,
+                      style: const TextStyle(color: Colors.red),
                     ),
                   ),
                 ],

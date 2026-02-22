@@ -304,7 +304,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
         SizedBox(
           height: 320,
           child: _products.isEmpty
-              ? const Center(child: Text('Aucun produit pour cette catégorie.'))
+              ? Center(child: Text(loc.noProductsForCategory))
               : ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: _products.length,
@@ -419,10 +419,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
             const SizedBox(height: 4),
             Text(
               product.description,
-              style: TextStyle(
-                fontSize: 13,
-                color: AppTheme.text.withOpacity(0.6),
-              ),
+              style: TextStyle(fontSize: 13, color: AppTheme.text.withOpacity(0.6)),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),

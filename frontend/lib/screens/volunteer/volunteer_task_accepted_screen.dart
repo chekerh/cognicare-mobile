@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFF77B5D1);
 const Color _brandLight = Color(0xFFA8D9EB);
@@ -23,22 +24,24 @@ class VolunteerTaskAcceptedScreen extends StatelessWidget {
     this.missionIcon = Icons.shopping_basket,
   });
 
-  static IconData _iconFromMissionType(String? type) {
+  static IconData _iconFromMissionType(String? type, BuildContext context) {
     if (type == null) return Icons.shopping_basket;
-    if (type.toLowerCase().contains('lecture')) return Icons.menu_book;
+    final l = AppLocalizations.of(context)!;
+    if (type.toLowerCase().contains(l.reading.toLowerCase()) || type.toLowerCase().contains('lecture')) return Icons.menu_book;
     return Icons.shopping_basket;
   }
 
-  static VolunteerTaskAcceptedScreen fromState(GoRouterState state) {
+  static VolunteerTaskAcceptedScreen fromState(GoRouterState state, BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final extra = state.extra as Map<String, dynamic>?;
-    final missionType = extra?['missionType'] as String? ?? 'Mission';
+    final missionType = extra?['missionType'] as String? ?? l.missionLabel;
     return VolunteerTaskAcceptedScreen(
-      volunteerName: extra?['volunteerName'] as String? ?? 'Bénévole',
-      familyName: extra?['familyName'] as String? ?? 'Famille',
+      volunteerName: extra?['volunteerName'] as String? ?? l.volunteerLabel,
+      familyName: extra?['familyName'] as String? ?? l.familyLabel,
       missionType: missionType,
-      schedule: extra?['schedule'] as String? ?? 'À définir',
+      schedule: extra?['schedule'] as String? ?? l.toDefineLabel,
       address: extra?['address'] as String? ?? '',
-      missionIcon: _iconFromMissionType(missionType),
+      missionIcon: _iconFromMissionType(missionType, context),
     );
   }
 
@@ -107,14 +110,14 @@ class VolunteerTaskAcceptedScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 32),
-                const Text(
-                  'Tâche Acceptée !',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                Text(
+                  AppLocalizations.of(context)!.taskAcceptedLabel,
+                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Merci pour votre engagement, $volunteerName. $familyName a été prévenue.',
+                  AppLocalizations.of(context)!.taskAcceptedMessage(volunteerName, familyName),
                   style: TextStyle(fontSize: 16, color: Colors.white.withOpacity(0.9)),
                   textAlign: TextAlign.center,
                 ),
@@ -129,11 +132,11 @@ class VolunteerTaskAcceptedScreen extends StatelessWidget {
                   ),
                     child: Column(
                     children: [
-                      _detailRow(missionIcon, 'Type de mission', missionType),
+                      _detailRow(missionIcon, AppLocalizations.of(context)!.missionTypeLabel, missionType),
                       const Divider(height: 24),
-                      _detailRow(Icons.family_restroom, 'Bénéficiaire', familyName),
+                      _detailRow(Icons.family_restroom, AppLocalizations.of(context)!.beneficiaryLabel, familyName),
                       const Divider(height: 24),
-                      _detailRow(Icons.schedule, 'Horaire prévu', schedule),
+                      _detailRow(Icons.schedule, AppLocalizations.of(context)!.plannedScheduleLabel, schedule),
                     ],
                   ),
                 ),
@@ -149,12 +152,12 @@ class VolunteerTaskAcceptedScreen extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       elevation: 0,
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.directions_car),
-                        SizedBox(width: 12),
-                        Text("Voir l'itinéraire", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        const Icon(Icons.directions_car),
+                        const SizedBox(width: 12),
+                        Text(AppLocalizations.of(context)!.viewItineraryLabel, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -171,12 +174,12 @@ class VolunteerTaskAcceptedScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.chat),
-                        SizedBox(width: 12),
-                        Text('Envoyer un message', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        const Icon(Icons.chat),
+                        const SizedBox(width: 12),
+                        Text(AppLocalizations.of(context)!.sendMessageLabel, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
@@ -184,7 +187,7 @@ class VolunteerTaskAcceptedScreen extends StatelessWidget {
                 const SizedBox(height: 32),
                 TextButton(
                   onPressed: () => context.go('/volunteer/dashboard'),
-                  child: Text('Retour à l\'accueil', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white.withOpacity(0.9))),
+                  child: Text(AppLocalizations.of(context)!.backToHomeLabel, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white.withOpacity(0.9))),
                 ),
                 const SizedBox(height: 32),
                       ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/courses_service.dart';
 import '../../utils/constants.dart';
 
@@ -114,7 +115,7 @@ class _VolunteerFormationsHubScreenState
             ElevatedButton(
               onPressed: _load,
               style: ElevatedButton.styleFrom(backgroundColor: _primary),
-              child: const Text('Réessayer'),
+              child: Text(AppLocalizations.of(context)!.retryButton),
             ),
           ],
         ),
@@ -130,9 +131,9 @@ class _VolunteerFormationsHubScreenState
         children: [
           Row(
             children: [
-              const Text(
-                'Volunteer Service Hub',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.volunteerServiceHub,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: _textSecondary,
@@ -146,24 +147,24 @@ class _VolunteerFormationsHubScreenState
             ],
           ),
           const SizedBox(height: 8),
-          const Row(
+          Row(
             children: [
               Text(
-                'Formations',
-                style: TextStyle(
+                AppLocalizations.of(context)!.formationsLabel,
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: _textPrimary,
                 ),
               ),
-              SizedBox(width: 8),
-              Icon(Icons.school_rounded, color: _primary, size: 28),
+              const SizedBox(width: 8),
+              const Icon(Icons.school_rounded, color: _primary, size: 28),
             ],
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Développez vos compétences d\'accompagnement.',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.developSkillsSubtitle,
+            style: const TextStyle(
               fontSize: 14,
               color: _textSecondary,
             ),
@@ -203,10 +204,10 @@ class _VolunteerFormationsHubScreenState
                 child: const Icon(Icons.school_outlined, color: _primary, size: 26),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Aucune formation en cours. Parcourez le catalogue pour vous inscrire.',
-                  style: TextStyle(
+                  AppLocalizations.of(context)!.noFormationInProgress,
+                  style: const TextStyle(
                     fontSize: 14,
                     color: _textSecondary,
                   ),
@@ -223,12 +224,12 @@ class _VolunteerFormationsHubScreenState
     final progress = (enrollment['progressPercent'] as num?)?.toInt() ?? 0;
     const moduleCount = 5;
     final currentModule = (progress / 20).ceil().clamp(1, moduleCount);
-    const moduleLabels = [
-      'Introduction',
-      'Fondements',
-      'Pratique',
-      'Interactions sociales',
-      'Conclusion',
+    final moduleLabels = [
+      AppLocalizations.of(context)!.introModule,
+      AppLocalizations.of(context)!.foundationModule,
+      AppLocalizations.of(context)!.practiceModule,
+      AppLocalizations.of(context)!.socialInteractionsModule,
+      AppLocalizations.of(context)!.conclusionModule,
     ];
     final moduleLabel =
         currentModule <= moduleLabels.length
@@ -240,11 +241,11 @@ class _VolunteerFormationsHubScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(left: 4, bottom: 8),
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 8),
             child: Text(
-              'FORMATION EN COURS',
-              style: TextStyle(
+              AppLocalizations.of(context)!.formationInProgress,
+              style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: _textSecondary,
@@ -296,7 +297,7 @@ class _VolunteerFormationsHubScreenState
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Module $currentModule sur $moduleCount : $moduleLabel',
+                            AppLocalizations.of(context)!.moduleProgressLabel(currentModule, moduleCount, moduleLabel),
                             style: const TextStyle(
                               fontSize: 13,
                               color: _textSecondary,
@@ -319,7 +320,7 @@ class _VolunteerFormationsHubScreenState
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '$progress% COMPLÉTÉ',
+                  AppLocalizations.of(context)!.completedPercent(progress),
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -335,13 +336,14 @@ class _VolunteerFormationsHubScreenState
   }
 
   Widget _buildCatalogSection() {
-    const catalogItems = [
-      ('Communication non-verbale', Icons.chat_bubble_outline, '15 min',
-          'Débutant', Color(0xFF3B82F6)),
-      ('Gestion des crises sensorielles', Icons.flash_on_outlined, '25 min',
-          'Avancé', Color(0xFFF59E0B)),
-      ('Activités ludiques adaptées', Icons.extension_outlined, '20 min',
-          'Intermédiaire', Color(0xFF8B5CF6)),
+    final l = AppLocalizations.of(context)!;
+    final catalogItems = [
+      (AppLocalizations.of(context)!.nonVerbalCommunication, Icons.chat_bubble_outline, '15 min',
+          l.beginnerLevel, const Color(0xFF3B82F6)),
+      (AppLocalizations.of(context)!.sensoryCrisisManagement, Icons.flash_on_outlined, '25 min',
+          l.advancedLevel, const Color(0xFFF59E0B)),
+      (AppLocalizations.of(context)!.adaptedPlayActivities, Icons.extension_outlined, '20 min',
+          l.intermediateLevel, const Color(0xFF8B5CF6)),
     ];
 
     return Padding(
@@ -352,9 +354,9 @@ class _VolunteerFormationsHubScreenState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Catalogue',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.catalogueLabel,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: _textPrimary,
@@ -363,9 +365,9 @@ class _VolunteerFormationsHubScreenState
               TextButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.filter_list, size: 18, color: _primary),
-                label: const Text(
-                  'Filtrer',
-                  style: TextStyle(
+                label: Text(
+                  AppLocalizations.of(context)!.filterLabel,
+                  style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     color: _primary,
                   ),
@@ -411,11 +413,12 @@ class _VolunteerFormationsHubScreenState
   }
 
   Widget _buildCertificationsSection() {
-    const certs = [
-      ('Mentor Niveau 1', Icons.star_rounded, Color(0xFFFBBF24), true),
-      ('Inclusion Sociale', Icons.check_circle_rounded, Color(0xFF22C55E),
+    final l = AppLocalizations.of(context)!;
+    final certs = [
+      (l.mentorLevel1, Icons.star_rounded, const Color(0xFFFBBF24), true),
+      (l.socialInclusion, Icons.check_circle_rounded, const Color(0xFF22C55E),
           true),
-      ('Expert Cognitif', Icons.lock_outline, Color(0xFF94A3B8), false),
+      (l.cognitiveExpert, Icons.lock_outline, const Color(0xFF94A3B8), false),
     ];
 
     return Padding(
@@ -423,9 +426,9 @@ class _VolunteerFormationsHubScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Mes Certifications',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.myCertifications,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: _textPrimary,

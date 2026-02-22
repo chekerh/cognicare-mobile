@@ -5,6 +5,7 @@ import '../../models/task_reminder.dart';
 import '../../services/reminders_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/notification_service.dart';
+import '../../l10n/app_localizations.dart';
 
 // Couleurs alignées avec le dashboard famille
 const Color _primary = Color(0xFFA3D9E5);
@@ -206,9 +207,10 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
         });
 
         if (newStatus) {
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(_getEncouragementMessage(reminder.type)),
+              content: Text(_getEncouragementMessage(reminder.type, l10n)),
               backgroundColor: Colors.green,
               behavior: SnackBarBehavior.floating,
               duration: const Duration(seconds: 2),
@@ -245,7 +247,7 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('"${reminder.title}" supprimé'),
+            content: Text(AppLocalizations.of(context)!.taskDeleted),
             backgroundColor: Colors.redAccent,
             behavior: SnackBarBehavior.floating,
           ),
@@ -255,7 +257,7 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la suppression : $e'),
+            content: Text('${AppLocalizations.of(context)!.taskDeleteError}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -264,20 +266,20 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
     }
   }
 
-  String _getEncouragementMessage(ReminderType type) {
+  String _getEncouragementMessage(ReminderType type, AppLocalizations l10n) {
     switch (type) {
       case ReminderType.water:
-        return 'Great job staying hydrated!';
+        return l10n.encouragementHydrated;
       case ReminderType.meal:
-        return 'Well done! You had a healthy meal!';
+        return l10n.encouragementMeal;
       case ReminderType.medication:
-        return 'Perfect! You took your medicine!';
+        return l10n.encouragementMedication;
       case ReminderType.hygiene:
-        return 'Awesome! You\'re so clean!';
+        return l10n.encouragementHygiene;
       case ReminderType.homework:
-        return 'Amazing work! You completed your task!';
+        return l10n.encouragementHomework;
       default:
-        return 'Well done! Keep it up!';
+        return l10n.encouragementDefault;
     }
   }
 
@@ -425,10 +427,10 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
           const SizedBox(width: 16),
           
           // Title
-          const Expanded(
+          Expanded(
             child: Text(
-              'Child Daily Visual Routine',
-              style: TextStyle(
+              AppLocalizations.of(context)!.routineTitle,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: Colors.black87,
@@ -438,7 +440,7 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
           
           // Add Task Button
           Container(
-            margin: const EdgeInsets.only(right: 8),
+            margin: const EdgeInsetsDirectional.only(end: 8),
             decoration: BoxDecoration(
               color: _primaryDark.withOpacity(0.1),
               shape: BoxShape.circle,
@@ -470,7 +472,7 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
               icon: const Icon(Icons.settings, color: Colors.black87),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Parametres bientot disponibles')),
+                  SnackBar(content: Text(AppLocalizations.of(context)!.settingsComingSoon)),
                 );
               },
             ),
@@ -502,9 +504,9 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
               ),
             ),
             const SizedBox(height: 32),
-            const Text(
-              'Aucune tâche pour aujourd\'hui',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.noTasksToday,
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
                 color: Colors.black87,
@@ -513,8 +515,8 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Commencez par créer des rappels pour votre enfant. Cliquez sur le bouton ci-dessous pour ajouter des tâches quotidiennes.',
-              style: TextStyle(
+              AppLocalizations.of(context)!.noTasksDescription,
+              style: const TextStyle(
                 fontSize: 15,
                 color: Colors.black54,
                 height: 1.5,
@@ -545,14 +547,14 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
                 ),
                 elevation: 3,
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.add, size: 20),
-                  SizedBox(width: 8),
+                  const Icon(Icons.add, size: 20),
+                  const SizedBox(width: 8),
                   Text(
-                    'Ajouter des tâches',
-                    style: TextStyle(
+                    AppLocalizations.of(context)!.addTasksButton,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -580,16 +582,19 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  title: const Text("Confirmer la suppression"),
-                  content: Text("Voulez-vous vraiment supprimer le rappel \"${reminder.title}\" ?"),
+                  title: Text(AppLocalizations.of(context)!.confirmDeleteTitle),
+                  content: Text(AppLocalizations.of(context)!.confirmDeleteMessage(reminder.title)),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text("ANNULER"),
+                      child: Text(AppLocalizations.of(context)!.cancel.toUpperCase()),
                     ),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text("SUPPRIMER", style: TextStyle(color: Colors.red)),
+                      child: Text(
+                        AppLocalizations.of(context)!.delete.toUpperCase(),
+                        style: const TextStyle(color: Colors.red),
+                      ),
                     ),
                   ],
                 );
@@ -673,15 +678,15 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
                       ),
                       if (reminder.type == ReminderType.medication && isCompleted && reminder.verificationStatus != 'VALID')
                         Container(
-                          margin: const EdgeInsets.only(left: 8),
+                          margin: const EdgeInsetsDirectional.only(start: 8),
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: Colors.orange.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text(
-                            'Vérification...',
-                            style: TextStyle(fontSize: 10, color: Colors.orange, fontWeight: FontWeight.bold),
+                          child: Text(
+                            AppLocalizations.of(context)!.verificationInProgress,
+                            style: const TextStyle(fontSize: 10, color: Colors.orange, fontWeight: FontWeight.bold),
                           ),
                         ),
                     ],
@@ -715,9 +720,9 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
                       )).toList(),
                     )
                   else
-                    const Text(
-                      'Horaire non spécifié',
-                      style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Colors.orange),
+                    Text(
+                      AppLocalizations.of(context)!.unspecifiedTime,
+                      style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Colors.orange),
                     ),
                 ],
               ),
@@ -777,9 +782,9 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Keep going!',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)!.keepGoing,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF1E293B),

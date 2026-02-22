@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Patient Record — design aligné sur le HTML (Clinical Notes + Hardware).
 /// Header blanc, profil Leo Richardson, onglets sticky Analytics / Clinical Notes / Hardware.
@@ -23,6 +24,7 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -36,15 +38,15 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
         top: false,
         child: Column(
           children: [
-            _buildHeader(context),
-            _buildProfileHero(),
-            _buildTabs(),
+            _buildHeader(context, loc),
+            _buildProfileHero(loc),
+            _buildTabs(loc),
             Expanded(
               child: _selectedTab == 0
-                  ? _buildAnalyticsContent()
+                  ? _buildAnalyticsContent(loc)
                   : _selectedTab == 1
-                      ? _buildClinicalNotesContent()
-                      : _buildHardwareContent(),
+                      ? _buildClinicalNotesContent(loc)
+                      : _buildHardwareContent(loc),
             ),
           ],
         ),
@@ -53,7 +55,7 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
   }
 
   /// Header blanc : back, titre centré, more_vert (HTML).
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, AppLocalizations loc) {
     final topPadding = MediaQuery.paddingOf(context).top;
     return Container(
       width: double.infinity,
@@ -76,9 +78,9 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
               ),
             ),
           ),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Patient Record',
+              loc.clinicalPatientRecordTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 18,
@@ -100,7 +102,7 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
     );
   }
 
-  Widget _buildProfileHero() {
+  Widget _buildProfileHero(AppLocalizations loc) {
     return Container(
       padding: const EdgeInsets.all(24),
       color: Colors.white,
@@ -149,8 +151,8 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
                   color: _primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: const Text(
-                  'Age 7',
+                child: Text(
+                  '${loc.clinicalAgeLabel} 7',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -173,9 +175,9 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: _primary.withOpacity(0.2)),
             ),
-            child: const Text(
-              'Diagnosis: Autism Spectrum Disorder (ASD)',
-              style: TextStyle(
+            child: Text(
+              '${loc.clinicalDiagnosisLabel} ${loc.clinicalDiagnosisAutism}',
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: _primary,
@@ -187,7 +189,7 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
     );
   }
 
-  Widget _buildTabs() {
+  Widget _buildTabs(AppLocalizations loc) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -195,9 +197,9 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
       ),
       child: Row(
         children: [
-          _tab('Analytics', 0),
-          _tab('Clinical Notes', 1),
-          _tab('Hardware', 2),
+          _tab(loc.clinicalTabAnalytics, 0),
+          _tab(loc.clinicalTabNotes, 1),
+          _tab(loc.clinicalTabHardware, 2),
         ],
       ),
     );
@@ -234,13 +236,13 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
   }
 
   /// Onglet Analytics : Cognitive Progress (existant).
-  Widget _buildAnalyticsContent() {
+  Widget _buildAnalyticsContent(AppLocalizations loc) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildCognitiveProgress(),
+          _buildCognitiveProgress(loc),
           const SizedBox(height: 80),
         ],
       ),
@@ -248,7 +250,7 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
   }
 
   /// Onglet Clinical Notes : fond #f0f7ff, Medical Observations, timeline, Pi footer.
-  Widget _buildClinicalNotesContent() {
+  Widget _buildClinicalNotesContent(AppLocalizations loc) {
     return SingleChildScrollView(
       child: Container(
         color: _brandLightBlue,
@@ -256,9 +258,9 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Medical Observations',
-              style: TextStyle(
+            Text(
+              loc.clinicalObservationsTitle,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: _primary,
@@ -267,7 +269,7 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
             const SizedBox(height: 24),
             _buildClinicalNotesTimeline(),
             const SizedBox(height: 24),
-            _buildPiFooterClinical(),
+            _buildPiFooterClinical(loc),
             const SizedBox(height: 80),
           ],
         ),
@@ -445,7 +447,7 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
     );
   }
 
-  Widget _buildPiFooterClinical() {
+  Widget _buildPiFooterClinical(AppLocalizations loc) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -464,11 +466,11 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
             child: const Icon(Icons.settings_input_component, color: Colors.white, size: 24),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Raspberry Pi v4 Node',
                   style: TextStyle(
                     fontSize: 14,
@@ -476,10 +478,10 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
                     color: _textPrimary,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                  'Clinical sync active',
-                  style: TextStyle(fontSize: 12, color: _textMuted),
+                  loc.clinicalSyncActive,
+                  style: const TextStyle(fontSize: 12, color: _textMuted),
                 ),
               ],
             ),
@@ -504,7 +506,7 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
   }
 
   /// Onglet Hardware : fond #E0F2FE, Device Health, Sleep, HRV, Pi détail.
-  Widget _buildHardwareContent() {
+  Widget _buildHardwareContent(AppLocalizations loc) {
     return SingleChildScrollView(
       child: Container(
         color: _brandLightBlueHardware,
@@ -512,13 +514,13 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildDeviceHealthSection(),
+            _buildDeviceHealthSection(loc),
             const SizedBox(height: 24),
-            _buildSleepCyclesCard(),
+            _buildSleepCyclesCard(loc),
             const SizedBox(height: 24),
-            _buildHrvCard(),
+            _buildHrvCard(loc),
             const SizedBox(height: 24),
-            _buildPiFooterHardware(),
+            _buildPiFooterHardware(loc),
             const SizedBox(height: 80),
           ],
         ),
@@ -526,16 +528,16 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
     );
   }
 
-  Widget _buildDeviceHealthSection() {
+  Widget _buildDeviceHealthSection(AppLocalizations loc) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Device Health',
-              style: TextStyle(
+            Text(
+              loc.clinicalDeviceHealth,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
@@ -547,9 +549,9 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
                 color: _primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text(
-                'CONNECTED',
-                style: TextStyle(
+              child: Text(
+                loc.clinicalDeviceConnected,
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: _primary,
@@ -564,9 +566,9 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
             Expanded(
               child: _hardwareMetricCard(
                 icon: Icons.battery_5_bar,
-                label: 'Battery Life',
+                label: loc.clinicalBatteryLife,
                 value: '84%',
-                sub: 'HEALTHY',
+                sub: loc.clinicalBatteryHealthy,
                 subColor: _green,
               ),
             ),
@@ -574,10 +576,10 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
             Expanded(
               child: _hardwareMetricCard(
                 icon: Icons.wifi,
-                label: 'Signal Strength',
+                label: loc.clinicalSignalStrength,
                 value: '-54',
-                valueSuffix: ' dBm',
-                sub: 'EXCELLENT',
+                valueSuffix: ' ${loc.clinicalSignalUnit}',
+                sub: loc.clinicalSignalExcellent,
                 subColor: _primary,
               ),
             ),
@@ -652,7 +654,7 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
     );
   }
 
-  Widget _buildSleepCyclesCard() {
+  Widget _buildSleepCyclesCard(AppLocalizations loc) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -674,22 +676,22 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'SLEEP CYCLES',
-                    style: TextStyle(
+                    loc.clinicalSleepCycles,
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: _textMuted,
                       letterSpacing: 0.5,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    'Deep Sleep: 3h 45m',
-                    style: TextStyle(
+                    '${loc.clinicalDeepSleep} 3h 45m',
+                    style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                       color: _textPrimary,
@@ -703,14 +705,14 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
                   color: _primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.history, size: 16, color: _primary),
-                    SizedBox(width: 4),
+                    const Icon(Icons.history, size: 16, color: _primary),
+                    const SizedBox(width: 4),
                     Text(
-                      'Past 24h',
-                      style: TextStyle(
+                      loc.clinicalPast24h,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: _primary,
@@ -744,9 +746,9 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
                     ),
                   ),
                   const SizedBox(width: 6),
-                  const Text(
-                    'LIGHT',
-                    style: TextStyle(
+                  Text(
+                    loc.clinicalLightSleepTag,
+                    style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: _textMuted,
@@ -765,9 +767,9 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
                     ),
                   ),
                   const SizedBox(width: 6),
-                  const Text(
-                    'DEEP',
-                    style: TextStyle(
+                  Text(
+                    loc.clinicalDeepSleepTag,
+                    style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: _textMuted,
@@ -790,7 +792,7 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
     );
   }
 
-  Widget _buildHrvCard() {
+  Widget _buildHrvCard(AppLocalizations loc) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -812,12 +814,12 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'HEART RATE VARIABILITY',
-                    style: TextStyle(
+                    loc.clinicalHrvVariability,
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: _textMuted,
@@ -837,14 +839,14 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
                           color: _textPrimary,
                         ),
                       ),
-                      Text(
-                        'ms',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: _textMuted,
+                        Text(
+                          loc.clinicalHrvUnit,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: _textMuted,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ],
@@ -875,9 +877,9 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'WEEKLY AVG',
-                    style: TextStyle(
+                  Text(
+                    loc.clinicalHrvAvg.toUpperCase(),
+                    style: const TextStyle(
                       fontSize: 10,
                       color: _textMuted,
                     ),
@@ -895,13 +897,13 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
             ),
           ),
           const SizedBox(height: 8),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('MON', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _textMuted)),
-              Text('WED', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _textMuted)),
-              Text('FRI', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _textMuted)),
-              Text('TODAY', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _primary)),
+              Text(loc.clinicalDayMon, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _textMuted)),
+              Text(loc.clinicalDayWed, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _textMuted)),
+              Text(loc.clinicalDayFri, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _textMuted)),
+              Text(loc.clinicalDayToday, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _primary)),
             ],
           ),
         ],
@@ -909,7 +911,7 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
     );
   }
 
-  Widget _buildPiFooterHardware() {
+  Widget _buildPiFooterHardware(AppLocalizations loc) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -972,14 +974,14 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
             decoration: BoxDecoration(
               border: Border(top: BorderSide(color: _primary.withOpacity(0.1))),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 Expanded(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('CPU Temp', style: TextStyle(fontSize: 12, color: _textMuted)),
-                      Text('42°C', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _textPrimary)),
+                      Text(loc.clinicalCpuTemp, style: const TextStyle(fontSize: 12, color: _textMuted)),
+                      const Text('42°C', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _textPrimary)),
                     ],
                   ),
                 ),
@@ -987,7 +989,7 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Latency', style: TextStyle(fontSize: 12, color: _textMuted)),
+                      Text(loc.clinicalLatency, style: const TextStyle(fontSize: 12, color: _textMuted)),
                       Text('24ms', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _textPrimary)),
                     ],
                   ),
@@ -996,14 +998,14 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
             ),
           ),
           const SizedBox(height: 8),
-          const Row(
+          Row(
             children: [
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Data Rate', style: TextStyle(fontSize: 12, color: _textMuted)),
-                    Text('128 kbps', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _textPrimary)),
+                    Text(loc.clinicalDataRate, style: const TextStyle(fontSize: 12, color: _textMuted)),
+                    const Text('128 kbps', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _textPrimary)),
                   ],
                 ),
               ),
@@ -1011,8 +1013,8 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Uptime', style: TextStyle(fontSize: 12, color: _textMuted)),
-                    Text('14d 6h', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _textPrimary)),
+                    Text(loc.clinicalUptime, style: const TextStyle(fontSize: 12, color: _textMuted)),
+                    const Text('14d 6h', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _textPrimary)),
                   ],
                 ),
               ),
@@ -1023,16 +1025,16 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
     );
   }
 
-  Widget _buildCognitiveProgress() {
+  Widget _buildCognitiveProgress(AppLocalizations loc) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Cognitive Progress',
-              style: TextStyle(
+            Text(
+              loc.clinicalCognitiveProgress,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
@@ -1157,12 +1159,12 @@ class _ClinicalPatientRecordScreenState extends State<ClinicalPatientRecordScree
                 ),
               ),
               const SizedBox(height: 8),
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('W1', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _textMuted)),
-                  Text('W2', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _textMuted)),
-                  Text('CURRENT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _primary)),
+                  Text(loc.clinicalW1, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _textMuted)),
+                  Text(loc.clinicalW2, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _textMuted)),
+                  Text(loc.clinicalCurrent, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _primary)),
                 ],
               ),
             ],

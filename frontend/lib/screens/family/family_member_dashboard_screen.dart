@@ -79,6 +79,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
       if (!mounted) return;
       setState(() {
         _volunteerCards = list.map((a) {
+          final l10n = AppLocalizations.of(context)!;
           final dateStr = a.dates.isNotEmpty
               ? a.dates.length == 1
                   ? a.dates.first
@@ -231,7 +232,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Bonjour, $userName 👋',
+                AppLocalizations.of(context)!.helloUser(userName),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -239,9 +240,9 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
-                'Membre de la famille',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.familyMemberRole,
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
                   color: _slate800,
@@ -287,22 +288,22 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                 child: const Icon(Icons.smart_toy_rounded, color: Colors.white, size: 32),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Jouer avec Cogni',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.playWithLeo,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: _slate800,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Lancer une session de thérapie ludique',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.launchPlayTherapy,
+                      style: const TextStyle(
                         fontSize: 14,
                         color: _slate500,
                       ),
@@ -332,8 +333,8 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
             
             if (children.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Veuillez d\'abord ajouter un profil d\'enfant'),
+                SnackBar(
+                  content: Text(AppLocalizations.of(context)!.pleaseAddChildProfileFirst),
                   backgroundColor: Colors.orange,
                 ),
               );
@@ -391,22 +392,22 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                 ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Routine & Rappels',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.routineAndReminders,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: _slate800,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Voir les tâches quotidiennes de votre enfant',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.viewChildDailyTasks,
+                      style: const TextStyle(
                         fontSize: 14,
                         color: _slate500,
                       ),
@@ -523,9 +524,9 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Progrès du jour',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)!.dailyProgress,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: _slate800,
@@ -537,9 +538,9 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                     color: _primary.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  child: const Text(
-                    'Léo • 6 ans',
-                    style: TextStyle(
+                  child: Text(
+                    AppLocalizations.of(context)!.childAgeLabel('Léo', '6'),
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: _primary,
@@ -598,17 +599,16 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
             const SizedBox(height: 16),
             RichText(
               textAlign: TextAlign.center,
-              text: const TextSpan(
-                style: TextStyle(fontSize: 14, color: _slate500),
+              text: TextSpan(
+                style: const TextStyle(fontSize: 14, color: _slate500),
                 children: [
                   TextSpan(
-                    text: 'Encore 2 étoiles ',
-                    style: TextStyle(
+                    text: AppLocalizations.of(context)!.starsNeededForChallenge('2'),
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: _slate800,
                     ),
                   ),
-                  TextSpan(text: 'pour le défi de la semaine !'),
                 ],
               ),
             ),
@@ -643,18 +643,18 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                           child: const Icon(Icons.forum_rounded, color: _green600, size: 22),
                         ),
                         const SizedBox(height: 12),
-                        const Text(
-                          'Chat Famille',
-                          style: TextStyle(
+                        Text(
+                          AppLocalizations.of(context)!.familyChat,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: _slate800,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          '2 nouveaux messages',
-                          style: TextStyle(fontSize: 12, color: _slate500),
+                        Text(
+                          AppLocalizations.of(context)!.newMessagesCount('2'),
+                          style: const TextStyle(fontSize: 12, color: _slate500),
                         ),
                       ],
                     ),
@@ -683,18 +683,18 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                           child: const Icon(Icons.medical_services_rounded, color: _accentColor, size: 22),
                         ),
                         const SizedBox(height: 12),
-                        const Text(
-                          'Suivi Médical',
-                          style: TextStyle(
+                        Text(
+                          AppLocalizations.of(context)!.medicalTracking,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: _slate800,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          'RDV demain 10h',
-                          style: TextStyle(fontSize: 12, color: _slate500),
+                        Text(
+                          AppLocalizations.of(context)!.nextAppointmentLabel,
+                          style: const TextStyle(fontSize: 12, color: _slate500),
                         ),
                       ],
                     ),
@@ -712,11 +712,11 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(bottom: 16),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16),
           child: Text(
-            'Bénévoles',
-            style: TextStyle(
+            AppLocalizations.of(context)!.volunteersLabel,
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: _slate800,
@@ -738,20 +738,20 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: _loadVolunteerAvailabilities,
-                    child: const Text('Réessayer'),
+                    child: Text(AppLocalizations.of(context)!.retryButton),
                   ),
                 ],
               ),
             ),
           )
         else if (_volunteerCards == null || _volunteerCards!.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
+           Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
             child: Center(
               child: Text(
-                'Aucun bénévole disponible pour le moment.\nLes disponibilités publiées apparaîtront ici.',
+                AppLocalizations.of(context)!.noVolunteersAvailable,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: _slate500),
+                style: const TextStyle(fontSize: 14, color: _slate500),
               ),
             ),
           )
@@ -878,7 +878,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 0,
                     ),
-                    child: const Text('Demander de l\'aide'),
+                    child: Text(AppLocalizations.of(context)!.askForHelp),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -890,7 +890,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Message'),
+                  child: Text(AppLocalizations.of(context)!.messagesLabel),
                 ),
               ],
             ),

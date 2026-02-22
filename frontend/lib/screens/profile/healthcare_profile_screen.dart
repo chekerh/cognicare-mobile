@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart' as intl;
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/theme.dart';
@@ -75,9 +76,9 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(leading: const Icon(Icons.photo_library), title: const Text('Galerie'), onTap: () => Navigator.pop(context, ImageSource.gallery)),
-            ListTile(leading: const Icon(Icons.camera_alt), title: const Text('Appareil photo'), onTap: () => Navigator.pop(context, ImageSource.camera)),
-            ListTile(leading: const Icon(Icons.cancel), title: const Text('Annuler'), onTap: () => Navigator.pop(context)),
+            ListTile(leading: const Icon(Icons.photo_library), title: Text(AppLocalizations.of(context)!.galleryLabel), onTap: () => Navigator.pop(context, ImageSource.gallery)),
+            ListTile(leading: const Icon(Icons.camera_alt), title: Text(AppLocalizations.of(context)!.cameraLabel), onTap: () => Navigator.pop(context, ImageSource.camera)),
+            ListTile(leading: const Icon(Icons.cancel), title: Text(AppLocalizations.of(context)!.cancel), onTap: () => Navigator.pop(context)),
           ],
         ),
       ),
@@ -106,7 +107,7 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
           _profilePicVersion = DateTime.now().millisecondsSinceEpoch;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Photo de profil mise à jour'), backgroundColor: Colors.green),
+          SnackBar(content: Text(AppLocalizations.of(context)!.profilePicUpdated), backgroundColor: Colors.green),
         );
       } catch (e) {
         if (mounted) {
@@ -118,15 +119,14 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.unknownError}: $e'), backgroundColor: Colors.red),
         );
       }
     }
   }
 
-  String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  String _formatDate(DateTime date, BuildContext context) {
+    return intl.DateFormat.yMMMd(Localizations.localeOf(context).languageCode).format(date);
   }
 
   Future<void> _showLanguageDialog() async {
@@ -183,15 +183,16 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
     );
   }
 
-  String _professionFromRole(String? role) {
-    if (role == null) return 'Professionnel de santé';
+  String _professionFromRole(String? role, BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    if (role == null) return l.healthcareProfessionalLabel;
     switch (role.toLowerCase()) {
       case 'doctor':
-        return 'Pédopsychiatre';
+        return l.childPsychiatristLabel;
       case 'organization_leader':
-        return 'Responsable d\'organisation';
+        return l.orgLeaderLabel;
       default:
-        return 'Professionnel de santé';
+        return l.healthcareProfessionalLabel;
     }
   }
 
@@ -274,7 +275,7 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _professionFromRole(user?.role),
+                      _professionFromRole(user?.role, context),
                       style: TextStyle(color: AppTheme.text.withOpacity(0.75), fontSize: 15, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 12),
@@ -361,7 +362,7 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
                     _buildInfoCard(
                       icon: Icons.calendar_today_outlined,
                       label: loc.memberSince,
-                      value: user?.createdAt != null ? _formatDate(user!.createdAt) : 'N/A',
+                      value: user?.createdAt != null ? _formatDate(user!.createdAt, context) : 'N/A',
                     ),
 
                     const SizedBox(height: 24),
@@ -374,7 +375,7 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
                       final result = await showDialog<bool>(context: context, builder: (_) => const ChangePasswordDialog());
                       if (result != true) return;
                       messenger.showSnackBar(
-                        const SnackBar(content: Text('Mot de passe mis à jour. Reconnectez-vous.'), backgroundColor: Colors.green),
+                        SnackBar(content: Text(loc.passwordUpdatedReconnect), backgroundColor: Colors.green),
                       );
                       await _handleLogout();
                     }),
@@ -384,7 +385,7 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
                       final result = await showDialog<bool>(context: context, builder: (_) => const ChangeEmailDialog());
                       if (result != true) return;
                       messenger.showSnackBar(
-                        const SnackBar(content: Text('Email mis à jour. Reconnectez-vous.'), backgroundColor: Colors.green),
+                        SnackBar(content: Text(loc.emailUpdatedReconnect), backgroundColor: Colors.green),
                       );
                       await _handleLogout();
                     }),
@@ -402,7 +403,7 @@ class _HealthcareProfileScreenState extends State<HealthcareProfileScreen> {
                         auth.updateUser(updated);
                       } catch (_) {}
                       messenger.showSnackBar(
-                        const SnackBar(content: Text('Téléphone mis à jour'), backgroundColor: Colors.green),
+                        SnackBar(content: Text(loc.phoneUpdated), backgroundColor: Colors.green),
                       );
                     }),
 

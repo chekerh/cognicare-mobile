@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart' as intl;
+import '../../l10n/app_localizations.dart';
+import '../../utils/theme.dart';
+import '../../utils/constants.dart';
 
-const Color _primary = Color(0xFFA2D9E7);
 const Color _brand = Color(0xFF2D7DA1);
+const Color _primary = Color(0xFF2b8cee);
 
 /// Analyse Comparative IA : comparaison de deux patients, métriques cognitives, prédictions IA.
 class HealthcareComparativeScreen extends StatelessWidget {
@@ -32,9 +36,9 @@ class HealthcareComparativeScreen extends StatelessWidget {
                 letterSpacing: 1,
               ),
             ),
-            const Text(
-              'Analyse Comparative IA',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.aiComparativeAnalysisLabel,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF0F172A),
@@ -51,9 +55,9 @@ class HealthcareComparativeScreen extends StatelessWidget {
           children: [
             _comparisonModeCard(context),
             const SizedBox(height: 20),
-            _metricsCard(),
+            _metricsCard(context),
             const SizedBox(height: 20),
-            _predictionsCard(),
+            _predictionsCard(context),
             const SizedBox(height: 20),
             _actionButtons(context),
             const SizedBox(height: 100),
@@ -64,6 +68,8 @@ class HealthcareComparativeScreen extends StatelessWidget {
   }
 
   Widget _comparisonModeCard(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
@@ -76,7 +82,7 @@ class HealthcareComparativeScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'MODE COMPARAISON',
+                  loc.comparisonModeLabel,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -87,7 +93,7 @@ class HealthcareComparativeScreen extends StatelessWidget {
                 TextButton.icon(
                   onPressed: () {},
                   icon: const Icon(Icons.swap_horiz, size: 16, color: _brand),
-                  label: const Text('MODIFIER', style: TextStyle(color: _brand, fontWeight: FontWeight.bold, fontSize: 11)),
+                  label: Text(loc.editLabel, style: const TextStyle(color: _brand, fontWeight: FontWeight.bold, fontSize: 11)),
                 ),
               ],
             ),
@@ -109,7 +115,7 @@ class HealthcareComparativeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     const Text('J. Dupont', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                    Text('Mars 2024', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+                    Text(intl.DateFormat.yMMMM(locale).format(DateTime(2024, 3)), style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
                   ],
                 ),
                 Icon(Icons.compare_arrows, color: Colors.grey.shade400),
@@ -128,7 +134,7 @@ class HealthcareComparativeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     const Text('T. Bernard', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                    Text('Mars 2024', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+                    Text(intl.DateFormat.yMMMM(Localizations.localeOf(context).languageCode).format(DateTime(2024, 3)), style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
                   ],
                 ),
               ],
@@ -139,7 +145,7 @@ class HealthcareComparativeScreen extends StatelessWidget {
     );
   }
 
-  Widget _metricsCard() {
+  Widget _metricsCard(BuildContext context) {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
@@ -154,16 +160,16 @@ class HealthcareComparativeScreen extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Métriques Cognitives',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.cognitiveMetricsLabel,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF0F172A),
                       ),
                     ),
                     Text(
-                      'Données agrégées sur 30 jours',
+                      AppLocalizations.of(context)!.aggregatedData30Days,
                       style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                     ),
                   ],
@@ -193,25 +199,25 @@ class HealthcareComparativeScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Text('Sem 1', style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
-                Text('Sem 2', style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
-                Text('Sem 3', style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
-                Text('Sem 4', style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
+                Text(AppLocalizations.of(context)!.weekLabel(1), style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
+                Text(AppLocalizations.of(context)!.weekLabel(2), style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
+                Text(AppLocalizations.of(context)!.weekLabel(3), style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
+                Text(AppLocalizations.of(context)!.weekLabel(4), style: TextStyle(fontSize: 9, color: Colors.grey.shade500)),
               ],
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
-                  child: _metricChip('MÉMOIRE', '+12%', isHighlight: true),
+                  child: _metricChip(AppLocalizations.of(context)!.memoryLabel, '+12%', isHighlight: true),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _metricChip('FOCUS', '-2%', isHighlight: false),
+                  child: _metricChip(AppLocalizations.of(context)!.focusLabel, '-2%', isHighlight: false),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _metricChip('MOTEUR', '+5%', isHighlight: false),
+                  child: _metricChip(AppLocalizations.of(context)!.motorLabel, '+5%', isHighlight: false),
                 ),
               ],
             ),
@@ -267,7 +273,8 @@ class HealthcareComparativeScreen extends StatelessWidget {
     );
   }
 
-  Widget _predictionsCard() {
+  Widget _predictionsCard(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Material(
       color: _brand,
       borderRadius: BorderRadius.circular(20),
@@ -276,13 +283,13 @@ class HealthcareComparativeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.auto_awesome, color: _primary, size: 20),
-                SizedBox(width: 8),
+                const Icon(Icons.auto_awesome, color: _primary, size: 20),
+                const SizedBox(width: 8),
                 Text(
-                  'PRÉDICTIONS IA - ÉVOLUTION',
-                  style: TextStyle(
+                  loc.aiPredictionsEvolution,
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -338,11 +345,11 @@ class HealthcareComparativeScreen extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: _outlineAction(Icons.insights, 'Analyse de groupe', () {}),
+          child: _outlineAction(Icons.insights, AppLocalizations.of(context)!.groupAnalysisLabel, () {}),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _outlineAction(Icons.share, 'Exporter l\'analyse', () {}),
+          child: _outlineAction(Icons.share, AppLocalizations.of(context)!.exportAnalysisLabel, () {}),
         ),
       ],
     );

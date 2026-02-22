@@ -151,10 +151,12 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _signup() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final localizations = AppLocalizations.of(context)!;
+
     if (!_emailVerified) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.unknownError),
+          content: Text(localizations.emailNotVerifiedError),
           backgroundColor: Colors.red,
         ),
       );
@@ -172,7 +174,6 @@ class _SignupScreenState extends State<SignupScreen> {
     }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final localizations = AppLocalizations.of(context)!;
 
     try {
       final success = await authProvider.signup(
@@ -548,7 +549,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                localizations.signupButton,
+                                localizations.signupButton, // This line was replaced
                                 style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w800,

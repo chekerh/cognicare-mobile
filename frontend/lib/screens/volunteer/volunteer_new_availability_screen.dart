@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 import '../../services/availability_service.dart';
+import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFF89CFF0);
 const Color _primaryDark = Color(0xFF5BAED4);
@@ -25,7 +26,11 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
   final TimeOfDay _endTime = const TimeOfDay(hour: 18, minute: 0);
   bool _saving = false;
 
-  static const _daysShort = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'];
+  List<String> _getDaysShort(BuildContext context) {
+    return [
+      'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'
+    ]; // TODO: If needed, fetch localized short days, for now keeping as is or use formatting if required.
+  }
 
   List<DateTime?> _getCalendarDays() {
     final first = DateTime(_displayMonth.year, _displayMonth.month, 1);
@@ -76,7 +81,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
   Future<void> _saveAvailability() async {
     if (_selectedDates.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sélectionnez au moins une date'), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(AppLocalizations.of(context)!.selectOneDateAtLeast), behavior: SnackBarBehavior.floating),
       );
       return;
     }
@@ -98,7 +103,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Disponibilité enregistrée'), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(AppLocalizations.of(context)!.availabilitySaved), behavior: SnackBarBehavior.floating),
       );
       context.pop();
     } catch (e) {
@@ -127,7 +132,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                 children: [
                   _circleButton(Icons.chevron_left, () => context.pop()),
                   const SizedBox(width: 16),
-                  const Text('Nouvelle Disponibilité', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                  Text(AppLocalizations.of(context)!.newAvailabilityTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                 ],
               ),
             ),
@@ -144,7 +149,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Sélectionner les dates', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                              Text(AppLocalizations.of(context)!.selectDatesLabel, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                               Row(
                                 children: [
                                   IconButton(icon: Icon(Icons.chevron_left, color: Colors.grey.shade600), onPressed: () => setState(() => _displayMonth = DateTime(_displayMonth.year, _displayMonth.month - 1))),
@@ -156,7 +161,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                           const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: _daysShort.map((d) => Text(d, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500))).toList(),
+                            children: _getDaysShort(context).map((d) => Text(d, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500))).toList(),
                           ),
                           const SizedBox(height: 8),
                           GridView.builder(
@@ -193,7 +198,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                           ),
                           const SizedBox(height: 8),
                           Center(
-                            child: Text('Appuyez pour sélectionner plusieurs dates', style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Colors.grey.shade500)),
+                            child: Text(AppLocalizations.of(context)!.selectMultipleDatesHint, style: TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: Colors.grey.shade500)),
                           ),
                         ],
                       ),
@@ -203,7 +208,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Plage horaire', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          Text(AppLocalizations.of(context)!.timeRangeLabel, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                           const SizedBox(height: 16),
                           Row(
                             children: [
@@ -211,7 +216,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('DÉBUT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+                                    Text(AppLocalizations.of(context)!.startTimeLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
                                     const SizedBox(height: 4),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -238,7 +243,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('FIN', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+                                    Text(AppLocalizations.of(context)!.endTimeLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
                                     const SizedBox(height: 4),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -271,7 +276,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Récurrence', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                              Text(AppLocalizations.of(context)!.recurrenceLabel, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                               Switch(
                                 value: _recurrenceOn,
                                 onChanged: (v) => setState(() => _recurrenceOn = v),
@@ -292,7 +297,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(color: _recurrenceType == 0 ? _primary : Colors.grey.shade200, width: 2),
                                     ),
-                                    child: Text('Hebdomadaire', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: _recurrenceType == 0 ? _brandBlue : Colors.grey.shade500)),
+                                    child: Text(AppLocalizations.of(context)!.weeklyLabel, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: _recurrenceType == 0 ? _brandBlue : Colors.grey.shade500)),
                                   ),
                                 ),
                               ),
@@ -307,7 +312,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(color: _recurrenceType == 1 ? _primary : Colors.grey.shade200, width: 2),
                                     ),
-                                    child: Text('Toutes les 2 semaines', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _recurrenceType == 1 ? _brandBlue : Colors.grey.shade500)),
+                                    child: Text(AppLocalizations.of(context)!.biweeklyLabel, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _recurrenceType == 1 ? _brandBlue : Colors.grey.shade500)),
                                   ),
                                 ),
                               ),
@@ -320,7 +325,7 @@ class _VolunteerNewAvailabilityScreenState extends State<VolunteerNewAvailabilit
                     ElevatedButton.icon(
                       onPressed: _saving ? null : _saveAvailability,
                       icon: _saving ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.check_circle, size: 22),
-                      label: Text(_saving ? 'Enregistrement...' : 'Enregistrer ma disponibilité', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      label: Text(_saving ? AppLocalizations.of(context)!.savingAvailability : AppLocalizations.of(context)!.saveAvailabilityButton, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _primary,
                         foregroundColor: Colors.white,

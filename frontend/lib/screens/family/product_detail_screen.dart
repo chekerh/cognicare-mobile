@@ -232,7 +232,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           const SizedBox(height: 16),
           Text(
             widget.title == 'Couverture Lestée'
-                ? 'Conçue pour offrir une thérapie par pression profonde, cette couverture aide à apaiser l\'anxiété et favorise un sommeil réparateur, particulièrement bénéfique pour les enfants autistes ou souffrant de troubles sensoriels.'
+                ? loc.weightedBlanketDesc
                 : widget.description,
             style: TextStyle(
               fontSize: 15,
@@ -322,7 +322,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           OutlinedButton.icon(
             onPressed: () => _showAddReviewDialog(),
             icon: const Icon(Icons.edit, size: 18),
-            label: const Text('Écrire un avis'),
+            label: Text(loc.writeReview),
             style: OutlinedButton.styleFrom(
               foregroundColor: _marketPrimary,
               side: BorderSide(color: _marketPrimary),
@@ -335,7 +335,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
-                'Aucun avis pour le moment. Soyez le premier à donner votre avis !',
+                loc.noReviewsYet,
                 style: TextStyle(
                   fontSize: 14,
                   color: AppTheme.text.withOpacity(0.7),
@@ -355,7 +355,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   child: _buildReview(
                     name: r.userName,
                     rating: r.rating,
-                    text: r.comment.isEmpty ? '(Avis sans commentaire)' : r.comment,
+                    text: r.comment.isEmpty ? loc.reviewWithoutComment : r.comment,
                     profileImageUrl: profileImageUrl,
                   ),
                 );
@@ -369,6 +369,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Future<void> _showAddReviewDialog() async {
     int rating = 5;
     final commentController = TextEditingController();
+    final loc = AppLocalizations.of(context)!;
 
     final submitted = await showDialog<bool>(
       context: context,
@@ -376,13 +377,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         return StatefulBuilder(
           builder: (ctx, setDialogState) {
             return AlertDialog(
-              title: const Text('Écrire un avis'),
+              title: Text(loc.writeReview),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Note :', style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text(loc.ratingLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -399,14 +400,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       }),
                     ),
                     const SizedBox(height: 16),
-                    const Text('Commentaire (optionnel) :', style: TextStyle(fontWeight: FontWeight.w600)),
+                    Text(loc.commentOptional, style: const TextStyle(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
                     TextField(
                       controller: commentController,
                       maxLines: 3,
-                      decoration: const InputDecoration(
-                        hintText: 'Partagez votre expérience...',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        hintText: loc.shareYourExperience,
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                   ],
@@ -415,11 +416,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(false),
-                  child: const Text('Annuler'),
+                  child: Text(loc.cancel),
                 ),
                 FilledButton(
                   onPressed: () => Navigator.of(ctx).pop(true),
-                  child: const Text('Publier'),
+                  child: Text(loc.publishLabel),
                 ),
               ],
             );
@@ -439,8 +440,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       commentController.dispose();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Votre avis a été publié.'),
+        SnackBar(
+          content: Text(loc.reviewPublished),
           backgroundColor: Colors.green,
         ),
       );

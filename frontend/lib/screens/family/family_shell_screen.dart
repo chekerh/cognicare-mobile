@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
+import '../../utils/constants.dart';
 
 // Barre comme la 2e photo : teal #A3D9E2, fond blanc, + central et grand
 const Color _navPrimary = Color(0xFFA3D9E2);
@@ -47,11 +49,11 @@ class FamilyShellScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _navItem(context, 1, Icons.article_outlined, Icons.article, 'Feed', currentIndex),
-                _navItem(context, 2, Icons.chat_bubble_outline, Icons.chat_bubble, 'Chats', currentIndex),
+                _navItem(context, 1, Icons.article_outlined, Icons.article, AppLocalizations.of(context)!.navFeed, currentIndex),
+                _navItem(context, 2, Icons.chat_bubble_outline, Icons.chat_bubble, AppLocalizations.of(context)!.navChats, currentIndex),
                 _centerPlusButton(context, currentIndex),
-                _navItem(context, 3, Icons.shopping_bag_outlined, Icons.shopping_bag, 'Market', currentIndex),
-                _navItem(context, 4, Icons.person_outline, Icons.person, 'Profile', currentIndex),
+                _navItem(context, 3, Icons.shopping_bag_outlined, Icons.shopping_bag, AppLocalizations.of(context)!.navMarket, currentIndex),
+                _navItem(context, 4, Icons.person_outline, Icons.person, AppLocalizations.of(context)!.navProfile, currentIndex),
               ],
             ),
           ),

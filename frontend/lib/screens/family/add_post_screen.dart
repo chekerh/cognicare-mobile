@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -26,11 +27,11 @@ class _AddPostScreenState extends State<AddPostScreen> {
   String? _selectedImagePath;
   int? _selectedTagIndex;
 
-  static const List<({String label, IconData icon})> _tags = [
-    (label: 'Milestone', icon: Icons.emoji_events_outlined),
-    (label: 'Tip', icon: Icons.lightbulb_outline),
-    (label: 'Question', icon: Icons.help_outline),
-    (label: 'Feeling', icon: Icons.mood_outlined),
+  List<({String label, IconData icon})> _getTags(AppLocalizations loc) => [
+    (label: loc.tagMilestone, icon: Icons.emoji_events_outlined),
+    (label: loc.tagTip, icon: Icons.lightbulb_outline),
+    (label: loc.tagQuestion, icon: Icons.help_outline),
+    (label: loc.tagFeeling, icon: Icons.mood_outlined),
   ];
 
   @override
@@ -54,8 +55,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please write something to share.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.postEmptyError),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -92,8 +93,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
     if (!mounted) return;
     context.pop();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Post shared in the community.'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.postSharedSuccess),
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.green,
       ),
@@ -102,6 +103,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     final user = Provider.of<AuthProvider>(context).user;
 
     return Scaffold(
@@ -113,8 +115,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
           icon: const Icon(Icons.close, color: AppTheme.text),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'New post',
+        title: Text(
+          loc.createPostTitle,
           style: TextStyle(
             color: AppTheme.text,
             fontWeight: FontWeight.bold,
@@ -176,10 +178,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
                       height: 44,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
-                        itemCount: _tags.length,
+                        itemCount: _getTags(loc).length,
                         separatorBuilder: (_, __) => const SizedBox(width: 8),
                         itemBuilder: (context, i) {
-                          final tag = _tags[i];
+                          final tag = _getTags(loc)[i];
                           final selected = _selectedTagIndex == i;
                           return FilterChip(
                             selected: selected,
@@ -244,7 +246,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     maxLines: 3,
                     minLines: 1,
                     decoration: InputDecoration(
-                      hintText: "What's on your mind?",
+                      hintText: loc.postHintText,
                       hintStyle: TextStyle(
                         color: AppTheme.text.withOpacity(0.5),
                         fontSize: 16,
@@ -262,13 +264,13 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _bottomAction(Icons.photo_library_outlined, 'Gallery', () async {
+                        _bottomAction(Icons.photo_library_outlined, loc.postActionGallery, () async {
                           final path = await _pickImage();
                           if (path != null && mounted) setState(() => _selectedImagePath = path);
                         }),
-                        _bottomAction(Icons.emoji_emotions_outlined, 'Feeling', () {}),
-                        _bottomAction(Icons.place_outlined, 'Location', () {}),
-                        _bottomAction(Icons.star_outline, 'Life event', () {}),
+                        _bottomAction(Icons.emoji_emotions_outlined, loc.postActionFeeling, () {}),
+                        _bottomAction(Icons.place_outlined, loc.postActionLocation, () {}),
+                        _bottomAction(Icons.star_outline, loc.postActionLifeEvent, () {}),
                       ],
                     ),
                   ),
@@ -288,7 +290,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                               height: 24,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
-                          : const Text('Post', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          : Text(loc.postButton, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     ),
                   ),
                 ],

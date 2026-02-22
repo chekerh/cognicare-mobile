@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
+import '../../l10n/app_localizations.dart';
 
 // Couleurs alignées avec le dashboard
 const Color _primary = Color(0xFFA3D9E5);
@@ -75,8 +76,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       authProvider.updateUser(updatedUser);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Photo de profil mise à jour !'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.profilePicUpdated),
           backgroundColor: Colors.green,
         ),
       );
@@ -84,7 +85,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur: $e'),
+          content: Text('${AppLocalizations.of(context)!.unknownError}: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -122,8 +123,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       authProvider.updateUser(updatedUser);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Photo de profil mise à jour !'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.profilePicUpdated),
           backgroundColor: Colors.green,
         ),
       );
@@ -131,7 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur: $e'),
+          content: Text('${AppLocalizations.of(context)!.unknownError}: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -156,9 +157,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Changer la photo de profil',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.changeProfilePhotoLabel,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: _slate800,
@@ -167,7 +168,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 20),
               ListTile(
                 leading: const Icon(Icons.photo_library, color: _primaryDark),
-                title: const Text('Choisir depuis la galerie'),
+                title: Text(AppLocalizations.of(context)!.chooseFromGalleryLabel),
                 onTap: () {
                   context.pop();
                   _pickAndUploadProfilePhoto();
@@ -175,7 +176,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.camera_alt, color: _primaryDark),
-                title: const Text('Prendre une photo'),
+                title: Text(AppLocalizations.of(context)!.takePhotoLabel),
                 onTap: () {
                   context.pop();
                   _takePhotoAndUpload();
@@ -183,7 +184,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.close, color: Colors.red),
-                title: const Text('Annuler'),
+                title: Text(AppLocalizations.of(context)!.cancel),
                 onTap: () => context.pop(),
               ),
             ],
@@ -214,8 +215,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _confirmPasswordController.clear();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Mot de passe changé avec succès !'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.passwordChangedSuccess),
           backgroundColor: Colors.green,
         ),
       );
@@ -223,7 +224,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur: $e'),
+          content: Text('${AppLocalizations.of(context)!.unknownError}: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -252,8 +253,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _newEmailController.clear();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✅ Un email de vérification a été envoyé !'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.verificationEmailSent),
           backgroundColor: Colors.green,
         ),
       );
@@ -282,9 +283,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text(
-          'Paramètres',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context)!.settingsTitle,
+          style: const TextStyle(
             color: _slate800,
             fontWeight: FontWeight.w700,
           ),
@@ -303,7 +304,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             // Profile Photo Section
             _buildSection(
-              title: 'Photo de profil',
+              title: AppLocalizations.of(context)!.profilePhotoLabel,
               child: Center(
                 child: Column(
                   children: [
@@ -367,7 +368,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      user?.fullName ?? 'Utilisateur',
+                      user?.fullName ?? AppLocalizations.of(context)!.unknownError,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
@@ -391,7 +392,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // Change Password Section
             _buildSection(
-              title: 'Changer le mot de passe',
+              title: AppLocalizations.of(context)!.changePassword,
               child: Form(
                 key: _passwordFormKey,
                 child: Column(
@@ -400,7 +401,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       controller: _currentPasswordController,
                       obscureText: _obscureCurrentPassword,
                       decoration: InputDecoration(
-                        labelText: 'Mot de passe actuel',
+                        labelText: AppLocalizations.of(context)!.currentPasswordLabel,
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(_obscureCurrentPassword ? Icons.visibility : Icons.visibility_off),
@@ -412,7 +413,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Veuillez entrer votre mot de passe actuel';
+                          return AppLocalizations.of(context)!.currentPasswordRequired;
                         }
                         return null;
                       },
@@ -422,7 +423,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       controller: _newPasswordController,
                       obscureText: _obscureNewPassword,
                       decoration: InputDecoration(
-                        labelText: 'Nouveau mot de passe',
+                        labelText: AppLocalizations.of(context)!.newPasswordLabel,
                         prefixIcon: const Icon(Icons.lock),
                         suffixIcon: IconButton(
                           icon: Icon(_obscureNewPassword ? Icons.visibility : Icons.visibility_off),
@@ -437,7 +438,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           return 'Veuillez entrer un nouveau mot de passe';
                         }
                         if (value.length < 6) {
-                          return 'Le mot de passe doit contenir au moins 6 caractères';
+                          return AppLocalizations.of(context)!.passwordTooShort;
                         }
                         return null;
                       },
@@ -447,7 +448,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       controller: _confirmPasswordController,
                       obscureText: _obscureConfirmPassword,
                       decoration: InputDecoration(
-                        labelText: 'Confirmer le nouveau mot de passe',
+                        labelText: AppLocalizations.of(context)!.confirmNewPasswordLabel,
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
@@ -459,10 +460,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Veuillez confirmer le mot de passe';
+                          return AppLocalizations.of(context)!.confirmPasswordRequired;
                         }
                         if (value != _newPasswordController.text) {
-                          return 'Les mots de passe ne correspondent pas';
+                          return AppLocalizations.of(context)!.passwordsDontMatch;
                         }
                         return null;
                       },
@@ -485,9 +486,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 width: 20,
                                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                               )
-                            : const Text(
-                                'Changer le mot de passe',
-                                style: TextStyle(
+                            : Text(
+                                AppLocalizations.of(context)!.changePassword,
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
@@ -504,7 +505,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // Change Email Section
             _buildSection(
-              title: 'Changer l\'email',
+              title: AppLocalizations.of(context)!.changeEmail,
               child: Form(
                 key: _emailFormKey,
                 child: Column(
@@ -513,7 +514,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       controller: _newEmailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        labelText: 'Nouvel email',
+                        labelText: AppLocalizations.of(context)!.emailLabel,
                         prefixIcon: const Icon(Icons.email_outlined),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -521,10 +522,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Veuillez entrer un email';
+                          return AppLocalizations.of(context)!.emailRequired;
                         }
                         if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                          return 'Email invalide';
+                          return AppLocalizations.of(context)!.emailInvalid;
                         }
                         return null;
                       },
@@ -547,9 +548,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 width: 20,
                                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                               )
-                            : const Text(
-                                'Changer l\'email',
-                                style: TextStyle(
+                            : Text(
+                                AppLocalizations.of(context)!.changeEmail,
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,

@@ -559,7 +559,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               TextButton.icon(
                 onPressed: _loadDonations,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Réessayer'),
+                label: Text(loc.tryAgain),
               ),
             ],
           ),
@@ -577,7 +577,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                 Icon(Icons.inventory_2_outlined, size: 56, color: _donationPrimary.withOpacity(0.5)),
                 const SizedBox(height: 16),
                 Text(
-                  'Aucun don pour le moment',
+                  loc.noDonationsYet,
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 ),
               ],
@@ -837,7 +837,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     const SizedBox(height: 12),
                     TextButton(
                       onPressed: _loadHealthcareUsers,
-                      child: const Text('Réessayer'),
+                      child: Text(AppLocalizations.of(context)!.tryAgain),
                     ),
                   ],
                 ),
@@ -867,7 +867,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
       child: TextField(
         onChanged: (value) => setState(() => _healthcareSearchQuery = value.trim()),
         decoration: InputDecoration(
-          hintText: 'Rechercher un professionnel...',
+          hintText: AppLocalizations.of(context)!.searchProfessionalHint,
           hintStyle: TextStyle(
             color: AppTheme.text.withOpacity(0.5),
             fontSize: 14,
@@ -883,19 +883,23 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   }
 
   int _healthcareFilterIndex = 0;
-  static const List<String> _healthcareFilterLabels = [
-    'Tous',
-    'Orthophonistes',
-    'Pédopsychiatres',
-    'Ergothérapeutes',
-  ];
+  List<String> _getHealthcareFilterLabels(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    return [
+      loc.filterAll,
+      loc.filterSpeechTherapists,
+      loc.filterChildPsychiatrists,
+      loc.filterOccupationalTherapists,
+    ];
+  }
 
   Widget _buildHealthcareFilterChips() {
+    final labels = _getHealthcareFilterLabels(context);
     return SizedBox(
       height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: _healthcareFilterLabels.length,
+        itemCount: labels.length,
         itemBuilder: (context, index) {
           final selected = _healthcareFilterIndex == index;
           return Padding(
@@ -928,7 +932,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    _healthcareFilterLabels[index],
+                    labels[index],
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -944,22 +948,23 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     );
   }
 
-  static String _roleToSpecializationLabel(String role) {
+  String _roleToSpecializationLabel(String role, AppLocalizations loc) {
     switch (role) {
       case 'doctor':
-        return 'Médecin';
+        return loc.doctor;
       case 'psychologist':
-        return 'Pédopsychiatre / Psychologue';
+        return loc.psychologist;
       case 'speech_therapist':
-        return 'Orthophoniste';
+        return loc.speechTherapist;
       case 'occupational_therapist':
-        return 'Ergothérapeute';
+        return loc.occupationalTherapist;
       default:
         return role;
     }
   }
 
   List<Widget> _buildHealthcareCards() {
+    final loc = AppLocalizations.of(context)!;
     final list = _healthcareUsers ?? [];
     List<app_user.User> filtered = list;
     if (_healthcareFilterIndex == 1) {
@@ -973,7 +978,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
       final q = _healthcareSearchQuery.toLowerCase();
       filtered = filtered.where((u) =>
           u.fullName.toLowerCase().contains(q) ||
-          _roleToSpecializationLabel(u.role).toLowerCase().contains(q)).toList();
+          _roleToSpecializationLabel(u.role, loc).toLowerCase().contains(q)).toList();
     }
     if (filtered.isEmpty) {
       return [
@@ -981,7 +986,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           padding: const EdgeInsets.all(24),
           child: Center(
             child: Text(
-              'Aucun professionnel pour le moment.',
+              loc.noProfessionalsYet,
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
           ),
@@ -997,14 +1002,14 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         padding: const EdgeInsets.only(bottom: 16),
         child: _ExpertCard(
           name: user.fullName,
-          specialization: _roleToSpecializationLabel(user.role),
+          specialization: _roleToSpecializationLabel(user.role, loc),
           location: 'CogniCare',
           imageUrl: imageUrl,
           primaryColor: _feedSecondary,
           onBookConsultation: () {
             context.push(AppConstants.familyExpertBookingRoute, extra: {
               'name': user.fullName,
-              'specialization': _roleToSpecializationLabel(user.role),
+              'specialization': _roleToSpecializationLabel(user.role, loc),
               'location': 'CogniCare',
               'imageUrl': imageUrl,
             });
@@ -1098,7 +1103,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Mom: "Check out this toy!"',
+                    AppLocalizations.of(context)!.momCheckOutToy,
                     style: TextStyle(
                       fontSize: 12,
                       color: AppTheme.text.withOpacity(0.6),
@@ -1275,8 +1280,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           }
         },
         onShareTap: () {
+          final loc = AppLocalizations.of(context)!;
           final shareText = '${post.authorName}: ${post.text}\n\n— CogniCare Community';
-          Share.share(shareText, subject: 'Publication CogniCare');
+          Share.share(shareText, subject: loc.cogniCarePost);
         },
         canDelete: canDelete,
         onEditTap: canDelete
@@ -1677,9 +1683,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                       ),
                     ),
                   if (onEditTap == null && onDeleteTap == null)
-                    const PopupMenuItem<String>(
+                    PopupMenuItem<String>(
                       value: 'info',
-                      child: Text('Vous ne pouvez modifier que vos propres publications'),
+                      child: Text(AppLocalizations.of(context)!.onlyEditOwnPosts),
                     ),
                 ],
               ),
@@ -2000,7 +2006,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
             Icon(Icons.shopping_bag_outlined, size: 40, color: AppTheme.text.withOpacity(0.3)),
             const SizedBox(height: 8),
             Text(
-              'Aucun produit pour le moment',
+              AppLocalizations.of(context)!.noProductsYet,
               style: TextStyle(fontSize: 13, color: AppTheme.text.withOpacity(0.6)),
               textAlign: TextAlign.center,
             ),
@@ -2265,7 +2271,7 @@ class _ExpertCard extends StatelessWidget {
                               Icon(Icons.verified, size: 14, color: verifiedAccent),
                               const SizedBox(width: 4),
                               Text(
-                                'VERIFIED',
+                                AppLocalizations.of(context)!.verifiedLabel,
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
@@ -2319,12 +2325,12 @@ class _ExpertCard extends StatelessWidget {
                   child: InkWell(
                     onTap: onBookConsultation,
                     borderRadius: BorderRadius.circular(12),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Center(
                         child: Text(
-                          'Book Consultation',
-                          style: TextStyle(
+                          AppLocalizations.of(context)!.bookConsultation,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -2350,9 +2356,9 @@ class _ExpertCard extends StatelessWidget {
                         border: Border.all(color: const Color(0xFFF1F5F9)),
                       ),
                       alignment: Alignment.center,
-                      child: const Text(
-                        'Message',
-                        style: TextStyle(
+                      child: Text(
+                        AppLocalizations.of(context)!.sendMessageLabel,
+                        style: const TextStyle(
                           color: Color(0xFF475569),
                           fontSize: 12,
                           fontWeight: FontWeight.bold,

@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 
 // Couleurs du design HTML
 const Color _primary = Color(0xFF77B5D1);
 const Color _brandLight = Color(0xFFA8D9EB);
 const Color _bgLight = Color(0xFFF8FAFC);
-
-const _daysFr = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-const _daysFullFr = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-const _monthsFr = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 
 class _Mission {
   final String category;
@@ -33,7 +31,10 @@ class _Mission {
     required this.address,
   });
 
-  String get dateLabel => '${_daysFullFr[date.weekday - 1]} ${date.day} ${_monthsFr[date.month - 1]}';
+  String dateLabel(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
+    return DateFormat.yMMMMEEEEd(locale).format(date);
+  }
   String get time => '$timeRange ($duration)';
 }
 
@@ -82,7 +83,7 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
   String _volunteerSearch = '';
   int _volunteerFilterIndex = 0; // 0=Tous, 1=Orthophonie, 2=Tâches quotidiennes, 3=Atelier créatif
 
-  static List<_VolunteerProfile> _allVolunteers() {
+  List<_VolunteerProfile> _allVolunteers() {
     return [
       _VolunteerProfile(
         name: 'Sarah Miller',
@@ -92,8 +93,8 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         reviewsCount: '12',
         distance: '2 km',
         tags: [
-          _VolunteerTag(label: 'Aide orthophonique', bgColor: const Color(0xFFEFF6FF), textColor: const Color(0xFF2563EB)),
-          _VolunteerTag(label: 'Lecture', bgColor: const Color(0xFFFEF3C7), textColor: const Color(0xFFD97706)),
+          _VolunteerTag(label: AppLocalizations.of(context)!.speechTherapyHelp, bgColor: const Color(0xFFEFF6FF), textColor: const Color(0xFF2563EB)),
+          _VolunteerTag(label: AppLocalizations.of(context)!.reading, bgColor: const Color(0xFFFEF3C7), textColor: const Color(0xFFD97706)),
         ],
         description: 'Bénévole patiente et enthousiaste, 3 ans d\'expérience avec les enfants ayant des retards de langage. Disponible le week-end.',
       ),
@@ -105,8 +106,8 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         reviewsCount: '28',
         distance: '0,5 km',
         tags: [
-          _VolunteerTag(label: 'Kinésithérapie', bgColor: const Color(0xFFF5F3FF), textColor: const Color(0xFF7C3AED)),
-          _VolunteerTag(label: 'Activités extérieures', bgColor: const Color(0xFFECFDF5), textColor: const Color(0xFF059669)),
+          _VolunteerTag(label: AppLocalizations.of(context)!.physiotherapy, bgColor: const Color(0xFFF5F3FF), textColor: const Color(0xFF7C3AED)),
+          _VolunteerTag(label: AppLocalizations.of(context)!.outdoorActivities, bgColor: const Color(0xFFECFDF5), textColor: const Color(0xFF059669)),
         ],
         description: 'Spécialisé dans l\'activité physique et les sorties. J\'aime organiser des jeux sportifs inclusifs.',
       ),
@@ -118,20 +119,20 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         reviewsCount: '15',
         distance: '5 km',
         tags: [
-          _VolunteerTag(label: 'Tâches quotidiennes', bgColor: const Color(0xFFFFF1F2), textColor: const Color(0xFFE11D48)),
-          _VolunteerTag(label: 'Arts créatifs', bgColor: const Color(0xFFECFEFF), textColor: const Color(0xFF0891B2)),
+          _VolunteerTag(label: AppLocalizations.of(context)!.dailyTasks, bgColor: const Color(0xFFFFF1F2), textColor: const Color(0xFFE11D48)),
+          _VolunteerTag(label: AppLocalizations.of(context)!.creativeArts, bgColor: const Color(0xFFECFEFF), textColor: const Color(0xFF0891B2)),
         ],
         description: 'Étudiante en art, propose aide au quotidien et ateliers créatifs pour les enfants.',
       ),
     ];
   }
 
-  static List<_Mission> _allMissions(DateTime now) {
+  List<_Mission> _allMissions(DateTime now) {
     return [
       _Mission(
-        category: 'Aide aux devoirs',
+        category: AppLocalizations.of(context)!.homeworkHelp,
         family: 'Famille Martin',
-        status: 'Confirmé',
+        status: AppLocalizations.of(context)!.statusConfirmed,
         isConfirmed: true,
         date: now.add(const Duration(days: 2)),
         timeRange: '16:30 - 18:00',
@@ -139,9 +140,9 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         address: '12 Rue de la Paix, 75002 Paris',
       ),
       _Mission(
-        category: 'Accompagnement extérieur',
+        category: AppLocalizations.of(context)!.outdoorAccompaniment,
         family: 'Famille Lefebvre',
-        status: 'En attente',
+        status: AppLocalizations.of(context)!.statusPending,
         isConfirmed: false,
         date: now.add(const Duration(days: 5)),
         timeRange: '14:00 - 16:00',
@@ -149,9 +150,9 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         address: '8 Avenue des Champs-Élysées, 75008 Paris',
       ),
       _Mission(
-        category: 'Visite de courtoisie',
+        category: AppLocalizations.of(context)!.courtesyVisit,
         family: 'Famille Dubois',
-        status: 'Confirmé',
+        status: AppLocalizations.of(context)!.statusConfirmed,
         isConfirmed: true,
         date: now.add(const Duration(days: 7)),
         timeRange: '10:00 - 11:30',
@@ -159,9 +160,9 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         address: '25 Boulevard Saint-Germain, 75005 Paris',
       ),
       _Mission(
-        category: 'Aide aux devoirs',
+        category: AppLocalizations.of(context)!.homeworkHelp,
         family: 'Famille Bernard',
-        status: 'Confirmé',
+        status: AppLocalizations.of(context)!.statusConfirmed,
         isConfirmed: true,
         date: now.subtract(const Duration(days: 7)),
         timeRange: '14:00 - 15:30',
@@ -169,9 +170,9 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         address: '5 Rue de Rivoli, 75001 Paris',
       ),
       _Mission(
-        category: 'Accompagnement extérieur',
+        category: AppLocalizations.of(context)!.outdoorAccompaniment,
         family: 'Famille Petit',
-        status: 'Confirmé',
+        status: AppLocalizations.of(context)!.statusConfirmed,
         isConfirmed: true,
         date: now.subtract(const Duration(days: 14)),
         timeRange: '10:00 - 12:00',
@@ -179,9 +180,9 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
         address: '42 Rue du Faubourg Saint-Honoré, 75008 Paris',
       ),
       _Mission(
-        category: 'Visite de courtoisie',
+        category: AppLocalizations.of(context)!.courtesyVisit,
         family: 'Famille Durand',
-        status: 'Confirmé',
+        status: AppLocalizations.of(context)!.statusConfirmed,
         isConfirmed: true,
         date: now.subtract(const Duration(days: 21)),
         timeRange: '15:00 - 16:00',
@@ -204,6 +205,7 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
     final user = Provider.of<AuthProvider>(context).user;
     final userName = (user?.fullName ?? '').split(' ').firstOrNull ?? 'Lucas';
 
@@ -225,8 +227,8 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Bonjour,', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey.shade600)),
-                          Text('Bénévole $userName', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          Text('${localizations.helloUser('')},', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey.shade600)),
+                          Text('${localizations.volunteerLabel} $userName', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                         ],
                       ),
                       GestureDetector(
@@ -265,7 +267,7 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                                 borderRadius: BorderRadius.circular(8),
                                 boxShadow: _isRendezVous ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))] : null,
                               ),
-                              child: Text('Rendez-vous', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: _isRendezVous ? FontWeight.w600 : FontWeight.w500, color: _isRendezVous ? _primary : Colors.grey.shade600)),
+                              child: Text(localizations.rendezVousTab, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: _isRendezVous ? FontWeight.w600 : FontWeight.w500, color: _isRendezVous ? _primary : Colors.grey.shade600)),
                             ),
                           ),
                         ),
@@ -279,7 +281,7 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                                 borderRadius: BorderRadius.circular(8),
                                 boxShadow: _isRendezVous ? null : [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))],
                               ),
-                              child: Text('Historique', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: _isRendezVous ? FontWeight.w500 : FontWeight.w600, color: _isRendezVous ? Colors.grey.shade600 : _primary)),
+                              child: Text(localizations.historiqueTab, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: _isRendezVous ? FontWeight.w500 : FontWeight.w600, color: _isRendezVous ? Colors.grey.shade600 : _primary)),
                             ),
                           ),
                         ),
@@ -335,11 +337,11 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Votre Impact', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
+              Text(AppLocalizations.of(context)!.yourImpact, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(color: _primary.withOpacity(0.1), borderRadius: BorderRadius.circular(999)),
-                child: const Text('Niveau 4', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _primary)),
+                child: Text(AppLocalizations.of(context)!.levelLabel('4'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _primary)),
               ),
             ],
           ),
@@ -364,7 +366,7 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Flexible(
-                          child: Text('Prochain Badge: "Super Aidant"', style: TextStyle(fontSize: 14, color: Colors.grey.shade600), overflow: TextOverflow.ellipsis),
+                          child: Text(AppLocalizations.of(context)!.nextBadgeLabel('Super Aidant'), style: TextStyle(fontSize: 14, color: Colors.grey.shade600), overflow: TextOverflow.ellipsis),
                         ),
                         const SizedBox(width: 8),
                         const Text('85%', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
@@ -390,11 +392,11 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _statBox('Heures', '24h')),
+              Expanded(child: _statBox(AppLocalizations.of(context)!.hoursLabel, '24h')),
               const SizedBox(width: 8),
-              Expanded(child: _statBox('Missions', '12')),
+              Expanded(child: _statBox(AppLocalizations.of(context)!.missionsLabel, '12')),
               const SizedBox(width: 8),
-              Expanded(child: _statBox('Merci', '8')),
+              Expanded(child: _statBox(AppLocalizations.of(context)!.merciLabel, '8')),
             ],
           ),
         ],
@@ -421,7 +423,7 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
           v.name.toLowerCase().contains(_volunteerSearch.toLowerCase()) ||
           v.description.toLowerCase().contains(_volunteerSearch.toLowerCase()) ||
           v.tags.any((t) => t.label.toLowerCase().contains(_volunteerSearch.toLowerCase()));
-      final filterLabels = ['', 'orthophonie', 'quotidien', 'art'];
+      final filterLabels = ['', 'orthophonique', 'quotidien', 'art'];
       final filter = filterLabels[_volunteerFilterIndex.clamp(0, filterLabels.length - 1)];
       final matchFilter = filter.isEmpty ||
           v.tags.any((t) => t.label.toLowerCase().contains(filter));
@@ -431,7 +433,7 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Bénévoles', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+        Text(AppLocalizations.of(context)!.volunteerLabel, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
         const SizedBox(height: 12),
         // Barre de recherche
         Container(
@@ -443,7 +445,7 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
           child: TextField(
             onChanged: (v) => setState(() => _volunteerSearch = v),
             decoration: InputDecoration(
-              hintText: 'Rechercher un bénévole...',
+              hintText: AppLocalizations.of(context)!.searchVolunteerHint,
               hintStyle: TextStyle(fontSize: 14, color: Colors.grey.shade500),
               prefixIcon: Icon(Icons.search, size: 22, color: Colors.grey.shade500),
               border: InputBorder.none,
@@ -457,13 +459,13 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              _filterChip('Tous', 0),
+              _filterChip(AppLocalizations.of(context)!.allFilter, 0),
               const SizedBox(width: 8),
-              _filterChip('Orthophonie', 1),
+              _filterChip(AppLocalizations.of(context)!.roleSpeechTherapistLabel, 1),
               const SizedBox(width: 8),
-              _filterChip('Tâches quotidiennes', 2),
+              _filterChip(AppLocalizations.of(context)!.dailyTasksFilter, 2),
               const SizedBox(width: 8),
-              _filterChip('Atelier créatif', 3),
+              _filterChip(AppLocalizations.of(context)!.creativeWorkshopFilter, 3),
             ],
           ),
         ),
@@ -554,11 +556,11 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(v.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.verified, size: 14, color: _primary),
-                        SizedBox(width: 4),
-                        Text('Bénévole vérifié', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _primary)),
+                        const Icon(Icons.verified, size: 14, color: _primary),
+                        const SizedBox(width: 4),
+                        Text(AppLocalizations.of(context)!.verifiedVolunteer, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _primary)),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -567,7 +569,7 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                         Icon(Icons.star, size: 14, color: Colors.grey.shade600),
                         const SizedBox(width: 4),
                         Text(
-                          '${v.rating} (${v.reviewsCount} avis) • ${v.distance}',
+                          '${v.rating} (${AppLocalizations.of(context)!.reviewsLabel(v.reviewsCount)}) • ${v.distance}',
                           style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                         ),
                       ],
@@ -602,12 +604,12 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.calendar_today, color: Colors.white, size: 20),
-                    SizedBox(width: 8),
-                    Text('Demander de l\'aide', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
+                    const Icon(Icons.calendar_today, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Text(AppLocalizations.of(context)!.requestHelpButton, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
                   ],
                 ),
               ),
@@ -624,8 +626,8 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
     context.push('/volunteer/task-accepted', extra: {
       'volunteerName': userName,
       'familyName': v.name,
-      'missionType': v.tags.isNotEmpty ? v.tags.first.label : 'Aide bénévole',
-      'schedule': 'À définir',
+      'missionType': v.tags.isNotEmpty ? v.tags.first.label : AppLocalizations.of(context)!.volunteerLabel,
+      'schedule': AppLocalizations.of(context)!.toDefine,
       'address': '',
     });
   }
@@ -634,7 +636,7 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Votre semaine', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+        Text(AppLocalizations.of(context)!.yourWeek, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
@@ -657,7 +659,7 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                         onTap: () => setState(() => _selectedDayIndex = i),
                         child: Column(
                           children: [
-                            Text(_daysFr[d.weekday - 1], style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+                            Text(DateFormat.E(Localizations.localeOf(context).languageCode).format(d), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
                             const SizedBox(height: 4),
                             Container(
                               width: 32,
@@ -682,9 +684,9 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    _scheduleItem('14:00', 'Visite de courtoisie', 'Mme. Lefebvre', isCancelled: false),
+                    _scheduleItem('14:00', AppLocalizations.of(context)!.courtesyVisit, 'Mme. Lefebvre', isCancelled: false),
                     const SizedBox(height: 12),
-                    _scheduleItem('16:30', 'Transport Médical', 'ANNULÉ', isCancelled: true),
+                    _scheduleItem('16:30', AppLocalizations.of(context)!.medicalTransport, AppLocalizations.of(context)!.statusCancelled, isCancelled: true),
                   ],
                 ),
               ),
@@ -727,7 +729,7 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
     final bottomPadding = 100 + MediaQuery.of(context).padding.bottom;
     if (missions.isEmpty) {
       return Center(
-        child: Text('Aucune mission dans l\'historique', style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
+        child: Text(AppLocalizations.of(context)!.noMissionsHistory, style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
       );
     }
     return ListView.separated(
@@ -781,7 +783,7 @@ class _VolunteerMissionsScreenState extends State<VolunteerMissionsScreen> {
             children: [
               const Icon(Icons.calendar_today, size: 18, color: _primary),
               const SizedBox(width: 8),
-              Text(m.dateLabel, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+              Text(m.dateLabel(context), style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
             ],
           ),
           const SizedBox(height: 8),

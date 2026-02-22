@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 
 // Couleurs du design HTML
 const Color _primary = Color(0xFF77B5D1);
@@ -17,11 +18,12 @@ class VolunteerMissionItineraryScreen extends StatelessWidget {
   final String familyName;
   final String address;
 
-  static VolunteerMissionItineraryScreen fromState(GoRouterState state) {
+  static VolunteerMissionItineraryScreen fromState(GoRouterState state, BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final extra = state.extra as Map<String, dynamic>?;
     return VolunteerMissionItineraryScreen(
-      familyName: extra?['family'] as String? ?? 'Famille',
-      address: extra?['address'] as String? ?? 'Adresse non disponible',
+      familyName: extra?['family'] as String? ?? l.familyLabel,
+      address: extra?['address'] as String? ?? l.notProvided,
     );
   }
 
@@ -116,9 +118,9 @@ class VolunteerMissionItineraryScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Text(
-                      'Itinéraire',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                    Text(
+                      AppLocalizations.of(context)!.itineraryLabel,
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                     ),
                   ],
                 ),
@@ -184,7 +186,7 @@ class VolunteerMissionItineraryScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'INSTRUCTIONS',
+                    AppLocalizations.of(context)!.instructionsLabel,
                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Colors.grey.shade500),
                   ),
                   const SizedBox(height: 12),
@@ -226,12 +228,12 @@ class VolunteerMissionItineraryScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: const Row(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.navigation, color: Colors.white, size: 24),
-                                  SizedBox(width: 12),
-                                  Text('Démarrer la navigation', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                                  const Icon(Icons.navigation, color: Colors.white, size: 24),
+                                  const SizedBox(width: 12),
+                                  Text(AppLocalizations.of(context)!.startNavigationLabel, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                                 ],
                               ),
                             ),
@@ -260,7 +262,7 @@ class VolunteerMissionItineraryScreen extends StatelessWidget {
                     child: TextButton.icon(
                       onPressed: () {},
                       icon: const Icon(Icons.chat_bubble_outline, color: _primary, size: 20),
-                      label: Text('Contacter la famille', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
+                      label: Text(AppLocalizations.of(context)!.contactFamilyLabel, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey.shade600)),
                     ),
                   ),
                 ],

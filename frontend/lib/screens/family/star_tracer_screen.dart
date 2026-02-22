@@ -240,7 +240,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
             });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Niveau $_level !'),
+                content: Text(AppLocalizations.of(context)!.levelX(_level)),
                 duration: const Duration(milliseconds: 1200),
                 behavior: SnackBarBehavior.floating,
               ),
@@ -380,9 +380,9 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Suis les lignes avec ton doigt',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.followLinesWithFinger,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: _textMuted,
@@ -390,7 +390,7 @@ class _StarTracerScreenState extends State<StarTracerScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Trace chaque trait jusqu\'au point bleu',
+            AppLocalizations.of(context)!.traceToBlueDot,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,

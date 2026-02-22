@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 
 const Color _brandBlue = Color(0xFF2563EB);
 const Color _bgLight = Color(0xFFF0F9FF);
@@ -22,12 +23,14 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
     super.dispose();
   }
 
-  static const List<({String label, IconData icon})> _helpTypes = [
-    (label: 'Courses', icon: Icons.shopping_cart),
-    (label: 'Transport', icon: Icons.directions_car),
-    (label: 'Garde', icon: Icons.child_care),
-    (label: 'Autre', icon: Icons.more_horiz),
-  ];
+  List<({String label, IconData icon})> _getHelpTypes(BuildContext context) {
+    return [
+      (label: AppLocalizations.of(context)!.groceriesLabel, icon: Icons.shopping_cart),
+      (label: AppLocalizations.of(context)!.transportLabel, icon: Icons.directions_car),
+      (label: AppLocalizations.of(context)!.childcareLabel, icon: Icons.child_care),
+      (label: AppLocalizations.of(context)!.otherLabel, icon: Icons.more_horiz),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +52,7 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                     onTap: () => context.pop(),
                     child: const Icon(Icons.arrow_back_ios, color: Color(0xFF475569), size: 22),
                   ),
-                  const Expanded(child: Text('Proposer mon Aide', textAlign: TextAlign.center, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)), overflow: TextOverflow.ellipsis)),
+                  Expanded(child: Text(AppLocalizations.of(context)!.offerHelpTitle, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)), overflow: TextOverflow.ellipsis)),
                   const SizedBox(width: 40),
                 ],
               ),
@@ -71,7 +74,7 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                "Votre générosité fait la force de notre communauté. Proposez votre aide spontanément.",
+                AppLocalizations.of(context)!.offerHelpSubtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
@@ -87,7 +90,7 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('TYPE D\'AIDE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500, letterSpacing: 1)),
+                          Text(AppLocalizations.of(context)!.helpTypeLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500, letterSpacing: 1)),
                           const SizedBox(height: 16),
                           GridView.count(
                             crossAxisCount: 2,
@@ -98,7 +101,7 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                             childAspectRatio: 1.4,
                             children: List.generate(4, (i) {
                               final selected = _helpTypeIndex == i;
-                              final item = _helpTypes[i];
+                              final item = _getHelpTypes(context)[i];
                               return GestureDetector(
                                 onTap: () => setState(() => _helpTypeIndex = i),
                                 child: Container(
@@ -127,7 +130,7 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('QUAND', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500, letterSpacing: 1)),
+                          Text(AppLocalizations.of(context)!.whenLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500, letterSpacing: 1)),
                           const SizedBox(height: 16),
                           Row(
                             children: [
@@ -148,8 +151,8 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                                           mainAxisSize: MainAxisSize.min,
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text('DATE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
-                                            const Text("Aujourd'hui", style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontStyle: FontStyle.italic), overflow: TextOverflow.ellipsis),
+                                            Text(AppLocalizations.of(context)!.dateLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
+                                            Text(AppLocalizations.of(context)!.todayValueLabel, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontStyle: FontStyle.italic), overflow: TextOverflow.ellipsis),
                                           ],
                                         ),
                                       ),
@@ -175,8 +178,8 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                                           mainAxisSize: MainAxisSize.min,
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
-                                            Text('HEURE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
-                                            const Text('Dès que possible', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontStyle: FontStyle.italic), overflow: TextOverflow.ellipsis),
+                                            Text(AppLocalizations.of(context)!.timeLabel, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
+                                            Text(AppLocalizations.of(context)!.asapLabel, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, fontStyle: FontStyle.italic), overflow: TextOverflow.ellipsis),
                                           ],
                                         ),
                                       ),
@@ -194,7 +197,7 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('MESSAGE PERSONNALISÉ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500, letterSpacing: 1)),
+                          Text(AppLocalizations.of(context)!.customMessageLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade500, letterSpacing: 1)),
                           const SizedBox(height: 12),
                           TextField(
                             controller: _messageController,
@@ -213,11 +216,11 @@ class _VolunteerOfferHelpScreenState extends State<VolunteerOfferHelpScreen> {
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Proposition diffusée'), behavior: SnackBarBehavior.floating));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.offerBroadcastedMessage), behavior: SnackBarBehavior.floating));
                         context.pop();
                       },
                       icon: const Icon(Icons.send, size: 22, color: Colors.white),
-                      label: const Text('Diffuser ma proposition', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                      label: Text(AppLocalizations.of(context)!.broadcastOfferButton, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _brandBlue,
                         foregroundColor: Colors.white,

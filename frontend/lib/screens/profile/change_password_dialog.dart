@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -42,8 +43,8 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
 
     if (_newPasswordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('New passwords do not match'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.passwordsDontMatch),
           backgroundColor: Colors.red,
         ),
       );
@@ -73,7 +74,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
         }
       } else {
         final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? 'Failed to update password');
+        throw Exception(error['message'] ?? AppLocalizations.of(context)!.unknownError);
       }
     } catch (e) {
       if (mounted) {
@@ -93,8 +94,9 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Change Password'),
+      title: Text(loc.changePassword),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -103,11 +105,11 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
             children: [
               CustomTextField(
                 controller: _currentPasswordController,
-                label: 'Current Password',
+                label: loc.currentPasswordLabel,
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Current password is required';
+                    return loc.currentPasswordRequired;
                   }
                   return null;
                 },
@@ -115,14 +117,14 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
               const SizedBox(height: 16),
               CustomTextField(
                 controller: _newPasswordController,
-                label: 'New Password',
+                label: loc.newPasswordLabel,
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'New password is required';
+                    return loc.newPasswordRequired;
                   }
                   if (value.length < 6) {
-                    return 'Password must be at least 6 characters';
+                    return loc.passwordTooShort;
                   }
                   return null;
                 },
@@ -130,11 +132,11 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
               const SizedBox(height: 16),
               CustomTextField(
                 controller: _confirmPasswordController,
-                label: 'Confirm New Password',
+                label: loc.confirmNewPasswordLabel,
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please confirm your password';
+                    return loc.confirmPasswordRequired;
                   }
                   return null;
                 },
@@ -146,7 +148,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(loc.cancel),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _changePassword,
@@ -162,7 +164,7 @@ class _ChangePasswordDialogState extends State<ChangePasswordDialog> {
                     color: Colors.white,
                   ),
                 )
-              : const Text('Update'),
+              : Text(loc.save),
         ),
       ],
     );

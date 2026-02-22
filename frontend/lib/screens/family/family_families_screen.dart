@@ -213,8 +213,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Impossible d\'ouvrir la conversation.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.failedToOpenConversation),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -284,10 +284,10 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Flexible(
+          Flexible(
             child: Text(
-              'Conversations',
-              style: TextStyle(
+              AppLocalizations.of(context)!.conversationsTitle,
+              style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
@@ -326,7 +326,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
         child: TextField(
           onChanged: (value) => setState(() => _searchQuery = value.trim()),
           decoration: InputDecoration(
-            hintText: 'Search family & friends',
+            hintText: AppLocalizations.of(context)!.searchFamilyFriends,
             hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
             prefixIcon: Icon(Icons.search, color: Colors.grey.shade500, size: 22),
             border: InputBorder.none,
@@ -346,9 +346,9 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
       ),
       child: Row(
         children: [
-          _tab('Families', 0),
-          _tab('Benevole', 1),
-          _tab('Healthcare', 2),
+          _tab(AppLocalizations.of(context)!.tabFamilies, 0),
+          _tab(AppLocalizations.of(context)!.tabVolunteers, 1),
+          _tab(AppLocalizations.of(context)!.tabHealthcare, 2),
         ],
       ),
     );
@@ -482,7 +482,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: _loadFamiliesToContact,
-                    child: const Text('Réessayer'),
+                    child: Text(AppLocalizations.of(context)!.tryAgain),
                   ),
                 ],
               ),
@@ -501,7 +501,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
                   Icon(Icons.people_outline, size: 64, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
                   Text(
-                    'Aucune autre famille pour le moment.\nVos conversations apparaîtront ici.',
+                    AppLocalizations.of(context)!.noOtherFamiliesYet,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                   ),
@@ -533,8 +533,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Familles avec qui communiquer',
-                  style: TextStyle(
+                  AppLocalizations.of(context)!.familiesToContact,
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: _textPrimary,
@@ -583,7 +583,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: _loadVolunteersToContact,
-                    child: const Text('Réessayer'),
+                    child: Text(AppLocalizations.of(context)!.tryAgain),
                   ),
                 ],
               ),
@@ -602,7 +602,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
                   Icon(Icons.volunteer_activism_outlined, size: 64, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
                   Text(
-                    'Aucun bénévole disponible pour le moment.\nVos conversations apparaîtront ici.',
+                    AppLocalizations.of(context)!.noVolunteersAvailable,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                   ),
@@ -634,8 +634,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Bénévoles avec qui communiquer',
-                  style: TextStyle(
+                  AppLocalizations.of(context)!.volunteersToContact,
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: _textPrimary,
@@ -679,10 +679,10 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
             children: [
               Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.shade400),
               const SizedBox(height: 16),
-              const Text(
-                'Aucune conversation avec les professionnels de santé.',
+              Text(
+                AppLocalizations.of(context)!.noHealthcareConversations,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: _textMuted),
+                style: const TextStyle(fontSize: 16, color: _textMuted),
               ),
             ],
           ),
@@ -722,20 +722,20 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
               return await showDialog<bool>(
                     context: context,
                     builder: (ctx) => AlertDialog(
-                      title: const Text('Supprimer la conversation ?'),
-                      content: const Text(
-                        'Cette action supprimera la conversation pour les deux participants.',
+                      title: Text(AppLocalizations.of(context)!.deleteConversationTitle),
+                      content: Text(
+                        AppLocalizations.of(context)!.deleteConversationDesc,
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(ctx).pop(false),
-                          child: const Text('Annuler'),
+                          child: Text(AppLocalizations.of(context)!.cancel),
                         ),
                         TextButton(
                           onPressed: () => Navigator.of(ctx).pop(true),
-                          child: const Text(
-                            'Supprimer',
-                            style: TextStyle(color: Colors.red),
+                          child: Text(
+                            AppLocalizations.of(context)!.deleteLabel,
+                            style: const TextStyle(color: Colors.red),
                           ),
                         ),
                       ],

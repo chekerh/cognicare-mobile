@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../utils/constants.dart';
+import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFF77B5D1);
 const Color _brandLight = Color(0xFFA8D9EB);
@@ -41,18 +42,18 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
   late List<_NotificationItem> _notifications;
 
   @override
-  void initState() {
-    super.initState();
-    _notifications = _buildSampleNotifications();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _notifications = _buildSampleNotifications(context);
   }
 
-  static List<_NotificationItem> _buildSampleNotifications() {
+  static List<_NotificationItem> _buildSampleNotifications(BuildContext context) {
     return [
       _NotificationItem(
         id: '1',
-        title: 'Nouvelle demande urgente',
-        timestamp: "À l'instant",
-        description: "La famille Martin à 0.8 km a besoin d'aide pour des courses essentielles.",
+        title: AppLocalizations.of(context)!.notifUrgentTitle,
+        timestamp: AppLocalizations.of(context)!.justNow,
+        description: AppLocalizations.of(context)!.notifUrgentDesc,
         icon: Icons.add,
         iconColor: Colors.blue,
         iconBgColor: Colors.blue.shade50,
@@ -60,9 +61,9 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
       ),
       _NotificationItem(
         id: '2',
-        title: 'Nouveau message',
+        title: AppLocalizations.of(context)!.notifMsgTitle,
         timestamp: '14:30',
-        description: 'Famille Dubois: "Merci encore Lucas pour votre aide précieuse aujourd\'hui !"',
+        description: AppLocalizations.of(context)!.notifMsgDesc,
         icon: Icons.chat_bubble,
         iconColor: Colors.green,
         iconBgColor: Colors.green.shade50,
@@ -70,9 +71,9 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
       ),
       _NotificationItem(
         id: '3',
-        title: 'Rappel : Mission demain',
+        title: AppLocalizations.of(context)!.notifReminderTitle,
         timestamp: '10:15',
-        description: "Votre visite chez Mme. Lefebvre est prévue demain à 14:00.",
+        description: AppLocalizations.of(context)!.notifReminderDesc,
         icon: Icons.calendar_today,
         iconColor: Colors.orange,
         iconBgColor: Colors.orange.shade50,
@@ -80,9 +81,9 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
       ),
       _NotificationItem(
         id: '4',
-        title: "Modification d'horaire",
-        timestamp: 'Hier',
-        description: "Le transport médical de mercredi a été annulé par le professionnel de santé.",
+        title: AppLocalizations.of(context)!.notifScheduleTitle,
+        timestamp: AppLocalizations.of(context)!.yesterday,
+        description: AppLocalizations.of(context)!.notifScheduleDesc,
         icon: Icons.event_busy,
         iconColor: Colors.grey,
         iconBgColor: Colors.grey.shade100,
@@ -90,9 +91,9 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
       ),
       _NotificationItem(
         id: '5',
-        title: 'Nouvelle mission disponible',
-        timestamp: 'Hier',
-        description: "Lecture & Compagnie : Marie recherche un bénévole pour demain après-midi.",
+        title: AppLocalizations.of(context)!.notifNewMissionTitle,
+        timestamp: AppLocalizations.of(context)!.yesterday,
+        description: AppLocalizations.of(context)!.notifNewMissionDesc,
         icon: Icons.add,
         iconColor: Colors.blue,
         iconBgColor: Colors.blue.shade50,
@@ -170,16 +171,16 @@ class _VolunteerNotificationsScreenState extends State<VolunteerNotificationsScr
                         icon: const Icon(Icons.chevron_left),
                         style: IconButton.styleFrom(foregroundColor: const Color(0xFF1E293B)),
                       ),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Notifications',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                          AppLocalizations.of(context)!.notificationsTitle,
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                           textAlign: TextAlign.center,
                         ),
                       ),
                       GestureDetector(
                         onTap: _markAllAsRead,
-                        child: const Text('Tout lire', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
+                        child: Text(AppLocalizations.of(context)!.markAllAsRead, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
                       ),
                     ],
                   ),

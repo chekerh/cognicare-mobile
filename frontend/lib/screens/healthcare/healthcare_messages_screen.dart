@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
@@ -112,8 +113,8 @@ class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
       ),
       child: Row(
         children: [
-          _tab('Famille', 0),
-          _tab('Bénévole', 1),
+          _tab(AppLocalizations.of(context)!.familyLabel, 0),
+          _tab(AppLocalizations.of(context)!.volunteerLabel, 1),
         ],
       ),
     );
@@ -159,7 +160,7 @@ class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
     return Scaffold(
       backgroundColor: _bgLight,
       appBar: AppBar(
-        title: const Text('Messages'),
+        title: Text(AppLocalizations.of(context)!.messagesLabel),
         backgroundColor: Colors.white,
         foregroundColor: _textPrimary,
         elevation: 0,
@@ -187,7 +188,7 @@ class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
         child: TextField(
           onChanged: (value) => setState(() => _searchQuery = value.trim()),
           decoration: InputDecoration(
-            hintText: 'Rechercher...',
+            hintText: AppLocalizations.of(context)!.searchHint,
             hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
             prefixIcon: Icon(Icons.search, color: Colors.grey.shade500, size: 22),
             border: InputBorder.none,
@@ -213,7 +214,7 @@ class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: _loadInbox,
-                child: const Text('Réessayer'),
+                child: Text(AppLocalizations.of(context)!.retry),
               ),
             ],
           ),
@@ -236,7 +237,7 @@ class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
             Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
-              'Aucun message',
+              AppLocalizations.of(context)!.noMessagesLabel,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -248,8 +249,8 @@ class _HealthcareMessagesScreenState extends State<HealthcareMessagesScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
                 _selectedTab == 0
-                    ? 'Vos conversations avec les familles apparaîtront ici.'
-                    : 'Vos conversations avec les bénévoles apparaîtront ici.',
+                    ? AppLocalizations.of(context)!.noMessagesFamilyMessage
+                    : AppLocalizations.of(context)!.noMessagesVolunteerMessage,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,

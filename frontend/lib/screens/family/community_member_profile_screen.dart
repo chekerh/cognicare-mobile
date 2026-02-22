@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../utils/constants.dart';
+import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFFA3D9E2);
 const Color _secondary = Color(0xFF7FBAC4);
@@ -38,37 +38,30 @@ class CommunityMemberProfileScreen extends StatelessWidget {
     final tags = e['memberTags'] as List<dynamic>?;
     return CommunityMemberProfileScreen(
       memberId: e['memberId'] as String? ?? '',
-      memberName: e['memberName'] as String? ?? 'Membre',
-      memberRole: e['memberRole'] as String? ?? 'Parent de Léo',
+      memberName: e['memberName'] as String? ?? '',
+      memberRole: e['memberRole'] as String?,
       memberImageUrl: e['memberImageUrl'] as String?,
-      memberDiagnosis: e['memberDiagnosis'] as String? ?? 'Diagnostic : Autisme léger',
-      memberJourney: e['memberJourney'] as String? ??
-          'Nous naviguons dans ce parcours depuis 3 ans. Toujours ouvert à partager nos découvertes sur les outils sensoriels.',
-      memberTags: tags?.map((t) => t.toString()).toList() ??
-          ['Conseils en orthophonie', 'Soutien émotionnel', 'Activités sensorielles', 'Inclusion scolaire'],
-      postsCount: e['postsCount'] as int? ?? 124,
-      followersCount: e['followersCount'] as int? ?? 1200,
-      helpsCount: e['helpsCount'] as int? ?? 450,
+      memberDiagnosis: e['memberDiagnosis'] as String?,
+      memberJourney: e['memberJourney'] as String?,
+      memberTags: tags?.map((t) => t.toString()).toList(),
+      postsCount: e['postsCount'] as int?,
+      followersCount: e['followersCount'] as int?,
+      helpsCount: e['helpsCount'] as int?,
     );
   }
 
-  static const String _defaultRole = 'Parent de Léo';
-  static const String _defaultDiagnosis = 'Diagnostic : Autisme léger';
-  static const String _defaultJourney =
-      'Nous naviguons dans ce parcours depuis 3 ans. Toujours ouvert à partager nos découvertes sur les outils sensoriels.';
-  static const List<String> _defaultTags = [
-    'Conseils en orthophonie',
-    'Soutien émotionnel',
-    'Activités sensorielles',
-    'Inclusion scolaire',
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final role = memberRole ?? _defaultRole;
-    final diagnosis = memberDiagnosis ?? _defaultDiagnosis;
-    final journey = memberJourney ?? _defaultJourney;
-    final tags = memberTags ?? _defaultTags;
+    final loc = AppLocalizations.of(context)!;
+    final role = memberRole ?? loc.defaultRoleParent;
+    final diagnosis = memberDiagnosis ?? loc.defaultDiagnosisMildAutism;
+    final journey = memberJourney ?? loc.defaultJourneyText;
+    final tags = memberTags ?? [
+      loc.tagSpeechTherapy,
+      loc.tagEmotionalSupport,
+      loc.tagSensoryActivities,
+      loc.tagSchoolInclusion,
+    ];
     final posts = postsCount ?? 124;
     final followers = followersCount ?? 1200;
     final helps = helpsCount ?? 450;
@@ -88,11 +81,11 @@ class CommunityMemberProfileScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     _buildActionButtons(context),
                     const SizedBox(height: 32),
-                    _buildParcoursCard(diagnosis, journey),
+                    _buildParcoursCard(diagnosis, journey, loc),
                     const SizedBox(height: 16),
-                    _buildPrincipauxCard(tags),
+                    _buildPrincipauxCard(tags, loc),
                     const SizedBox(height: 24),
-                    _buildStatsCard(posts, followers, helps),
+                    _buildStatsCard(posts, followers, helps, loc),
                   ],
                 ),
               ),
@@ -174,6 +167,7 @@ class CommunityMemberProfileScreen extends StatelessWidget {
   }
 
   Widget _buildActionButtons(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Row(
       children: [
         Expanded(
@@ -184,7 +178,7 @@ class CommunityMemberProfileScreen extends StatelessWidget {
               );
             },
             icon: const Icon(Icons.mail_outline, size: 20),
-            label: const Text('Message Privé'),
+            label: Text(loc.privateMessageAction),
             style: OutlinedButton.styleFrom(
               foregroundColor: _secondary,
               side: const BorderSide(color: _secondary),
@@ -197,7 +191,7 @@ class CommunityMemberProfileScreen extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: () {},
             icon: const Icon(Icons.person_add, size: 20),
-            label: const Text('Suivre'),
+            label: Text(loc.followAction),
             style: ElevatedButton.styleFrom(
               backgroundColor: _secondary,
               foregroundColor: Colors.white,
@@ -209,7 +203,7 @@ class CommunityMemberProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildParcoursCard(String diagnosis, String journey) {
+  Widget _buildParcoursCard(String diagnosis, String journey, AppLocalizations loc) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -224,7 +218,7 @@ class CommunityMemberProfileScreen extends StatelessWidget {
             children: [
               const Icon(Icons.medical_services, color: _secondary, size: 24),
               const SizedBox(width: 12),
-              Text('Parcours', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+              Text(loc.sectionJourney, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
             ],
           ),
           const SizedBox(height: 12),
@@ -236,7 +230,7 @@ class CommunityMemberProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPrincipauxCard(List<String> tags) {
+  Widget _buildPrincipauxCard(List<String> tags, AppLocalizations loc) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -251,7 +245,7 @@ class CommunityMemberProfileScreen extends StatelessWidget {
             children: [
               const Icon(Icons.auto_awesome, color: _secondary, size: 24),
               const SizedBox(width: 12),
-              Text('Principaux', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+              Text(loc.sectionMainTopics, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
             ],
           ),
           const SizedBox(height: 16),
@@ -275,19 +269,19 @@ class CommunityMemberProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsCard(int posts, int followers, int helps) {
+  Widget _buildStatsCard(int posts, int followers, int helps, AppLocalizations loc) {
     return Row(
       children: [
         Expanded(
-          child: _statBox('$posts', 'Posts'),
+          child: _statBox('$posts', loc.statsPosts),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _statBox('${followers >= 1000 ? '${(followers / 1000).toStringAsFixed(1)}k' : followers}', 'Abonnés'),
+          child: _statBox('${followers >= 1000 ? '${(followers / 1000).toStringAsFixed(1)}k' : followers}', loc.statsFollowers),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: _statBox('$helps', 'Aides'),
+          child: _statBox('$helps', loc.statsHelps),
         ),
       ],
     );

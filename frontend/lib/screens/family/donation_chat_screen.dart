@@ -135,12 +135,12 @@ class _DonationChatScreenState extends State<DonationChatScreen> {
               hintText: loc.writeMessage,
               onVoiceTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Message vocal — bientôt disponible')),
+                  SnackBar(content: Text(loc.featureComingSoonVoice)),
                 );
               },
               onPhotoTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Envoi de photo — bientôt disponible')),
+                  SnackBar(content: Text(loc.featureComingSoonPhoto)),
                 );
               },
             ),

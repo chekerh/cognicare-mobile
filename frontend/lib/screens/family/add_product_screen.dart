@@ -56,8 +56,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_photo == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez ajouter une photo du produit.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.pleaseAddProductPhoto),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.orange,
         ),
@@ -95,9 +95,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     final messenger = ScaffoldMessenger.of(context);
     context.pop(true);
+    final loc = AppLocalizations.of(context)!;
     messenger.showSnackBar(
-      const SnackBar(
-        content: Text('Produit publié avec succès.'),
+      SnackBar(
+        content: Text(loc.productPublishedSuccess),
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.green,
       ),
@@ -118,9 +119,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
           onPressed: () => context.pop(),
           icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.text),
         ),
-        title: const Text(
-          'Vendre un produit',
-          style: TextStyle(
+        title: Text(
+          loc.sellProductTitle,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: AppTheme.text,
@@ -139,7 +140,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Titre du produit',
+                    loc.productTitleLabel,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -150,7 +151,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   TextFormField(
                     controller: _titleController,
                     decoration: InputDecoration(
-                      hintText: 'Ex: Couverture lestée',
+                      hintText: loc.productTitleHint,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -158,13 +159,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       fillColor: Colors.grey.shade50,
                     ),
                     validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Champ requis';
+                      if (v == null || v.trim().isEmpty) return loc.requiredField;
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Prix',
+                    loc.priceLabel,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -176,7 +177,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     controller: _priceController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
-                      hintText: 'Ex: 75,00 €',
+                      hintText: loc.priceHint,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -184,13 +185,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       fillColor: Colors.grey.shade50,
                     ),
                     validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Champ requis';
+                      if (v == null || v.trim().isEmpty) return loc.requiredField;
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Catégorie',
+                    loc.categoryLabel,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -224,7 +225,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Description',
+                    loc.descriptionLabel,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -236,7 +237,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     controller: _descriptionController,
                     maxLines: 4,
                     decoration: InputDecoration(
-                      hintText: 'Décrivez votre produit...',
+                      hintText: loc.descriptionHint,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -269,9 +270,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     width: 24,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text(
-                    'Publier le produit',
-                    style: TextStyle(
+                : Text(
+                    loc.publishProduct,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -305,9 +306,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Photo du produit',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.productPhotoLabel,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: Color(0xFF334155),
@@ -334,8 +335,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         Icon(Icons.add_a_photo, size: 48, color: _primary),
                         const SizedBox(height: 8),
                         Text(
-                          'Cliquez pour ajouter une photo',
-                          style: TextStyle(
+                          AppLocalizations.of(context)!.clickToAddPhoto,
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                             color: _primary,

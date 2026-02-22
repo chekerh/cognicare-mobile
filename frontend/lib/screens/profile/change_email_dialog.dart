@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../../l10n/app_localizations.dart';
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../utils/theme.dart';
@@ -67,8 +68,8 @@ class _ChangeEmailDialogState extends State<ChangeEmailDialog> {
             _isLoading = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Verification code sent to new email'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.verificationCodeSent),
               backgroundColor: Colors.green,
             ),
           );
@@ -76,7 +77,7 @@ class _ChangeEmailDialogState extends State<ChangeEmailDialog> {
       } else {
         setState(() => _isLoading = false);
         final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? 'Failed to send verification code');
+        throw Exception(error['message'] ?? AppLocalizations.of(context)!.failedToSendCode);
       }
     } catch (e) {
       if (mounted) {
@@ -94,8 +95,8 @@ class _ChangeEmailDialogState extends State<ChangeEmailDialog> {
   Future<void> _verifyEmailChange() async {
     if (_codeController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter verification code'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.enterVerificationCode),
           backgroundColor: Colors.red,
         ),
       );
@@ -124,7 +125,7 @@ class _ChangeEmailDialogState extends State<ChangeEmailDialog> {
         }
       } else {
         final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? 'Failed to verify code');
+        throw Exception(error['message'] ?? AppLocalizations.of(context)!.failedToVerifyCode);
       }
     } catch (e) {
       if (mounted) {
@@ -144,8 +145,9 @@ class _ChangeEmailDialogState extends State<ChangeEmailDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: Text(_codeSent ? 'Verify Email Change' : 'Change Email'),
+      title: Text(_codeSent ? loc.verifyEmailChangeTitle : loc.changeEmail),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -153,34 +155,34 @@ class _ChangeEmailDialogState extends State<ChangeEmailDialog> {
             mainAxisSize: MainAxisSize.min,
             children: _codeSent ? [
               Text(
-                'Enter the 6-digit code sent to ${_newEmailController.text}',
+                loc.enterCodeSentTo(_newEmailController.text),
                 style: const TextStyle(fontSize: 14),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               CustomTextField(
                 controller: _codeController,
-                label: 'Verification Code',
+                label: loc.verificationCodeLabel,
                 keyboardType: TextInputType.number,
                 maxLength: 6,
               ),
               const SizedBox(height: 8),
               TextButton(
                 onPressed: _isLoading ? null : _requestEmailChange,
-                child: const Text('Resend Code'),
+                child: Text(loc.resendCodeButton),
               ),
             ] : [
               CustomTextField(
                 controller: _newEmailController,
-                label: 'New Email Address',
+                label: loc.emailLabel,
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Email is required';
+                    return loc.emailRequired;
                   }
                   final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                   if (!emailRegex.hasMatch(value)) {
-                    return 'Invalid email format';
+                    return loc.emailInvalid;
                   }
                   return null;
                 },
@@ -188,11 +190,11 @@ class _ChangeEmailDialogState extends State<ChangeEmailDialog> {
               const SizedBox(height: 16),
               CustomTextField(
                 controller: _passwordController,
-                label: 'Current Password',
+                label: loc.currentPasswordLabel,
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Password is required';
+                    return loc.passwordRequired;
                   }
                   return null;
                 },
@@ -201,10 +203,12 @@ class _ChangeEmailDialogState extends State<ChangeEmailDialog> {
           ),
         ),
       ),
-      actions: [
+      actions: <Widget>[
         TextButton(
-          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          onPressed: _isLoading ? null : () {
+            Navigator.of(context).pop();
+          },
+          child: Text(loc.cancel),
         ),
         ElevatedButton(
           onPressed: _isLoading
@@ -222,7 +226,7 @@ class _ChangeEmailDialogState extends State<ChangeEmailDialog> {
                     color: Colors.white,
                   ),
                 )
-              : Text(_codeSent ? 'Verify' : 'Send Code'),
+              : Text(_codeSent ? loc.verifyButton : loc.sendCodeButton),
         ),
       ],
     );

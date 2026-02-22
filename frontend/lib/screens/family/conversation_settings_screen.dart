@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 
@@ -243,8 +244,8 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
     final cid = widget.conversationId;
     if (cid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Aucune conversation sélectionnée'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.noConversationSelected),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -341,8 +342,8 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
     final cid = widget.conversationId;
     if (cid == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Aucune conversation sélectionnée'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.noConversationSelected),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -353,7 +354,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
-        title: const Text('Rechercher', style: TextStyle(color: _textPrimary)),
+        title: Text(AppLocalizations.of(context)!.searchHint, style: const TextStyle(color: _textPrimary)),
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(
@@ -383,7 +384,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Fermer', style: TextStyle(color: _textMuted)),
+            child: Text(AppLocalizations.of(context)!.closeLabel, style: const TextStyle(color: _textMuted)),
           ),
           TextButton(
             onPressed: () async {
@@ -407,7 +408,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
                 }
               }
             },
-            child: const Text('Rechercher',
+            child: Text(AppLocalizations.of(context)!.searchHint,
                 style: TextStyle(color: AppTheme.primary)),
           ),
         ],
@@ -484,7 +485,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
-        title: const Text('Bloquer', style: TextStyle(color: _textPrimary)),
+        title: Text(AppLocalizations.of(context)!.blockLabel, style: const TextStyle(color: _textPrimary)),
         content: Text(
           'Bloquer ${widget.title} ? Cette personne ne pourra plus vous envoyer de messages.',
           style: const TextStyle(color: _textMuted),
@@ -492,7 +493,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Annuler', style: TextStyle(color: _textMuted)),
+            child: Text(AppLocalizations.of(context)!.convSettingsCancel, style: const TextStyle(color: _textMuted)),
           ),
           TextButton(
             onPressed: () async {
@@ -503,8 +504,8 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
                 context.pop();
                 context.pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Contact bloqué'),
+                  SnackBar(
+                    content: Text(AppLocalizations.of(context)!.contactBlocked),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
@@ -519,7 +520,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
                 );
               }
             },
-            child: const Text('Bloquer',
+            child: Text(AppLocalizations.of(context)!.blockLabel,
                 style: TextStyle(color: _destructiveRed)),
           ),
         ],
@@ -531,8 +532,8 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
     final cid = widget.conversationId;
     if (cid == null || cid.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cette conversation ne peut pas être supprimée.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.cannotDeleteConversation),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -542,7 +543,7 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
-        title: const Text('Supprimer la discussion',
+        title: Text(AppLocalizations.of(context)!.deleteConversationTitle,
             style: TextStyle(color: _textPrimary)),
         content: const Text(
           'Êtes-vous sûr de vouloir supprimer cette conversation ? Les messages seront définitivement supprimés.',
@@ -551,12 +552,12 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Annuler', style: TextStyle(color: _textMuted)),
+            child: Text(AppLocalizations.of(context)!.convSettingsCancel, style: const TextStyle(color: _textMuted)),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
             child:
-                const Text('Supprimer', style: TextStyle(color: _destructiveRed)),
+                Text(AppLocalizations.of(context)!.deleteLabel, style: const TextStyle(color: _destructiveRed)),
           ),
         ],
       ),
@@ -568,8 +569,8 @@ class _ConversationSettingsScreenState extends State<ConversationSettingsScreen>
       context.pop();
       context.pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Discussion supprimée'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.conversationDeleted),
           behavior: SnackBarBehavior.floating,
         ),
       );

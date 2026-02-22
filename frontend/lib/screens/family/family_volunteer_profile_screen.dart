@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFFA7DBE6);
 const Color _primaryDark = Color(0xFF8FC9D6);
@@ -37,7 +38,7 @@ class FamilyVolunteerProfileScreen extends StatefulWidget {
     if (extra == null) {
       return const FamilyVolunteerProfileScreen(
         volunteerId: '',
-        volunteerName: 'Bénévole',
+        volunteerName: '',
         avatarUrl: '',
         specialization: '',
       );
@@ -45,7 +46,7 @@ class FamilyVolunteerProfileScreen extends StatefulWidget {
     final skills = extra['skills'] as List<dynamic>?;
     return FamilyVolunteerProfileScreen(
       volunteerId: extra['id'] as String? ?? '',
-      volunteerName: extra['name'] as String? ?? 'Bénévole',
+      volunteerName: extra['name'] as String? ?? '',
       avatarUrl: extra['avatarUrl'] as String? ?? '',
       specialization: extra['specialization'] as String? ?? '',
       location: extra['location'] as String?,
@@ -79,13 +80,13 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
     return widget.specialization.split('&').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
   }
 
-  String get _about {
-    return widget.about ??
-        'Bénévole expérimenté. J\'aime créer un environnement bienveillant où chaque enfant se sent écouté et soutenu.';
+  String _about(AppLocalizations loc) {
+    return widget.about ?? loc.defaultVolunteerAboutText;
   }
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     final topPadding = MediaQuery.paddingOf(context).top;
     final bottomPadding = MediaQuery.paddingOf(context).bottom;
     final weekDays = _getWeekDays();
@@ -108,9 +109,9 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _headerButton(icon: Icons.arrow_back_ios_new, onTap: () => context.pop()),
-                      const Text(
-                        'Profil bénévole',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _slate800),
+                      Text(
+                        widget.volunteerName.isEmpty ? loc.volunteerProfileTitle : widget.volunteerName,
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _slate800),
                       ),
                       _headerButton(icon: Icons.more_horiz, onTap: () {}),
                     ],
@@ -166,7 +167,7 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
                     children: [
                       _badge(Icons.star, '${widget.rating} (${widget.reviewCount})'),
                       const SizedBox(width: 8),
-                      _badge(Icons.verified_user, 'Vérifié'),
+                      _badge(Icons.verified_user, loc.verifiedLabel),
                     ],
                   ),
                 ],
@@ -180,14 +181,14 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
                 const SizedBox(height: 24),
                 _sectionCard(
                   icon: Icons.info_outline,
-                  title: 'À propos',
+                  title: loc.aboutSectionLabel,
                   child: Text(
-                    _about,
+                    _about(loc),
                     style: const TextStyle(fontSize: 15, color: _slate600, height: 1.5),
                   ),
                 ),
                 const SizedBox(height: 24),
-                _sectionTitle(Icons.psychology, 'Compétences vérifiées'),
+                _sectionTitle(Icons.psychology, loc.verifiedSkillsLabel),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
@@ -248,7 +249,7 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Text('Créneaux disponibles', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _slate500)),
+                      Text(loc.volunteerAvailableSlots, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _slate500)),
                       const SizedBox(height: 8),
                       Row(
                         children: List.generate(_defaultTimeSlots.length, (i) {
@@ -286,12 +287,12 @@ class _FamilyVolunteerProfileScreenState extends State<FamilyVolunteerProfileScr
           child: ElevatedButton.icon(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Réservation confirmée avec ${widget.volunteerName}'), behavior: SnackBarBehavior.floating),
+                SnackBar(content: Text(loc.volunteerBookingConfirmed(widget.volunteerName)), behavior: SnackBarBehavior.floating),
               );
               context.pop();
             },
             icon: const Icon(Icons.calendar_today, size: 20),
-            label: const Text('Confirmer la réservation', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            label: Text(loc.volunteerConfirmBooking, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
               backgroundColor: _primary,
               foregroundColor: _slate800,

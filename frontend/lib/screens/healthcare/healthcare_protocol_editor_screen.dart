@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFFA2D9E7);
 const Color _brand = Color(0xFF2D7DA1);
@@ -38,9 +39,9 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'ÉDITEUR DE PROTOCOLE',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.protocolEditorLabel,
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: _brand,
@@ -48,7 +49,7 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
               ),
             ),
             Text(
-              'Dr. Martin • Patient: $name',
+              '${AppLocalizations.of(context)!.drLabel('Martin')} • ${AppLocalizations.of(context)!.patientLabelWithColon} $name',
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -60,7 +61,7 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () {},
-            child: const Text('Sauvegarder', style: TextStyle(color: _brand, fontWeight: FontWeight.w600)),
+            child: Text(AppLocalizations.of(context)!.save, style: const TextStyle(color: _brand, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -69,13 +70,13 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _objectiveCard(),
+            _objectiveCard(context),
             const SizedBox(height: 24),
             _weeklyPlanning(context),
             const SizedBox(height: 24),
-            _sessionParams(),
+            _sessionParams(context),
             const SizedBox(height: 24),
-            _smartLibrary(),
+            _smartLibrary(context),
             const SizedBox(height: 100),
           ],
         ),
@@ -83,7 +84,8 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
     );
   }
 
-  Widget _objectiveCard() {
+  Widget _objectiveCard(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
@@ -107,7 +109,7 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'OBJECTIF PRINCIPAL',
+                    l.mainObjectiveLabel,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -115,9 +117,9 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
                       letterSpacing: 0.5,
                     ),
                   ),
-                  const Text(
-                    'Coordination Oculomotrice',
-                    style: TextStyle(
+                  Text(
+                    l.oculomotorCoordinationLabel,
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: Color(0xFF0F172A),
@@ -134,10 +136,11 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
   }
 
   Widget _weeklyPlanning(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final days = [
-      {'label': 'LUNDI', 'active': false, 'slots': ['Bulles de Savon', '']},
-      {'label': 'MARDI', 'active': true, 'slots': ['Tracé Magique', 'Rythmes Calmes']},
-      {'label': 'MERCREDI', 'active': false, 'slots': ['', '']},
+      {'label': l.mondayLabel, 'active': false, 'slots': ['Bulles de Savon', '']},
+      {'label': l.tuesdayLabel, 'active': true, 'slots': ['Tracé Magique', 'Rythmes Calmes']},
+      {'label': l.wednesdayLabel, 'active': false, 'slots': ['', '']},
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,9 +148,9 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Planning Hebdomadaire',
-              style: TextStyle(
+            Text(
+              l.weeklyPlanningLabel,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF0F172A),
@@ -234,7 +237,7 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                '15 min • Niv. 3',
+                                '${15} ${l.minAgo} • ${l.levelWithCount(3)}',
                                 style: TextStyle(fontSize: 9, color: Colors.grey.shade600),
                               ),
                             ],
@@ -252,7 +255,8 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
     );
   }
 
-  Widget _sessionParams() {
+  Widget _sessionParams(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(20),
@@ -261,13 +265,13 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.settings_suggest, color: _brand, size: 22),
-                SizedBox(width: 8),
+                const Icon(Icons.settings_suggest, color: _brand, size: 22),
+                const SizedBox(width: 8),
                 Text(
-                  'Paramètres: Tracé Magique',
-                  style: TextStyle(
+                  l.sessionParamsTitle('Tracé Magique'),
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF0F172A),
@@ -277,7 +281,7 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'DIFFICULTÉ CLINIQUE',
+              l.clinicalDifficultyLabel,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
@@ -286,10 +290,10 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Niveau 3', style: TextStyle(fontWeight: FontWeight.bold, color: _brand, fontSize: 12)),
+                Text(l.levelWithCount(3), style: const TextStyle(fontWeight: FontWeight.bold, color: _brand, fontSize: 12)),
               ],
             ),
             Slider(
@@ -302,8 +306,8 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Débutant', style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
-                Text('Expert', style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                Text(l.beginnerLabel, style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                Text(l.expertLabel, style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
               ],
             ),
             const SizedBox(height: 16),
@@ -314,7 +318,7 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'FRÉQUENCE',
+                        l.frequencyLabel,
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -323,7 +327,7 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: '1x par jour',
+                        value: l.oncePerDay,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.grey.shade50,
@@ -332,9 +336,9 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
                             borderSide: BorderSide.none,
                           ),
                         ),
-                        items: const [
-                          DropdownMenuItem(value: '1x par jour', child: Text('1x par jour')),
-                          DropdownMenuItem(value: '2x par jour', child: Text('2x par jour')),
+                        items: [
+                          DropdownMenuItem(value: l.oncePerDay, child: Text(l.oncePerDay)),
+                          DropdownMenuItem(value: l.twicePerDay, child: Text(l.twicePerDay)),
                         ],
                         onChanged: (_) {},
                       ),
@@ -347,7 +351,7 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'DURÉE (MIN)',
+                        l.durationMinLabel,
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
@@ -377,12 +381,13 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
     );
   }
 
-  Widget _smartLibrary() {
+  Widget _smartLibrary(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final items = [
-      {'title': 'Mémoire Visuelle', 'sub': 'Cognitif', 'icon': Icons.psychology, 'color': Colors.purple},
-      {'title': 'Motricité Fine', 'sub': 'Moteur', 'icon': Icons.pan_tool, 'color': Colors.amber},
-      {'title': 'Émotions', 'sub': 'Social', 'icon': Icons.mood, 'color': Colors.pink},
-      {'title': 'Attention', 'sub': 'Neuro', 'icon': Icons.visibility, 'color': Colors.teal},
+      {'title': l.visualMemoryLabel, 'sub': l.cognitive, 'icon': Icons.psychology, 'color': Colors.purple},
+      {'title': l.fineMotorSkillsLabel, 'sub': l.motorLabel, 'icon': Icons.pan_tool, 'color': Colors.amber},
+      {'title': l.emotionsLabel, 'sub': l.socialLabel, 'icon': Icons.mood, 'color': Colors.pink},
+      {'title': l.attentionLabel, 'sub': l.neuroLabel, 'icon': Icons.visibility, 'color': Colors.teal},
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,9 +397,9 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Text(
-                  'Smart Library',
-                  style: TextStyle(
+                Text(
+                  l.smartLibraryLabel,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF0F172A),
@@ -407,9 +412,9 @@ class HealthcareProtocolEditorScreen extends StatelessWidget {
                     color: _brand.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  child: const Text(
-                    'VALIDÉ CLINIQUE',
-                    style: TextStyle(
+                  child: Text(
+                    l.clinicallyValidatedLabel,
+                    style: const TextStyle(
                       fontSize: 9,
                       fontWeight: FontWeight.bold,
                       color: _brand,

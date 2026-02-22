@@ -37,8 +37,8 @@ class _ChangePhoneDialogState extends State<ChangePhoneDialog> {
       if (mounted) {
         Navigator.of(context).pop(true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Téléphone mis à jour'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.phoneUpdated),
             backgroundColor: Colors.green,
           ),
         );

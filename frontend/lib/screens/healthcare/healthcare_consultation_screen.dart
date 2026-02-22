@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFFA2D9E7);
 const Color _brand = Color(0xFF2D7DA1);
@@ -76,9 +77,9 @@ class HealthcareConsultationScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text(
-                            'CONSULTATION EN COURS',
-                            style: TextStyle(
+                          Text(
+                            AppLocalizations.of(context)!.consultationInProgressLabel,
+                            style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: _primary,
@@ -114,9 +115,9 @@ class HealthcareConsultationScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          const Text(
-                            'LIVE',
-                            style: TextStyle(
+                          Text(
+                            AppLocalizations.of(context)!.liveLabel,
+                            style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -183,16 +184,16 @@ class HealthcareConsultationScreen extends StatelessWidget {
                 child: InkWell(
                   onTap: () {},
                   borderRadius: BorderRadius.circular(999),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.edit_note, color: _brand, size: 22),
-                        SizedBox(width: 8),
+                        const Icon(Icons.edit_note, color: _brand, size: 22),
+                        const SizedBox(width: 8),
                         Text(
-                          'Tableau Blanc Partagé',
-                          style: TextStyle(
+                          AppLocalizations.of(context)!.sharedWhiteboardLabel,
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                             color: _brand,
