@@ -75,6 +75,21 @@ export class OrganizationController {
     return await this.organizationService.getMyChildren(req.user.id as string);
   }
 
+  @Get('my-organization/children-with-plans')
+  @Roles(
+    'organization_leader',
+    'doctor',
+    'volunteer',
+    'psychologist',
+    'speech_therapist',
+    'occupational_therapist',
+    'other',
+  )
+  @ApiOperation({ summary: 'Get org children with plan types and needAttention for filters' })
+  async getMyChildrenWithPlans(@Request() req: any) {
+    return await this.organizationService.getMyChildrenWithPlans(req.user.id as string);
+  }
+
   @Get('my-organization/stats')
   @Roles('organization_leader')
   @ApiOperation({ summary: 'Get my organization statistics' })

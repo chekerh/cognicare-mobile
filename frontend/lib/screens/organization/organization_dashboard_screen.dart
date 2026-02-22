@@ -3,11 +3,52 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/progress_ai_service.dart';
 import '../../utils/theme.dart';
 import '../../utils/constants.dart';
 
-class OrganizationDashboardScreen extends StatelessWidget {
+class OrganizationDashboardScreen extends StatefulWidget {
   const OrganizationDashboardScreen({super.key});
+
+  @override
+  State<OrganizationDashboardScreen> createState() => _OrganizationDashboardScreenState();
+}
+
+class _OrganizationDashboardScreenState extends State<OrganizationDashboardScreen> {
+  final _specialistIdController = TextEditingController();
+  Map<String, dynamic>? _specialistSummary;
+  String? _summaryError;
+  bool _summaryLoading = false;
+
+  @override
+  void dispose() {
+    _specialistIdController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadSpecialistSummary() async {
+    final id = _specialistIdController.text.trim();
+    if (id.isEmpty) return;
+    setState(() {
+      _summaryError = null;
+      _summaryLoading = true;
+    });
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final service = ProgressAiService(getToken: () async => authProvider.accessToken);
+    try {
+      final data = await service.getOrgSpecialistSummary(id);
+      if (mounted) setState(() {
+        _specialistSummary = data;
+        _summaryLoading = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() {
+        _summaryError = e.toString().replaceFirst('Exception: ', '');
+        _specialistSummary = null;
+        _summaryLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +59,7 @@ class OrganizationDashboardScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text(localizations.roleOrganizationLeader), // Using role name as title for now
+        title: Text(localizations.roleOrganizationLeader),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -64,6 +105,117 @@ class OrganizationDashboardScreen extends StatelessWidget {
                   minimumSize: const Size(double.infinity, 50),
                 ),
               ),
+              const SizedBox(height: 32),
+              Text(
+                'Progress AI – Specialist summary',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.text,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'View aggregated progress for a specialist (no child names).',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _specialistIdController,
+                      decoration: const InputDecoration(
+                        labelText: 'Specialist ID',
+                        hintText: 'Enter staff member ID',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  FilledButton(
+                    onPressed: _summaryLoading ? null : _loadSpecialistSummary,
+                    child: _summaryLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('View summary'),
+                  ),
+                ],
+              ),
+              if (_summaryError != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _summaryError!,
+                  style: const TextStyle(color: Colors.red, fontSize: 13),
+                ),
+              ],
+              if (_specialistSummary != null) ...[
+                const SizedBox(height: 16),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Total plans: ${_specialistSummary!['totalPlans'] ?? 0}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Children (anonymized): ${_specialistSummary!['childrenCount'] ?? 0}',
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontSize: 14,
+                          ),
+                        ),
+                        if (_specialistSummary!['planCountByType'] != null) ...[
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: (_specialistSummary!['planCountByType'] as Map<String, dynamic>)
+                                .entries
+                                .map((e) => Chip(
+                                      label: Text('${e.key}: ${e.value}'),
+                                      backgroundColor: AppTheme.primary.withOpacity(0.1),
+                                    ))
+                                .toList(),
+                          ),
+                        ],
+                        if (_specialistSummary!['approvalRatePercent'] != null) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            'Taux d\'approbation: ${_specialistSummary!['approvalRatePercent']}%',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ],
+                        if (_specialistSummary!['resultsImprovedRatePercent'] != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Résultats améliorés: ${_specialistSummary!['resultsImprovedRatePercent']}%',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

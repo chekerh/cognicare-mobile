@@ -63,6 +63,8 @@ class AppConstants {
   // Children (family profile)
   static const String childrenEndpoint = '/api/v1/children';
   static const String organizationChildrenEndpoint = '/api/v1/organization/my-organization/children';
+  static const String organizationChildrenWithPlansEndpoint =
+      '/api/v1/organization/my-organization/children-with-plans';
 
   // Volunteers (application + documents)
   static const String volunteerApplicationEndpoint = '/api/v1/volunteers/application/me';
@@ -100,6 +102,34 @@ class AppConstants {
   static const String completeTaskEndpoint = '/api/v1/reminders/complete';
   static String reminderStatsEndpoint(String childId, {int days = 7}) =>
       '/api/v1/reminders/child/$childId/stats?days=$days';
+
+  // Progress AI (recommendations for specialists)
+  static String progressAiChildRecommendationsEndpoint(String childId, {String? planType, String? summaryLength, String? focusPlanTypes}) {
+    final q = <String>[];
+    if (planType != null && planType.isNotEmpty) q.add('planType=${Uri.encodeComponent(planType)}');
+    if (summaryLength != null && summaryLength.isNotEmpty) q.add('summaryLength=${Uri.encodeComponent(summaryLength)}');
+    if (focusPlanTypes != null && focusPlanTypes.isNotEmpty) q.add('focusPlanTypes=${Uri.encodeComponent(focusPlanTypes)}');
+    final suffix = q.isEmpty ? '' : '?${q.join('&')}';
+    return '/api/v1/progress-ai/child/$childId/recommendations$suffix';
+  }
+  static String progressAiFeedbackEndpoint(String recommendationId) =>
+      '/api/v1/progress-ai/recommendations/$recommendationId/feedback';
+  static const String progressAiAdminSummaryEndpoint = '/api/v1/progress-ai/admin/summary';
+  static String progressAiOrgSpecialistSummaryEndpoint(String specialistId) =>
+      '/api/v1/progress-ai/org/specialist/$specialistId/summary';
+  static const String progressAiPreferencesEndpoint = '/api/v1/progress-ai/preferences';
+  static String progressAiRequestParentFeedbackEndpoint(String childId) =>
+      '/api/v1/progress-ai/child/$childId/request-parent-feedback';
+  static String progressAiParentSummaryEndpoint(String childId, {String period = 'week'}) =>
+      '/api/v1/progress-ai/child/$childId/parent-summary?period=$period';
+  static const String progressAiActivitySuggestionsEndpoint =
+      '/api/v1/progress-ai/activity-suggestions';
+
+  // Specialized plans (PECS, TEACCH, Skill Tracker, Activity) – for specialists
+  static String specializedPlansByChildEndpoint(String childId) =>
+      '/api/v1/specialized-plans/child/$childId';
+  static String specializedPlansProgressSummaryEndpoint(String childId) =>
+      '/api/v1/specialized-plans/child/$childId/progress-summary';
 
   /// Tableau d'engagement (temps de jeu, activités, badges)
   static const String engagementDashboardEndpoint = '/api/v1/engagement/dashboard';
@@ -185,6 +215,7 @@ class AppConstants {
   static const String familyGameSuccessRoute = '/family/game-success';
   static const String familyGamesSelectionRoute = '/family/games';
   static const String familyChildDailyRoutineRoute = '/family/child-daily-routine';
+  static const String familyChildProgressSummaryRoute = '/family/child-progress-summary';
   static const String familyCreateReminderRoute = '/family/create-reminder';
   static const String familyMedicineVerificationRoute = '/family/medicine-verification';
   static const String familyReminderNotificationRoute = '/family/reminder-notification';
@@ -223,6 +254,8 @@ class AppConstants {
   static const String healthcareComparativeRoute = '/healthcare/comparative';
   static const String healthcareProtocolEditorRoute = '/healthcare/protocol-editor';
   static const String healthcareConsultationRoute = '/healthcare/consultation';
+  static String healthcareProgressAiRecommendationsRoute(String childId) =>
+      '/healthcare/ai-recommendations/$childId';
 
   // Public routes (no JWT required)
   static const List<String> publicRoutes = [

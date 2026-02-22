@@ -22,12 +22,29 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     'doctor': 0,
     'volunteer': 0,
   };
+  Map<String, dynamic>? _progressAiSummary;
+  bool _progressAiLoading = false;
 
   @override
   void initState() {
     super.initState();
     _loadAdminProfile();
     _loadUserStats();
+    _loadProgressAiSummary();
+  }
+
+  Future<void> _loadProgressAiSummary() async {
+    setState(() => _progressAiLoading = true);
+    try {
+      final data = await _adminService.getProgressAiAdminSummary();
+      if (mounted) setState(() {
+        _progressAiSummary = data;
+        _progressAiLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Progress AI summary: $e');
+      if (mounted) setState(() => _progressAiLoading = false);
+    }
   }
 
   Future<void> _loadAdminProfile() async {
@@ -233,6 +250,82 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 );
               },
             ),
+            const SizedBox(height: 24),
+
+            // Progress AI Summary (aggregates, no PII)
+            const Text(
+              'Progress AI Summary',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.text,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Aggregated plan counts across the platform (no personal data).',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _progressAiLoading
+                ? const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : _progressAiSummary != null
+                    ? Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.auto_awesome, color: AppTheme.primary, size: 28),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'Total plans: ${_progressAiSummary!['totalPlans'] ?? 0}',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.text,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Children with at least one plan: ${_progressAiSummary!['childrenWithPlansCount'] ?? 0}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              if (_progressAiSummary!['planCountByType'] != null)
+                                Wrap(
+                                  spacing: 12,
+                                  runSpacing: 8,
+                                  children: (_progressAiSummary!['planCountByType'] as Map<String, dynamic>)
+                                      .entries
+                                      .map((e) => Chip(
+                                            label: Text('${e.key}: ${e.value}'),
+                                            backgroundColor: AppTheme.primary.withOpacity(0.1),
+                                          ))
+                                      .toList(),
+                                ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
             const SizedBox(height: 24),
 
             // Management Sections

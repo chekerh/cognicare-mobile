@@ -154,6 +154,31 @@ class ChildrenService {
     return list.map((e) => ChildModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
+  /// GET /organization/my-organization/children-with-plans - for specialist filters (plan type, need attention)
+  Future<List<Map<String, dynamic>>> getOrganizationChildrenWithPlans() async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.organizationChildrenWithPlansEndpoint}');
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode != 200) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to load children with plans');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to load: ${response.statusCode}');
+      }
+    }
+    final list = jsonDecode(response.body) as List<dynamic>? ?? [];
+    return list.map((e) => Map<String, dynamic>.from(e as Map<String, dynamic>)).toList();
+  }
+
   /// POST /children - add a child (family only).
   Future<ChildModel> addChild(AddChildDto dto) async {
     final token = await getToken();
@@ -178,5 +203,33 @@ class ChildrenService {
     }
     final json = jsonDecode(response.body) as Map<String, dynamic>;
     return ChildModel.fromJson(json);
+  }
+
+  /// GET /specialized-plans/child/:childId/progress-summary (family only). Returns plan progress for parent view.
+  Future<List<Map<String, dynamic>>> getProgressSummary(String childId) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      AppConstants.baseUrl +
+          AppConstants.specializedPlansProgressSummaryEndpoint(childId),
+    );
+    final response = await _client.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode != 200) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to load progress summary');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to load: ${response.statusCode}');
+      }
+    }
+    final list = jsonDecode(response.body) as List<dynamic>? ?? [];
+    return list.map((e) => e as Map<String, dynamic>).toList();
   }
 }

@@ -1,5 +1,5 @@
-import { IsNotEmpty, IsBoolean, IsDateString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsBoolean, IsDateString, IsOptional, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CompleteTaskDto {
   @ApiProperty({
@@ -24,4 +24,12 @@ export class CompleteTaskDto {
   @IsNotEmpty()
   @IsDateString()
   date!: string;
+
+  @ApiPropertyOptional({
+    description: 'Optional parent feedback about how the task went',
+    example: 'Task was too complex, child lost focus quickly.',
+  })
+  @IsOptional()
+  @IsString()
+  feedback?: string;
 }

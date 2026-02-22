@@ -23,6 +23,9 @@ export class SpecializedPlan {
   @Prop({ type: Object })
   content!: any;
 
+  @Prop()
+  sessionNotes?: string;
+
   @Prop({ default: 'active', enum: ['active', 'archived'] })
   status!: 'active' | 'archived';
 

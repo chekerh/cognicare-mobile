@@ -1,22 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../services/children_service.dart';
+import '../../services/progress_ai_service.dart';
 import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFFA2D9E7);
 const Color _brand = Color(0xFF2D7DA1);
 
-/// Tableau de bord professionnel : Aperçu IA, Mes Patients, Rapports/Consultations, Prochaine consultation.
-class HealthcareDashboardScreen extends StatelessWidget {
+/// Tableau de bord professionnel : Aperçu IA, Mes Patients (API), Rapports/Consultations, Prochaine consultation.
+class HealthcareDashboardScreen extends StatefulWidget {
   const HealthcareDashboardScreen({super.key});
 
-  static const List<Map<String, String>> _patients = [
-    {'id': 'jean-dupont', 'name': 'Jean Dupont', 'initials': 'JD', 'status': 'Progrès constant', 'statusColor': 'green'},
-    {'id': 'thomas-bernard', 'name': 'Thomas Bernard', 'initials': 'TB', 'status': 'Fluctuation détectée', 'statusColor': 'orange'},
-    {'id': 'marie-lefebvre', 'name': 'Marie Lefebvre', 'initials': 'ML', 'status': 'Objectifs atteints (80%)', 'statusColor': 'green'},
-  ];
+  @override
+  State<HealthcareDashboardScreen> createState() => _HealthcareDashboardScreenState();
+}
+
+class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
+  List<ChildModel> _patients = [];
+  bool _patientsLoading = true;
+  List<String> _activitySuggestions = [];
+  bool _suggestionsLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPatients();
+    _loadActivitySuggestions();
+  }
+
+  Future<void> _loadPatients() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final service = ChildrenService(getToken: () async => authProvider.accessToken);
+    try {
+      final list = await service.getOrganizationChildren();
+      if (mounted) setState(() { _patients = list; _patientsLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() { _patients = []; _patientsLoading = false; });
+    }
+  }
+
+  Future<void> _loadActivitySuggestions() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final service = ProgressAiService(getToken: () async => authProvider.accessToken);
+    try {
+      final list = await service.getActivitySuggestions();
+      if (mounted) setState(() { _activitySuggestions = list; _suggestionsLoading = false; });
+    } catch (_) {
+      if (mounted) setState(() { _activitySuggestions = []; _suggestionsLoading = false; });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final previewPatients = _patients.take(3).toList();
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
@@ -32,9 +70,25 @@ class HealthcareDashboardScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     _clinicalOverviewCard(context),
                     const SizedBox(height: 24),
+                    _activitySuggestionsCard(context),
+                    const SizedBox(height: 24),
                     _sectionTitle(context, 'Mes Patients', onSeeAll: () => context.go(AppConstants.healthcarePatientsRoute)),
                     const SizedBox(height: 12),
-                    ..._patients.map((p) => _patientCard(context, p)),
+                    if (_patientsLoading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    else if (previewPatients.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(
+                          'Aucun patient assigné. Consultez la liste pour plus de détails.',
+                          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                        ),
+                      )
+                    else
+                      ...previewPatients.map((c) => _patientCardFromChild(context, c)),
                     const SizedBox(height: 24),
                     _quickActions(context),
                     const SizedBox(height: 24),
@@ -45,6 +99,64 @@ class HealthcareDashboardScreen extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _patientCardFromChild(BuildContext context, ChildModel child) {
+    final initials = child.fullName.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: () => context.push(
+            '${AppConstants.healthcareCareBoardRoute}?patientId=${child.id}&patientName=${Uri.encodeComponent(child.fullName)}',
+          ),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: _primary.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    initials,
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: _brand),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        child.fullName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      Text(
+                        child.diagnosis ?? 'Suivi',
+                        style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: Colors.grey),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -170,6 +282,70 @@ class HealthcareDashboardScreen extends StatelessWidget {
     );
   }
 
+  Widget _activitySuggestionsCard(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      elevation: 0,
+      shadowColor: Colors.black12,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.lightbulb_outline, color: _brand, size: 22),
+                    SizedBox(width: 8),
+                    Text(
+                      'Suggestions d\'activités',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                  ],
+                ),
+                TextButton(
+                  onPressed: () => context.go(AppConstants.healthcarePatientsRoute),
+                  child: const Text('Voir patients', style: TextStyle(color: _brand, fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (_suggestionsLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
+              )
+            else if (_activitySuggestions.isEmpty)
+              Text(
+                'Aucune suggestion pour le moment.',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              )
+            else
+              ..._activitySuggestions.map(
+                (s) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('• ', style: TextStyle(fontSize: 14, color: _brand, fontWeight: FontWeight.bold)),
+                      Expanded(child: Text(s, style: const TextStyle(fontSize: 14, color: Color(0xFF334155), height: 1.35))),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _sectionTitle(BuildContext context, String title, {VoidCallback? onSeeAll}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -188,86 +364,6 @@ class HealthcareDashboardScreen extends StatelessWidget {
             child: const Text('Voir tout', style: TextStyle(color: _brand, fontWeight: FontWeight.w600)),
           ),
       ],
-    );
-  }
-
-  Widget _patientCard(BuildContext context, Map<String, String> p) {
-    final statusColor = p['statusColor'] == 'green' ? Colors.green : Colors.orange;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: () => context.push(
-            '${AppConstants.healthcareCareBoardRoute}?patientId=${p['id']}&patientName=${Uri.encodeComponent(p['name']!)}',
-          ),
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: p['statusColor'] == 'orange'
-                        ? Colors.orange.shade100
-                        : _primary.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    p['initials']!,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: p['statusColor'] == 'orange' ? Colors.orange.shade700 : _brand,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        p['name']!,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                          color: Color(0xFF0F172A),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: statusColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            p['status']!,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.chevron_right, color: Colors.grey),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 

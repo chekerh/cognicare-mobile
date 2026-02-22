@@ -15,6 +15,37 @@ enum ReminderFrequency {
   interval,
 }
 
+/// One entry in completion history (from API).
+class CompletionHistoryEntry {
+  final DateTime date;
+  final bool completed;
+  final String? feedback;
+  final DateTime? completedAt;
+
+  CompletionHistoryEntry({
+    required this.date,
+    required this.completed,
+    this.feedback,
+    this.completedAt,
+  });
+
+  static CompletionHistoryEntry? fromJson(Map<String, dynamic>? json) {
+    if (json == null) return null;
+    final date = json['date'];
+    if (date == null) return null;
+    return CompletionHistoryEntry(
+      date: date is String ? DateTime.parse(date) : date as DateTime,
+      completed: json['completed'] as bool? ?? false,
+      feedback: json['feedback'] as String?,
+      completedAt: json['completedAt'] != null
+          ? (json['completedAt'] is String
+              ? DateTime.parse(json['completedAt'] as String)
+              : json['completedAt'] as DateTime)
+          : null,
+    );
+  }
+}
+
 class TaskReminder {
   final String id;
   final String childId;
@@ -38,6 +69,7 @@ class TaskReminder {
   final DateTime? completedAt;
   final String? verificationStatus;
   final Map<String, dynamic>? verificationMetadata;
+  final List<CompletionHistoryEntry>? completionHistory;
 
   TaskReminder({
     required this.id,
@@ -62,6 +94,7 @@ class TaskReminder {
     this.completedAt,
     this.verificationStatus,
     this.verificationMetadata,
+    this.completionHistory,
   });
 
   factory TaskReminder.fromJson(Map<String, dynamic> json) {
@@ -95,6 +128,10 @@ class TaskReminder {
           : null,
       verificationStatus: json['verificationStatus'],
       verificationMetadata: json['verificationMetadata'],
+      completionHistory: (json['completionHistory'] as List<dynamic>?)
+          ?.map((e) => CompletionHistoryEntry.fromJson(e as Map<String, dynamic>))
+          .whereType<CompletionHistoryEntry>()
+          .toList(),
     );
   }
 
@@ -158,6 +195,7 @@ class TaskReminder {
     DateTime? completedAt,
     String? verificationStatus,
     Map<String, dynamic>? verificationMetadata,
+    List<CompletionHistoryEntry>? completionHistory,
   }) {
     return TaskReminder(
       id: id,
@@ -182,6 +220,7 @@ class TaskReminder {
       completedAt: completedAt ?? this.completedAt,
       verificationStatus: verificationStatus ?? this.verificationStatus,
       verificationMetadata: verificationMetadata ?? this.verificationMetadata,
+      completionHistory: completionHistory ?? this.completionHistory,
     );
   }
 }

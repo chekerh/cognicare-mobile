@@ -100,6 +100,50 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
     }
   }
 
+  /// Shows an optional feedback dialog when completing a task. Returns feedback text or null if skipped.
+  Future<String?> _showOptionalFeedbackDialog(String taskTitle) async {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Retour pour le spécialiste'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Souhaitez-vous ajouter un commentaire pour le spécialiste ? (optionnel)',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                hintText: 'Ex. : L\'enfant a bien participé, difficulté à se concentrer après 10 min...',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(null),
+            child: const Text('Passer'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final text = controller.text.trim();
+              Navigator.of(ctx).pop(text.isEmpty ? null : text);
+            },
+            child: const Text('Envoyer'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _toggleTaskCompletion(TaskReminder reminder) async {
     final newStatus = !(reminder.completedToday ?? false);
     
@@ -121,7 +165,13 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
       return;
     }
     
-    // Pour les autres tâches, complétion normale
+    // Pour les autres tâches : si on marque comme complété, proposer un retour optionnel pour le spécialiste
+    String? feedback;
+    if (newStatus) {
+      feedback = await _showOptionalFeedbackDialog(reminder.title);
+      if (!mounted) return;
+    }
+    
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final remindersService = RemindersService(
@@ -132,6 +182,7 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
         reminderId: reminder.id,
         completed: newStatus,
         date: DateTime.now(),
+        feedback: feedback,
       );
 
       if (mounted) {
@@ -230,10 +281,26 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
     }
   }
 
+  /// Recent completion entries that have feedback (for "Vos retours récents").
+  List<({String taskTitle, String feedback, DateTime date})> _recentFeedbackEntries() {
+    final list = <({String taskTitle, String feedback, DateTime date})>[];
+    for (final r in _reminders) {
+      final history = r.completionHistory ?? [];
+      for (final entry in history) {
+        if (entry.feedback != null && entry.feedback!.trim().isNotEmpty) {
+          list.add((taskTitle: r.title, feedback: entry.feedback!.trim(), date: entry.date));
+        }
+      }
+    }
+    list.sort((a, b) => b.date.compareTo(a.date));
+    return list.take(5).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final totalTasks = _reminders.length;
     final progress = totalTasks > 0 ? _completedCount / totalTasks : 0.0;
+    final recentFeedback = _recentFeedbackEntries();
 
     return Scaffold(
       backgroundColor: _backgroundColor,
@@ -245,7 +312,11 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
                   // Custom Header
                   _buildHeader(),
                   const SizedBox(height: 20),
-                  
+                  // Vos retours récents (optionnel)
+                  if (recentFeedback.isNotEmpty) ...[
+                    _buildRecentFeedbackSection(recentFeedback),
+                    const SizedBox(height: 16),
+                  ],
                   // Task List or Empty State
                   Expanded(
                     child: _reminders.isEmpty
@@ -260,6 +331,77 @@ class _ChildDailyRoutineScreenState extends State<ChildDailyRoutineScreen> {
                   ],
                 ],
               ),
+      ),
+    );
+  }
+
+  Widget _buildRecentFeedbackSection(
+    List<({String taskTitle, String feedback, DateTime date})> entries,
+  ) {
+    String dateFormat(DateTime d) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final day = DateTime(d.year, d.month, d.day);
+      if (day == today) return "Aujourd'hui";
+      if (day == today.subtract(const Duration(days: 1))) return 'Hier';
+      return '${d.day}/${d.month}/${d.year}';
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        elevation: 1,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.feedback_outlined, size: 18, color: _primaryDark),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Vos retours récents',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: _slate800,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ...entries.map((e) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${e.taskTitle} · ${dateFormat(e.date)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: _slate500,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          e.feedback,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: _slate800,
+                            height: 1.3,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  )),
+            ],
+          ),
+        ),
       ),
     );
   }

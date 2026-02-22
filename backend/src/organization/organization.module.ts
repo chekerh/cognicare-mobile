@@ -13,6 +13,10 @@ import {
 } from './schemas/pending-organization.schema';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { Child, ChildSchema } from '../children/schemas/child.schema';
+import {
+  SpecializedPlan,
+  SpecializedPlanSchema,
+} from '../specialized-plans/schemas/specialized-plan.schema';
 import { MailModule } from '../mail/mail.module';
 
 @Module({
@@ -23,6 +27,7 @@ import { MailModule } from '../mail/mail.module';
       { name: PendingOrganization.name, schema: PendingOrganizationSchema },
       { name: User.name, schema: UserSchema },
       { name: Child.name, schema: ChildSchema },
+      { name: SpecializedPlan.name, schema: SpecializedPlanSchema },
     ]),
     MailModule,
   ],

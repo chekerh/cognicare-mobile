@@ -98,6 +98,16 @@ export class User {
   @Prop()
   deletedAt?: Date;
 
+  /** Specialist AI preferences: focusPlanTypes, summaryLength, weights, etc. */
+  @Prop({ type: Object })
+  specialistAIPreferences?: {
+    focusPlanTypes?: string[];
+    summaryLength?: 'short' | 'detailed';
+    frequency?: 'every_session' | 'weekly';
+    /** Weights per plan type (e.g. { PECS: 1.2, TEACCH: 1.0 }). Higher = more emphasis in AI output. */
+    planTypeWeights?: Record<string, number>;
+  };
+
   createdAt?: Date;
   updatedAt?: Date;
 }

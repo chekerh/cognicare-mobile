@@ -29,6 +29,7 @@ import { OrgScanAiModule } from './orgScanAi/orgScanAi.module';
 import { ImportModule } from './import/import.module';
 
 import { SpecializedPlansModule } from './specialized-plans/specialized-plans.module';
+import { ProgressAiModule } from './progress-ai/progress-ai.module';
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { SpecializedPlansModule } from './specialized-plans/specialized-plans.mo
     OrgScanAiModule,
     ImportModule,
     SpecializedPlansModule,
+    ProgressAiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -109,6 +109,96 @@ export class SpecializedPlansService {
       .sort({ createdAt: -1 });
   }
 
+  /**
+   * Get all active plans for a child (for parent progress summary). No org filter.
+   */
+  async getPlansByChildForParent(childId: string): Promise<SpecializedPlan[]> {
+    return this.planModel
+      .find({
+        childId: new Types.ObjectId(childId),
+        status: 'active',
+      })
+      .sort({ updatedAt: -1 })
+      .lean()
+      .exec() as Promise<SpecializedPlan[]>;
+  }
+
+  /**
+   * Compute progress percent 0-100 for a plan (for parent-facing summary).
+   */
+  static progressPercent(plan: {
+    type: string;
+    content?: Record<string, unknown>;
+  }): number {
+    const content = plan.content ?? {};
+    if (plan.type === 'PECS') {
+      const items = (content.items as Array<{ trials?: unknown[] }>) ?? [];
+      let pass = 0,
+        total = 0;
+      for (const it of items) {
+        const trials = it?.trials;
+        if (Array.isArray(trials)) {
+          for (const t of trials) {
+            if (t === true) pass++;
+            if (t === true || t === false) total++;
+          }
+        }
+      }
+      return total > 0 ? Math.round((pass / total) * 100) : 0;
+    }
+    if (plan.type === 'TEACCH') {
+      const goals = (content.goals as Array<{ current?: number; target?: number }>) ?? [];
+      let sumCur = 0,
+        sumTarget = 0;
+      for (const g of goals) {
+        const cur = typeof g?.current === 'number' ? g.current : 0;
+        const tgt = typeof g?.target === 'number' ? g.target : 0;
+        sumCur += cur;
+        sumTarget += tgt;
+      }
+      if (sumTarget <= 0) return 0;
+      return Math.round(Math.min(100, (sumCur / sumTarget) * 100));
+    }
+    if (plan.type === 'SkillTracker') {
+      const cur = typeof content.currentPercent === 'number' ? content.currentPercent : 0;
+      const tgt = typeof content.targetPercent === 'number' ? content.targetPercent : 100;
+      if (tgt <= 0) return 0;
+      return Math.round(Math.min(100, (cur / tgt) * 100));
+    }
+    if (plan.type === 'Activity') {
+      const status = content.status as string | undefined;
+      if (status === 'completed') return 100;
+      if (status === 'in_progress') return 50;
+      return 0;
+    }
+    return 0;
+  }
+
+  /**
+   * Parent-facing progress summary: list of plans with progress % and lastUpdated. Verifies child.parentId === parentUserId.
+   */
+  async getProgressSummaryForParent(
+    childId: string,
+    parentUserId: string,
+  ): Promise<Array<{ planId: string; type: string; title: string; progressPercent: number; lastUpdated?: string }>> {
+    const child = await this.childModel.findById(childId).lean().exec();
+    if (!child) throw new NotFoundException('Child not found');
+    if ((child as any).parentId?.toString() !== parentUserId) {
+      throw new ForbiddenException('Not authorized to view this child');
+    }
+    const plans = await this.getPlansByChildForParent(childId);
+    return plans.map((p: any) => ({
+      planId: p._id.toString(),
+      type: p.type,
+      title: p.title,
+      progressPercent: SpecializedPlansService.progressPercent({
+        type: p.type,
+        content: p.content,
+      }),
+      lastUpdated: p.updatedAt ? new Date(p.updatedAt).toISOString() : undefined,
+    }));
+  }
+
   async getPlansBySpecialist(specialistId: string): Promise<SpecializedPlan[]> {
     return this.planModel
       .find({ specialistId })

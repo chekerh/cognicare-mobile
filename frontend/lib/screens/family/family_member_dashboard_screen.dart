@@ -199,6 +199,8 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                   const SizedBox(height: 24),
                   _buildDailyRoutineCard(context),
                   const SizedBox(height: 24),
+                  _buildProgressSummaryCard(context),
+                  const SizedBox(height: 24),
                   _buildProgressSection(context),
                   const SizedBox(height: 24),
                   _buildTwoColumnCards(context),
@@ -290,7 +292,7 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Jouer avec Léo',
+                      'Jouer avec Cogni',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -404,6 +406,92 @@ class _FamilyMemberDashboardScreenState extends State<FamilyMemberDashboardScree
                     SizedBox(height: 4),
                     Text(
                       'Voir les tâches quotidiennes de votre enfant',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: _slate500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded, color: _accentColor, size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressSummaryCard(BuildContext context) {
+    return _Card(
+      child: InkWell(
+        onTap: () async {
+          try {
+            final authProvider = Provider.of<AuthProvider>(context, listen: false);
+            final childrenService = ChildrenService(
+              getToken: () async => authProvider.accessToken,
+            );
+            final children = await childrenService.getChildren();
+            if (!mounted) return;
+            if (children.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Veuillez d\'abord ajouter un profil d\'enfant'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+              return;
+            }
+            final firstChild = children.first;
+            context.push(
+              AppConstants.familyChildProgressSummaryRoute,
+              extra: {
+                'childId': firstChild.id,
+                'childName': firstChild.fullName,
+              },
+            );
+          } catch (e) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Erreur: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Row(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: _green100,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Center(
+                  child: Icon(Icons.show_chart_rounded, color: _green600, size: 32),
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Résumé de progrès',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: _slate800,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Progression par plan et tâches complétées',
                       style: TextStyle(
                         fontSize: 14,
                         color: _slate500,

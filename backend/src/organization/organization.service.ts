@@ -29,6 +29,10 @@ import { AddChildDto } from '../children/dto/add-child.dto';
 import { UpdateChildDto } from '../children/dto/update-child.dto';
 import { MailService } from '../mail/mail.service';
 import { ConfigService } from '@nestjs/config';
+import {
+  SpecializedPlan,
+  SpecializedPlanDocument,
+} from '../specialized-plans/schemas/specialized-plan.schema';
 
 @Injectable()
 export class OrganizationService {
@@ -41,6 +45,8 @@ export class OrganizationService {
     private pendingOrganizationModel: Model<PendingOrganizationDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
+    @InjectModel(SpecializedPlan.name)
+    private planModel: Model<SpecializedPlanDocument>,
     private mailService: MailService,
     private configService: ConfigService,
   ) { }
@@ -706,6 +712,113 @@ export class OrganizationService {
     }
 
     return this.getAllChildren(user.organizationId.toString());
+  }
+
+  /**
+   * Get org children with plan types and needAttention flag for specialist filters.
+   * Returns { childId, childName, diagnosis, planTypes, needAttention }[].
+   */
+  async getMyChildrenWithPlans(
+    userId: string,
+  ): Promise<
+    Array<{
+      childId: string;
+      childName: string;
+      diagnosis?: string;
+      planTypes: string[];
+      needAttention: boolean;
+    }>
+  > {
+    const children = await this.getMyChildren(userId);
+    const orgId = (await this.userModel.findById(userId).select('organizationId').lean())?.organizationId;
+    if (!children.length) return [];
+
+    const childIds = children.map((c) => c._id);
+    const filter: Record<string, unknown> = {
+      childId: { $in: childIds },
+      status: 'active',
+    };
+    if (orgId) {
+      filter.$or = [
+        { organizationId: new Types.ObjectId(orgId.toString()) },
+        { organizationId: { $exists: false } },
+        { organizationId: null },
+      ];
+    }
+    const plans = await this.planModel
+      .find(filter)
+      .select('childId type content')
+      .lean()
+      .exec();
+
+    const planTypesByChild = new Map<string, Set<string>>();
+    const minProgressByChild = new Map<string, number>();
+    for (const c of children) {
+      planTypesByChild.set(c._id.toString(), new Set());
+      minProgressByChild.set(c._id.toString(), 100);
+    }
+    for (const p of plans as Array<{ childId: { toString(): string }; type: string; content?: any }>) {
+      const cid = p.childId?.toString?.() ?? p.childId;
+      if (!cid) continue;
+      const set = planTypesByChild.get(cid);
+      if (set) {
+        set.add(p.type);
+        const percent = this.planProgressPercent(p.type, p.content);
+        const current = minProgressByChild.get(cid) ?? 100;
+        minProgressByChild.set(cid, Math.min(current, percent));
+      }
+    }
+
+    return children.map((c) => {
+      const cid = c._id.toString();
+      const planTypes = Array.from(planTypesByChild.get(cid) ?? []);
+      const minP = minProgressByChild.get(cid) ?? 100;
+      const needAttention = planTypes.length > 0 && minP < 30;
+      return {
+        childId: cid,
+        childName: (c as any).fullName ?? '',
+        diagnosis: (c as any).diagnosis,
+        planTypes,
+        needAttention,
+      };
+    });
+  }
+
+  private planProgressPercent(type: string, content: any): number {
+    const c = content ?? {};
+    if (type === 'PECS') {
+      const items = c.items ?? [];
+      let pass = 0, total = 0;
+      for (const it of items) {
+        const trials = it?.trials ?? [];
+        for (const t of trials) {
+          if (t === true) pass++;
+          if (t === true || t === false) total++;
+        }
+      }
+      return total > 0 ? Math.round((pass / total) * 100) : 0;
+    }
+    if (type === 'TEACCH') {
+      const goals = c.goals ?? [];
+      let sumCur = 0, sumTarget = 0;
+      for (const g of goals) {
+        sumCur += typeof g?.current === 'number' ? g.current : 0;
+        sumTarget += typeof g?.target === 'number' ? g.target : 0;
+      }
+      return sumTarget > 0 ? Math.round(Math.min(100, (sumCur / sumTarget) * 100)) : 0;
+    }
+    if (type === 'SkillTracker') {
+      const cur = typeof c.currentPercent === 'number' ? c.currentPercent : 0;
+      const tgt = typeof c.targetPercent === 'number' ? c.targetPercent : 100;
+      return tgt > 0 ? Math.round(Math.min(100, (cur / tgt) * 100)) : 0;
+    }
+    if (type === 'Activity') {
+      const s = c.status;
+      if (s === 'completed') return 100;
+      if (s === 'in_progress') return 50;
+      return 0;
+    }
+    return 0;
   }
 
   // Get leader's organization stats

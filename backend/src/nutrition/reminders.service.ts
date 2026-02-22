@@ -201,6 +201,7 @@ export class RemindersService {
         date: completionDate,
         completed: dto.completed,
         completedAt: dto.completed ? new Date() : undefined,
+        feedback: dto.feedback,
         proofImageUrl: proofImagePath,
       };
       targetIndex = existingIndex;
@@ -213,6 +214,7 @@ export class RemindersService {
         date: completionDate,
         completed: dto.completed,
         completedAt: dto.completed ? new Date() : undefined,
+        feedback: dto.feedback,
         proofImageUrl: proofImagePath,
       });
       targetIndex = reminder.completionHistory.length - 1;
@@ -397,6 +399,7 @@ export class RemindersService {
         date: c.date,
         completed: c.completed,
         completedAt: c.completedAt,
+        feedback: c.feedback,
         proofImageUrl: c.proofImageUrl,
         verificationStatus: c.verificationStatus,
         verificationMetadata: c.verificationMetadata,

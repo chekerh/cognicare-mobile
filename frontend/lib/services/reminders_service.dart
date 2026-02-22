@@ -54,9 +54,19 @@ class RemindersService {
     required String reminderId,
     required bool completed,
     required DateTime date,
+    String? feedback,
   }) async {
     final token = await getToken();
     if (token == null) throw Exception('Not authenticated');
+
+    final body = <String, dynamic>{
+      'reminderId': reminderId,
+      'completed': completed,
+      'date': date.toIso8601String(),
+    };
+    if (feedback != null && feedback.trim().isNotEmpty) {
+      body['feedback'] = feedback.trim();
+    }
 
     final response = await http.post(
       Uri.parse('${AppConstants.baseUrl}${AppConstants.completeTaskEndpoint}'),
@@ -64,11 +74,7 @@ class RemindersService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode({
-        'reminderId': reminderId,
-        'completed': completed,
-        'date': date.toIso8601String(),
-      }),
+      body: jsonEncode(body),
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -114,6 +120,27 @@ class RemindersService {
       final error = jsonDecode(response.body) as Map<String, dynamic>;
       throw Exception(error['message'] ?? 'Failed to complete task with proof');
     }
+  }
+
+  /// GET /reminders/child/:childId/stats?days=N - completion stats for charts.
+  Future<Map<String, dynamic>> getReminderStats(String childId, {int days = 7}) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}${AppConstants.reminderStatsEndpoint(childId, days: days)}',
+    );
+    final response = await http.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode != 200) {
+      final err = jsonDecode(response.body) as Map<String, dynamic>?;
+      throw Exception(err?['message'] ?? 'Failed to load stats');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
   Future<void> deleteReminder(String reminderId) async {

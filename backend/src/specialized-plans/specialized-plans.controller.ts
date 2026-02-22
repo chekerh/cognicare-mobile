@@ -86,6 +86,19 @@ export class SpecializedPlansController {
     );
   }
 
+  @Get('child/:childId/progress-summary')
+  @Roles('family')
+  @ApiOperation({ summary: 'Get progress summary for a child (parent only, no plan content)' })
+  async getProgressSummary(
+    @Request() req: { user: { id: string } },
+    @Param('childId') childId: string,
+  ) {
+    return await this.plansService.getProgressSummaryForParent(
+      childId,
+      req.user.id,
+    );
+  }
+
   @Get('my-plans')
   @Roles(
     'psychologist',

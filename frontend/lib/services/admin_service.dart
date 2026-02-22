@@ -225,6 +225,28 @@ class AdminService {
     }
   }
 
+  /// Progress AI: admin aggregate summary (no PII).
+  Future<Map<String, dynamic>> getProgressAiAdminSummary() async {
+    try {
+      final token = await _getToken();
+      if (token == null) throw Exception('No authentication token found');
+      final response = await _client.get(
+        Uri.parse('${AppConstants.baseUrl}${AppConstants.progressAiAdminSummaryEndpoint}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode != 200) {
+        final err = jsonDecode(response.body) as Map<String, dynamic>?;
+        throw Exception(err?['message'] ?? 'Failed to fetch progress summary');
+      }
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
   void dispose() {
     _client.close();
   }

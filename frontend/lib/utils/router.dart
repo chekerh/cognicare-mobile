@@ -46,6 +46,7 @@ import '../screens/family/community_member_profile_screen.dart';
 import '../screens/family/engagement_dashboard_screen.dart';
 import '../screens/family/family_volunteer_profile_screen.dart';
 import '../screens/family/child_daily_routine_screen.dart';
+import '../screens/family/child_progress_summary_screen.dart';
 import '../screens/family/create_reminder_screen.dart';
 import '../screens/family/medicine_verification_screen.dart';
 import '../screens/volunteer/volunteer_dashboard_screen.dart';
@@ -74,6 +75,7 @@ import '../screens/healthcare/healthcare_planner_screen.dart';
 import '../screens/healthcare/healthcare_comparative_screen.dart';
 import '../screens/healthcare/healthcare_protocol_editor_screen.dart';
 import '../screens/healthcare/healthcare_consultation_screen.dart';
+import '../screens/healthcare/progress_ai_recommendations_screen.dart';
 import '../screens/profile/healthcare_profile_screen.dart';
 import '../screens/profile/settings_screen.dart';
 import '../screens/family/create_security_code_screen.dart';
@@ -359,6 +361,17 @@ GoRouter createAppRouter(AuthProvider authProvider) {
         GoRoute(
           path: 'consultation',
           builder: (context, state) => HealthcareConsultationScreen.fromState(state),
+        ),
+        GoRoute(
+          path: 'ai-recommendations/:childId',
+          builder: (context, state) {
+            final childId = state.pathParameters['childId'] ?? '';
+            final extra = state.extra as Map<String, dynamic>?;
+            return ProgressAiRecommendationsScreen(
+              childId: childId,
+              childName: extra?['childName'] as String?,
+            );
+          },
         ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, navigationShell) => HealthcareShellScreen(
@@ -655,6 +668,18 @@ GoRouter createAppRouter(AuthProvider authProvider) {
             final extra = state.extra as Map<String, dynamic>?;
             final childId = extra?['childId'] as String? ?? '';
             return ChildDailyRoutineScreen(childId: childId);
+          },
+        ),
+        GoRoute(
+          path: 'child-progress-summary',
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            final childId = extra?['childId'] as String? ?? '';
+            final childName = extra?['childName'] as String?;
+            return ChildProgressSummaryScreen(
+              childId: childId,
+              childName: childName,
+            );
           },
         ),
         GoRoute(

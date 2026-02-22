@@ -77,6 +77,7 @@ export class TaskReminder {
         date: Date,
         completed: Boolean,
         completedAt: Date,
+        feedback: String,
         proofImageUrl: String,
         verificationStatus: {
           type: String,
@@ -100,6 +101,7 @@ export class TaskReminder {
     date: Date;
     completed: boolean;
     completedAt?: Date;
+    feedback?: string;
     proofImageUrl?: string;
     verificationStatus?: 'PENDING' | 'VALID' | 'UNCERTAIN' | 'INVALID';
     verificationMetadata?: {
