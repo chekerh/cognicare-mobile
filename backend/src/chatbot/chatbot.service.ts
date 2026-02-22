@@ -10,12 +10,18 @@ export interface ChatMessage {
     content: string;
 }
 
+interface OpenAIMessage {
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+}
+
 @Injectable()
 export class ChatbotService {
     private readonly logger = new Logger(ChatbotService.name);
-    private readonly apiKey = process.env.GEMINI_API_KEY;
-    private readonly model = 'gemini-2.0-flash';
-    private readonly url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent`;
+
+    // Provider configs
+    private readonly groqApiKey = process.env.GROQ_API_KEY;
+    private readonly openaiApiKey = process.env.OPENAI_API_KEY;
 
     constructor(
         @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
@@ -42,94 +48,96 @@ export class ChatbotService {
         const userName = (user as any)?.fullName ?? 'utilisateur';
         const childrenInfo =
             children.length > 0
-                ? children
-                    .map((c: any) => {
-                        const age = c.dateOfBirth
-                            ? Math.floor(
-                                (Date.now() - new Date(c.dateOfBirth).getTime()) /
-                                (1000 * 60 * 60 * 24 * 365),
-                            )
-                            : null;
-                        return `${c.fullName}${age ? ` (${age} ans)` : ''}${c.diagnosis ? `, suivi par ${c.diagnosis}` : ''}`;
-                    })
-                    .join('; ')
+                ? children.map((c: any) => {
+                    const age = c.dateOfBirth
+                        ? Math.floor(
+                            (Date.now() - new Date(c.dateOfBirth).getTime()) /
+                            (1000 * 60 * 60 * 24 * 365),
+                        )
+                        : null;
+                    return `${c.fullName}${age ? ` (${age} ans)` : ''}${c.diagnosis ? `, suivi par ${c.diagnosis}` : ''}`;
+                }).join('; ')
                 : null;
 
         // 2. Build system prompt
-        const systemText = `Tu es Cogni, l'assistant IA de CogniCare — app d'accompagnement pour familles d'enfants avec besoins spéciaux.
-Tu parles à ${userName}.${childrenInfo ? ` Enfant(s) suivi(s) : ${childrenInfo}.` : ''}
-Aide pour : progrès de l'enfant, suggestions thérapeutiques (PECS, TEACCH, sensoriel), rappels, routines, navigation CogniCare.
-Sois chaleureux et bienveillant. Réponds dans la langue de l'utilisateur. Sois concis (2-4 phrases). Ne donne jamais de diagnostic médical.`;
+        const systemPrompt = `Tu es Cogni, l'assistant IA de CogniCare — une application d'accompagnement pour les familles d'enfants avec des besoins spéciaux.
+Tu parles à ${userName}.${childrenInfo ? `\nEnfant(s) suivi(s) : ${childrenInfo}.` : ''}
+Ton rôle : aider pour les progrès de l'enfant, suggestions thérapeutiques (PECS, TEACCH, activités sensorielles), planification de rappels, routines quotidiennes.
+Sois chaleureux, bienveillant et encourageant. Réponds dans la langue de l'utilisateur. Sois concis (2-4 phrases max sauf si demandé). Ne donne jamais de diagnostic médical.`;
 
-        // 3. Build Gemini contents — ENSURING STRICT ALTERNATION
-        const geminiContents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
+        // 3. Build messages array (OpenAI format — 'model' role → 'assistant')
+        const messages: OpenAIMessage[] = [
+            { role: 'system', content: systemPrompt },
+        ];
 
-        // System turn (User)
-        geminiContents.push({ role: 'user', parts: [{ text: `Instructions système:\n${systemText}` }] });
-        // Ack turn (Model)
-        geminiContents.push({ role: 'model', parts: [{ text: `Compris ! Je suis Cogni, assistant CogniCare de ${userName}. Comment puis-je vous aider ?` }] });
+        // Add history (limit to last 10 exchanges)
+        for (const h of history.slice(-10)) {
+            messages.push({
+                role: h.role === 'model' ? 'assistant' : 'user',
+                content: h.content,
+            });
+        }
 
-        // Add history — must start with user and alternate
-        const recentHistory = history.slice(-10); // Reduce to avoid overflow
-        let lastRole = 'model'; // The one we just added
+        // Add current user message
+        messages.push({ role: 'user', content: message });
 
-        for (const h of recentHistory) {
-            // Only add if it alternates role
-            if (h.role !== lastRole) {
-                geminiContents.push({
-                    role: h.role,
-                    parts: [{ text: h.content }],
-                });
-                lastRole = h.role;
+        // 4. Try Groq first, then OpenAI
+        if (this.groqApiKey) {
+            try {
+                return await this.callOpenAICompatible(
+                    'https://api.groq.com/openai/v1/chat/completions',
+                    this.groqApiKey,
+                    'llama-3.3-70b-versatile',
+                    messages,
+                );
+            } catch (err: any) {
+                this.logger.warn(`Groq failed: ${err?.message}. Trying OpenAI...`);
             }
         }
 
-        // Final turn must be 'user'
-        if (lastRole === 'user') {
-            // If last msg in history was user, we merge or replace? Let's just append the current message as a new user turn
-            // But Gemini doesn't like User -> User.
-            // So if last was user, we add a dummy model filler
-            geminiContents.push({ role: 'model', parts: [{ text: "Je vous écoute." }] });
-        }
-
-        geminiContents.push({
-            role: 'user',
-            parts: [{ text: message }],
-        });
-
-        if (!this.apiKey) {
-            this.logger.warn('GEMINI_API_KEY not set');
-            return `${userName}, la clé API Gemini n'est pas configurée.`;
-        }
-
-        try {
-            const response = await axios.post(
-                `${this.url}?key=${this.apiKey}`,
-                {
-                    contents: geminiContents,
-                    generationConfig: {
-                        maxOutputTokens: 512,
-                        temperature: 0.7,
-                    },
-                },
-                {
-                    timeout: 20000,
-                    headers: { 'Content-Type': 'application/json' },
-                },
-            );
-
-            const text: string =
-                response.data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-            if (!text) {
-                throw new Error(`Empty response. Reason: ${response.data?.candidates?.[0]?.finishReason}`);
+        if (this.openaiApiKey) {
+            try {
+                return await this.callOpenAICompatible(
+                    'https://api.openai.com/v1/chat/completions',
+                    this.openaiApiKey,
+                    'gpt-4o-mini',
+                    messages,
+                );
+            } catch (err: any) {
+                this.logger.error(`OpenAI failed: ${err?.message}`);
+                return `Désolé ${userName}, tous les services AI sont temporairement indisponibles. Veuillez réessayer dans quelques instants. 🙏`;
             }
-            return text.trim();
-        } catch (err: any) {
-            const errorData = err.response?.data?.error || err.message;
-            this.logger.error(`Gemini Error: ${JSON.stringify(errorData)}`);
-            // For debugging: return a snippet of the error to the user UI
-            const shortError = JSON.stringify(errorData).substring(0, 100);
-            return `Désolé ${userName}, erreur technique : ${shortError}. 🙏`;
         }
+
+        this.logger.warn('No API keys configured (GROQ_API_KEY, OPENAI_API_KEY)');
+        return `${userName}, aucune clé API n'est configurée. Contactez l'administrateur.`;
+    }
+
+    private async callOpenAICompatible(
+        url: string,
+        apiKey: string,
+        model: string,
+        messages: OpenAIMessage[],
+    ): Promise<string> {
+        const response = await axios.post(
+            url,
+            {
+                model,
+                messages,
+                max_tokens: 512,
+                temperature: 0.7,
+            },
+            {
+                timeout: 20000,
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${apiKey}`,
+                },
+            },
+        );
+
+        const text: string = response.data?.choices?.[0]?.message?.content ?? '';
+        if (!text) throw new Error('Empty response from API');
+        return text.trim();
     }
 }
