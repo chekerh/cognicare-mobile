@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import axios from 'axios';
 import { Product, ProductDocument } from './schemas/product.schema';
 import { Review, ReviewDocument } from './schemas/review.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
@@ -13,7 +14,19 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
 
-/** Catalogue de produits : vêtements, jeux, produits cognitifs (sensoriel, motricité, cognitif) */
+const DUMMYJSON_BASE = 'https://dummyjson.com';
+
+/** Mapping de nos catégories vers les catégories DummyJSON (e-commerce style Shein/Temu) */
+const CATEGORY_TO_DUMMYJSON: Record<string, string[]> = {
+  all: [],
+  clothing: ['tops', 'womens-dresses', 'mens-shirts', 'womens-shoes', 'mens-shoes', 'womens-bags'],
+  games: ['sports-accessories', 'mobile-accessories'],
+  sensory: ['beauty', 'skin-care', 'fragrances'],
+  motor: ['sports-accessories'],
+  cognitive: ['laptops', 'tablets', 'smartphones'],
+};
+
+/** Catalogue de fallback (si API indisponible) : vêtements, jeux, produits cognitifs */
 const SEED_PRODUCTS = [
   // Vêtements (clothing)
   {
@@ -175,7 +188,69 @@ export class MarketplaceService implements OnModuleInit {
     }
   }
 
+  /**
+   * Récupère les produits depuis l'API DummyJSON (e-commerce style Shein/Temu).
+   * Produits réels : vêtements, mode, électronique, etc.
+   */
   async list(limit = 20, category?: string): Promise<ProductLean[]> {
+    const cat = category && category !== 'all' ? category : 'all';
+    const dummyCategories = CATEGORY_TO_DUMMYJSON[cat] ?? [];
+
+    try {
+      let products: Record<string, unknown>[] = [];
+
+      if (dummyCategories.length === 0) {
+        // Tous les articles : fetch direct
+        const res = await axios.get<{ products: Record<string, unknown>[] }>(
+          `${DUMMYJSON_BASE}/products`,
+          { params: { limit }, timeout: 8000 },
+        );
+        products = res.data?.products ?? [];
+      } else {
+        // Catégorie spécifique : fetcher et fusionner
+        const perCat = Math.ceil(limit / dummyCategories.length);
+        const results = await Promise.all(
+          dummyCategories.map((dc) =>
+            axios.get<{ products: Record<string, unknown>[] }>(
+              `${DUMMYJSON_BASE}/products/category/${dc}`,
+              { params: { limit: perCat }, timeout: 8000 },
+            ),
+          ),
+        );
+        products = results.flatMap((r) => r.data?.products ?? []);
+        products = products.slice(0, limit);
+      }
+
+      return products.map((p) => this.toProductLean(p, cat));
+    } catch (e) {
+      this.logger.warn(`DummyJSON API failed: ${(e as Error).message}, using fallback`);
+      return this.listFromDb(limit, cat);
+    }
+  }
+
+  private toProductLean(raw: Record<string, unknown>, category: string): ProductLean {
+    const images = raw.images as string[] | undefined;
+    const imageUrl = (raw.imageUrl as string) ?? images?.[0] ?? (raw.thumbnail as string) ?? '';
+    const price = raw.price != null ? String(raw.price) : '0';
+    const discount = raw.discountPercentage as number | undefined;
+    const badge = discount != null && discount > 0 ? `-${Math.round(discount)}%` : undefined;
+    const id = raw.id != null ? String(raw.id) : '';
+    return {
+      _id: id as unknown as Types.ObjectId,
+      sellerId: undefined,
+      title: (raw.title ?? '') as string,
+      price,
+      imageUrl,
+      description: (raw.description ?? '') as string,
+      badge,
+      category,
+      order: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as ProductLean;
+  }
+
+  private async listFromDb(limit: number, category: string): Promise<ProductLean[]> {
     const q: Record<string, unknown> = {};
     if (category && category !== 'all') q.category = category;
     const list = await this.productModel
@@ -254,6 +329,25 @@ export class MarketplaceService implements OnModuleInit {
   }
 
   async findById(id: string): Promise<ProductLean> {
+    // ID numérique = produit DummyJSON (API externe)
+    const numId = parseInt(id, 10);
+    if (!Number.isNaN(numId) && numId > 0 && numId < 1000) {
+      try {
+        const res = await axios.get<Record<string, unknown>>(
+          `${DUMMYJSON_BASE}/products/${numId}`,
+          { timeout: 5000 },
+        );
+        const raw = res.data;
+        if (raw?.id != null) {
+          const cat = (raw.category as string) ?? 'all';
+          return this.toProductLean(raw, cat);
+        }
+      } catch {
+        // ignore, fall through to DB
+      }
+    }
+
+    // ID MongoDB
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Product not found');
     }
