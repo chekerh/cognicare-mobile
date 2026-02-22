@@ -61,34 +61,45 @@ Tu parles à ${userName}.${childrenInfo ? ` Enfant(s) suivi(s) : ${childrenInfo}
 Aide pour : progrès de l'enfant, suggestions thérapeutiques (PECS, TEACCH, sensoriel), rappels, routines, navigation CogniCare.
 Sois chaleureux et bienveillant. Réponds dans la langue de l'utilisateur. Sois concis (2-4 phrases). Ne donne jamais de diagnostic médical.`;
 
-        // 3. Build Gemini contents — MUST start with 'user' role
-        // Inject system instructions as the very first user/model exchange
-        const geminiContents: Array<{ role: string; parts: Array<{ text: string }> }> = [
-            { role: 'user', parts: [{ text: `Instructions système:\n${systemText}` }] },
-            { role: 'model', parts: [{ text: `Compris ! Je suis Cogni, assistant CogniCare de ${userName}. Comment puis-je vous aider ?` }] },
-        ];
+        // 3. Build Gemini contents — ENSURING STRICT ALTERNATION
+        const geminiContents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
 
-        // Add conversation history — only include from first 'user' message onwards
-        const recentHistory = history.slice(-18);
-        const firstUserIdx = recentHistory.findIndex((h) => h.role === 'user');
-        if (firstUserIdx >= 0) {
-            for (const h of recentHistory.slice(firstUserIdx)) {
+        // System turn (User)
+        geminiContents.push({ role: 'user', parts: [{ text: `Instructions système:\n${systemText}` }] });
+        // Ack turn (Model)
+        geminiContents.push({ role: 'model', parts: [{ text: `Compris ! Je suis Cogni, assistant CogniCare de ${userName}. Comment puis-je vous aider ?` }] });
+
+        // Add history — must start with user and alternate
+        const recentHistory = history.slice(-10); // Reduce to avoid overflow
+        let lastRole = 'model'; // The one we just added
+
+        for (const h of recentHistory) {
+            // Only add if it alternates role
+            if (h.role !== lastRole) {
                 geminiContents.push({
                     role: h.role,
                     parts: [{ text: h.content }],
                 });
+                lastRole = h.role;
             }
         }
 
-        // Add current user message
+        // Final turn must be 'user'
+        if (lastRole === 'user') {
+            // If last msg in history was user, we merge or replace? Let's just append the current message as a new user turn
+            // But Gemini doesn't like User -> User.
+            // So if last was user, we add a dummy model filler
+            geminiContents.push({ role: 'model', parts: [{ text: "Je vous écoute." }] });
+        }
+
         geminiContents.push({
             role: 'user',
             parts: [{ text: message }],
         });
 
         if (!this.apiKey) {
-            this.logger.warn('GEMINI_API_KEY not set; returning placeholder');
-            return `${userName}, la clé API Gemini n'est pas configurée. Contactez l'administrateur.`;
+            this.logger.warn('GEMINI_API_KEY not set');
+            return `${userName}, la clé API Gemini n'est pas configurée.`;
         }
 
         try {
@@ -102,7 +113,7 @@ Sois chaleureux et bienveillant. Réponds dans la langue de l'utilisateur. Sois 
                     },
                 },
                 {
-                    timeout: 30000,
+                    timeout: 20000,
                     headers: { 'Content-Type': 'application/json' },
                 },
             );
@@ -110,14 +121,15 @@ Sois chaleureux et bienveillant. Réponds dans la langue de l'utilisateur. Sois 
             const text: string =
                 response.data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
             if (!text) {
-                const reason = response.data?.candidates?.[0]?.finishReason ?? 'unknown';
-                this.logger.error(`Gemini empty response, finishReason: ${reason}`);
-                throw new Error(`Empty response, finishReason: ${reason}`);
+                throw new Error(`Empty response. Reason: ${response.data?.candidates?.[0]?.finishReason}`);
             }
             return text.trim();
         } catch (err: any) {
-            this.logger.error(`Chatbot Gemini call failed: ${err?.message ?? err}`);
-            return `Désolé ${userName}, je rencontre une difficulté technique. Veuillez réessayer dans quelques instants. 🙏`;
+            const errorData = err.response?.data?.error || err.message;
+            this.logger.error(`Gemini Error: ${JSON.stringify(errorData)}`);
+            // For debugging: return a snippet of the error to the user UI
+            const shortError = JSON.stringify(errorData).substring(0, 100);
+            return `Désolé ${userName}, erreur technique : ${shortError}. 🙏`;
         }
     }
 }
