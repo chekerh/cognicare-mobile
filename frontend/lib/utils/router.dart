@@ -273,11 +273,11 @@ GoRouter createAppRouter(AuthProvider authProvider) {
         ),
         GoRoute(
           path: 'mission-itinerary',
-          builder: (context, state) => VolunteerMissionItineraryScreen.fromState(state),
+          builder: (context, state) => VolunteerMissionItineraryScreen.fromState(state, context),
         ),
         GoRoute(
           path: 'task-accepted',
-          builder: (context, state) => VolunteerTaskAcceptedScreen.fromState(state),
+          builder: (context, state) => VolunteerTaskAcceptedScreen.fromState(state, context),
         ),
         GoRoute(
           path: 'notifications',

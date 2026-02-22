@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
 
@@ -64,8 +65,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Donnez un nom au groupe.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.groupNameRequired),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -116,10 +117,11 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: _bgLight,
       appBar: AppBar(
-        title: const Text('Créer un groupe'),
+        title: Text(loc.createGroupTitle),
         backgroundColor: Colors.white,
         foregroundColor: _textPrimary,
         elevation: 0,

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/children_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFFA2D9E7);
@@ -122,9 +123,9 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Espace Santé',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context)!.healthcareSpaceLabel,
+                        style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF0F172A),
@@ -132,34 +133,21 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        userName.isNotEmpty ? 'Bonjour, $userName' : 'Bonjour',
+                        userName.isNotEmpty ? AppLocalizations.of(context)!.helloDr(userName) : AppLocalizations.of(context)!.helloDr(''),
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade600,
                         ),
                       ),
                       const SizedBox(height: 20),
-                      TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Rechercher un patient...',
-                          prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        ),
-                      ),
+                      _searchBar(context),
                       const SizedBox(height: 24),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Patients suivis',
-                            style: TextStyle(
+                          Text(
+                            AppLocalizations.of(context)!.followedPatientsLabel,
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF0F172A),
@@ -167,7 +155,7 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
                           ),
                           if (!_loading && _error == null)
                             Text(
-                              '${_filteredChildren.length} ACTIFS',
+                              AppLocalizations.of(context)!.activePatientsCount(_filteredChildren.length),
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
@@ -289,6 +277,22 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
     );
   }
 
+  Widget _searchBar(BuildContext context) {
+    return TextField(
+      controller: _searchController,
+      decoration: InputDecoration(
+        hintText: AppLocalizations.of(context)!.searchPatientHint,
+        prefixIcon: const Icon(Icons.search, color: Colors.grey),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
   Widget _clinicalNotesSection(BuildContext context) {
     return Material(
       color: const Color(0xFF1E293B),
@@ -298,13 +302,13 @@ class _HealthcarePatientsScreenState extends State<HealthcarePatientsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.event_note, color: _primary, size: 22),
-                SizedBox(width: 8),
+                const Icon(Icons.event_note, color: _primary, size: 22),
+                const SizedBox(width: 8),
                 Text(
-                  'Notes cliniques',
-                  style: TextStyle(
+                  AppLocalizations.of(context)!.clinicalNotesLabel,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -428,13 +432,13 @@ class _PatientCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.auto_awesome, size: 14, color: _brand),
-                        SizedBox(width: 6),
+                        const Icon(Icons.auto_awesome, size: 14, color: _brand),
+                        const SizedBox(width: 6),
                         Text(
-                          'ANALYSE IA',
-                          style: TextStyle(
+                          AppLocalizations.of(context)!.aiAnalysisLabel,
+                          style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: _brand,
@@ -464,7 +468,7 @@ class _PatientCard extends StatelessWidget {
                       '${AppConstants.healthcareCareBoardRoute}?patientId=$patientId&patientName=${Uri.encodeComponent(name)}',
                     ),
                     icon: const Icon(Icons.description_outlined, size: 18),
-                    label: const Text('Détails'),
+                    label: Text(AppLocalizations.of(context)!.detailsLabel),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _primary,
                       foregroundColor: const Color(0xFF1E293B),

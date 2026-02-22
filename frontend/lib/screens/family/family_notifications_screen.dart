@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/app_notification.dart';
 import '../../services/notifications_feed_service.dart';
 
@@ -66,32 +67,32 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
     }
   }
 
-  static String _timeAgo(DateTime? date) {
+  static String _timeAgo(DateTime? date, AppLocalizations loc) {
     if (date == null) return '';
     final now = DateTime.now();
     final diff = now.difference(date);
-    if (diff.inMinutes < 1) return 'À l\'instant';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} min';
-    if (diff.inHours < 24) return '${diff.inHours}h';
-    if (diff.inDays == 1) return 'Hier';
-    if (diff.inDays < 7) return '${diff.inDays} jours';
+    if (diff.inMinutes < 1) return loc.timeAgoJustNow;
+    if (diff.inMinutes < 60) return loc.timeAgoMinutes(diff.inMinutes);
+    if (diff.inHours < 24) return loc.timeAgoHours(diff.inHours);
+    if (diff.inDays == 1) return loc.yesterdayLabel;
+    if (diff.inDays < 7) return loc.timeAgoDays(diff.inDays);
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  static ({String label, IconData icon, Color color, bool alert}) _styleForType(String type) {
+  static ({String label, IconData icon, Color color, bool alert}) _styleForType(String type, AppLocalizations loc) {
     switch (type) {
       case 'health_alert':
-        return (label: 'HEALTH ALERT', icon: Icons.favorite, color: const Color(0xFFE11D48), alert: true);
+        return (label: loc.notifTypeHealthAlert, icon: Icons.favorite, color: const Color(0xFFE11D48), alert: true);
       case 'achievement':
-        return (label: 'ACHIEVEMENT', icon: Icons.star, color: const Color(0xFFD97706), alert: false);
+        return (label: loc.notifTypeAchievement, icon: Icons.star, color: const Color(0xFFD97706), alert: false);
       case 'family_message':
-        return (label: 'FAMILY MESSAGE', icon: Icons.chat_bubble, color: const Color(0xFF2563EB), alert: false);
+        return (label: loc.notifTypeFamilyMessage, icon: Icons.chat_bubble, color: const Color(0xFF2563EB), alert: false);
       case 'health_update':
-        return (label: 'HEALTH UPDATE', icon: Icons.favorite, color: const Color(0xFF059669), alert: false);
+        return (label: loc.notifTypeHealthUpdate, icon: Icons.favorite, color: const Color(0xFF059669), alert: false);
       case 'order_confirmed':
-        return (label: 'PAIEMENT CONFIRMÉ', icon: Icons.check_circle, color: const Color(0xFF059669), alert: false);
+        return (label: loc.notifTypePaymentConfirmed, icon: Icons.check_circle, color: const Color(0xFF059669), alert: false);
       case 'routine_reminder':
-        return (label: 'ROUTINE', icon: Icons.alarm, color: const Color(0xFF0EA5E9), alert: false);
+        return (label: loc.notifTypeRoutine, icon: Icons.alarm, color: const Color(0xFF0EA5E9), alert: false);
       default:
         return (label: type.toUpperCase(), icon: Icons.notifications, color: _textMuted, alert: false);
     }
@@ -99,13 +100,14 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: _bgLight,
       body: SafeArea(
         child: Column(
           children: [
             _buildAppBar(context),
-            _buildHeader(context),
+            _buildHeader(context, loc),
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
@@ -114,14 +116,14 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
                       itemCount: _notifications.length,
                       itemBuilder: (context, index) {
                         final n = _notifications[index];
-                        final style = _styleForType(n.type);
+                        final style = _styleForType(n.type, loc);
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 16),
                           child: _NotificationCard(
                             categoryLabel: style.label,
                             icon: style.icon,
                             color: style.color,
-                            timeAgo: _timeAgo(n.createdAt),
+                            timeAgo: _timeAgo(n.createdAt, loc),
                             title: n.title,
                             description: n.description.isEmpty ? '—' : n.description,
                             hasAlertBorder: style.alert,
@@ -157,10 +159,10 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, AppLocalizations loc) {
     final unreadStr = _unreadCount == 0
-        ? 'Aucune mise à jour non lue'
-        : (_unreadCount == 1 ? '1 mise à jour non lue' : '$_unreadCount mises à jour non lues');
+        ? loc.noUnreadUpdates
+        : (_unreadCount == 1 ? loc.oneUnreadUpdate : loc.unreadUpdatesCount(_unreadCount));
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
       child: Row(
@@ -170,9 +172,9 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Notifications',
-                style: TextStyle(
+              Text(
+                loc.notificationsTitle,
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: _textPrimary,

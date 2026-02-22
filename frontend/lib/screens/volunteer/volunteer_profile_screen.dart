@@ -34,10 +34,10 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
   int _profilePicVersion = 0;
   bool _availabilityActive = true;
 
-  static const List<Widget> _aboutSkills = [
-    Chip(label: Text('Autisme', style: TextStyle(fontSize: 12)), backgroundColor: Color(0xFFE2E8F0)),
-    Chip(label: Text('Communication douce', style: TextStyle(fontSize: 12)), backgroundColor: Color(0xFFE2E8F0)),
-    Chip(label: Text('Mobilité', style: TextStyle(fontSize: 12)), backgroundColor: Color(0xFFE2E8F0)),
+  static List<Widget> _aboutSkills(BuildContext context) => [
+    Chip(label: Text(AppLocalizations.of(context)!.autism, style: const TextStyle(fontSize: 12)), backgroundColor: const Color(0xFFE2E8F0)),
+    Chip(label: Text(AppLocalizations.of(context)!.gentleCommunication, style: const TextStyle(fontSize: 12)), backgroundColor: const Color(0xFFE2E8F0)),
+    Chip(label: Text(AppLocalizations.of(context)!.mobilitySkill, style: const TextStyle(fontSize: 12)), backgroundColor: const Color(0xFFE2E8F0)),
   ];
 
   @override
@@ -110,16 +110,17 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
   }
 
   Future<void> _pickProfilePicture() async {
+    final loc = AppLocalizations.of(context)!;
     final picker = ImagePicker();
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
-      builder: (context) => SafeArea(
+      builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(leading: const Icon(Icons.photo_library), title: const Text('Choisir depuis la galerie'), onTap: () => Navigator.pop(context, ImageSource.gallery)),
-            ListTile(leading: const Icon(Icons.camera_alt), title: const Text('Prendre une photo'), onTap: () => Navigator.pop(context, ImageSource.camera)),
-            ListTile(leading: const Icon(Icons.cancel), title: const Text('Annuler'), onTap: () => Navigator.pop(context)),
+            ListTile(leading: const Icon(Icons.photo_library), title: Text(loc.chooseFromGallery), onTap: () => Navigator.pop(ctx, ImageSource.gallery)),
+            ListTile(leading: const Icon(Icons.camera_alt), title: Text(loc.takePhoto), onTap: () => Navigator.pop(ctx, ImageSource.camera)),
+            ListTile(leading: const Icon(Icons.cancel), title: Text(loc.cancel), onTap: () => Navigator.pop(ctx)),
           ],
         ),
       ),
@@ -148,7 +149,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
           _profilePicVersion = DateTime.now().millisecondsSinceEpoch;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Photo de profil mise à jour'), backgroundColor: Colors.green),
+          SnackBar(content: Text(loc.profileUpdatedSuccess), backgroundColor: Colors.green),
         );
       } catch (e) {
         if (mounted) {
@@ -238,7 +239,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
         backgroundColor: _background,
         appBar: AppBar(
           backgroundColor: _primary,
-          title: const Text('Profil Bénévole', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          title: Text(loc.volunteerProfileTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
         body: Center(
           child: Padding(
@@ -294,7 +295,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             _headerButton(Icons.chevron_left, onTap: () => context.go(AppConstants.volunteerDashboardRoute)),
-                            const Text('Mon Profil', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white)),
+                            Text(loc.myProfileLabel, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white)),
                             _headerButton(Icons.settings_outlined, onTap: () {}),
                           ],
                         ),
@@ -339,12 +340,12 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                             color: Colors.white.withOpacity(0.3),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.verified_user, size: 14, color: Color(0xFF1E293B)),
-                              SizedBox(width: 6),
-                              Text('Compte vérifié', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
+                              const Icon(Icons.verified_user, size: 14, color: Color(0xFF1E293B)),
+                              const SizedBox(width: 6),
+                              Text(loc.verifiedAccountLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
                             ],
                           ),
                         ),
@@ -380,12 +381,12 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                             child: const Icon(Icons.event_available, color: _primary, size: 18),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Disponibilités', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.text)),
-                                Text('Actif pour les missions', style: TextStyle(fontSize: 12, color: _grey600)),
+                                Text(loc.availabilityLabel, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.text)),
+                                Text(loc.activeForMissionsLabel, style: const TextStyle(fontSize: 12, color: _grey600)),
                               ],
                             ),
                           ),
@@ -405,7 +406,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                     const SizedBox(height: 12),
                     _buildActionTile(
                       icon: Icons.description_outlined,
-                      label: 'Candidature bénévole',
+                      label: loc.volunteerApplicationLabel,
                       onTap: () => context.push(AppConstants.volunteerApplicationRoute),
                     ),
 
@@ -415,10 +416,10 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                           Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Badges & Impact', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.text)),
+                        Text(loc.badgesAndImpactLabel, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.text)),
                         GestureDetector(
                           onTap: () {},
-                          child: const Text('Voir tout', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
+                          child: Text(loc.seeAllLabel, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
                         ),
                       ],
                     ),
@@ -436,25 +437,25 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              _badgeChip('Expert', Icons.military_tech, Colors.amber.shade700),
-                              _badgeChip('Altruiste', Icons.volunteer_activism, Colors.blue.shade600),
-                              _badgeChip('Mentor', Icons.psychology, Colors.green.shade600),
+                              _badgeChip(loc.expertBadge, Icons.military_tech, Colors.amber.shade700),
+                              _badgeChip(loc.altruistBadge, Icons.volunteer_activism, Colors.blue.shade600),
+                              _badgeChip(loc.mentorBadge, Icons.psychology, Colors.green.shade600),
                             ],
                           ),
                           const SizedBox(height: 20),
-                          const Row(
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               Column(
                                 children: [
-                                  Text('124', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.text)),
-                                  Text('Heures de service', style: TextStyle(fontSize: 12, color: _grey600)),
+                                  Text('124', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.text)),
+                                  Text(loc.hoursOfServiceLabel, style: const TextStyle(fontSize: 12, color: _grey600)),
                                 ],
                               ),
                               Column(
                                 children: [
-                                  Text('48', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.text)),
-                                  Text('Missions réussies', style: TextStyle(fontSize: 12, color: _grey600)),
+                                  Text('48', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.text)),
+                                  Text(loc.successfulMissionsLabel, style: const TextStyle(fontSize: 12, color: _grey600)),
                                 ],
                               ),
                             ],
@@ -466,7 +467,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                     const SizedBox(height: 24),
 
                     // À propos
-                    const Text('À propos', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.text)),
+                    Text(loc.aboutMeLabel, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.text)),
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.all(20),
@@ -476,18 +477,18 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                         border: Border.all(color: Colors.grey.shade100),
                         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2))],
                       ),
-                      child: const Column(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Passionné par l\'inclusion sociale et le soutien aux personnes avec des troubles cognitifs. Bénévole depuis 3 ans, spécialisé dans l\'accompagnement à la mobilité et les activités créatives.',
-                            style: TextStyle(fontSize: 14, color: _grey700, height: 1.5),
+                            loc.volunteerBio,
+                            style: const TextStyle(fontSize: 14, color: _grey700, height: 1.5),
                           ),
-                          SizedBox(height: 12),
+                          const SizedBox(height: 12),
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
-                            children: _aboutSkills,
+                            children: _aboutSkills(context),
                           ),
                         ],
                       ),
@@ -513,7 +514,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                       final messenger = ScaffoldMessenger.of(context);
                       final result = await showDialog<bool>(context: context, builder: (_) => const ChangePasswordDialog());
                       if (result != true) return;
-                      messenger.showSnackBar(const SnackBar(content: Text('Mot de passe mis à jour. Veuillez vous reconnecter.'), backgroundColor: Colors.green));
+                      messenger.showSnackBar(SnackBar(content: Text(loc.passwordUpdatedReconnect), backgroundColor: Colors.green));
                       await _handleLogout();
                     }),
                     const SizedBox(height: 8),
@@ -521,7 +522,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                       final messenger = ScaffoldMessenger.of(context);
                       final result = await showDialog<bool>(context: context, builder: (_) => const ChangeEmailDialog());
                       if (result != true) return;
-                      messenger.showSnackBar(const SnackBar(content: Text('Email mis à jour. Veuillez vous reconnecter.'), backgroundColor: Colors.green));
+                      messenger.showSnackBar(SnackBar(content: Text(loc.emailUpdatedReconnect), backgroundColor: Colors.green));
                       await _handleLogout();
                     }),
                     const SizedBox(height: 8),
@@ -532,7 +533,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                       final result = await showDialog<bool>(context: context, builder: (_) => ChangePhoneDialog(currentPhone: user?.phone));
                       if (result != true) return;
                       _refreshProfile();
-                      messenger.showSnackBar(const SnackBar(content: Text('Téléphone mis à jour'), backgroundColor: Colors.green));
+                      messenger.showSnackBar(SnackBar(content: Text(loc.phoneUpdated), backgroundColor: Colors.green));
                     }),
 
                     const SizedBox(height: 24),

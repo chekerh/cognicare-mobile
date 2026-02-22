@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFF89CFF0);
 const Color _bgLight = Color(0xFFF0F9FF);
@@ -39,7 +40,7 @@ class _VolunteerMissionReportScreenState extends State<VolunteerMissionReportScr
                 children: [
                   _circleButton(Icons.chevron_left, () => context.pop()),
                   const SizedBox(width: 16),
-                  const Text('Rapport de Mission', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                  Text(AppLocalizations.of(context)!.missionReportLabel, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                 ],
               ),
             ),
@@ -51,12 +52,12 @@ class _VolunteerMissionReportScreenState extends State<VolunteerMissionReportScr
                   children: [
                     _section(
                       icon: Icons.description,
-                      title: 'Résumé de la mission',
+                      title: AppLocalizations.of(context)!.missionReportSummaryLabel,
                       child: TextField(
                         controller: _summaryController,
                         maxLines: 5,
                         decoration: InputDecoration(
-                          hintText: "Décrivez le déroulement de la mission et vos observations...",
+                          hintText: AppLocalizations.of(context)!.missionReportSummaryHint,
                           filled: true,
                           fillColor: Colors.grey.shade50,
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
@@ -67,40 +68,40 @@ class _VolunteerMissionReportScreenState extends State<VolunteerMissionReportScr
                     const SizedBox(height: 24),
                     _section(
                       icon: Icons.mood,
-                      title: "Humeur de l'enfant",
+                      title: AppLocalizations.of(context)!.childMoodLabel,
                       child: Row(
                         children: [
-                          _moodButton(0, '😊', 'Joyeux'),
+                          _moodButton(0, '😊', AppLocalizations.of(context)!.moodHappy),
                           const SizedBox(width: 12),
-                          _moodButton(1, '😌', 'Calme'),
+                          _moodButton(1, '😌', AppLocalizations.of(context)!.moodCalm),
                           const SizedBox(width: 12),
-                          _moodButton(2, '😰', 'Anxieux'),
+                          _moodButton(2, '😰', AppLocalizations.of(context)!.moodAnxious),
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
                     _section(
                       icon: Icons.extension,
-                      title: 'Activités réalisées',
+                      title: AppLocalizations.of(context)!.completedActivitiesLabel,
                       child: Column(
                         children: [
-                          _activityRow(0, Icons.sports_esports, 'Jeux & Divertissement'),
+                          _activityRow(0, Icons.sports_esports, AppLocalizations.of(context)!.gamesAndEntertainment),
                           const SizedBox(height: 12),
-                          _activityRow(1, Icons.menu_book, 'Lecture'),
+                          _activityRow(1, Icons.menu_book, AppLocalizations.of(context)!.reading),
                           const SizedBox(height: 12),
-                          _activityRow(2, Icons.directions_walk, 'Promenade'),
+                          _activityRow(2, Icons.directions_walk, AppLocalizations.of(context)!.stroll),
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
                     _section(
                       icon: Icons.lock,
-                      title: 'Notes pour les parents',
+                      title: AppLocalizations.of(context)!.notesForParentsLabel,
                       child: TextField(
                         controller: _notesController,
                         maxLines: 3,
                         decoration: InputDecoration(
-                          hintText: "Message privé destiné uniquement aux parents...",
+                          hintText: AppLocalizations.of(context)!.notesForParentsHint,
                           filled: true,
                           fillColor: Colors.grey.shade50,
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
@@ -111,11 +112,11 @@ class _VolunteerMissionReportScreenState extends State<VolunteerMissionReportScr
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Rapport envoyé'), behavior: SnackBarBehavior.floating));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.reportSentMessage), behavior: SnackBarBehavior.floating));
                         context.pop();
                       },
                       icon: const Icon(Icons.send, size: 22),
-                      label: const Text('Envoyer le rapport', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      label: Text(AppLocalizations.of(context)!.sendReportButton, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _primary,
                         foregroundColor: Colors.white,

@@ -247,7 +247,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: TextButton(
                     onPressed: () => context.go(AppConstants.forgotPasswordRoute),
                     child: Text(
-                      '${localizations.resetPasswordTitle}?',
+                      localizations.forgotPasswordQuestion,
                       style: TextStyle(
                         color: _authPrimary.withOpacity(0.9),
                         fontSize: 14,
@@ -297,12 +297,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
                 // Pas encore de compte ? Créer un compte (même flux, sans division)
                 Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
-                        'Pas encore de compte ? ',
+                        localizations.noAccountYet,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,

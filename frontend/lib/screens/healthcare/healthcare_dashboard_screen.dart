@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/children_service.dart';
 import '../../services/progress_ai_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFFA2D9E7);
@@ -72,7 +73,7 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                     const SizedBox(height: 24),
                     _activitySuggestionsCard(context),
                     const SizedBox(height: 24),
-                    _sectionTitle(context, 'Mes Patients', onSeeAll: () => context.go(AppConstants.healthcarePatientsRoute)),
+                    _sectionTitle(context, AppLocalizations.of(context)!.myPatientsLabel, onSeeAll: () => context.go(AppConstants.healthcarePatientsRoute)),
                     const SizedBox(height: 12),
                     if (_patientsLoading)
                       const Padding(
@@ -172,7 +173,7 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'PROFESSIONNEL DE SANTÉ',
+                AppLocalizations.of(context)!.healthcareProfessionalLabel,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -181,9 +182,9 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
-                'Bonjour, Dr. Martin',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.helloDr('Martin'),
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF0F172A),
@@ -224,13 +225,13 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.auto_awesome, color: _primary, size: 20),
-                    SizedBox(width: 8),
+                    const Icon(Icons.auto_awesome, color: _primary, size: 20),
+                    const SizedBox(width: 8),
                     Text(
-                      'APERÇU CLINIQUE (IA)',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.clinicalOverviewIALabel,
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
@@ -240,9 +241,9 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  '3 patients montrent une progression stable cette semaine. Attention requise pour Thomas B.',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)!.clinicalSummaryIALabel,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: Colors.white,
@@ -256,7 +257,7 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                     extra: {'highlightPatientId': 'thomas-bernard'},
                   ),
                   icon: const Icon(Icons.arrow_forward, size: 16, color: Colors.white),
-                  label: const Text('Voir les détails', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                  label: Text(AppLocalizations.of(context)!.seeDetailsLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.white.withOpacity(0.2),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -361,7 +362,7 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
         if (onSeeAll != null)
           TextButton(
             onPressed: onSeeAll,
-            child: const Text('Voir tout', style: TextStyle(color: _brand, fontWeight: FontWeight.w600)),
+            child: Text(AppLocalizations.of(context)!.seeAllLabel, style: const TextStyle(color: _brand, fontWeight: FontWeight.w600)),
           ),
       ],
     );
@@ -374,7 +375,7 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
           child: _actionCard(
             context,
             icon: Icons.description_outlined,
-            label: 'Rapports Médicaux',
+            label: AppLocalizations.of(context)!.medicalReportsLabel,
             color: Colors.blue,
             onTap: () => context.go(AppConstants.healthcareReportsRoute),
           ),
@@ -384,7 +385,7 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
           child: _actionCard(
             context,
             icon: Icons.event_outlined,
-            label: 'Consultations',
+            label: AppLocalizations.of(context)!.consultationsLabel,
             color: Colors.purple,
             onTap: () => context.push(AppConstants.healthcarePlannerRoute),
           ),
@@ -440,9 +441,9 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Prochaine consultation',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context)!.nextConsultationLabel,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: Color(0xFF0F172A),
@@ -464,9 +465,9 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'AUJOURD\'HUI • 14:30',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.todayAtTime('14:30'),
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                         color: _brand,
@@ -479,9 +480,9 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                         color: _primary.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(999),
                       ),
-                      child: const Text(
-                        'TÉLÉMÉDECINE',
-                        style: TextStyle(
+                      child: Text(
+                        AppLocalizations.of(context)!.telemedicineLabel,
+                        style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: _brand,
@@ -515,7 +516,7 @@ class _HealthcareDashboardScreenState extends State<HealthcareDashboardScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('Démarrer l\'appel'),
+                        child: Text(AppLocalizations.of(context)!.startCallLabel),
                       ),
                     ),
                     const SizedBox(width: 8),

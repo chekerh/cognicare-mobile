@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFF2b8cee);
@@ -45,9 +46,9 @@ class HealthcareCareBoardScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_new),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Collaborative Care Board',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        title: Text(
+          AppLocalizations.of(context)!.collaborativeCareBoardLabel,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -61,13 +62,13 @@ class HealthcareCareBoardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _patientHeader(name, diag, ageStr),
+            _patientHeader(context, name, diag, ageStr),
             const SizedBox(height: 20),
             _teamSection(context),
             const SizedBox(height: 20),
-            _tabs(),
+            _tabs(context),
             const SizedBox(height: 16),
-            _timelineSection(),
+            _timelineSection(context),
             const SizedBox(height: 20),
             _secureTeamChat(context),
             const SizedBox(height: 100),
@@ -88,7 +89,7 @@ class HealthcareCareBoardScreen extends StatelessWidget {
     );
   }
 
-  Widget _patientHeader(String name, String diag, String ageStr) {
+  Widget _patientHeader(BuildContext context, String name, String diag, String ageStr) {
     return Row(
       children: [
         CircleAvatar(
@@ -136,7 +137,7 @@ class HealthcareCareBoardScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Age: $ageStr',
+                    AppLocalizations.of(context)!.ageLabel(ageStr),
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey.shade600,
@@ -158,9 +159,9 @@ class HealthcareCareBoardScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Multidisciplinary Team',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.multidisciplinaryTeamLabel,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF111418),
@@ -168,7 +169,7 @@ class HealthcareCareBoardScreen extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {},
-              child: const Text('View All', style: TextStyle(color: _primary, fontWeight: FontWeight.w600)),
+              child: Text(AppLocalizations.of(context)!.viewAllLabel, style: const TextStyle(color: _primary, fontWeight: FontWeight.w600)),
             ),
           ],
         ),
@@ -181,7 +182,7 @@ class HealthcareCareBoardScreen extends StatelessWidget {
               _teamCard('Dr. Sarah Chen', 'Pediatrician'),
               _teamCard('Mark Rogers', 'Speech Therapy'),
               _teamCard('Elena Vance', 'Physiotherapist'),
-              _addMemberCard(),
+              _addMemberCard(context),
             ],
           ),
         ),
@@ -241,21 +242,21 @@ class HealthcareCareBoardScreen extends StatelessWidget {
     );
   }
 
-  Widget _addMemberCard() {
+  Widget _addMemberCard(BuildContext context) {
     return Container(
       width: 128,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade400, style: BorderStyle.solid),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Column(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.person_add, color: Colors.grey, size: 32),
-          SizedBox(height: 8),
+          const Icon(Icons.person_add, color: Colors.grey, size: 32),
+          const SizedBox(height: 8),
           Text(
-            'Invite Pro',
-            style: TextStyle(
+            AppLocalizations.of(context)!.inviteProLabel,
+            style: const TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
               color: Colors.grey,
@@ -266,7 +267,7 @@ class HealthcareCareBoardScreen extends StatelessWidget {
     );
   }
 
-  Widget _tabs() {
+  Widget _tabs(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -289,10 +290,10 @@ class HealthcareCareBoardScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Text(
-                'Timeline',
+              child: Text(
+                AppLocalizations.of(context)!.timelineLabel,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF111418),
@@ -302,7 +303,7 @@ class HealthcareCareBoardScreen extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              'Files',
+              AppLocalizations.of(context)!.filesLabel,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -312,7 +313,7 @@ class HealthcareCareBoardScreen extends StatelessWidget {
           ),
           Expanded(
             child: Text(
-              'Goals',
+              AppLocalizations.of(context)!.goalsLabel,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -325,11 +326,12 @@ class HealthcareCareBoardScreen extends StatelessWidget {
     );
   }
 
-  Widget _timelineSection() {
+  Widget _timelineSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _timelineItem(
+          context: context,
           icon: Icons.psychology,
           iconColor: _primary,
           title: 'Speech Therapy Session',
@@ -339,6 +341,7 @@ class HealthcareCareBoardScreen extends StatelessWidget {
           tags: const ['Articulation', 'Storytelling'],
         ),
         _timelineItem(
+          context: context,
           icon: Icons.medication,
           iconColor: Colors.amber,
           title: 'Medication Update',
@@ -346,6 +349,7 @@ class HealthcareCareBoardScreen extends StatelessWidget {
           body: 'Reviewed current dosage. No side effects reported by parents. Maintain current protocol for 4 weeks.',
         ),
         _timelineItem(
+          context: context,
           icon: Icons.fitness_center,
           iconColor: Colors.grey,
           title: 'Physio Assessment',
@@ -357,6 +361,7 @@ class HealthcareCareBoardScreen extends StatelessWidget {
   }
 
   Widget _timelineItem({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required String title,
@@ -431,7 +436,7 @@ class HealthcareCareBoardScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            tag,
+                            AppLocalizations.of(context)!.updatedLabel,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
@@ -507,9 +512,9 @@ class HealthcareCareBoardScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Text(
-                          'Secure Team Chat',
-                          style: TextStyle(
+                        Text(
+                          AppLocalizations.of(context)!.secureTeamChatLabel,
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,

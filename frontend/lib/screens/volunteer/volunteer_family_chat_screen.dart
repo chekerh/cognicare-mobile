@@ -15,6 +15,7 @@ import '../../services/call_service.dart';
 import '../../services/chat_service.dart';
 import '../../utils/constants.dart';
 import '../../widgets/chat_message_bar.dart';
+import '../../l10n/app_localizations.dart';
 
 const Color _primary = Color(0xFF77B5D1);
 const Color _bgSoft = Color(0xFFEEF7FB);
@@ -157,7 +158,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       if (currentUserId == null) {
         setState(() {
           _loading = false;
-          _loadError = 'Non connecté';
+          _loadError = AppLocalizations.of(context)!.notConnectedError;
         });
         return;
       }
@@ -202,7 +203,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       if (currentUserId == null) {
         setState(() {
           _loading = false;
-          _loadError = 'Non connecté';
+          _loadError = AppLocalizations.of(context)!.notConnectedError;
         });
         return;
       }
@@ -285,7 +286,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       if (mounted) {
         setState(() => _playingVoiceUrl = null);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossible de lire le message vocal')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.voiceMessageError)),
         );
       }
     }
@@ -310,7 +311,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
     }
     final hasPermission = await _recorder.hasPermission();
     if (!hasPermission) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Autorisez l\'accès au micro.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.micPermissionError)));
       return;
     }
     try {
@@ -349,10 +350,10 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
         setState(() => _sending = true);
         try {
           final url = await chatService.uploadAttachment(File(voicePath), 'voice');
-          await chatService.sendMessage(_conversationId!, 'Message vocal', attachmentUrl: url, attachmentType: 'voice');
+          await chatService.sendMessage(_conversationId!, AppLocalizations.of(context)!.voiceMessage, attachmentUrl: url, attachmentType: 'voice');
           if (!mounted) return;
           setState(() {
-            _messages.add(_Msg(text: 'Message vocal', isMe: true, time: _formatTime(DateTime.now()), attachmentType: 'voice', attachmentUrl: url));
+            _messages.add(_Msg(text: AppLocalizations.of(context)!.voiceMessage, isMe: true, time: _formatTime(DateTime.now()), attachmentType: 'voice', attachmentUrl: url));
             _sending = false;
           });
         } catch (e) {
@@ -380,10 +381,10 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       setState(() => _sending = true);
       try {
         final url = await chatService.uploadAttachment(File(picked.path), 'image');
-        await chatService.sendMessage(_conversationId!, 'Photo', attachmentUrl: url, attachmentType: 'image');
+        await chatService.sendMessage(_conversationId!, AppLocalizations.of(context)!.photoLabel, attachmentUrl: url, attachmentType: 'image');
         if (!mounted) return;
         setState(() {
-          _messages.add(_Msg(text: 'Photo', isMe: true, time: _formatTime(DateTime.now()), attachmentType: 'image', attachmentUrl: url));
+          _messages.add(_Msg(text: AppLocalizations.of(context)!.photoLabel, isMe: true, time: _formatTime(DateTime.now()), attachmentType: 'image', attachmentUrl: url));
           _sending = false;
         });
       } catch (e) {
@@ -506,7 +507,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                                       _resolveAndLoadMessages();
                                     }
                                   },
-                                  child: const Text('Réessayer'),
+                                  child: Text(AppLocalizations.of(context)!.retryButton),
                                 ),
                               ],
                             ),
@@ -532,7 +533,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
           ChatMessageBar(
             controller: _controller,
             onSend: _sendMessage,
-            hintText: 'Votre message...',
+            hintText: AppLocalizations.of(context)!.yourMessageHint,
             sending: _sending,
             onVoiceTap: _onVoiceTap,
             onPhotoTap: _onPhotoTap,
@@ -598,7 +599,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _textPrimary),
                 ),
                 Text(
-                  'Mission : ${widget.missionType}',
+                  '${AppLocalizations.of(context)!.missionLabel} : ${widget.missionType}',
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                 ),
               ],
@@ -658,9 +659,9 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
           color: Colors.white.withOpacity(0.5),
           borderRadius: BorderRadius.circular(999),
         ),
-        child: const Text(
-          "AUJOURD'HUI",
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _textMuted),
+        child: Text(
+          AppLocalizations.of(context)!.todayLabel,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _textMuted),
         ),
       ),
     );
@@ -715,7 +716,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                                   Icon(Icons.image_not_supported, size: 48, color: msg.isMe ? Colors.white70 : _textMuted),
                                   const SizedBox(height: 8),
                                   Text(
-                                    'Image non disponible',
+                                    AppLocalizations.of(context)!.imageNotAvailable,
                                     style: TextStyle(fontSize: 12, color: msg.isMe ? Colors.white70 : _textMuted),
                                   ),
                                 ],
@@ -745,7 +746,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                                       Icon(Icons.mic, color: msg.isMe ? Colors.white70 : _textMuted, size: 22),
                                       const SizedBox(width: 6),
                                       Text(
-                                        'Message vocal',
+                                        AppLocalizations.of(context)!.voiceMessage,
                                         style: TextStyle(fontSize: 14, color: msg.isMe ? Colors.white : _textPrimary),
                                       ),
                                     ],
@@ -768,7 +769,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                                          ),
                                          const SizedBox(width: 8),
                                          Text(
-                                           'Appel manqué',
+                                           AppLocalizations.of(context)!.missedCallLabel,
                                            style: TextStyle(fontSize: 14, color: msg.isMe ? Colors.white : _textPrimary, fontWeight: FontWeight.bold),
                                          ),
                                        ],
@@ -790,7 +791,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                          backgroundColor: msg.isMe ? Colors.white24 : Colors.grey.shade100,
                                        ),
-                                       child: Text('Rappeler', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: msg.isMe ? Colors.white : _primary)),
+                                       child: Text(AppLocalizations.of(context)!.callBackLabel, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: msg.isMe ? Colors.white : _primary)),
                                      ),
                                    ],
                                  )
@@ -807,17 +808,17 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                                            color: msg.isMe ? Colors.white70 : _primary,
                                            size: 22,
                                          ),
-                                         const SizedBox(width: 8),
-                                          Text(
-                                            msg.text.startsWith('Appel ') ? msg.text : 'Transcription de l\'appel',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: msg.isMe ? Colors.white : _textPrimary,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                          const SizedBox(width: 8),
+                                           Text(
+                                             msg.text.startsWith('Appel ') ? msg.text : AppLocalizations.of(context)!.callSummary,
+                                             style: TextStyle(
+                                               fontSize: 14,
+                                               color: msg.isMe ? Colors.white : _textPrimary,
+                                               fontWeight: FontWeight.bold,
+                                             ),
+                                           ),
+                                         ],
+                                       ),
                                       if (!msg.text.startsWith('Appel ')) ...[
                                         const SizedBox(height: 8),
                                         Text(
@@ -949,7 +950,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  'En train d\'écrire...',
+                  AppLocalizations.of(context)!.typingIndicator,
                   style: TextStyle(
                     fontSize: 14,
                     color: _textMuted,

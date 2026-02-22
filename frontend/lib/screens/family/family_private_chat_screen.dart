@@ -16,6 +16,7 @@ import '../../services/auth_service.dart';
 import '../../services/call_service.dart';
 import '../../utils/theme.dart';
 import '../../services/chat_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 import '../../widgets/chat_message_bar.dart';
 
@@ -34,6 +35,8 @@ class _Msg {
   final String? attachmentUrl;
   final String? attachmentType;
   final int? callDuration;
+  /// Call status: 'refused', 'missed', 'ended' (optional, for call_missed bubbles).
+  final String? callStatus;
 
   const _Msg({
     required this.text,
@@ -43,6 +46,7 @@ class _Msg {
     this.attachmentUrl,
     this.attachmentType,
     this.callDuration,
+    this.callStatus,
   });
 }
 
@@ -317,7 +321,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     if (_conversationId == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Conversation non chargée')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatConversationNotLoaded)),
         );
       }
       return;
@@ -330,7 +334,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     if (!hasPermission) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Autorisez l\'accès au micro pour enregistrer.')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatMicPermissionRequired)),
         );
       }
       return;
@@ -405,7 +409,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     if (_conversationId == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Conversation non chargée')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.chatConversationNotLoaded)),
         );
       }
       return;
@@ -548,6 +552,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -585,12 +590,12 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                                       await Provider.of<AuthProvider>(context, listen: false).logout();
                                       if (context.mounted) context.go(AppConstants.loginRoute);
                                     },
-                                    child: const Text('Se reconnecter'),
+                                    child: Text(loc.chatReconnect),
                                   )
                                 else
                                   TextButton(
                                     onPressed: _loadMessages,
-                                    child: const Text('Réessayer'),
+                                    child: Text(loc.chatRetry),
                                   ),
                               ],
                             ),
@@ -791,6 +796,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
   }
 
   Widget _buildBubble(_Msg msg) {
+    final loc = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(
@@ -894,13 +900,32 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                                           size: 22,
                                         ),
                                         const SizedBox(width: 8),
-                                        Text(
-                                          'Appel manqué',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: msg.isMe ? Colors.white : _textPrimary,
-                                          ),
-                                        ),
+                                        Builder(builder: (context) {
+                                          final loc = AppLocalizations.of(context)!;
+                                          String label = '';
+                                          final status = msg.callStatus;
+                                          final duration = msg.callDuration ?? 0;
+                                          if (status == 'refused') {
+                                            label = loc.chatCallRefused;
+                                          } else if (status == 'missed' || status == null) {
+                                            label = loc.chatCallMissed;
+                                          } else if (status == 'ended') {
+                                            label = loc.chatCallEnded;
+                                          }
+                                          if (duration > 0 && label.isNotEmpty) {
+                                            final mins = duration ~/ 60;
+                                            final secs = duration % 60;
+                                            final timeStr = '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+                                            label += ' • ${loc.chatCallDuration(timeStr)}';
+                                          }
+                                          return Text(
+                                            label,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: msg.isMe ? Colors.white : _textPrimary,
+                                            ),
+                                          );
+                                        }),
                                       ],
                                     ),
                                     const SizedBox(height: 2),
@@ -920,7 +945,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                         backgroundColor: msg.isMe ? Colors.white24 : Colors.grey.shade100,
                                       ),
-                                      child: Text('Rappeler', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: msg.isMe ? Colors.white : _primary)),
+                                      child: Text(loc.chatCallback, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: msg.isMe ? Colors.white : _primary)),
                                     ),
                                   ],
                                 )
@@ -978,7 +1003,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                          backgroundColor: msg.isMe ? Colors.white24 : Colors.grey.shade100,
                                        ),
-                                       child: Text('Rappeler', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: msg.isMe ? Colors.white : _primary)),
+                                       child: Text(loc.chatCallback, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: msg.isMe ? Colors.white : _primary)),
                                      ),
                                    ],
                                  )

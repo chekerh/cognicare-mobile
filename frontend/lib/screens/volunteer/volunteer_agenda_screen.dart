@@ -1,7 +1,8 @@
 import 'dart:ui';
-
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 
 // Couleurs de la 2e photo : fond bleu pastel clair, accent bleu
@@ -18,13 +19,10 @@ class VolunteerAgendaScreen extends StatefulWidget {
 }
 
 class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
-  bool _isMonthView = true;
-  bool _showQuickMenu = false;
   DateTime _displayDate = DateTime(2024, 3, 13);
   DateTime _selectedDay = DateTime(2024, 3, 13);
-
-  static const _monthsFr = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-  static const _daysFr = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+  bool _isMonthView = true;
+  bool _showQuickMenu = false;
 
   void _previousPeriod() {
     setState(() {
@@ -70,7 +68,7 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Mon Agenda', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                    Text(AppLocalizations.of(context)!.agendaLabel, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                     Container(
                       width: 40,
                       height: 40,
@@ -101,7 +99,7 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
                               borderRadius: BorderRadius.circular(8),
                               boxShadow: _isMonthView ? [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6, offset: const Offset(0, 2))] : null,
                             ),
-                            child: Text('Mois', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: _isMonthView ? FontWeight.w600 : FontWeight.w500, color: _isMonthView ? const Color(0xFF1E293B) : Colors.grey.shade600)),
+                            child: Text(AppLocalizations.of(context)!.monthLabel, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: _isMonthView ? FontWeight.w600 : FontWeight.w500, color: _isMonthView ? const Color(0xFF1E293B) : Colors.grey.shade600)),
                           ),
                         ),
                       ),
@@ -115,7 +113,7 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
                               borderRadius: BorderRadius.circular(8),
                               boxShadow: _isMonthView ? null : [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6, offset: const Offset(0, 2))],
                             ),
-                            child: Text('Semaine', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: _isMonthView ? FontWeight.w500 : FontWeight.w600, color: _isMonthView ? Colors.grey.shade600 : const Color(0xFF1E293B))),
+                            child: Text(AppLocalizations.of(context)!.weeklyLabel, textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: _isMonthView ? FontWeight.w500 : FontWeight.w600, color: _isMonthView ? Colors.grey.shade600 : const Color(0xFF1E293B))),
                           ),
                         ),
                       ),
@@ -139,7 +137,7 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('${_monthsFr[_displayDate.month - 1]} ${_displayDate.year}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          Text(DateFormat.yMMMM(Localizations.localeOf(context).languageCode).format(_displayDate), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                           Row(
                             children: [
                               GestureDetector(
@@ -170,8 +168,8 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('${_daysFr[_selectedDay.weekday - 1]}, ${_selectedDay.day} ${_monthsFr[_selectedDay.month - 1]}', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade600, letterSpacing: 1.2)),
-                        Text(_isMonthView ? '2 missions' : '2 missions prévues', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _brandBlue)),
+                        Text(DateFormat.yMMMEd(Localizations.localeOf(context).languageCode).format(_selectedDay), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade600, letterSpacing: 1.2)),
+                        Text(_isMonthView ? AppLocalizations.of(context)!.missionsCount('2') : AppLocalizations.of(context)!.plannedMissionsCount('2'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _brandBlue)),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -202,17 +200,17 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _quickActionRow('Rapport de Mission', Icons.description, () {
+                  _quickActionRow(AppLocalizations.of(context)!.missionReportLabel, Icons.description, () {
                     setState(() => _showQuickMenu = false);
                     context.push(AppConstants.volunteerMissionReportRoute);
                   }),
                   const SizedBox(height: 24),
-                  _quickActionRow('Proposer Aide', Icons.favorite_border, () {
+                  _quickActionRow(AppLocalizations.of(context)!.offerHelpLabel, Icons.favorite_border, () {
                     setState(() => _showQuickMenu = false);
                     context.push(AppConstants.volunteerOfferHelpRoute);
                   }),
                   const SizedBox(height: 24),
-                  _quickActionRow('Nouvelle Disponibilité', Icons.event_available, () {
+                  _quickActionRow(AppLocalizations.of(context)!.newAvailabilityLabel, Icons.event_available, () {
                     setState(() => _showQuickMenu = false);
                     context.push(AppConstants.volunteerNewAvailabilityRoute);
                   }),
@@ -284,7 +282,8 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
   }
 
   Widget _buildMonthGrid() {
-    const weekdays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    final locale = Localizations.localeOf(context).languageCode;
+    final weekdays = List.generate(7, (i) => DateFormat.E(locale).format(DateTime(2024, 1, 1 + i)));
     final first = DateTime(_displayDate.year, _displayDate.month, 1);
     final start = first.subtract(Duration(days: first.weekday - 1));
     const totalCells = 42;
@@ -350,7 +349,8 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
   }
 
   Widget _buildWeekRow() {
-    const weekdays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+    final locale = Localizations.localeOf(context).languageCode;
+    final weekdays = List.generate(7, (i) => DateFormat.E(locale).format(DateTime(2024, 3, 11 + i)));
     final weekStart = _weekStart(_displayDate);
 
     return SingleChildScrollView(
@@ -424,7 +424,7 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
               isActive: true,
               icon: Icons.menu_book,
               iconColor: _brandBlue,
-              title: 'Session de lecture',
+              title: AppLocalizations.of(context)!.readingSession,
               time: '14:30 - 16:00',
               subtitle: 'Lucas Martin • Lyon 03',
               initials: 'LM',
@@ -434,7 +434,7 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
               isActive: false,
               icon: Icons.park,
               iconColor: Colors.green.shade600,
-              title: 'Sortie au Parc',
+              title: AppLocalizations.of(context)!.parkOuting,
               time: '17:00 - 18:30',
               subtitle: 'Sophie Dubois • Villeurbanne',
               initials: 'SD',
@@ -452,7 +452,7 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
                 const SizedBox(width: 16),
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
-                  child: Text(isWeekView ? 'Fin de journée' : 'Aucun autre événement aujourd\'hui', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey.shade500)),
+                  child: Text(isWeekView ? AppLocalizations.of(context)!.endOfdayLabel : AppLocalizations.of(context)!.noOtherEventsLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey.shade500)),
                 ),
               ],
             ),

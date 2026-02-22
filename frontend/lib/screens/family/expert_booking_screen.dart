@@ -43,22 +43,30 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
   int _consultationType = 0; // 0: video, 1: in person
 
   static const List<String> _timeSlots = ['09:00', '10:30', '14:00', '15:30', '16:45', '18:00'];
-  static const List<String> _monthNames = [
-    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
-  ];
 
-  void _confirmAppointment() {
+  void _confirmAppointment(AppLocalizations loc) {
     final time = _timeSlots[_selectedTimeIndex];
     final mode = _consultationType == 0 ? 'video' : 'in_person';
+    final monthNames = _getMonthNames(loc);
     context.push(AppConstants.familyExpertBookingConfirmationRoute, extra: {
       'expertName': widget.expertName,
       'expertSpecialty': widget.expertSpecialty,
       'expertImageUrl': widget.expertImageUrl,
-      'date': '${_selectedDate.day} ${_monthNames[_selectedDate.month - 1]} ${_selectedDate.year}',
+      'date': '${_selectedDate.day} ${monthNames[_selectedDate.month - 1]} ${_selectedDate.year}',
       'time': time,
       'mode': mode,
     });
+  }
+
+  List<String> _getMonthNames(AppLocalizations loc) {
+    return [
+      loc.january, loc.february, loc.march, loc.april, loc.may, loc.june,
+      loc.july, loc.august, loc.september, loc.october, loc.november, loc.december,
+    ];
+  }
+
+  List<String> _getDaysShort(AppLocalizations loc) {
+    return [loc.monShort, loc.tueShort, loc.wedShort, loc.thuShort, loc.friShort, loc.satShort, loc.sunShort];
   }
 
   @override
@@ -79,7 +87,7 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
                   children: [
                     _buildExpertCard(),
                     const SizedBox(height: 16),
-                    _buildCalendarCard(),
+                    _buildCalendarCard(loc, _getMonthNames(loc), _getDaysShort(loc)),
                     const SizedBox(height: 16),
                     _buildTimeSlotsSection(loc),
                     const SizedBox(height: 16),
@@ -190,8 +198,8 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
         child: const Icon(Icons.person, size: 32, color: _primaryDark),
       );
 
-  Widget _buildCalendarCard() {
-    final month = _monthNames[_selectedDate.month - 1];
+  Widget _buildCalendarCard(AppLocalizations loc, List<String> monthNames, List<String> daysShort) {
+    final month = monthNames[_selectedDate.month - 1];
     final year = _selectedDate.year;
     final firstDay = DateTime(_selectedDate.year, _selectedDate.month, 1);
     final lastDay = DateTime(_selectedDate.year, _selectedDate.month + 1, 0);
@@ -237,7 +245,7 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: ['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM', 'DIM']
+            children: daysShort
                 .map((d) => Text(d, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)))
                 .toList(),
           ),
@@ -424,7 +432,7 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
       elevation: 2,
       shadowColor: _primary.withOpacity(0.5),
       child: InkWell(
-        onTap: _confirmAppointment,
+        onTap: () => _confirmAppointment(loc),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16),

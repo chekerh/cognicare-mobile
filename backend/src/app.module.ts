@@ -30,6 +30,7 @@ import { ImportModule } from './import/import.module';
 
 import { SpecializedPlansModule } from './specialized-plans/specialized-plans.module';
 import { ProgressAiModule } from './progress-ai/progress-ai.module';
+import { ChatbotModule } from './chatbot/chatbot.module';
 
 @Module({
   imports: [
@@ -76,8 +77,9 @@ import { ProgressAiModule } from './progress-ai/progress-ai.module';
     ImportModule,
     SpecializedPlansModule,
     ProgressAiModule,
+    ChatbotModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

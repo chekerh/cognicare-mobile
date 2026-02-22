@@ -222,9 +222,9 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
               ),
             ),
           ),
-          const Text(
-            'MATCH PAIRS!',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context)!.gameMatchPairs.toUpperCase(),
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
               color: _primaryDark,
@@ -320,8 +320,8 @@ class _MatchingGameScreenState extends State<MatchingGameScreen> {
           ),
           child: Text(
             _pairsFound == 3
-                ? (loc?.bravo ?? 'Bravo, Léo !')
-                : (loc?.keepGoingAlmostThere ?? 'Keep going, Leo!'),
+                ? (loc!.bravoLabel)
+                : (loc!.keepGoingAlmostThere),
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,

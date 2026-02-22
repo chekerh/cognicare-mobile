@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../utils/constants.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Étape 3/3 — Commande confirmée. Design HTML.
 const Color _primary = Color(0xFFADD8E6);
@@ -37,8 +38,8 @@ class OrderConfirmationScreen extends StatelessWidget {
                     _buildSuccessGraphic(context),
                     const SizedBox(height: 32),
                     Text(
-                      'Commande Confirmée !',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.orderConfirmedTitle,
+                      style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
                         color: _titleColor,
@@ -46,7 +47,7 @@ class OrderConfirmationScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Votre commande #$orderId est en cours de préparation.',
+                      AppLocalizations.of(context)!.orderPreparing(orderId),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
@@ -55,7 +56,7 @@ class OrderConfirmationScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 40),
-                    _buildDetailsCard(),
+                    _buildDetailsCard(context),
                     const SizedBox(height: 32),
                     SizedBox(
                       width: double.infinity,
@@ -69,12 +70,12 @@ class OrderConfirmationScreen extends StatelessWidget {
                           elevation: 4,
                           shadowColor: _titleColor.withOpacity(0.4),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('Suivre ma commande', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_forward, size: 22),
+                            Text(AppLocalizations.of(context)!.trackMyOrder, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.arrow_forward, size: 22),
                           ],
                         ),
                       ),
@@ -83,7 +84,7 @@ class OrderConfirmationScreen extends StatelessWidget {
                     TextButton(
                       onPressed: () => context.go(AppConstants.familyMarketRoute),
                       child: Text(
-                        'Retour à la boutique',
+                        AppLocalizations.of(context)!.returnToStore,
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey.shade700),
                       ),
                     ),
@@ -141,7 +142,7 @@ class OrderConfirmationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailsCard() {
+  Widget _buildDetailsCard(BuildContext context) {
     final now = DateTime.now();
     final start = now.add(const Duration(days: 3));
     final end = now.add(const Duration(days: 5));
@@ -175,7 +176,7 @@ class OrderConfirmationScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Livraison estimée', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(AppLocalizations.of(context)!.estimatedDelivery, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     Text('${fmt(start)} — ${fmt(end)}', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
                   ],
                 ),
@@ -205,7 +206,7 @@ class OrderConfirmationScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Adresse de livraison', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(AppLocalizations.of(context)!.shippingAddress, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       Text(address, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
                     ],
                   ),

@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/call_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/call_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/chat_service.dart';
 import 'package:record/record.dart';
 
@@ -172,7 +173,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         _addMissedCallMessage();
         setState(() => _callStatus = CallStatus.ended);
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Appel refusé')));
+            SnackBar(content: Text(AppLocalizations.of(context)!.chatCallRefused)));
         Future.delayed(const Duration(seconds: 1), () {
           if (mounted && context.mounted && !_isEnding) {
              _isEnding = true;
@@ -319,7 +320,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
           setState(() {
             _callStatus = CallStatus.failed;
-            _error = 'La connexion a échoué';
+            _error = AppLocalizations.of(context)?.callConnectionFailed ?? 'Connection failed';
           });
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
@@ -483,7 +484,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       final chatService = ChatService();
       final conv =
           await chatService.getOrCreateConversation(widget.remoteUserId);
-      final text = widget.isVideo ? 'Appel vidéo' : 'Appel vocal';
+      final loc = AppLocalizations.of(context)!;
+      final text = widget.isVideo ? loc.videoCallLabel : loc.voiceCallLabel;
       await chatService.sendMessage(
         conv.id,
         text,
@@ -548,7 +550,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       if (!mounted) return;
       _addMissedCallMessage();
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Pas de réponse')));
+          .showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.callNoAnswer)));
       _hangUp();
     });
   }
@@ -566,8 +568,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       final chatService = ChatService();
       final conv =
           await chatService.getOrCreateConversation(widget.remoteUserId);
-      final text =
-          widget.isVideo ? 'Appel vidéo' : 'Appel vocal';
+      final loc = AppLocalizations.of(context)!;
+      final text = widget.isVideo ? loc.videoCallLabel : loc.voiceCallLabel;
       await chatService.sendMessage(
         conv.id,
         text,
@@ -634,19 +636,20 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       backgroundColor: const Color(0xFF0F172A),
       body: SafeArea(
         child: _error != null && _callStatus == CallStatus.failed
-            ? _buildError()
+            ? _buildError(context)
             : widget.isIncoming &&
                     widget.incomingCall != null &&
                     _callStatus == CallStatus.ringing
-                ? _buildIncomingUI()
-                : _buildCallUI(),
+                ? _buildIncomingUI(context)
+                : _buildCallUI(context),
       ),
     );
   }
 
   // ─── Error UI ──────────────────────────────────────────────────
 
-  Widget _buildError() {
+  Widget _buildError(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -672,9 +675,9 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                     const Icon(Icons.call_end, color: _endCallRed, size: 40),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'Échec de la connexion',
-                style: TextStyle(
+              Text(
+                loc.callConnectionFailed,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -695,7 +698,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                   }
                 },
                 icon: const Icon(Icons.arrow_back),
-                label: const Text('Retour'),
+                label: Text(loc.backButton),
                 style: FilledButton.styleFrom(
                   backgroundColor: _primary,
                   foregroundColor: const Color(0xFF0F172A),
@@ -714,7 +717,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
 
   // ─── Incoming call UI ────────────────────────────────────────────
 
-  Widget _buildIncomingUI() {
+  Widget _buildIncomingUI(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -776,7 +780,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           ),
           const SizedBox(height: 8),
           Text(
-            widget.isVideo ? 'Appel vidéo entrant...' : 'Appel vocal entrant...',
+            widget.isVideo ? loc.incomingVideoCall : loc.incomingVoiceCall,
             style: TextStyle(
               fontSize: 16,
               color: Colors.white.withOpacity(0.6),
@@ -792,13 +796,13 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                 _buildCallActionButton(
                   icon: Icons.call_end,
                   color: _endCallRed,
-                  label: 'Refuser',
+                  label: loc.declineCall,
                   onTap: _rejectCall,
                 ),
                 _buildCallActionButton(
                   icon: widget.isVideo ? Icons.videocam : Icons.call,
                   color: _acceptGreen,
-                  label: 'Accepter',
+                  label: loc.acceptCall,
                   onTap: _acceptCall,
                 ),
               ],
@@ -812,7 +816,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
 
   // ─── Active call UI ──────────────────────────────────────────────
 
-  Widget _buildCallUI() {
+  Widget _buildCallUI(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     final isVideoCall = widget.isVideo;
     final hasRemoteVideo = _remoteRenderer.srcObject != null &&
         _callStatus == CallStatus.connected;
@@ -829,14 +834,14 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           )
         else
           // Gradient background for audio call or when connecting
-          _buildAudioCallBackground(),
+          _buildAudioCallBackground(context),
 
         // Top bar with status
         Positioned(
           top: 0,
           left: 0,
           right: 0,
-          child: _buildTopBar(),
+          child: _buildTopBar(context, loc),
         ),
 
         // Local video PiP (draggable)
@@ -937,7 +942,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildAudioCallBackground() {
+  Widget _buildAudioCallBackground(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -999,7 +1005,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _statusText,
+                  _statusText(loc),
                   style: TextStyle(
                     fontSize: 15,
                     color: Colors.white.withOpacity(0.6),
@@ -1013,22 +1019,22 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     );
   }
 
-  String get _statusText {
+  String _statusText(AppLocalizations loc) {
     switch (_callStatus) {
       case CallStatus.ringing:
-        return 'Appel en cours...';
+        return loc.callRinging;
       case CallStatus.connecting:
-        return 'Connexion...';
+        return loc.callConnecting;
       case CallStatus.connected:
         return _formatDuration(_callDuration);
       case CallStatus.ended:
-        return 'Appel terminé';
+        return loc.callEnded;
       case CallStatus.failed:
-        return 'Échec de la connexion';
+        return loc.callConnectionFailed;
     }
   }
 
-  Widget _buildTopBar() {
+  Widget _buildTopBar(BuildContext context, AppLocalizations loc) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       decoration: BoxDecoration(
@@ -1080,7 +1086,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                     Text(
                       _callStatus == CallStatus.connected
                           ? _formatDuration(_callDuration)
-                          : _statusText,
+                          : _statusText(loc),
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.7),
                         fontSize: 12,
@@ -1103,6 +1109,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildControlBar() {
+    final loc = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
       decoration: BoxDecoration(
@@ -1120,26 +1127,26 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         children: [
           _controlButton(
             icon: _isMuted ? Icons.mic_off : Icons.mic,
-            label: _isMuted ? 'Son off' : 'Micro',
+            label: _isMuted ? loc.callMuteOff : loc.callMic,
             isActive: !_isMuted,
             onTap: _toggleMute,
           ),
           if (widget.isVideo)
             _controlButton(
               icon: _isVideoEnabled ? Icons.videocam : Icons.videocam_off,
-              label: _isVideoEnabled ? 'Caméra' : 'Cam off',
+              label: _isVideoEnabled ? loc.callCamera : loc.callCameraOff,
               isActive: _isVideoEnabled,
               onTap: _toggleVideo,
             ),
           _controlButton(
             icon: _isSpeakerOn ? Icons.volume_up : Icons.hearing,
-            label: _isSpeakerOn ? 'HP' : 'Écouteur',
+            label: _isSpeakerOn ? loc.callSpeaker : loc.callEarpiece,
             isActive: _isSpeakerOn,
             onTap: _toggleSpeaker,
           ),
           _controlButton(
             icon: _isTranscriptionEnabled ? Icons.subtitles : Icons.subtitles_off,
-            label: _isTranscriptionEnabled ? 'Texte ON' : 'Texte OFF',
+            label: _isTranscriptionEnabled ? loc.callTranscriptionOn : loc.callTranscriptionOff,
             isActive: _isTranscriptionEnabled,
             onTap: _toggleTranscription,
           ),

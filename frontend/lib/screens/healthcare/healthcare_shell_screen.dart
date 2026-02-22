@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 
 const Color _navPrimary = Color(0xFFA2D9E7);
@@ -46,11 +47,11 @@ class HealthcareShellScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _navItem(context, 0, Icons.group_rounded, 'Patients', currentIndex),
-                _navItem(context, 1, Icons.insights_rounded, 'Rapports', currentIndex),
+                _navItem(context, 0, Icons.group_rounded, AppLocalizations.of(context)!.patientsLabel, currentIndex),
+                _navItem(context, 1, Icons.insights_rounded, AppLocalizations.of(context)!.reportsLabel, currentIndex),
                 _tableauNavItem(context, currentIndex),
-                _navItem(context, 3, Icons.chat_bubble_outline_rounded, 'Messages', currentIndex),
-                _navItem(context, 4, Icons.person_outline_rounded, 'Profil', currentIndex),
+                _navItem(context, 3, Icons.chat_bubble_outline_rounded, AppLocalizations.of(context)!.messageLabel, currentIndex),
+                _navItem(context, 4, Icons.person_outline_rounded, AppLocalizations.of(context)!.profileTitle, currentIndex),
               ],
             ),
           ),
@@ -105,7 +106,7 @@ class HealthcareShellScreen extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Tableau',
+              AppLocalizations.of(context)!.tableauLabel,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,

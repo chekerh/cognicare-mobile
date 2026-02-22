@@ -109,7 +109,7 @@ class GameSuccessScreen extends StatelessWidget {
                         const SizedBox(height: 14),
                       ],
                       Text(
-                        'Bravo !',
+                        loc.bravoLabel,
                         style: TextStyle(
                           fontSize: 44,
                           fontWeight: FontWeight.w800,

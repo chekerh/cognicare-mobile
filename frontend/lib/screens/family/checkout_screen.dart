@@ -7,6 +7,7 @@ import '../../services/notification_service.dart';
 import '../../services/notifications_feed_service.dart';
 import '../../services/paypal_service.dart';
 import '../../utils/constants.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Étape 2/3 — Paiement et livraison. Même bleu de fond que l'écran Commande confirmée (#ADD8E6).
 const Color _primary = Color(0xFFADD8E6);
@@ -58,8 +59,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final cvv = _cvvController.text.trim();
     if (card.isEmpty || expiry.isEmpty || cvv.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez remplir tous les champs (numéro de carte, date d\'expiration, CVV).'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.fillAllFieldsCard),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -74,7 +75,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final total = cart.subtotal;
     if (total <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Le panier est vide.'), behavior: SnackBarBehavior.floating),
+        SnackBar(content: Text(AppLocalizations.of(context)!.cartIsEmpty), behavior: SnackBarBehavior.floating),
       );
       return;
     }
@@ -85,7 +86,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (!mounted) return;
       if (!launched) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossible d\'ouvrir PayPal.'), behavior: SnackBarBehavior.floating),
+          SnackBar(content: Text(AppLocalizations.of(context)!.failedToOpenPayPal), behavior: SnackBarBehavior.floating),
         );
         return;
       }
@@ -120,8 +121,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               try {
                 await NotificationsFeedService().createNotification(
                   type: 'order_confirmed',
-                  title: 'Paiement confirmé',
-                  description: 'Commande #$orderId • $amountStr',
+                  title: AppLocalizations.of(ctx)!.paymentConfirmed,
+                  description: AppLocalizations.of(ctx)!.orderDesc(orderId, amountStr),
                 );
               } catch (_) {}
               final imageUrl = cart.items.isNotEmpty ? cart.items.first.imageUrl : null;
@@ -134,7 +135,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               if (!ctx.mounted) return;
               ScaffoldMessenger.of(ctx).showSnackBar(
                 SnackBar(
-                  content: Text('Paiement pas encore finalisé (statut: ${status.status}). Réessayez après avoir payé sur PayPal.'),
+                  content: Text(AppLocalizations.of(ctx)!.paymentNotFinalized(status.status)),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -165,8 +166,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     try {
       await NotificationsFeedService().createNotification(
         type: 'order_confirmed',
-        title: 'Paiement confirmé',
-        description: 'Commande #$orderId • $totalStr',
+        title: AppLocalizations.of(context)!.paymentConfirmed,
+        description: AppLocalizations.of(context)!.orderDesc(orderId, totalStr),
       );
     } catch (_) {}
     final imageUrl = cart.items.isNotEmpty ? cart.items.first.imageUrl : null;
@@ -241,10 +242,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
           const Spacer(),
-          const Column(
+          Column(
             children: [
-              Text('Checkout', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _textPrimary)),
-              Text('STEP 2 OF 3', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _textPrimary, letterSpacing: 2)),
+              Text(AppLocalizations.of(context)!.checkoutTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _textPrimary)),
+              Text(AppLocalizations.of(context)!.step2Of3, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _textPrimary, letterSpacing: 2)),
             ],
           ),
           const Spacer(),
@@ -279,19 +280,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: const Icon(Icons.local_shipping, color: _accentColor, size: 20),
               ),
               const SizedBox(width: 8),
-              const Text('Shipping Address', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _textPrimary)),
+              Text(AppLocalizations.of(context)!.shippingAddress, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _textPrimary)),
             ],
           ),
           const SizedBox(height: 24),
-          _inputField('Full Name', _nameController),
+          _inputField(AppLocalizations.of(context)!.fullNameLabel, _nameController),
           const SizedBox(height: 16),
-          _inputField('Street Address', _streetController),
+          _inputField(AppLocalizations.of(context)!.streetAddress, _streetController),
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _inputField('City', _cityController)),
+              Expanded(child: _inputField(AppLocalizations.of(context)!.city, _cityController)),
               const SizedBox(width: 16),
-              Expanded(child: _inputField('Zip Code', _zipController)),
+              Expanded(child: _inputField(AppLocalizations.of(context)!.zipCode, _zipController)),
             ],
           ),
         ],
@@ -349,28 +350,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: const Icon(Icons.credit_card, color: _accentColor, size: 20),
               ),
               const SizedBox(width: 8),
-              const Text('Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _textPrimary)),
+              Text(AppLocalizations.of(context)!.paymentMethod, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _textPrimary)),
             ],
           ),
           const SizedBox(height: 24),
           Row(
             children: [
-              _paymentOption(0, Icons.credit_card, 'Card'),
+              _paymentOption(0, Icons.credit_card, AppLocalizations.of(context)!.card),
               const SizedBox(width: 12),
-              _paymentOption(1, Icons.apple, 'Apple Pay'),
+              _paymentOption(1, Icons.apple, AppLocalizations.of(context)!.applePay),
               const SizedBox(width: 12),
-              _paymentOption(2, Icons.account_balance_wallet, 'PayPal'),
+              _paymentOption(2, Icons.account_balance_wallet, AppLocalizations.of(context)!.payPal),
             ],
           ),
           if (_paymentMethod == 0) ...[
             const SizedBox(height: 24),
-            _inputField('Card Number', _cardController),
+            _inputField(AppLocalizations.of(context)!.cardNumber, _cardController),
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: _inputField('Expiry (MM/YY)', _expiryController)),
+                Expanded(child: _inputField(AppLocalizations.of(context)!.expiryDate, _expiryController)),
                 const SizedBox(width: 16),
-                Expanded(child: _inputField('CVV', _cvvController)),
+                Expanded(child: _inputField(AppLocalizations.of(context)!.cvv, _cvvController)),
               ],
             ),
           ],
@@ -420,11 +421,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ),
       child: Column(
         children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Subtotal', style: TextStyle(color: _textPrimary)), Text(totalStr, style: const TextStyle(fontWeight: FontWeight.bold))]),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(AppLocalizations.of(context)!.subtotal, style: const TextStyle(color: _textPrimary)), Text(totalStr, style: const TextStyle(fontWeight: FontWeight.bold))]),
           const SizedBox(height: 8),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Shipping', style: TextStyle(color: _textPrimary)), Text('Free', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green.shade700))]),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(AppLocalizations.of(context)!.shipping, style: const TextStyle(color: _textPrimary)), Text(AppLocalizations.of(context)!.free, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green.shade700))]),
           const Divider(height: 24),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('Total', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), Text(totalStr, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900))]),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(AppLocalizations.of(context)!.total, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), Text(totalStr, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900))]),
         ],
       ),
     );
@@ -443,12 +444,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           elevation: 8,
           shadowColor: Colors.black26,
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Confirm & Pay', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(width: 12),
-            Icon(Icons.lock, size: 22),
+            Text(AppLocalizations.of(context)!.confirmAndPay, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(width: 12),
+            const Icon(Icons.lock, size: 22),
           ],
         ),
       ),
@@ -465,19 +466,18 @@ class _PayPalWaitingDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Paiement PayPal'),
-      content: const Text(
-        'Un navigateur a été ouvert pour finaliser le paiement. '
-        'Une fois le paiement effectué sur PayPal, appuyez sur « Vérifier le paiement » ci-dessous.',
+      title: Text(AppLocalizations.of(context)!.paypalPaymentTitle),
+      content: Text(
+        AppLocalizations.of(context)!.paypalPaymentDesc,
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Annuler'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         FilledButton(
           onPressed: onVerified,
-          child: const Text('Vérifier le paiement'),
+          child: Text(AppLocalizations.of(context)!.verifyPayment),
         ),
       ],
     );

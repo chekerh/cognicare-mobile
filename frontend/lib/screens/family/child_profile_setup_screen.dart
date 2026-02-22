@@ -52,11 +52,11 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
   double _sleepHours = 10.5;
   bool _isSaving = false;
 
-  static const List<({String label, IconData icon})> _medicalCareOptions = [
-    (label: 'Orthophoniste', icon: Icons.psychology),
-    (label: 'Psychomotricien', icon: Icons.accessibility_new),
-    (label: 'Ergothérapeute', icon: Icons.precision_manufacturing),
-    (label: 'Pédiatre', icon: Icons.medical_services),
+  List<({String label, IconData icon})> _getMedicalCareOptions(AppLocalizations loc) => [
+    (label: loc.medCareSpeechTherapist, icon: Icons.psychology),
+    (label: loc.medCarePsychomotorTherapist, icon: Icons.accessibility_new),
+    (label: loc.medCareOccupationalTherapist, icon: Icons.precision_manufacturing),
+    (label: loc.medCarePediatrician, icon: Icons.medical_services),
   ];
 
   @override
@@ -79,14 +79,16 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
 
     final fullName = _nameController.text.trim();
     final dateOfBirth = _dateOfBirthFromAge(_ageYears);
-    const sensitivityLabels = ['Bas', 'Moyen', 'Haut'];
+    final loc = AppLocalizations.of(context)!;
+    final sensitivityLabels = [loc.sensitivityLow, loc.sensitivityMedium, loc.sensitivityHigh];
     final sensitivityText = 'Bruit: ${sensitivityLabels[_sensitivityLoudNoises]}, '
         'Lumière: ${sensitivityLabels[_sensitivityLight]}, '
         'Texture: ${sensitivityLabels[_sensitivityTexture]}. '
         'Sommeil: $_sleepHours h.';
+    final medicalOptions = _getMedicalCareOptions(loc);
     final diagnosis = _selectedMedicalCare.isEmpty
         ? null
-        : _selectedMedicalCare.map((i) => _medicalCareOptions[i].label).join(', ');
+        : _selectedMedicalCare.map((i) => medicalOptions[i].label).join(', ');
     final medications = _medicationsController.text.trim();
     final medicalHistory = _specialNotesController.text.trim();
     final notes = sensitivityText;
@@ -101,7 +103,6 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
       notes: notes,
     );
 
-    final loc = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
 
     try {
@@ -415,10 +416,10 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
-          items: const [
-            DropdownMenuItem(value: 'male', child: Text('Garçon')),
-            DropdownMenuItem(value: 'female', child: Text('Fille')),
-            DropdownMenuItem(value: 'other', child: Text('Autre')),
+          items: [
+            DropdownMenuItem(value: 'male', child: Text(loc.genderBoy)),
+            DropdownMenuItem(value: 'female', child: Text(loc.genderGirl)),
+            DropdownMenuItem(value: 'other', child: Text(loc.genderOther)),
           ],
           onChanged: (v) => setState(() => _gender = v ?? 'other'),
         ),
@@ -439,7 +440,7 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            ..._medicalCareOptions.asMap().entries.map((e) {
+            ..._getMedicalCareOptions(loc).asMap().entries.map((e) {
               final selected = _selectedMedicalCare.contains(e.key);
               return ActionChip(
                 avatar: Icon(e.value.icon, size: 20, color: selected ? _primary : Colors.grey),
@@ -514,7 +515,7 @@ class _ChildProfileSetupScreenState extends State<ChildProfileSetupScreen> {
   }
 
   Widget _buildSensitivityCard(AppLocalizations loc, String label, IconData icon, int value, ValueChanged<int> onChanged) {
-    const labels = ['Bas', 'Moyen', 'Haut'];
+    final labels = [loc.sensitivityLow, loc.sensitivityMedium, loc.sensitivityHigh];
     final colors = [Colors.green, Colors.amber, Colors.red];
     return Container(
       padding: const EdgeInsets.all(12),

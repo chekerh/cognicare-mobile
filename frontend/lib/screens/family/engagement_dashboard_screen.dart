@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/gamification_provider.dart';
 import '../../services/engagement_service.dart';
 
@@ -110,9 +111,9 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
               ),
             ),
           ),
-          const Text(
-            'Tableau d\'Engagement',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+          Text(
+            AppLocalizations.of(context)!.engagementDashboardTitle,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
           ),
           Material(
             color: Colors.white,
@@ -145,7 +146,7 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
             TextButton.icon(
               onPressed: _loadDashboard,
               icon: const Icon(Icons.refresh),
-              label: const Text('Réessayer'),
+              label: Text(AppLocalizations.of(context)!.retryButton),
             ),
           ],
         ),
@@ -163,16 +164,17 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
     return ListView(
       padding: EdgeInsets.fromLTRB(24, 16, 24, 32 + bottomPadding),
       children: [
-        _buildPlaytimeCard(progress, d.playTimeTodayMinutes, d.playTimeGoalMinutes, d.focusMessage),
+        _buildPlaytimeCard(progress, d.playTimeTodayMinutes, d.playTimeGoalMinutes, d.focusMessage, context),
         const SizedBox(height: 32),
-        _buildRecentActivities(d.recentActivities),
+        _buildRecentActivities(d.recentActivities, context),
         const SizedBox(height: 32),
-        _buildBadgesSection(d.badges),
+        _buildBadgesSection(d.badges, context),
       ],
     );
   }
 
-  Widget _buildPlaytimeCard(double progress, int minutes, int goal, String focusMessage) {
+  Widget _buildPlaytimeCard(double progress, int minutes, int goal, String focusMessage, BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -184,7 +186,7 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
       child: Column(
         children: [
           Text(
-            'TEMPS DE JEU AUJOURD\'HUI',
+            loc.playtimeTodayLabel,
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade500, letterSpacing: 1.2),
           ),
           const SizedBox(height: 24),
@@ -211,12 +213,12 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
                       text: '$minutes ',
                       style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                       children: [
-                        TextSpan(text: 'min', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.grey.shade400)),
+                        TextSpan(text: loc.minutesShortLabel, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.grey.shade400)),
                       ],
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text('Objectif: $goal min', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                  Text('${loc.goalLabel}: $goal ${loc.minutesShortLabel}', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
                 ],
               ),
             ],
@@ -246,17 +248,18 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
     );
   }
 
-  Widget _buildRecentActivities(List<EngagementActivity> activities) {
+  Widget _buildRecentActivities(List<EngagementActivity> activities, BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Activités récentes', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+            Text(loc.recentActivitiesTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
             GestureDetector(
               onTap: () {},
-              child: const Text('Voir tout', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
+              child: Text(loc.seeAllAction, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
             ),
           ],
         ),
@@ -271,7 +274,7 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
             ),
             child: Center(
               child: Text(
-                'Aucune activité aujourd\'hui.',
+                loc.noActivityToday,
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
               ),
             ),
@@ -381,11 +384,12 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
     );
   }
 
-  Widget _buildBadgesSection(List<EngagementBadge> badges) {
+  Widget _buildBadgesSection(List<EngagementBadge> badges, BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Badges d\'engagement', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+        Text(loc.engagementBadgesTitle, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
         const SizedBox(height: 16),
         if (badges.isEmpty)
           Container(
@@ -397,7 +401,7 @@ class _EngagementDashboardScreenState extends State<EngagementDashboardScreen> {
             ),
             child: Center(
               child: Text(
-                'Aucun badge encore. Continue de jouer !',
+                loc.noBadgesYet,
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
               ),
             ),

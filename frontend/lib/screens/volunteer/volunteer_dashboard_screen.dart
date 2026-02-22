@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../models/user.dart' as app_user;
 import '../../providers/auth_provider.dart';
 import '../../services/healthcare_service.dart';
 import '../../services/children_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 
@@ -20,16 +22,17 @@ String _fullImageUrl(String path) {
   return path.startsWith('/') ? '$base$path' : '$base/$path';
 }
 
-String _roleToSpecializationLabel(String role) {
+String _roleToSpecializationLabel(String role, BuildContext context) {
+  final l = AppLocalizations.of(context)!;
   switch (role) {
     case 'doctor':
-      return 'Médecin';
+      return l.roleDoctorLabel;
     case 'psychologist':
-      return 'Pédopsychiatre / Psychologue';
+      return l.rolePsychologistLabel;
     case 'speech_therapist':
-      return 'Orthophoniste';
+      return l.roleSpeechTherapistLabel;
     case 'occupational_therapist':
-      return 'Ergothérapeute';
+      return l.roleOccupationalTherapistLabel;
     default:
       return role;
   }
@@ -166,9 +169,9 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Mes Patients',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+              Text(
+                AppLocalizations.of(context)!.myPatients,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
               ),
               TextButton(
                 onPressed: () => context.go(AppConstants.healthcareDashboardRoute),
@@ -180,10 +183,10 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
           if (_childrenLoading)
             const Center(child: CircularProgressIndicator())
           else if (_childrenError != null)
-            Text('Erreur: $_childrenError', style: const TextStyle(color: Colors.red))
+            Text('Error: $_childrenError', style: const TextStyle(color: Colors.red))
           else if (_children == null || _children!.isEmpty)
             Text(
-              'Aucun patient trouvé dans votre organisation.',
+              AppLocalizations.of(context)!.noPatientsFound,
               style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
             )
           else
@@ -227,7 +230,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                   style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                 ),
                 Text(
-                  _formatDateOfBirth(child.dateOfBirth),
+                  '${AppLocalizations.of(context)!.dobLabel}: ${_formatDateOfBirth(child.dateOfBirth).replaceFirst('DN: ', '')}',
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
@@ -256,15 +259,15 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Bonjour, $userName 👋',
+                      AppLocalizations.of(context)!.helloUser(userName),
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey.shade600),
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       AppConstants.isSpecialistRole(userRole)
-                          ? _roleToSpecializationLabel(userRole!)
-                          : 'Bénévole',
+                          ? _roleToSpecializationLabel(userRole!, context)
+                          : AppLocalizations.of(context)!.volunteerLabel,
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -277,7 +280,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                 children: [
                   TextButton(
                     onPressed: () => context.go(AppConstants.volunteerMissionsRoute),
-                    child: const Text('Missions', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    child: Text(AppLocalizations.of(context)!.missionsLabel, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                   ),
                   GestureDetector(
                     onTap: () => context.go(AppConstants.volunteerProfileRoute),
@@ -328,7 +331,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
             child: _statCard(
               icon: Icons.star,
               iconColor: _primary,
-              label: 'Points Impact',
+              label: AppLocalizations.of(context)!.impactPoints,
               value: '1,250',
               bgColor: _primary.withOpacity(0.1),
               borderColor: _primary.withOpacity(0.2),
@@ -339,7 +342,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
             child: _statCard(
               icon: Icons.volunteer_activism,
               iconColor: Colors.green.shade600,
-              label: 'Missions',
+              label: AppLocalizations.of(context)!.missionsLabel,
               value: '24',
               bgColor: Colors.green.shade50,
               borderColor: Colors.green.shade100,
@@ -380,9 +383,9 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
 
   Widget _buildSkillsSection(BuildContext context) {
     final skills = [
-      (Icons.psychology, Colors.amber.shade500, Colors.amber.shade100, 'TDAH'),
-      (Icons.palette, Colors.blue.shade500, Colors.blue.shade100, 'Art Thérapie'),
-      (Icons.menu_book, Colors.purple.shade500, Colors.purple.shade100, 'Lecture'),
+      (Icons.psychology, Colors.amber.shade500, Colors.amber.shade100, AppLocalizations.of(context)!.tdah),
+      (Icons.palette, Colors.blue.shade500, Colors.blue.shade100, AppLocalizations.of(context)!.artTherapy),
+      (Icons.menu_book, Colors.purple.shade500, Colors.purple.shade100, AppLocalizations.of(context)!.reading),
     ];
 
     return Padding(
@@ -393,10 +396,10 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Mes Compétences', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+              Text(AppLocalizations.of(context)!.mySkills, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
               GestureDetector(
                 onTap: () {},
-                child: const Text('Voir tout', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
+                child: Text(AppLocalizations.of(context)!.seeAll, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
               ),
             ],
           ),
@@ -446,13 +449,13 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Professionnels de santé',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+          Text(
+            AppLocalizations.of(context)!.healthcareProfessionalsLabel,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
           ),
           const SizedBox(height: 8),
           Text(
-            'Contacter un expert pour échanger ou poser vos questions.',
+            AppLocalizations.of(context)!.contactExpertSubtitle,
             style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 16),
@@ -468,7 +471,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                 children: [
                   Text(_healthcareError!, style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
                   const SizedBox(height: 8),
-                  TextButton(onPressed: _loadHealthcare, child: const Text('Réessayer')),
+                  TextButton(onPressed: _loadHealthcare, child: Text(AppLocalizations.of(context)!.retry)),
                 ],
               ),
             )
@@ -476,7 +479,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: Text(
-                'Aucun professionnel pour le moment.',
+                AppLocalizations.of(context)!.noPatientsYet,
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               ),
             )
@@ -494,7 +497,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
     final imageUrl = (user.profilePic != null && user.profilePic!.isNotEmpty)
         ? _fullImageUrl(user.profilePic!)
         : '';
-    final specialization = _roleToSpecializationLabel(user.role);
+    final specialization = _roleToSpecializationLabel(user.role, context);
     const size = 40.0;
     final avatar = imageUrl.isNotEmpty
         ? ClipRRect(
@@ -587,9 +590,9 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                       context.push(uri.toString());
                     },
                     borderRadius: BorderRadius.circular(12),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      child: Text('Message', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      child: Text(AppLocalizations.of(context)!.messageLabel, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
                     ),
                   ),
                 ),
@@ -620,8 +623,9 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
   }
 
   Widget _buildPlanningSection(BuildContext context) {
-    const weekdays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-    const dates = ['12', '13', '14', '15', '16', '17', '18'];
+    final locale = Localizations.localeOf(context).languageCode;
+    final weekdays = List.generate(7, (i) => DateFormat.E(locale).format(DateTime(2024, 3, 11 + i)));
+    final dates = ['12', '13', '14', '15', '16', '17', '18'];
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
@@ -631,10 +635,10 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Mon Planning', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+              Text(AppLocalizations.of(context)!.myPlanning, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
               GestureDetector(
                 onTap: () => context.go(AppConstants.volunteerAgendaRoute),
-                child: const Text('Détails', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
+                child: Text(AppLocalizations.of(context)!.detailsLabel, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
               ),
             ],
           ),
@@ -691,8 +695,8 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Prochaine intervention', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                            Text('Mercredi 14, 16:30 avec Lucas', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+                            Text(AppLocalizations.of(context)!.nextIntervention, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                            Text(AppLocalizations.of(context)!.nextInterventionWith(DateFormat.MMMEd(locale).format(DateTime(2024, 3, 14)), '16:30', 'Lucas'), style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
                           ],
                         ),
                       ),
