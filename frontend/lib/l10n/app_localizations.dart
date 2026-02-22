@@ -414,6 +414,7 @@ abstract class AppLocalizations {
   String get marketplaceTitle;
   String get marketplaceSubtitle;
   String get allItems;
+  String get supplements;
   String get sensory;
   String get motorSkills;
   String get cognitive;
@@ -430,6 +431,7 @@ abstract class AppLocalizations {
   String get keyBenefits;
   String get communityReviews;
   String get addToCart;
+  String get buyOnPartnerSite;
   String get productAddedToCart;
   String get anxietyReduction;
   String get improvesSleepQuality;

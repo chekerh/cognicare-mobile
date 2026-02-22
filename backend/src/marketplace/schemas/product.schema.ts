@@ -29,6 +29,10 @@ export class Product {
   @Prop({ default: 0 })
   order: number;
 
+  /** URL du site partenaire (ex: Terravita) - si présente, "Acheter" redirige vers ce site pour commande réelle */
+  @Prop({ default: null })
+  externalUrl?: string;
+
   createdAt?: Date;
   updatedAt?: Date;
 }

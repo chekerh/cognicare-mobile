@@ -16,14 +16,41 @@ import { CreateReviewDto } from './dto/create-review.dto';
 
 const DUMMYJSON_BASE = 'https://dummyjson.com';
 
-/** Mapping de nos catégories vers les catégories DummyJSON (e-commerce style Shein/Temu) */
-const CATEGORY_TO_DUMMYJSON: Record<string, string[]> = {
+const TERRAVITA_BASE = 'https://www.terravita.fr';
+
+/** Produits Terravita réels - compléments alimentaires. Acheter = redirection vers Terravita (commande réelle). */
+const TERRAVITA_PRODUCTS: Array<{
+  title: string;
+  price: string;
+  imageUrl: string;
+  description: string;
+  category: string;
+  badge?: string;
+  externalUrl: string;
+}> = [
+  { title: 'Multivitamines complex', price: '18,90', imageUrl: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400', description: 'Immunité, vitalité, antioxydant.', category: 'supplements', badge: 'Meilleure vente', externalUrl: `${TERRAVITA_BASE}/collections/immunite-vitalite` },
+  { title: 'Magnésium bisglycinate 1500mg', price: '13,90', imageUrl: 'https://images.unsplash.com/photo-1550572017-edd951aa6b2e?w=400', description: 'Anti-stress, sommeil, vitalité.', category: 'supplements', badge: 'Meilleure vente', externalUrl: `${TERRAVITA_BASE}/collections/stress-sommeil` },
+  { title: 'Oméga 3 EPAX®', price: '14,90', imageUrl: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=400', description: 'Vitalité, mémoire, cœur.', category: 'supplements', externalUrl: `${TERRAVITA_BASE}/collections/immunite-vitalite` },
+  { title: 'Probiotiques 8 souches', price: '17,90', imageUrl: 'https://images.unsplash.com/photo-1584305574647-0cc94953bb1b?w=400', description: 'Digestion, immunité, ballonnements.', category: 'supplements', externalUrl: `${TERRAVITA_BASE}/collections/immunite-vitalite` },
+  { title: 'Vitamine D3', price: '9,90', imageUrl: 'https://images.unsplash.com/photo-1550572017-edd951aa6b2e?w=400', description: 'Immunité, vitalité.', category: 'supplements', externalUrl: `${TERRAVITA_BASE}/collections/immunite-vitalite` },
+  { title: 'Ashwagandha Bio', price: '19,90', imageUrl: 'https://images.unsplash.com/photo-1599909533486-1c36d6d48305?w=400', description: 'Anti-stress, mémoire, vitalité.', category: 'supplements', externalUrl: `${TERRAVITA_BASE}/collections/stress-sommeil` },
+  { title: 'Complexe Acide Hyaluronique', price: '24,90', imageUrl: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400', description: 'Antioxydant, anti-âge, hydratation.', category: 'supplements', badge: 'Meilleure vente', externalUrl: `${TERRAVITA_BASE}/collections/femme` },
+  { title: 'Collagène marin', price: '24,90', imageUrl: 'https://images.unsplash.com/photo-1599909533486-1c36d6d48305?w=400', description: 'Articulations, anti-âge, mobilité.', category: 'supplements', badge: 'Meilleure vente', externalUrl: `${TERRAVITA_BASE}/collections/femme` },
+  { title: 'Lactobacillus gasseri 200 milliards', price: '9,90', imageUrl: 'https://images.unsplash.com/photo-1584305574647-0cc94953bb1b?w=400', description: 'Minceur, transit, ballonnements.', category: 'supplements', badge: 'Meilleure vente', externalUrl: `${TERRAVITA_BASE}/collections/all` },
+  { title: 'Vitamine C liposomale', price: '22,90', imageUrl: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400', description: 'Immunité, vitalité.', category: 'supplements', externalUrl: `${TERRAVITA_BASE}/collections/immunite-vitalite` },
+  { title: 'Rhodiola', price: '18,90', imageUrl: 'https://images.unsplash.com/photo-1599909533486-1c36d6d48305?w=400', description: 'Anti-stress, vitalité, résistance.', category: 'supplements', externalUrl: `${TERRAVITA_BASE}/collections/stress-sommeil` },
+  { title: 'Zinc bisglycinate', price: '12,90', imageUrl: 'https://images.unsplash.com/photo-1550572017-edd951aa6b2e?w=400', description: 'Immunité, imperfections.', category: 'supplements', externalUrl: `${TERRAVITA_BASE}/collections/immunite-vitalite` },
+];
+
+/** Mapping catégories : supplements = Terravita (réel). DummyJSON pour vêtements/jeux. Cognitif/sensoriel/moteur = CogniCare. */
+const CATEGORY_TO_DUMMYJSON: Record<string, string[] | null> = {
   all: [],
+  supplements: null,  // Terravita - compléments alimentaires réels
   clothing: ['tops', 'womens-dresses', 'mens-shirts', 'womens-shoes', 'mens-shoes', 'womens-bags'],
   games: ['sports-accessories', 'mobile-accessories'],
-  sensory: ['beauty', 'skin-care', 'fragrances'],
-  motor: ['sports-accessories'],
-  cognitive: ['laptops', 'tablets', 'smartphones'],
+  sensory: null,
+  motor: null,
+  cognitive: null,
 };
 
 /** Catalogue de fallback (si API indisponible) : vêtements, jeux, produits cognitifs */
@@ -168,9 +195,11 @@ export class MarketplaceService implements OnModuleInit {
     try {
       const count = await this.productModel.countDocuments().exec();
       if (count === 0) {
-        this.logger.log('Seeding marketplace catalog (vêtements, jeux, produits cognitifs)...');
-        await this.productModel.insertMany(
-          SEED_PRODUCTS.map((p, i) => ({
+        this.logger.log(
+          'Seeding marketplace catalog (vêtements, jeux, cognitifs, compléments Terravita)...',
+        );
+        const seedItems = [
+          ...SEED_PRODUCTS.map((p, i) => ({
             sellerId: null,
             title: p.title,
             price: p.price,
@@ -179,9 +208,45 @@ export class MarketplaceService implements OnModuleInit {
             badge: p.badge,
             category: p.category,
             order: i,
+            externalUrl: undefined,
           })),
+          ...TERRAVITA_PRODUCTS.map((p, i) => ({
+            sellerId: null,
+            title: p.title,
+            price: p.price,
+            imageUrl: p.imageUrl,
+            description: p.description ?? '',
+            badge: p.badge,
+            category: p.category,
+            order: SEED_PRODUCTS.length + i,
+            externalUrl: p.externalUrl,
+          })),
+        ];
+        await this.productModel.insertMany(seedItems);
+        this.logger.log(
+          `Seeded ${seedItems.length} products (dont ${TERRAVITA_PRODUCTS.length} Terravita).`,
         );
-        this.logger.log(`Seeded ${SEED_PRODUCTS.length} marketplace products.`);
+      } else {
+        const supplementsCount = await this.productModel
+          .countDocuments({ category: 'supplements' })
+          .exec();
+        if (supplementsCount === 0) {
+          this.logger.log('Adding Terravita supplements to existing catalog...');
+          await this.productModel.insertMany(
+            TERRAVITA_PRODUCTS.map((p, i) => ({
+              sellerId: null,
+              title: p.title,
+              price: p.price,
+              imageUrl: p.imageUrl,
+              description: p.description ?? '',
+              badge: p.badge,
+              category: p.category,
+              order: count + i,
+              externalUrl: p.externalUrl,
+            })),
+          );
+          this.logger.log(`Added ${TERRAVITA_PRODUCTS.length} Terravita products.`);
+        }
       }
     } catch (e) {
       this.logger.warn(`Marketplace seed failed: ${(e as Error).message}`);
@@ -189,25 +254,27 @@ export class MarketplaceService implements OnModuleInit {
   }
 
   /**
-   * Récupère les produits depuis l'API DummyJSON (e-commerce style Shein/Temu).
-   * Produits réels : vêtements, mode, électronique, etc.
+   * Récupère les produits : DummyJSON (vêtements, jeux) ou catalogue CogniCare (cognitif, sensoriel, motricité).
    */
   async list(limit = 20, category?: string): Promise<ProductLean[]> {
     const cat = category && category !== 'all' ? category : 'all';
-    const dummyCategories = CATEGORY_TO_DUMMYJSON[cat] ?? [];
+    const dummyCategories = CATEGORY_TO_DUMMYJSON[cat];
+
+    // Cognitif, Sensoriel, Motricité : catalogue CogniCare (produits adaptés, pas des PC)
+    if (dummyCategories === null) {
+      return this.listFromDb(limit, cat);
+    }
 
     try {
       let products: Record<string, unknown>[] = [];
 
       if (dummyCategories.length === 0) {
-        // Tous les articles : fetch direct
         const res = await axios.get<{ products: Record<string, unknown>[] }>(
           `${DUMMYJSON_BASE}/products`,
           { params: { limit }, timeout: 8000 },
         );
         products = res.data?.products ?? [];
       } else {
-        // Catégorie spécifique : fetcher et fusionner
         const perCat = Math.ceil(limit / dummyCategories.length);
         const results = await Promise.all(
           dummyCategories.map((dc) =>
@@ -245,6 +312,7 @@ export class MarketplaceService implements OnModuleInit {
       badge,
       category,
       order: 0,
+      externalUrl: undefined,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as ProductLean;

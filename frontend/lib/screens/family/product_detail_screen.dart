@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/product_review.dart';
 import '../../providers/cart_provider.dart';
@@ -19,6 +20,8 @@ class ProductDetailScreen extends StatefulWidget {
   final String description;
   final String? badge;
   final Color? badgeColor;
+  /// URL du site partenaire (ex: Terravita) — si présente, Acheter ouvre cette URL.
+  final String? externalUrl;
 
   const ProductDetailScreen({
     super.key,
@@ -29,6 +32,7 @@ class ProductDetailScreen extends StatefulWidget {
     required this.description,
     this.badge,
     this.badgeColor,
+    this.externalUrl,
   });
 
   @override
@@ -564,8 +568,44 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
+  Future<void> _handleBuy() async {
+    final loc = AppLocalizations.of(context)!;
+    final externalUrl = widget.externalUrl?.trim();
+    if (externalUrl != null && externalUrl.isNotEmpty) {
+      final uri = Uri.tryParse(externalUrl);
+      if (uri != null && await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Impossible d\'ouvrir le lien'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+    Provider.of<CartProvider>(context, listen: false).addItem(
+      productId: widget.productId,
+      title: widget.title,
+      price: widget.price,
+      imageUrl: widget.imageUrl.trim().isEmpty
+          ? 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800'
+          : widget.imageUrl,
+    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loc.productAddedToCart),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
   Widget _buildBottomBar(double bottomPadding) {
     final loc = AppLocalizations.of(context)!;
+    final hasExternalUrl = widget.externalUrl?.trim().isNotEmpty ?? false;
     return Container(
       padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomPadding),
       decoration: BoxDecoration(
@@ -600,24 +640,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
-              onPressed: () {
-                Provider.of<CartProvider>(context, listen: false).addItem(
-                  productId: widget.productId,
-                  title: widget.title,
-                  price: widget.price,
-                  imageUrl: widget.imageUrl.trim().isEmpty
-                      ? 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800'
-                      : widget.imageUrl,
-                );
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(loc.productAddedToCart),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
-              },
+              onPressed: _handleBuy,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _marketPrimary,
                 foregroundColor: AppTheme.text,
@@ -629,10 +652,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.shopping_cart),
+                  Icon(hasExternalUrl ? Icons.open_in_new : Icons.shopping_cart),
                   const SizedBox(width: 8),
                   Text(
-                    loc.addToCart,
+                    hasExternalUrl ? loc.buyOnPartnerSite : loc.addToCart,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

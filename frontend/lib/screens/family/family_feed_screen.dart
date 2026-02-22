@@ -2129,6 +2129,15 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     );
   }
 
+  static Color _marketplaceBadgeColor(String? badge) {
+    if (badge == null || badge.isEmpty) return const Color(0xFFADD8E6);
+    final b = badge.toUpperCase();
+    if (b.contains('TOP')) return const Color(0xFF212121);
+    if (b.contains('SKILL') || b.contains('BUILDER')) return Colors.green;
+    if (b.contains('POPULAR')) return Colors.orange;
+    return const Color(0xFFADD8E6);
+  }
+
   Widget _marketplaceProductCard(MarketplaceProduct product) {
     return InkWell(
       onTap: () {
@@ -2141,7 +2150,8 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
             'imageUrl': product.imageUrl,
             'description': product.description,
             'badge': product.badge,
-            'badgeColorValue': null,
+            'badgeColorValue': _marketplaceBadgeColor(product.badge).value,
+            'externalUrl': product.externalUrl,
           },
         );
       },

@@ -601,6 +601,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
                 badgeColor: extra['badgeColorValue'] != null
                     ? Color(extra['badgeColorValue'] as int)
                     : null,
+                externalUrl: extra['externalUrl'] as String?,
               );
             },
           ),

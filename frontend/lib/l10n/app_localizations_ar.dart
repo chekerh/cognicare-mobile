@@ -301,6 +301,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get allItems => 'جميع العناصر';
 
   @override
+  String get supplements => 'المكملات';
+
+  @override
   String get sensory => 'حسي';
 
   @override
@@ -341,6 +344,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get addToCart => 'أضف إلى السلة';
+
+  @override
+  String get buyOnPartnerSite => 'شراء من الموقع الشريك';
 
   @override
   String get productAddedToCart => 'تمت إضافة المنتج إلى السلة';

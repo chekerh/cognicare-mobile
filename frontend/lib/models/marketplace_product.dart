@@ -7,6 +7,8 @@ class MarketplaceProduct {
   final String description;
   final String? badge;
   final String category;
+  /// URL du site partenaire (ex: Terravita) — si présente, "Acheter" ouvre cette URL pour commande réelle.
+  final String? externalUrl;
 
   const MarketplaceProduct({
     required this.id,
@@ -16,6 +18,7 @@ class MarketplaceProduct {
     this.description = '',
     this.badge,
     this.category = 'all',
+    this.externalUrl,
   });
 
   factory MarketplaceProduct.fromJson(Map<String, dynamic> json) {
@@ -37,6 +40,7 @@ class MarketplaceProduct {
       description: (json['description'] ?? '').toString(),
       badge: json['badge']?.toString(),
       category: (json['category'] ?? 'all').toString(),
+      externalUrl: json['externalUrl']?.toString(),
     );
   }
 }

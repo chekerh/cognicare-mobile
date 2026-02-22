@@ -30,6 +30,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
     final loc = AppLocalizations.of(context)!;
     return [
       loc.allItems,
+      loc.supplements,
       loc.clothing,
       loc.games,
       loc.sensory,
@@ -42,6 +43,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
   String _categoryToApi(String displayCategory) {
     final loc = AppLocalizations.of(context)!;
     if (displayCategory == loc.allItems) return 'all';
+    if (displayCategory == loc.supplements) return 'supplements';
     if (displayCategory == loc.clothing) return 'clothing';
     if (displayCategory == loc.games) return 'games';
     if (displayCategory == loc.sensory) return 'sensory';
@@ -353,6 +355,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
         'description': product.description,
         'badge': product.badge,
         'badgeColorValue': badgeColor.value,
+        'externalUrl': product.externalUrl,
       },
     );
   }
