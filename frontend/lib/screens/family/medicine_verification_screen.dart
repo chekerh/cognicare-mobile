@@ -477,33 +477,45 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
               ),
             ),
           ],
-          if (metadata != null && metadata['detailedDescription'] != null) ...[
+          if (metadata != null && metadata['medicineName'] != null) ...[
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Composants & Effets', style: TextStyle(fontWeight: FontWeight.bold)),
-                      content: SingleChildScrollView(
-                        child: Text(
-                          metadata['detailedDescription']!,
-                          style: const TextStyle(height: 1.5, fontSize: 16),
+                  if (metadata['detailedDescription'] != null) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Composants & Effets', style: TextStyle(fontWeight: FontWeight.bold)),
+                        content: SingleChildScrollView(
+                          child: Text(
+                            metadata['detailedDescription']!,
+                            style: const TextStyle(height: 1.5, fontSize: 16),
+                          ),
                         ),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => context.pop(),
-                          child: const Text('Fermer', style: TextStyle(fontWeight: FontWeight.bold)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                      ],
-                    ),
-                  );
+                        actions: [
+                          TextButton(
+                            onPressed: () => context.pop(),
+                            child: const Text('Fermer', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    final medicineName = metadata['medicineName'];
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => ChatbotSheet(
+                        initialMessage: 'Quels sont les composants et effets du médicament : $medicineName ?',
+                      ),
+                    );
+                  }
                 },
                 icon: const Icon(Icons.info_outline),
                 label: const Text('En savoir plus'),
