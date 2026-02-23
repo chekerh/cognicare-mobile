@@ -172,9 +172,13 @@ class _ChatbotSheetState extends State<ChatbotSheet> {
                   ),
                   shape: BoxShape.circle,
                 ),
-                child: const Center(
-                  child: Text('🤖', style: TextStyle(fontSize: 20)),
-                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/app_logo.png',
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                  ),
               ),
               const SizedBox(width: 12),
               Column(

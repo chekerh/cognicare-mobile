@@ -45,7 +45,7 @@ export class ChatbotService {
             .lean()
             .exec();
         const children = await this.childModel
-            .find({ parentId: userId })
+            .find({ parentId: new Types.ObjectId(userId) })
             .select('fullName dateOfBirth diagnosis')
             .lean()
             .exec();
