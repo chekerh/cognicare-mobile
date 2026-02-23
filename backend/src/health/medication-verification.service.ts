@@ -32,11 +32,11 @@ Ta mission :
 **Ordonnance :** ${JSON.stringify(prescription)}
 
 **Instructions pour ton retour (très important) :**
-- Ton explication dans "reasoning" doit être éducative, bienveillante et rassurante pour le parent.
+- Ton explication dans "reasoning" doit être TRÈS SIMPLE et RASSURANTE pour un parent si tout est OK.
 - Ne parle pas de "status VALID", de "code OCR" ou de détails techniques.
-- SI TOUT EST CORRECT : Commence par confirmer "C'est parfait, c'est bien le [Nom] demandé." Ensuite, EXPLIQUE BRIÈVEMENT les principaux composants actifs de ce médicament et ses effets sur le corps de l'enfant.
+- SI TOUT EST CORRECT : Dis "C'est parfait, c'est bien le [Nom] demandé. Vous pouvez le donner en toute sécurité."
 - SI LE MÉDICAMENT EST INCORRECT OU PÉRIMÉ : Dis clairement : "Attention, ce n'est pas le bon médicament/dosage" ou "Désolé, ce médicament est périmé, ne l'utilisez pas."
-- Si tu ne vois pas la date de péremption mais que le reste est bon, valide le nom puis ajoute l'explication des composants et effets.
+- Dans "metadata.detailedDescription", explique brièvement les principaux composants actifs de ce médicament et ses effets sur le corps de l'enfant (texte éducatif).
 - Utilise un ton empathique et clair.
 
 **IMPORTANT : Réponds UNIQUEMENT avec un objet JSON valide :**
@@ -48,7 +48,8 @@ Ta mission :
     "dosage": "Dosage (ex: 500mg)",
     "expiryDate": "Date lue ou 'Non visible'",
     "isExpired": true | false | null,
-    "manufacturer": "Marque si visible"
+    "manufacturer": "Marque si visible",
+    "detailedDescription": "Explication éducative des composants et effets."
   }
 }`;
 
