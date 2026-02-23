@@ -5,11 +5,22 @@ import 'package:http_parser/http_parser.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/donation.dart';
 import '../utils/constants.dart';
+import '../utils/cache_helper.dart';
 
 /// Service pour les dons (Le Cercle du Don) — création et liste.
 class DonationService {
   final http.Client _client = http.Client();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  // In-memory cache keyed by simple filter signature.
+  final Map<String, _DonationCacheEntry> _memoryCache = {};
+
+  static const String _donationsCacheKeyPrefix = 'cache_donations_';
+
+  String _keyForFilters({bool? isOffer, int? category, String? search}) {
+    final normalizedSearch = search?.trim() ?? '';
+    return '${isOffer ?? 'any'}_${category ?? 0}_$normalizedSearch';
+  }
 
   Future<String?> _getToken() async {
     return _storage.read(key: AppConstants.jwtTokenKey);
@@ -110,6 +121,32 @@ class DonationService {
     int? category,
     String? search,
   }) async {
+    final key = _keyForFilters(
+      isOffer: isOffer,
+      category: category,
+      search: search,
+    );
+
+    // 1) Try very fresh in-memory cache first (fast navigations).
+    final mem = _memoryCache[key];
+    if (mem != null && mem.isFresh(const Duration(seconds: 90))) {
+      return mem.items;
+    }
+
+    // 2) Try disk cache as a warm start before hitting network.
+    final diskRaw = await CacheHelper.load(
+      '$_donationsCacheKeyPrefix$key',
+      maxAge: const Duration(minutes: 10),
+    );
+    if (diskRaw is List && mem == null) {
+      final fromDisk = diskRaw
+          .map((e) => Donation.fromJson(e as Map<String, dynamic>))
+          .toList();
+      _memoryCache[key] = _DonationCacheEntry(DateTime.now(), fromDisk);
+      // We still continue to network below to refresh, but UI can already
+      // display disk data.
+    }
+
     final params = <String, String>{};
     if (isOffer != null) params['isOffer'] = isOffer.toString();
     if (category != null && category > 0) {
@@ -127,8 +164,26 @@ class DonationService {
       throw Exception('Échec du chargement: ${response.statusCode}');
     }
     final list = jsonDecode(response.body) as List<dynamic>? ?? [];
-    return list
+    final parsed = list
         .map((e) => Donation.fromJson(e as Map<String, dynamic>))
         .toList();
+
+    // 3) Update caches.
+    _memoryCache[key] = _DonationCacheEntry(DateTime.now(), parsed);
+    // Store raw JSON list so we don't have to re-encode models.
+    await CacheHelper.save('$_donationsCacheKeyPrefix$key', list);
+
+    return parsed;
   }
 }
+
+class _DonationCacheEntry {
+  _DonationCacheEntry(this.updatedAt, this.items);
+
+  final DateTime updatedAt;
+  final List<Donation> items;
+
+  bool isFresh(Duration ttl) =>
+      DateTime.now().difference(updatedAt) < ttl;
+}
+

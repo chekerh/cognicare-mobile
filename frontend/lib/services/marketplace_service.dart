@@ -6,11 +6,21 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/marketplace_product.dart';
 import '../models/product_review.dart';
 import '../utils/constants.dart';
+import '../utils/cache_helper.dart';
 
 /// Service pour les produits du marketplace (secteur famille).
 class MarketplaceService {
   final http.Client _client = http.Client();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  // Simple in-memory cache for product lists keyed by limit+category.
+  final Map<String, _MarketplaceProductsCacheEntry> _productsCache = {};
+
+  static const String _productsCacheKeyPrefix = 'cache_marketplace_products_';
+
+  String _productsKey(int limit, String? category) {
+    return '${limit}_${category ?? 'all'}';
+  }
 
   Future<String?> _getToken() async {
     return _storage.read(key: AppConstants.jwtTokenKey);
@@ -27,6 +37,30 @@ class MarketplaceService {
   /// Liste les produits (limit par défaut 6 pour la section feed).
   Future<List<MarketplaceProduct>> getProducts(
       {int limit = 6, String? category}) async {
+    final key = _productsKey(limit, category);
+
+    // 1) Try in-memory cache for very fast subsequent calls.
+    final mem = _productsCache[key];
+    if (mem != null && mem.isFresh(const Duration(minutes: 5))) {
+      return mem.items;
+    }
+
+    // 2) Try disk cache as a warm start before network.
+    final diskRaw = await CacheHelper.load(
+      '$_productsCacheKeyPrefix$key',
+      maxAge: const Duration(minutes: 30),
+    );
+    if (diskRaw is Map<String, dynamic> &&
+        diskRaw['products'] is List &&
+        mem == null) {
+      final cachedList = (diskRaw['products'] as List<dynamic>)
+          .map((e) => MarketplaceProduct.fromJson(e as Map<String, dynamic>))
+          .toList();
+      _productsCache[key] =
+          _MarketplaceProductsCacheEntry(DateTime.now(), cachedList);
+      // UI can already show cached list; still refresh below.
+    }
+
     final query = <String, String>{'limit': limit.toString()};
     if (category != null && category != 'all') query['category'] = category;
     final uri = Uri.parse(
@@ -38,9 +72,15 @@ class MarketplaceService {
     }
     final body = jsonDecode(response.body) as Map<String, dynamic>;
     final list = body['products'] as List<dynamic>? ?? [];
-    return list
+    final parsed = list
         .map((e) => MarketplaceProduct.fromJson(e as Map<String, dynamic>))
         .toList();
+
+    _productsCache[key] =
+        _MarketplaceProductsCacheEntry(DateTime.now(), parsed);
+    await CacheHelper.save('$_productsCacheKeyPrefix$key', body);
+
+    return parsed;
   }
 
   /// Liste uniquement les produits ajoutés par l'utilisateur connecté (JWT requis).
@@ -186,3 +226,14 @@ class MarketplaceService {
     return MarketplaceProduct.fromJson(data);
   }
 }
+
+class _MarketplaceProductsCacheEntry {
+  _MarketplaceProductsCacheEntry(this.updatedAt, this.items);
+
+  final DateTime updatedAt;
+  final List<MarketplaceProduct> items;
+
+  bool isFresh(Duration ttl) =>
+      DateTime.now().difference(updatedAt) < ttl;
+}
+

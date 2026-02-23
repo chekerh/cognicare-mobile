@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../utils/constants.dart';
 import 'package:cognicare_frontend/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/cache_helper.dart';
 
 class ChatMessage {
   final String id;
@@ -138,50 +139,69 @@ class ChatService {
   static const String _familiesCacheKey = 'cache_chat_families_to_contact';
   static const String _volunteersCacheKey = 'cache_chat_volunteers_to_contact';
 
-  Future<void> _saveToCache(String key, List<dynamic> list) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(key, jsonEncode(list));
-    } catch (_) {}
-  }
+  // In-memory short-lived caches to avoid refetching when navigating
+  // between screens quickly.
+  List<InboxConversation>? _inboxMemory;
+  DateTime? _inboxMemoryUpdatedAt;
 
-  Future<List<dynamic>?> _loadFromCache(String key) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final str = prefs.getString(key);
-      if (str == null) return null;
-      return jsonDecode(str) as List<dynamic>;
-    } catch (_) {
-      return null;
-    }
+  List<FamilyUser>? _familiesMemory;
+  DateTime? _familiesMemoryUpdatedAt;
+
+  List<FamilyUser>? _volunteersMemory;
+  DateTime? _volunteersMemoryUpdatedAt;
+
+  bool _isFresh(DateTime? updatedAt, Duration ttl) {
+    if (updatedAt == null) return false;
+    return DateTime.now().difference(updatedAt) < ttl;
   }
 
   Future<List<FamilyUser>> getCachedFamiliesToContact() async {
-    final list = await _loadFromCache(_familiesCacheKey);
-    if (list == null) return [];
-    return list
-        .map((e) => FamilyUser.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final raw = await CacheHelper.load(
+      _familiesCacheKey,
+      maxAge: const Duration(minutes: 5),
+    );
+    if (raw is List) {
+      return raw
+          .map((e) => FamilyUser.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    return [];
   }
 
   Future<List<FamilyUser>> getCachedVolunteers() async {
-    final list = await _loadFromCache(_volunteersCacheKey);
-    if (list == null) return [];
-    return list
-        .map((e) => FamilyUser.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final raw = await CacheHelper.load(
+      _volunteersCacheKey,
+      maxAge: const Duration(minutes: 5),
+    );
+    if (raw is List) {
+      return raw
+          .map((e) => FamilyUser.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    return [];
   }
 
   Future<List<InboxConversation>> getCachedInbox() async {
-    final list = await _loadFromCache(_inboxCacheKey);
-    if (list == null) return [];
-    return list
-        .map((e) => InboxConversation.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final raw = await CacheHelper.load(
+      _inboxCacheKey,
+      maxAge: const Duration(minutes: 5),
+    );
+    if (raw is List) {
+      return raw
+          .map((e) => InboxConversation.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    return [];
   }
 
   /// Liste des autres familles avec qui l'utilisateur peut ouvrir une conversation.
   Future<List<FamilyUser>> getFamiliesToContact() async {
+    // Prefer in-memory cache if it is very recent.
+    if (_familiesMemory != null &&
+        _isFresh(_familiesMemoryUpdatedAt, const Duration(seconds: 60))) {
+      return _familiesMemory!;
+    }
+
     final token = await AuthService().getStoredToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
@@ -204,14 +224,26 @@ class ChatService {
       }
     }
     final list = jsonDecode(response.body) as List<dynamic>? ?? [];
-    _saveToCache(_familiesCacheKey, list);
-    return list
+    final parsed = list
         .map((e) => FamilyUser.fromJson(e as Map<String, dynamic>))
         .toList();
+
+    // Update caches.
+    _familiesMemory = parsed;
+    _familiesMemoryUpdatedAt = DateTime.now();
+    await CacheHelper.save(_familiesCacheKey, list);
+
+    return parsed;
   }
 
   /// Liste des bénévoles avec qui l'utilisateur peut ouvrir une conversation.
   Future<List<FamilyUser>> getVolunteers() async {
+    // Prefer in-memory cache if it is very recent.
+    if (_volunteersMemory != null &&
+        _isFresh(_volunteersMemoryUpdatedAt, const Duration(seconds: 60))) {
+      return _volunteersMemory!;
+    }
+
     final token = await AuthService().getStoredToken();
     final response = await _client.get(
       Uri.parse('${AppConstants.baseUrl}/users/volunteers'),
@@ -225,13 +257,24 @@ class ChatService {
       throw Exception('Failed to load volunteers: ${response.statusCode}');
     }
     final list = jsonDecode(response.body) as List<dynamic>? ?? [];
-    _saveToCache(_volunteersCacheKey, list);
-    return list
+    final parsed = list
         .map((e) => FamilyUser.fromJson(e as Map<String, dynamic>))
         .toList();
+
+    _volunteersMemory = parsed;
+    _volunteersMemoryUpdatedAt = DateTime.now();
+    await CacheHelper.save(_volunteersCacheKey, list);
+
+    return parsed;
   }
 
   Future<List<InboxConversation>> getInbox() async {
+    // Prefer a very fresh in-memory cache before hitting the network.
+    if (_inboxMemory != null &&
+        _isFresh(_inboxMemoryUpdatedAt, const Duration(seconds: 60))) {
+      return _inboxMemory!;
+    }
+
     final token = await AuthService().getStoredToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
@@ -254,10 +297,15 @@ class ChatService {
       }
     }
     final list = jsonDecode(response.body) as List<dynamic>? ?? [];
-    _saveToCache(_inboxCacheKey, list);
-    return list
+    final parsed = list
         .map((e) => InboxConversation.fromJson(e as Map<String, dynamic>))
         .toList();
+
+    _inboxMemory = parsed;
+    _inboxMemoryUpdatedAt = DateTime.now();
+    await CacheHelper.save(_inboxCacheKey, list);
+
+    return parsed;
   }
 
   /// Get or create conversation with [otherUserId]. Returns conversation (with id and threadId).
