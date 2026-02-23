@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/reminders_service.dart';
+import 'chatbot_sheet.dart';
 
 // Couleurs alignées avec le dashboard famille
 const Color _primary = Color(0xFFA3D9E5);
@@ -476,7 +477,7 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
               ),
             ),
           ],
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -713,8 +714,24 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () => _pickImage(ImageSource.camera),
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reprendre'),
+                icon: const Icon(Icons.camera_alt_outlined),
+                label: const Text('Appareil'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: _primaryDark,
+                  side: const BorderSide(color: _primaryDark),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _pickImage(ImageSource.gallery),
+                icon: const Icon(Icons.photo_library_outlined),
+                label: const Text('Galerie'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: _primaryDark,
                   side: const BorderSide(color: _primaryDark),

@@ -237,15 +237,7 @@ class _FamilyMemberDashboardScreenState
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Bonjour, $userName 👋',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: _slate600,
-                ),
-              ),
-              const SizedBox(height: 4),
+
               const Text(
                 'Membre de la famille',
                 style: TextStyle(

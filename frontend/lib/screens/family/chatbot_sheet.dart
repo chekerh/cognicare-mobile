@@ -9,7 +9,12 @@ const Color _slate800 = Color(0xFF1E293B);
 const Color _slate500 = Color(0xFF64748B);
 
 class ChatbotSheet extends StatefulWidget {
-  const ChatbotSheet({super.key});
+  final String? initialMessage;
+
+  const ChatbotSheet({
+    super.key,
+    this.initialMessage,
+  });
 
   @override
   State<ChatbotSheet> createState() => _ChatbotSheetState();
@@ -37,6 +42,12 @@ class _ChatbotSheetState extends State<ChatbotSheet> {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     _chatbotService = ChatbotService(getToken: () async => auth.accessToken);
     _sendGreeting(auth);
+    
+    if (widget.initialMessage != null && widget.initialMessage!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _sendMessage(widget.initialMessage!);
+      });
+    }
   }
 
   Future<void> _sendGreeting(AuthProvider auth) async {
