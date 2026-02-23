@@ -477,6 +477,47 @@ class _MedicineVerificationScreenState extends State<MedicineVerificationScreen>
               ),
             ),
           ],
+          if (metadata != null && metadata['detailedDescription'] != null) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Composants & Effets', style: TextStyle(fontWeight: FontWeight.bold)),
+                      content: SingleChildScrollView(
+                        child: Text(
+                          metadata['detailedDescription']!,
+                          style: const TextStyle(height: 1.5, fontSize: 16),
+                        ),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => context.pop(),
+                          child: const Text('Fermer', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.info_outline),
+                label: const Text('En savoir plus'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: color,
+                  side: BorderSide(color: color.withOpacity(0.5)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
