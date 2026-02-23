@@ -179,6 +179,7 @@ class _ChatbotSheetState extends State<ChatbotSheet> {
                     height: 40,
                     fit: BoxFit.cover,
                   ),
+                ),
               ),
               const SizedBox(width: 12),
               Column(
