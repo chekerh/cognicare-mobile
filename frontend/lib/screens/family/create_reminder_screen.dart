@@ -133,11 +133,14 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
   String _customTitle = '';
   String _customIcon = '📝';
   List<TimeOfDay> _selectedTimes = [const TimeOfDay(hour: 8, minute: 0)];
+  int? _intervalMinutes;
+
 
   Future<void> _showConfigDialog(ReminderTemplate template,
       {bool isCustom = false}) async {
     _customTitle = isCustom ? '' : template.title;
     _customIcon = isCustom ? '📝' : template.icon;
+    _intervalMinutes = template.intervalMinutes ?? 120; // Default to 2 hours
     _selectedTimes = template.time != null
         ? [
             TimeOfDay(
@@ -196,44 +199,116 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
-                const Text('Horaires de notification',
-                    style:
-                        TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    ..._selectedTimes.asMap().entries.map((entry) => Chip(
-                          label: Text(entry.value.format(context)),
-                          onDeleted: () {
-                            setModalState(() {
-                              _selectedTimes.removeAt(entry.key);
-                            });
-                          },
-                          deleteIcon: const Icon(Icons.close, size: 16),
-                          backgroundColor: _primary.withOpacity(0.2),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        )),
-                    ActionChip(
-                      avatar: const Icon(Icons.add, size: 16),
-                      label: const Text('Ajouter'),
-                      onPressed: () async {
-                        final time = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.now(),
-                        );
-                        if (time != null) {
-                          setModalState(() {
-                            _selectedTimes.add(time);
-                          });
-                        }
-                      },
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ],
+                Text(
+                  template.frequency == ReminderFrequency.interval
+                      ? 'Heure de début et fréquence'
+                      : 'Horaires de notification',
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                 ),
+                const SizedBox(height: 12),
+                if (template.frequency == ReminderFrequency.interval) ...[
+                  // Start time for interval
+                  Row(
+                    children: [
+                      const Text('Heure de premier rappel :'),
+                      const Spacer(),
+                      ActionChip(
+                        avatar: const Icon(Icons.access_time, size: 16),
+                        label: Text(_selectedTimes.isNotEmpty
+                            ? _selectedTimes.first.format(context)
+                            : TimeOfDay.now().format(context)),
+                        onPressed: () async {
+                          final time = await showTimePicker(
+                            context: context,
+                            initialTime: _selectedTimes.isNotEmpty
+                                ? _selectedTimes.first
+                                : TimeOfDay.now(),
+                          );
+                          if (time != null) {
+                            setModalState(() {
+                              _selectedTimes = [time];
+                            });
+                          }
+                        },
+                        backgroundColor: _primary.withOpacity(0.2),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Interval selection dropdown
+                  Row(
+                    children: [
+                      const Text('Fréquence :'),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: _primary.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<int>(
+                            value: _intervalMinutes,
+                            icon: const Icon(Icons.arrow_drop_down, color: _primaryDark),
+                            dropdownColor: Colors.white,
+                            items: const [
+                              DropdownMenuItem(value: 30, child: Text('Toutes les 30 min')),
+                              DropdownMenuItem(value: 60, child: Text('Toutes les 1 heure')),
+                              DropdownMenuItem(value: 120, child: Text('Toutes les 2 heures')),
+                              DropdownMenuItem(value: 180, child: Text('Toutes les 3 heures')),
+                              DropdownMenuItem(value: 240, child: Text('Toutes les 4 heures')),
+                              DropdownMenuItem(value: 360, child: Text('Toutes les 6 heures')),
+                            ],
+                            onChanged: (int? newValue) {
+                              if (newValue != null) {
+                                setModalState(() {
+                                  _intervalMinutes = newValue;
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      ..._selectedTimes.asMap().entries.map((entry) => Chip(
+                            label: Text(entry.value.format(context)),
+                            onDeleted: () {
+                              setModalState(() {
+                                _selectedTimes.removeAt(entry.key);
+                              });
+                            },
+                            deleteIcon: const Icon(Icons.close, size: 16),
+                            backgroundColor: _primary.withOpacity(0.2),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          )),
+                      ActionChip(
+                        avatar: const Icon(Icons.add, size: 16),
+                        label: const Text('Ajouter'),
+                        onPressed: () async {
+                          final time = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.now(),
+                          );
+                          if (time != null) {
+                            setModalState(() {
+                              _selectedTimes.add(time);
+                            });
+                          }
+                        },
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 32),
                 SizedBox(
                   width: double.infinity,
@@ -302,6 +377,8 @@ class _CreateReminderScreenState extends State<CreateReminderScreen> {
             '#${template.color.value.toRadixString(16).substring(2).toUpperCase()}',
         'frequency': template.frequency.name,
         'times': timesStr,
+        if (template.frequency == ReminderFrequency.interval)
+          'intervalMinutes': _intervalMinutes,
         'soundEnabled': true,
         'vibrationEnabled': true,
         'daysOfWeek': [],

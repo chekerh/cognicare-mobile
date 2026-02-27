@@ -115,11 +115,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                // Illustration (psychology + eco)
+                // App logo (larger for clarity, especially the heart)
                 Center(
                   child: Container(
-                    width: 130,
-                    height: 130,
+                    width: 200,
+                    height: 200,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
@@ -139,42 +139,26 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                     child: Center(
-                      child: Transform.rotate(
-                        angle: 0.2,
-                        child: Container(
-                          width: 78,
-                          height: 78,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(24),
-                            boxShadow: [
-                              BoxShadow(
-                                color: _authPrimary.withOpacity(0.15),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Center(
-                                child: Transform.rotate(
-                                  angle: -0.2,
-                                  child: const Icon(Icons.psychology,
-                                      color: _authPrimary, size: 38),
-                                ),
-                              ),
-                              Positioned(
-                                top: 4,
-                                right: 4,
-                                child: Transform.rotate(
-                                  angle: -0.2,
-                                  child: Icon(Icons.eco,
-                                      color: Colors.green[400], size: 22),
-                                ),
-                              ),
-                            ],
+                      child: Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(32),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _authPrimary.withOpacity(0.15),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Image.asset(
+                            'assets/images/app_logo.png',
+                            fit: BoxFit.contain,
                           ),
                         ),
                       ),
