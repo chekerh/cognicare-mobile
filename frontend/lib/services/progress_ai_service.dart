@@ -397,9 +397,7 @@ class ProgressAiService {
     final token = await getToken();
     if (token == null) throw Exception('Not authenticated');
     final uri = Uri.parse(
-      AppConstants.baseUrl +
-          AppConstants.progressAiParentFeedbackEndpoint(childId) +
-          '?limit=$limit',
+      '${AppConstants.baseUrl}${AppConstants.progressAiParentFeedbackEndpoint(childId)}?limit=$limit',
     );
     final response = await _client.get(
       uri,

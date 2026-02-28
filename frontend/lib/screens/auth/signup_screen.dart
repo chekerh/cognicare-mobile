@@ -266,7 +266,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Illustration (volunteer_activism + favorite)
+                // App logo
                 Center(
                   child: Container(
                     width: 176,
@@ -304,15 +304,13 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                           ],
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.favorite,
-                                color: _authPrimary, size: 48),
-                            const SizedBox(height: 4),
-                            Icon(Icons.volunteer_activism,
-                                color: Colors.green.shade400, size: 28),
-                          ],
+                        clipBehavior: Clip.antiAlias,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Image.asset(
+                            'assets/images/app_logo.png',
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                     ),
