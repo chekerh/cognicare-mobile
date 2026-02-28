@@ -22,8 +22,8 @@ export class User {
     index: true,
     enum: [
       'family',
+      'careProvider',
       'doctor',
-      'volunteer',
       'admin',
       'organization_leader',
       'psychologist',
@@ -34,6 +34,7 @@ export class User {
   })
   role!:
     | 'family'
+    | 'careProvider'
     | 'doctor'
     | 'volunteer'
     | 'admin'
@@ -42,6 +43,38 @@ export class User {
     | 'speech_therapist'
     | 'occupational_therapist'
     | 'other';
+
+  /**
+   * When role is careProvider: specific type chosen after signup.
+   * speech_therapist | occupational_therapist | psychologist | doctor | ergotherapist | caregiver | organization_leader | other
+   */
+  @Prop({
+    enum: [
+      'speech_therapist',
+      'occupational_therapist',
+      'psychologist',
+      'doctor',
+      'ergotherapist',
+      'caregiver',
+      'organization_leader',
+      'other',
+    ],
+  })
+  careProviderType?:
+    | 'speech_therapist'
+    | 'occupational_therapist'
+    | 'psychologist'
+    | 'doctor'
+    | 'ergotherapist'
+    | 'caregiver'
+    | 'organization_leader'
+    | 'other';
+
+  /**
+   * Optional specialty (e.g. area of expertise for healthcare providers).
+   */
+  @Prop()
+  specialty?: string;
 
   @Prop({ type: 'ObjectId', ref: 'Organization' })
   organizationId?: string;

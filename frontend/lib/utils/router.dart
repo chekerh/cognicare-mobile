@@ -70,6 +70,7 @@ import '../screens/volunteer/volunteer_certification_test_screen.dart';
 import '../screens/volunteer/volunteer_mission_report_screen.dart';
 import '../screens/volunteer/volunteer_offer_help_screen.dart';
 import '../screens/volunteer/volunteer_new_availability_screen.dart';
+import '../screens/volunteer/volunteer_community_section_screen.dart';
 import '../screens/healthcare/healthcare_shell_screen.dart';
 import '../screens/healthcare/healthcare_dashboard_screen.dart';
 import '../screens/healthcare/healthcare_patients_screen.dart';
@@ -116,7 +117,8 @@ String? _redirect(BuildContext context, GoRouterState state) {
     if (AppConstants.isFamilyRole(role)) {
       return AppConstants.familyDashboardRoute;
     }
-    if (AppConstants.isVolunteerRole(role)) {
+    if (AppConstants.isVolunteerRole(role) ||
+        AppConstants.isCareProviderRole(role)) {
       return AppConstants.volunteerFormationsRoute;
     }
     if (AppConstants.isOrganizationLeaderRole(role)) {
@@ -156,9 +158,10 @@ String? _redirect(BuildContext context, GoRouterState state) {
     return AppConstants.homeRoute;
   }
 
-  // Protéger les routes bénévole : seul le rôle "volunteer" OU specialist peut y accéder
+  // Protéger les routes bénévole : volunteer, careProvider ou specialist
   if (location.startsWith(AppConstants.volunteerRoute) &&
       !AppConstants.isVolunteerRole(role) &&
+      !AppConstants.isCareProviderRole(role) &&
       !AppConstants.isSpecialistRole(role)) {
     if (AppConstants.isFamilyRole(role)) {
       return AppConstants.familyDashboardRoute;
@@ -265,7 +268,13 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           final path = state.uri.path;
           if (path == AppConstants.volunteerRoute ||
               path == '${AppConstants.volunteerRoute}/') {
-            return AppConstants.volunteerFormationsRoute;
+            return AppConstants.volunteerDashboardRoute;
+          }
+          // Anciennes sous-routes community → une seule route section
+          if (path == AppConstants.volunteerCommunityFeedRoute ||
+              path == AppConstants.volunteerCommunityDonationsRoute ||
+              path == AppConstants.volunteerCommunityMarketRoute) {
+            return AppConstants.volunteerCommunityRoute;
           }
           return null;
         },
@@ -335,7 +344,11 @@ GoRouter createAppRouter(AuthProvider authProvider) {
             path: 'notifications',
             builder: (context, state) => const VolunteerNotificationsScreen(),
           ),
-          StatefulShellRoute.indexedStack(
+          GoRoute(
+            path: 'agenda',
+            builder: (context, state) => const VolunteerAgendaScreen(),
+          ),
+            StatefulShellRoute.indexedStack(
             builder: (context, state, navigationShell) => VolunteerShellScreen(
               navigationShell: navigationShell,
             ),
@@ -343,17 +356,49 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               StatefulShellBranch(
                 routes: [
                   GoRoute(
-                    path: 'dashboard',
+                    path: 'community',
                     builder: (context, state) =>
-                        const VolunteerDashboardScreen(),
+                        const VolunteerCommunitySectionScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'create-post',
+                        builder: (context, state) => const AddPostScreen(),
+                      ),
+                      GoRoute(
+                        path: 'donation-detail',
+                        builder: (context, state) =>
+                            DonationDetailScreen.fromState(state),
+                      ),
+                      GoRoute(
+                        path: 'product-detail',
+                        builder: (context, state) {
+                          final extra =
+                              state.extra as Map<String, dynamic>? ?? {};
+                          return ProductDetailScreen(
+                            productId: extra['productId'] as String? ?? '',
+                            title: extra['title'] as String? ?? '',
+                            price: extra['price'] as String? ?? '',
+                            imageUrl: extra['imageUrl'] as String? ?? '',
+                            description:
+                                extra['description'] as String? ?? '',
+                            badge: extra['badge'] as String?,
+                            badgeColor: extra['badgeColorValue'] != null
+                                ? Color(extra['badgeColorValue'] as int)
+                                : null,
+                            externalUrl: extra['externalUrl'] as String?,
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
               StatefulShellBranch(
                 routes: [
                   GoRoute(
-                    path: 'agenda',
-                    builder: (context, state) => const VolunteerAgendaScreen(),
+                    path: 'dashboard',
+                    builder: (context, state) =>
+                        const VolunteerDashboardScreen(),
                   ),
                 ],
               ),

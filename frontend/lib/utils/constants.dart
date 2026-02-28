@@ -310,6 +310,19 @@ class AppConstants {
 
   // Volunteer sector routes (JWT-protected, role: volunteer)
   static const String volunteerRoute = '/volunteer';
+  static const String volunteerCommunityHubRoute = '/volunteer/community';
+  static const String volunteerCommunityRoute = '/volunteer/community';
+  static const String volunteerCommunityFeedRoute = '/volunteer/community/feed';
+  static const String volunteerCommunityDonationsRoute =
+      '/volunteer/community/donations';
+  static const String volunteerCommunityMarketRoute =
+      '/volunteer/community/market';
+  static const String volunteerDonationDetailRoute =
+      '/volunteer/community/donation-detail';
+  static const String volunteerCommunityCreatePostRoute =
+      '/volunteer/community/create-post';
+  static const String volunteerProductDetailRoute =
+      '/volunteer/community/product-detail';
   static const String volunteerDashboardRoute = '/volunteer/dashboard';
   static const String volunteerAgendaRoute = '/volunteer/agenda';
   static const String volunteerMissionsRoute = '/volunteer/missions';
@@ -361,6 +374,9 @@ class AppConstants {
 
   /// Comparaison insensible à la casse (backend peut renvoyer "family", "Family", "FAMILY").
   static bool isFamilyRole(String? role) => role?.toLowerCase() == 'family';
+  /// Care Provider: umbrella role (healthcareProvider | organizationLeader | caregiver).
+  static bool isCareProviderRole(String? role) =>
+      role?.toLowerCase() == 'careprovider';
   static bool isVolunteerRole(String? role) =>
       role?.toLowerCase() == 'volunteer';
   static bool isOrganizationLeaderRole(String? role) =>
@@ -374,7 +390,8 @@ class AppConstants {
   static bool isSpecialistRole(String? role) {
     if (role == null) return false;
     final r = role.toLowerCase();
-    return r == 'psychologist' ||
+    return r == 'careprovider' ||
+        r == 'psychologist' ||
         r == 'speech_therapist' ||
         r == 'occupational_therapist' ||
         r == 'volunteer' ||

@@ -28,6 +28,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { VolunteersService, DocumentType } from './volunteers.service';
 import { ReviewApplicationDto } from './dto/review-application.dto';
+import { UpdateApplicationMeDto } from './dto/update-application-me.dto';
 
 @ApiTags('volunteers')
 @ApiBearerAuth('JWT-auth')
@@ -44,6 +45,21 @@ export class VolunteersController {
   @ApiResponse({ status: 200, description: 'Application' })
   async getMyApplication(@Request() req: { user: { id: string } }) {
     return this.volunteersService.getOrCreateApplication(req.user.id);
+  }
+
+  @Patch('application/me')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Update my application (careProviderType, specialty, organization)',
+    description:
+      'Care Provider only. Update type and optional specialty/org fields. Only when status is pending.',
+  })
+  @ApiResponse({ status: 200, description: 'Updated application' })
+  async updateMyApplication(
+    @Request() req: { user: { id: string } },
+    @Body() dto: UpdateApplicationMeDto,
+  ) {
+    return this.volunteersService.updateApplicationMe(req.user.id, dto);
   }
 
   @Post('application/documents')

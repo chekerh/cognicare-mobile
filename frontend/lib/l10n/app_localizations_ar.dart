@@ -143,6 +143,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get roleFamily => 'عضو عائلة';
 
   @override
+  String get roleCareProvider => 'مقدم رعاية';
+
+  @override
   String get roleDoctor => 'متخصص صحي';
 
   @override

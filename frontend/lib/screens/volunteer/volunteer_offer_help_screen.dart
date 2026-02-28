@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-const Color _brandBlue = Color(0xFF2563EB);
+const Color _brandBlue = Color(0xFFa3dae1);
 const Color _bgLight = Color(0xFFF0F9FF);
 
 /// Proposer mon Aide — type d'aide, quand, message, diffuser.

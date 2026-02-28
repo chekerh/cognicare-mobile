@@ -4,10 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../utils/constants.dart';
 
-// Couleurs de la 2e photo : fond bleu pastel clair, accent bleu
 const Color _bgLight = Color(0xFFF0F9FF);
-const Color _brandBlue = Color(0xFF89CFF0);
-const Color _brandBlueDark = Color(0xFF2563EB);
+const Color _brandBlue = Color(0xFFa3dae1);
+const Color _brandBlueDark = Color(0xFF7bc5ce);
 
 /// Agenda bénévole — Mon Agenda, calendrier, missions du jour.
 class VolunteerAgendaScreen extends StatefulWidget {

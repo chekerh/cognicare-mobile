@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -52,6 +53,8 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
   List<ChildModel>? _children;
   bool _childrenLoading = false;
   String? _childrenError;
+
+  bool _showQuickMenu = false;
 
   @override
   void initState() {
@@ -114,7 +117,6 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context).user;
     final userRole = user?.role;
-    final userName = (user?.fullName ?? '').split(' ').firstOrNull ?? 'Julien';
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.white,
       statusBarIconBrightness: Brightness.dark,
@@ -123,29 +125,128 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        top: true,
-        bottom: true,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context, userName, userRole),
-            Expanded(
-              child: CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(child: _buildStatsCards()),
-                  SliverToBoxAdapter(child: _buildSkillsSection(context)),
-                  if (AppConstants.isSpecialistRole(userRole))
-                    SliverToBoxAdapter(child: _buildPatientsSection(context)),
-                  SliverToBoxAdapter(child: _buildHealthcareSection(context)),
-                  SliverToBoxAdapter(child: _buildPlanningSection(context)),
-                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
+      body: Stack(
+        children: [
+          SafeArea(
+            top: true,
+            bottom: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverToBoxAdapter(child: _buildPlanningSection(context)),
+                      SliverToBoxAdapter(child: _buildStatsCards()),
+                      SliverToBoxAdapter(child: _buildSkillsSection(context)),
+                      if (AppConstants.isSpecialistRole(userRole))
+                        SliverToBoxAdapter(child: _buildPatientsSection(context)),
+                      SliverToBoxAdapter(child: _buildHealthcareSection(context)),
+                      const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_showQuickMenu)
+            GestureDetector(
+              onTap: () => setState(() => _showQuickMenu = false),
+              child: Container(
+                color: Colors.white.withOpacity(0.1),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                  child: Container(color: Colors.transparent),
+                ),
+              ),
+            ),
+          if (_showQuickMenu)
+            Positioned(
+              bottom: 100,
+              right: 24,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _quickActionRow(context, 'Rapport de Mission', Icons.description, () {
+                    setState(() => _showQuickMenu = false);
+                    context.push(AppConstants.volunteerMissionReportRoute);
+                  }),
+                  const SizedBox(height: 24),
+                  _quickActionRow(context, 'Proposer Aide', Icons.favorite_border, () {
+                    setState(() => _showQuickMenu = false);
+                    context.push(AppConstants.volunteerOfferHelpRoute);
+                  }),
+                  const SizedBox(height: 24),
+                  _quickActionRow(context, 'Nouvelle Disponibilité', Icons.event_available, () {
+                    setState(() => _showQuickMenu = false);
+                    context.push(AppConstants.volunteerNewAvailabilityRoute);
+                  }),
+                  const SizedBox(height: 20),
+                  Material(
+                    color: _primary,
+                    borderRadius: BorderRadius.circular(999),
+                    elevation: 2,
+                    child: InkWell(
+                      onTap: () => setState(() => _showQuickMenu = false),
+                      borderRadius: BorderRadius.circular(999),
+                      child: const SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: Icon(Icons.close, color: Colors.white, size: 26),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
+        ],
       ),
+    );
+  }
+
+  Widget _quickActionRow(BuildContext context, String label, IconData icon, VoidCallback onTap) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8),
+            ],
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: _primary,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(999),
+          elevation: 2,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(999),
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: _primary.withOpacity(0.2)),
+              ),
+              child: Icon(icon, color: _primary, size: 26),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -232,88 +333,6 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, String userName, String? userRole) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Bonjour, $userName 👋',
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey.shade600),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                      AppConstants.isSpecialistRole(userRole)
-                          ? _roleToSpecializationLabel(userRole!)
-                          : 'Bénévole',
-                      style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B))),
-                ],
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextButton(
-                    onPressed: () =>
-                        context.go(AppConstants.volunteerMissionsRoute),
-                    child: const Text('Missions',
-                        style: TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.w600)),
-                  ),
-                  GestureDetector(
-                    onTap: () => context.go(AppConstants.volunteerProfileRoute),
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: _primary.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: _primary, width: 2),
-                          ),
-                          child: const Icon(Icons.person_outline,
-                              color: _primary, size: 28),
-                        ),
-                        Positioned(
-                          top: -2,
-                          right: -2,
-                          child: Container(
-                            width: 16,
-                            height: 16,
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildStatsCards() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
@@ -331,13 +350,17 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: _statCard(
-              icon: Icons.volunteer_activism,
-              iconColor: Colors.green.shade600,
-              label: 'Missions',
-              value: '24',
-              bgColor: Colors.green.shade50,
-              borderColor: Colors.green.shade100,
+            child: InkWell(
+              onTap: () => context.go(AppConstants.volunteerMissionsRoute),
+              borderRadius: BorderRadius.circular(16),
+              child: _statCard(
+                icon: Icons.volunteer_activism,
+                iconColor: Colors.green.shade600,
+                label: 'Missions',
+                value: '24',
+                bgColor: Colors.green.shade50,
+                borderColor: Colors.green.shade100,
+              ),
             ),
           ),
         ],
@@ -703,7 +726,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF1E293B))),
               GestureDetector(
-                onTap: () => context.go(AppConstants.volunteerAgendaRoute),
+                onTap: () => context.push(AppConstants.volunteerAgendaRoute),
                 child: const Text('Détails',
                     style: TextStyle(
                         fontSize: 14,
@@ -713,96 +736,126 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.grey.shade100),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2))
-              ],
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: List.generate(
-                      7,
-                      (i) => Text(weekdays[i],
-                          style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade500))),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.grey.shade100),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2))
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: List.generate(7, (i) {
-                    final isToday = i == 2;
-                    return Container(
-                      width: 32,
-                      height: 32,
-                      alignment: Alignment.center,
-                      decoration: isToday
-                          ? const BoxDecoration(
-                              color: _primary, shape: BoxShape.circle)
-                          : null,
-                      child: Text(
-                        dates[i],
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight:
-                              isToday ? FontWeight.bold : FontWeight.w500,
-                          color: isToday
-                              ? Colors.white
-                              : (i == 3
-                                  ? const Color(0xFF1E293B)
-                                  : Colors.grey.shade500),
-                        ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: List.generate(
+                          7,
+                          (i) => Text(weekdays[i],
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade500))),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: List.generate(7, (i) {
+                        final isToday = i == 2;
+                        return Container(
+                          width: 36,
+                          height: 36,
+                          alignment: Alignment.center,
+                          decoration: isToday
+                              ? const BoxDecoration(
+                                  color: _primary, shape: BoxShape.circle)
+                              : null,
+                          child: Text(
+                            dates[i],
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: isToday
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
+                              color: isToday
+                                  ? Colors.white
+                                  : (i == 3
+                                      ? const Color(0xFF1E293B)
+                                      : Colors.grey.shade500),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                    );
-                  }),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                          width: 4,
-                          height: 32,
-                          decoration: BoxDecoration(
-                              color: _primary,
-                              borderRadius: BorderRadius.circular(2))),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Prochaine intervention',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B))),
-                            Text('Mercredi 14, 16:30 avec Lucas',
-                                style: TextStyle(
-                                    fontSize: 10, color: Colors.grey.shade600)),
-                          ],
-                        ),
+                      child: Row(
+                        children: [
+                          Container(
+                              width: 4,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                  color: _primary,
+                                  borderRadius: BorderRadius.circular(2))),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Prochaine intervention',
+                                    style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B))),
+                                const SizedBox(height: 2),
+                                Text('Mercredi 14, 16:30 avec Lucas',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey.shade600)),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+              Positioned(
+                bottom: 16,
+                right: 16,
+                child: Material(
+                  color: _primary,
+                  borderRadius: BorderRadius.circular(999),
+                  elevation: 2,
+                  shadowColor: _primary.withOpacity(0.3),
+                  child: InkWell(
+                    onTap: () =>
+                        setState(() => _showQuickMenu = !_showQuickMenu),
+                    borderRadius: BorderRadius.circular(999),
+                    child: const SizedBox(
+                      width: 34,
+                      height: 34,
+                      child: Icon(Icons.add, color: Colors.white, size: 18),
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),

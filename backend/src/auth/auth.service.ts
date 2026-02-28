@@ -286,6 +286,8 @@ export class AuthService {
       email: user.email,
       phone: user.phone,
       role: user.role,
+      careProviderType: user.careProviderType,
+      specialty: user.specialty,
       organizationId: user.organizationId,
       profilePic: user.profilePic,
       createdAt: user.createdAt,
@@ -449,6 +451,8 @@ export class AuthService {
       email: user.email,
       phone: user.phone,
       role: user.role,
+      careProviderType: user.careProviderType,
+      specialty: user.specialty,
       profilePic: user.profilePic,
       createdAt: user.createdAt,
     };

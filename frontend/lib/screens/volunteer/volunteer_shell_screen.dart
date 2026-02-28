@@ -9,8 +9,8 @@ import '../../utils/constants.dart';
 const Color _navPrimary = Color(0xFFa3dae1);
 const Color _navInactive = Color(0xFF94A3B8);
 
-/// Shell secteur bénévole : Accueil | Agenda | Formations | Messages | Profil.
-/// Formations est l'écran affiché en premier après connexion.
+/// Shell secteur bénévole : Service Hub | Formations | Messages | Profil.
+/// Service Hub (dashboard) est l'écran affiché en premier après connexion.
 class VolunteerShellScreen extends StatefulWidget {
   const VolunteerShellScreen({
     super.key,
@@ -27,10 +27,13 @@ class _VolunteerShellScreenState extends State<VolunteerShellScreen> {
   Map<String, dynamic>? _application;
 
   void _onTap(int index) {
-    const int agendaIndex = 1;
+    if (index == 0) {
+      context.go(AppConstants.volunteerCommunityRoute);
+      return;
+    }
     const int messagesIndex = 3;
     final trainingCertified = _application?['trainingCertified'] == true;
-    if ((index == agendaIndex || index == messagesIndex) && !trainingCertified) {
+    if (index == messagesIndex && !trainingCertified) {
       final loc = AppLocalizations.of(context)!;
       showDialog<void>(
         context: context,
@@ -45,7 +48,7 @@ class _VolunteerShellScreenState extends State<VolunteerShellScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(ctx).pop();
-                widget.navigationShell.goBranch(2); // Formations
+                widget.navigationShell.goBranch(2); // Formations (index 2)
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: _navPrimary,
@@ -136,10 +139,10 @@ class _VolunteerShellScreenState extends State<VolunteerShellScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _navItem(context, 0, Icons.home_outlined, Icons.home_rounded,
-                    'Accueil', currentIndex),
-                _navItem(context, 1, Icons.calendar_today_outlined,
-                    Icons.calendar_today, 'Agenda', currentIndex),
+                _navItem(context, 0, Icons.groups_outlined, Icons.groups,
+                    'Communauté', currentIndex),
+                _navItem(context, 1, Icons.home_outlined, Icons.home_rounded,
+                    'Service Hub', currentIndex),
                 _navItem(context, 2, Icons.school_outlined,
                     Icons.school_rounded, 'Formations', currentIndex),
                 _navItem(context, 3, Icons.chat_bubble_outline,
@@ -155,8 +158,8 @@ class _VolunteerShellScreenState extends State<VolunteerShellScreen> {
   }
 
   int _indexFromPath(String path, String? role) {
-    if (path.endsWith('/dashboard')) return 0;
-    if (path.endsWith('/agenda')) return 1;
+    if (path.contains('/community')) return 0;
+    if (path.endsWith('/dashboard')) return 1;
     if (path.endsWith('/formations') ||
         path == '/volunteer' ||
         path == '/volunteer/') {
@@ -167,9 +170,9 @@ class _VolunteerShellScreenState extends State<VolunteerShellScreen> {
 
     // Default branch for /volunteer or unknown
     if (AppConstants.isSpecialistRole(role)) {
-      return 0; // Dashboard (Accueil) for specialists
+      return 1; // Service Hub (dashboard) for specialists
     }
-    return 2; // Formations hub for regular volunteers
+    return 1; // Service Hub (dashboard) for regular volunteers
   }
 
   Widget _navItem(
