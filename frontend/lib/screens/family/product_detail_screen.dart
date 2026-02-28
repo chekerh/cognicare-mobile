@@ -48,7 +48,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _loadReviews();
+    if (widget.externalUrl == null || widget.externalUrl!.isEmpty) {
+      _loadReviews();
+    } else {
+      _reviewsLoading = false;
+    }
   }
 
   Future<void> _loadReviews() async {

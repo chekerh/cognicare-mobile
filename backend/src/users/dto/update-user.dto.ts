@@ -1,4 +1,10 @@
-import { IsEmail, IsOptional, IsString, IsEnum } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  IsEnum,
+  IsNumber,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateUserDto {
@@ -42,4 +48,28 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   profilePic?: string;
+
+  @ApiPropertyOptional({
+    description: 'Cabinet address (for healthcare professionals in Tunisia)',
+  })
+  @IsOptional()
+  @IsString()
+  officeAddress?: string;
+
+  @ApiPropertyOptional({
+    description: 'Cabinet city (e.g. Tunis, Sfax)',
+  })
+  @IsOptional()
+  @IsString()
+  officeCity?: string;
+
+  @ApiPropertyOptional({ description: 'Cabinet latitude' })
+  @IsOptional()
+  @IsNumber()
+  officeLat?: number;
+
+  @ApiPropertyOptional({ description: 'Cabinet longitude' })
+  @IsOptional()
+  @IsNumber()
+  officeLng?: number;
 }

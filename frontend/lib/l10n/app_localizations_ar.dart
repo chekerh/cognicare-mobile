@@ -442,6 +442,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get donations => 'التبرعات';
 
   @override
+  String get mapTab => 'الخريطة';
+
+  @override
   String get experts => 'الخبراء';
 
   @override

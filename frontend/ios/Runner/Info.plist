@@ -34,6 +34,11 @@
 	<string>CogniCare needs microphone access to record voice messages in family chat.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>CogniCare a besoin d'accéder à vos photos et fichiers pour que vous puissiez téléverser vos pièces justificatives (pièce d'identité, diplômes, attestations) dans votre candidature bénévole.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

@@ -68,6 +68,7 @@ class _CogniCareAppState extends State<CogniCareApp> {
     _authProvider = AuthProvider();
     _themeProvider = ThemeProvider(initialThemeId: widget.initialThemeId);
     _router = createAppRouter(_authProvider);
+    NotificationService.setRouter(_router);
   }
 
   @override

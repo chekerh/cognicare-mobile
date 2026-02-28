@@ -33,6 +33,8 @@ import '../screens/family/expert_appointments_screen.dart';
 import '../screens/family/propose_donation_screen.dart';
 import '../screens/family/add_product_screen.dart';
 import '../screens/family/product_detail_screen.dart';
+import '../models/healthcare_cabinet.dart';
+import '../screens/family/cabinet_route_screen.dart';
 import '../screens/family/clinical_patient_record_screen.dart';
 import '../screens/family/family_notifications_screen.dart';
 import '../screens/family/cart_screen.dart';
@@ -48,6 +50,7 @@ import '../screens/family/family_volunteer_profile_screen.dart';
 import '../screens/family/child_daily_routine_screen.dart';
 import '../screens/family/child_progress_summary_screen.dart';
 import '../screens/family/create_reminder_screen.dart';
+import '../screens/family/family_calendar_screen.dart';
 import '../screens/family/medicine_verification_screen.dart';
 import '../screens/volunteer/volunteer_dashboard_screen.dart';
 import '../screens/volunteer/volunteer_shell_screen.dart';
@@ -634,6 +637,20 @@ GoRouter createAppRouter(AuthProvider authProvider) {
             builder: (context, state) => const ChildProfileSetupScreen(),
           ),
           GoRoute(
+            path: 'cabinet-route',
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>?;
+              if (extra == null || extra['cabinet'] == null) {
+                return const Scaffold(
+                  body: Center(child: Text('Cabinet non trouvé')),
+                );
+              }
+              return CabinetRouteScreen(
+                cabinet: extra['cabinet'] as HealthcareCabinet,
+              );
+            },
+          ),
+          GoRoute(
             path: 'product-detail',
             builder: (context, state) {
               final extra = state.extra as Map<String, dynamic>?;
@@ -814,6 +831,10 @@ GoRouter createAppRouter(AuthProvider authProvider) {
                 childName: extra?['childName'] as String? ?? 'Enfant',
               );
             },
+          ),
+          GoRoute(
+            path: 'calendar',
+            builder: (context, state) => const FamilyCalendarScreen(),
           ),
           GoRoute(
             path: 'medicine-verification',

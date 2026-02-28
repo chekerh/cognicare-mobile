@@ -467,6 +467,7 @@ abstract class AppLocalizations {
   String get conversationsWillAppear;
   String get community;
   String get donations;
+  String get mapTab;
   String get experts;
   String get healthcare;
   String get leCercleDuDon;

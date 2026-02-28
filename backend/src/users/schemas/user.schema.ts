@@ -131,6 +131,19 @@ export class User {
   @Prop()
   deletedAt?: Date;
 
+  /** Cabinet / bureau en Tunisie — pour la carte famille (professionnels de santé). */
+  @Prop()
+  officeAddress?: string;
+
+  @Prop()
+  officeCity?: string;
+
+  @Prop()
+  officeLat?: number;
+
+  @Prop()
+  officeLng?: number;
+
   /** Specialist AI preferences: focusPlanTypes, summaryLength, weights, etc. */
   @Prop({ type: Object })
   specialistAIPreferences?: {

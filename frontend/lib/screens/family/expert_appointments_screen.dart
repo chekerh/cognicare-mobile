@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/call_provider.dart';
+import '../../services/saved_appointments_service.dart';
 import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFFA3D9E2);
@@ -13,8 +17,10 @@ class _Appointment {
   final String imageUrl;
   final String date;
   final String time;
-  final String status; // confirmed | pending
+  final String status;
   final bool isVideo;
+  /// UserId du professionnel (pour "Rejoindre l'appel" via backend d'appels).
+  final String? expertUserId;
 
   const _Appointment({
     required this.expertName,
@@ -24,10 +30,11 @@ class _Appointment {
     required this.time,
     required this.status,
     required this.isVideo,
+    this.expertUserId,
   });
 }
 
-/// Mes Rendez-vous — liste des rendez-vous avec le spécialiste.
+/// Mes Rendez-vous — liste des rendez-vous enregistrés (après confirmation).
 class ExpertAppointmentsScreen extends StatefulWidget {
   const ExpertAppointmentsScreen({super.key});
 
@@ -38,43 +45,107 @@ class ExpertAppointmentsScreen extends StatefulWidget {
 
 class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
   int _tabIndex = 0; // 0: À venir, 1: Passés
+  List<_Appointment> _upcoming = [];
+  List<_Appointment> _past = [];
+  bool _loading = true;
 
-  static const List<_Appointment> _upcomingAppointments = [
-    _Appointment(
-      expertName: 'Dr. Sarah Williams',
-      specialty: 'Neurologue',
-      imageUrl:
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuC43_k34ZEjEBeKmimLMsQhDlyKtKikCbSQ7aGEvameMkHW9_lhGEHBKh5PecXZ4AGgRp1ZIDWsZalUY_Njx4PD6pNrSIVxi_21lI3EBvqKuteDCDIbUS6DlFeg0CaJ1azIJvvsCP2AvbqwPA7UnMHB2xq2op2GZJkooH7ycVcaJPF-eSEOyn7oZZ5BKT5SEy85YLP2UXSzmEs2iuInoL2yDD0htypvSEfAhHnUbFSUamGUWGs1OD52CQTl4ReNmVgyIexG92zYHbI',
-      date: '4 Octobre 2023',
-      time: '10:30',
-      status: 'confirmed',
+  @override
+  void initState() {
+    super.initState();
+    _loadAppointments();
+  }
+
+  Future<void> _loadAppointments() async {
+    setState(() => _loading = true);
+    final list = await SavedAppointmentsService.getSavedAppointments();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final upcoming = <_Appointment>[];
+    final past = <_Appointment>[];
+    for (final a in list) {
+      DateTime? d;
+      try {
+        final parts = a.dateIso.split('-');
+        if (parts.length == 3) {
+          d = DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
+        }
+      } catch (_) {}
+      if (d == null) continue;
+      final card = _Appointment(
+        expertName: a.title,
+        specialty: a.subtitle ?? '',
+        imageUrl: '',
+        date: a.dateFormatted,
+        time: a.time,
+        status: 'confirmed',
+        isVideo: a.isVideo,
+        expertUserId: a.expertUserId,
+      );
+      if (d.isAfter(today) || d.isAtSameMomentAs(today)) {
+        upcoming.add(card);
+      } else {
+        past.add(card);
+      }
+    }
+    upcoming.sort((a, b) => _parseDate(a.date).compareTo(_parseDate(b.date)));
+    past.sort((a, b) => _parseDate(b.date).compareTo(_parseDate(a.date)));
+    if (!mounted) return;
+    setState(() {
+      _upcoming = upcoming;
+      _past = past;
+      _loading = false;
+    });
+  }
+
+  DateTime _parseDate(String dateStr) {
+    const months = {
+      'Janvier': 1, 'Février': 2, 'Mars': 3, 'Avril': 4, 'Mai': 5, 'Juin': 6,
+      'Juillet': 7, 'Août': 8, 'Septembre': 9, 'Octobre': 10, 'Novembre': 11, 'Décembre': 12,
+    };
+    final parts = dateStr.split(' ');
+    if (parts.length != 3) return DateTime(2000, 1, 1);
+    try {
+      final d = int.parse(parts[0]);
+      final m = months[parts[1]] ?? 1;
+      final y = int.parse(parts[2]);
+      return DateTime(y, m, d);
+    } catch (_) {
+      return DateTime(2000, 1, 1);
+    }
+  }
+
+  /// Lance l'appel vers le professionnel (backend d'appels) et ouvre l'écran d'appel.
+  void _joinCall(BuildContext context, _Appointment a) {
+    final expertUserId = a.expertUserId;
+    if (expertUserId == null || expertUserId.isEmpty) return;
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final caller = auth.user;
+    if (caller == null) return;
+    final ids = [caller.id, expertUserId]..sort();
+    final channelId =
+        'call_${ids[0]}_${ids[1]}_${DateTime.now().millisecondsSinceEpoch}';
+    final callProvider = Provider.of<CallProvider>(context, listen: false);
+    callProvider.service.initiateCall(
+      targetUserId: expertUserId,
+      channelId: channelId,
       isVideo: true,
-    ),
-    _Appointment(
-      expertName: 'Dr. James Cooper',
-      specialty: 'Gériatre',
-      imageUrl:
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuB8V490nnNnAQbJ_ZEQYTq3TIqUXERI9ZOAo40nHXsELWssJJd8MxZcm77UaNRQyC0e-MhJ12MCCY0-EO5raZ0NagFWgTdXeoEvW0EIOOYgMOEDwKB01efGpAmcEh83v6rLIMiJYq2OrKRctYrcxQZkkxKLc-A9bmBzsN0JbWzRq5j7WomSLExFMNx7szIuiHvzvH9hUZZEETV7O0Yy-zUH8fk4ztwkMyn-Qw_XGBYp-JHifO77eEPuPHe4ZXQgpnACFxNZS1UN5Z0',
-      date: '12 Octobre 2023',
-      time: '15:00',
-      status: 'pending',
-      isVideo: false,
-    ),
-    _Appointment(
-      expertName: 'Dr. Emma Martin',
-      specialty: 'Psychologue',
-      imageUrl:
-          'https://lh3.googleusercontent.com/aida-public/AB6AXuAk7hpcBDDm1M48NG078ywjRIiURS5cKOtsS5GFIJD1TGLDiqjZtvOE_dPT_E6DVGrMCovnDjmdBaR-7qlIEKhvfyZYgfW0pui_q62xWLM2-kJqC4Gzy1eZsjb_pUK-m8wHqU2YdIEZQ6NwgY3IWgSgjwZRmsZVglhPkQWKIj4M96imQ0rPhCWQ4_zwOJIq_g-zr-ohIgHpvDFVjnHRCb-5xmxly9YQWSlhTYTngP445dGw_W-42zzxUhCgd3AKxTsoSDFi3JV38',
-      date: '18 Octobre 2023',
-      time: '09:15',
-      status: 'confirmed',
-      isVideo: false,
-    ),
-  ];
+      callerName: caller.fullName,
+    );
+    context.push(AppConstants.callRoute, extra: {
+      'channelId': channelId,
+      'remoteUserId': expertUserId,
+      'remoteUserName': a.expertName,
+      'remoteImageUrl': a.imageUrl,
+      'isVideo': true,
+      'isIncoming': false,
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
+    final list = _tabIndex == 0 ? _upcoming : _past;
 
     return Scaffold(
       backgroundColor: _primary,
@@ -83,18 +154,36 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
           children: [
             _buildHeader(context, loc),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildTabBar(loc),
-                    const SizedBox(height: 24),
-                    ..._upcomingAppointments
-                        .map((a) => _buildAppointmentCard(a, loc)),
-                  ],
-                ),
-              ),
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                  : SingleChildScrollView(
+                      padding: EdgeInsets.fromLTRB(16, 16, 16, 32 + bottomPadding),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildTabBar(loc),
+                          const SizedBox(height: 24),
+                          if (list.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 48),
+                              child: Center(
+                                child: Text(
+                                  _tabIndex == 0
+                                      ? 'Aucun rendez-vous à venir.\nPrenez rendez-vous puis ajoutez-le à votre calendrier.'
+                                      : 'Aucun rendez-vous passé.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.white.withOpacity(0.9),
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            ...list.map((a) => _buildAppointmentCard(a, loc)),
+                        ],
+                      ),
+                    ),
             ),
           ],
         ),
@@ -303,7 +392,11 @@ class _ExpertAppointmentsScreenState extends State<ExpertAppointmentsScreen> {
                       : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(12),
                   child: InkWell(
-                    onTap: () {},
+                    onTap: (a.isVideo && isConfirmed &&
+                            (a.expertUserId != null &&
+                                a.expertUserId!.isNotEmpty))
+                        ? () => _joinCall(context, a)
+                        : null,
                     borderRadius: BorderRadius.circular(12),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),

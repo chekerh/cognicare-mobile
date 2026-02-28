@@ -306,7 +306,12 @@ class _ChildProgressSummaryScreenState
         onRefresh: _load,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.fromLTRB(
+            20 + MediaQuery.paddingOf(context).left,
+            20 + MediaQuery.paddingOf(context).top,
+            20 + MediaQuery.paddingOf(context).right,
+            20 + MediaQuery.paddingOf(context).bottom,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -885,36 +890,46 @@ class _ChildProgressSummaryScreenState
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sur les 14 derniers jours',
-                      style: TextStyle(fontSize: 12, color: _slate500),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$completedTasks tâches complétées sur $totalTasks',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: _slate800,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Sur les 14 derniers jours',
+                        style: TextStyle(fontSize: 12, color: _slate500),
                       ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: regularityColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$completedTasks tâches complétées sur $totalTasks',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: _slate800,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    regularityText,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    color: regularityColor.withOpacity(0.8),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: regularityColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      regularityText,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: regularityColor.withOpacity(0.8),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),

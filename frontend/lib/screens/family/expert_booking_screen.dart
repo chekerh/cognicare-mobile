@@ -16,12 +16,15 @@ class ExpertBookingScreen extends StatefulWidget {
     required this.expertSpecialty,
     required this.expertLocation,
     required this.expertImageUrl,
+    this.expertId,
   });
 
   final String expertName;
   final String expertSpecialty;
   final String expertLocation;
   final String expertImageUrl;
+  /// UserId du professionnel (pour "Rejoindre l'appel" depuis Mes Rendez-vous).
+  final String? expertId;
 
   static ExpertBookingScreen fromState(GoRouterState state) {
     final e = (state.extra as Map<String, dynamic>?) ?? {};
@@ -30,6 +33,7 @@ class ExpertBookingScreen extends StatefulWidget {
       expertSpecialty: e['specialization'] as String? ?? 'Pédopsychiatre',
       expertLocation: e['location'] as String? ?? 'Downtown Medical Center',
       expertImageUrl: e['imageUrl'] as String? ?? '',
+      expertId: e['expertId'] as String?,
     );
   }
 
@@ -68,12 +72,16 @@ class _ExpertBookingScreenState extends State<ExpertBookingScreen> {
   void _confirmAppointment() {
     final time = _timeSlots[_selectedTimeIndex];
     final mode = _consultationType == 0 ? 'video' : 'in_person';
+    final dateIso =
+        '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
     context.push(AppConstants.familyExpertBookingConfirmationRoute, extra: {
+      'expertId': widget.expertId,
       'expertName': widget.expertName,
       'expertSpecialty': widget.expertSpecialty,
       'expertImageUrl': widget.expertImageUrl,
       'date':
           '${_selectedDate.day} ${_monthNames[_selectedDate.month - 1]} ${_selectedDate.year}',
+      'dateIso': dateIso,
       'time': time,
       'mode': mode,
     });

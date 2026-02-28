@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:go_router/go_router.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import '../models/task_reminder.dart';
+import '../utils/constants.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
 
+  static GoRouter? _router;
+
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
+
+  /// À appeler après la création du routeur (ex. dans CogniCareApp) pour que le tap sur une notif ouvre l'écran cible.
+  static void setRouter(GoRouter router) {
+    _router = router;
+  }
 
   Future<void> initialize() async {
     tz.initializeTimeZones();
@@ -33,6 +42,13 @@ class NotificationService {
 
     await _notificationsPlugin.initialize(
       initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        if (response.payload == 'appointment' && _router != null) {
+          Future.microtask(() {
+            _router!.go(AppConstants.familyExpertAppointmentsRoute);
+          });
+        }
+      },
     );
   }
 
@@ -170,5 +186,65 @@ class NotificationService {
 
   Future<void> cancelAll() async {
     await _notificationsPlugin.cancelAll();
+  }
+
+  /// Rappel de rendez-vous : notif à l'heure du RDV (ou 10 min avant). Au tap → écran Mes Rendez-vous.
+  static const int _appointmentIdBase = 500;
+
+  Future<void> scheduleAppointmentReminder({
+    required String dateIso,
+    required String time,
+    required String title,
+    String? subtitle,
+  }) async {
+    DateTime? scheduledAt;
+    try {
+      final parts = dateIso.split('-');
+      if (parts.length == 3) {
+        final y = int.parse(parts[0]);
+        final m = int.parse(parts[1]);
+        final d = int.parse(parts[2]);
+        final timeParts = time.split(':');
+        final hour = timeParts.isNotEmpty ? int.parse(timeParts[0]) : 9;
+        final minute = timeParts.length > 1 ? int.parse(timeParts[1]) : 0;
+        scheduledAt = DateTime(y, m, d, hour, minute);
+      }
+    } catch (_) {
+      return;
+    }
+    if (scheduledAt == null) return;
+    // 10 minutes before
+    scheduledAt = scheduledAt.subtract(const Duration(minutes: 10));
+    if (scheduledAt.isBefore(DateTime.now())) return;
+
+    final id = _appointmentIdBase +
+        (dateIso.hashCode + time.hashCode + title.hashCode).abs() % 50000;
+    final body = subtitle != null && subtitle.isNotEmpty
+        ? '$subtitle à $time'
+        : 'À $time';
+
+    await _notificationsPlugin.zonedSchedule(
+      id,
+      'Rappel : $title',
+      body,
+      tz.TZDateTime.from(scheduledAt, tz.local),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'appointment_reminder_channel',
+          'Rappels de rendez-vous',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      payload: 'appointment',
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
   }
 }

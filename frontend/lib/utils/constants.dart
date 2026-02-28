@@ -53,6 +53,17 @@ class AppConstants {
   static const String marketplaceUploadImageEndpoint =
       '/api/v1/marketplace/products/upload-image';
 
+  // Integrations (e-commerce scraped catalogs: Books to Scrape, etc.)
+  static const String integrationsWebsitesEndpoint =
+      '/api/v1/integrations/websites';
+  static String integrationsCatalogEndpoint(String slug) =>
+      '/api/v1/integrations/websites/$slug/catalog';
+  static String integrationsProductEndpoint(String slug, String externalId) =>
+      '/api/v1/integrations/websites/$slug/products/$externalId';
+
+  // Healthcare cabinets (carte Tunisie — cabinets réels hors app)
+  static const String healthcareCabinetsEndpoint = '/api/v1/healthcare-cabinets';
+
   // Donations (Le Cercle du Don)
   static const String donationsEndpoint = '/api/v1/donations';
   static const String donationsUploadImageEndpoint =
@@ -244,6 +255,7 @@ class AppConstants {
   static const String familyAddProductRoute = '/family/add-product';
   static const String familyPatientRecordRoute = '/family/patient-record';
   static const String familyNotificationsRoute = '/family/notifications';
+  static const String familyCabinetRouteRoute = '/family/cabinet-route';
   static const String familyExpertBookingRoute = '/family/expert-booking';
   static const String familyExpertBookingConfirmationRoute =
       '/family/expert-booking-confirmation';
@@ -285,6 +297,7 @@ class AppConstants {
   static const String familyChildProgressSummaryRoute =
       '/family/child-progress-summary';
   static const String familyCreateReminderRoute = '/family/create-reminder';
+  static const String familyCalendarRoute = '/family/calendar';
   static const String familyMedicineVerificationRoute =
       '/family/medicine-verification';
   static const String familyReminderNotificationRoute =
