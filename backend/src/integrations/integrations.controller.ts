@@ -73,7 +73,7 @@ export class IntegrationsController {
   async submitOrder(
     @Param('slug') slug: string,
     @Body() body: SubmitOrderDto,
-  ): Promise<{ orderId: string; status: string; message: string }> {
+  ): Promise<{ orderId: string; status: string; sentToSiteAt: Date | null; message: string }> {
     return this.integrationsService.submitOrder(slug, {
       externalId: body.externalId,
       quantity: body.quantity,

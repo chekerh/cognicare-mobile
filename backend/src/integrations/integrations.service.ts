@@ -257,7 +257,7 @@ export class IntegrationsService implements OnModuleInit {
       productName?: string;
       formData: Record<string, string>;
     },
-  ): Promise<{ orderId: string; status: string; message: string }> {
+  ): Promise<{ orderId: string; status: string; sentToSiteAt: Date | null; message: string }> {
     const website = await this.getWebsite(websiteSlug);
     const websiteId = (website as unknown as { _id: Types.ObjectId })._id;
 
@@ -273,21 +273,31 @@ export class IntegrationsService implements OnModuleInit {
     try {
       if (websiteSlug === BOOKS_TO_SCRAPE_SLUG) {
         await this.sendOrderToBooksToScrape(order, payload);
+        // Site démo : pas d’envoi réel, on ne marque pas comme envoyé.
+      } else {
+        // Pour un vrai site (ex. Bioherbs) : envoyer ici puis marquer envoyé quand implémenté.
+        // await this.sendOrderToExternalSite(order, payload);
+        // order.sentToSiteAt = new Date();
+        // order.status = 'sent';
+        // await order.save();
       }
-      order.sentToSiteAt = new Date();
-      order.status = 'sent';
-      await order.save();
     } catch (e) {
       this.logger.warn(
         `Order ${order._id} saved but send to site failed: ${(e as Error).message}`,
       );
     }
 
+    const sentAt = order.sentToSiteAt ?? null;
+    const message =
+      order.status === 'sent'
+        ? 'Commande enregistrée et envoyée au site. Le site vous contactera pour la livraison.'
+        : 'Commande enregistrée. Elle n’a pas encore été transmise au site (en attente ou erreur).';
+
     return {
       orderId: (order._id as Types.ObjectId).toString(),
       status: order.status,
-      message:
-        'Commande enregistrée. Le site vous contactera pour la livraison.',
+      sentToSiteAt: sentAt,
+      message,
     };
   }
 

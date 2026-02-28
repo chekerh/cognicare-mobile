@@ -105,12 +105,23 @@ class _IntegrationOrderFormScreenState extends State<IntegrationOrderFormScreen>
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final message =
             data['message'] as String? ?? 'Commande enregistrée avec succès.';
+        final status = data['status'] as String? ?? '';
+        final sentToSiteAt = data['sentToSiteAt'] != null
+            ? DateTime.tryParse(data['sentToSiteAt'] as String)
+            : null;
+        String detail = message;
+        if (status == 'sent' && sentToSiteAt != null) {
+          final dateStr = '${sentToSiteAt.day}/${sentToSiteAt.month}/${sentToSiteAt.year} à ${sentToSiteAt.hour}h${sentToSiteAt.minute.toString().padLeft(2, '0')}';
+          detail = '$message\n\nEnvoyée au site le $dateStr.';
+        } else if (status == 'received') {
+          detail = '$message\n\n(Vérifier plus tard si le site a bien reçu la commande.)';
+        }
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
             title: const Text('Commande enregistrée'),
-            content: Text(message),
+            content: Text(detail),
             actions: [
               TextButton(
                 onPressed: () {
