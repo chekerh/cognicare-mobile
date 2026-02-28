@@ -36,11 +36,12 @@ export class TranscriptionService implements OnModuleInit {
         try {
             const connection: LiveClient = this.deepgram.listen.live({
                 model: 'nova-2',
-                language: 'fr',
+                language: 'multi', // Arabe, anglais, français et autres (codeswitching)
                 smart_format: true,
                 interim_results: true,
                 encoding: 'linear16',
                 sample_rate: 16000,
+                endpointing: 100, // Recommandé pour le changement de langue en direct
             });
 
             connection.on(LiveTranscriptionEvents.Transcript, (data) => {

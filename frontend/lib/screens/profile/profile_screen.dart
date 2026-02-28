@@ -458,126 +458,116 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: _profileBackground,
       body: SafeArea(
         top: false,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Header bloc bleu jusqu'en haut (pas d'espace blanc)
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.fromLTRB(24, topPadding + 24, 24, 32),
-                decoration: BoxDecoration(
-                  color: _profilePrimary,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(48),
-                    bottomRight: Radius.circular(48),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+        child: Column(
+          children: [
+            // Header bleu fixe en haut (ne défile pas)
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(24, topPadding + 24, 24, 32),
+              decoration: BoxDecoration(
+                color: _profilePrimary,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(48),
+                  bottomRight: Radius.circular(48),
                 ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const SizedBox(width: 40), // Espace vide à gauche
-                        Column(
-                          children: [
-                            Text(
-                              loc.monProfil,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              loc.familyCaregiver,
-                              style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 13),
-                            ),
-                          ],
-                        ),
-                        _headerButton(
-                          Icons.edit,
-                          onTap: _showAccountSettingsDrawer,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    GestureDetector(
-                      onTap: _pickProfilePicture,
-                      child: Stack(
-                        alignment: Alignment.bottomRight,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const SizedBox(width: 40), // Espace vide à gauche
+                      Column(
                         children: [
-                          Container(
-                            width: 128,
-                            height: 128,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 4),
-                              boxShadow: [
-                                BoxShadow(
-                                    color: Colors.black.withOpacity(0.15),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4)),
-                              ],
-                            ),
-                            child: ClipOval(
-                              child: _buildProfileImage(user),
-                            ),
+                          Text(
+                            loc.monProfil,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600),
                           ),
-                          Positioned(
-                            bottom: 4,
-                            right: 4,
-                            child: Container(
-                              padding: const EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                color: _profilePrimary,
-                                shape: BoxShape.circle,
-                                border:
-                                    Border.all(color: Colors.white, width: 2),
-                              ),
-                              child: const Icon(Icons.camera_alt,
-                                  color: Colors.white, size: 14),
-                            ),
+                          const SizedBox(height: 2),
+                          Text(
+                            loc.familyCaregiver,
+                            style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 13),
                           ),
                         ],
                       ),
+                      _headerButton(
+                        Icons.edit,
+                        onTap: _showAccountSettingsDrawer,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  GestureDetector(
+                    onTap: _pickProfilePicture,
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        Container(
+                          width: 128,
+                          height: 128,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 4),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4)),
+                            ],
+                          ),
+                          child: ClipOval(
+                            child: _buildProfileImage(user),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 4,
+                          right: 4,
+                          child: Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: _profilePrimary,
+                              shape: BoxShape.circle,
+                              border:
+                                  Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(Icons.camera_alt,
+                                color: Colors.white, size: 14),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      user?.fullName ?? 'User',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      user?.email ?? '',
-                      style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    user?.fullName ?? 'User',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
+            ),
 
-              // Contenu sous le header (-mt-12 style)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            // Contenu scrollable (Ma Famille, Paramètres, etc.)
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 8),
-
                     // Ma Famille
                     _buildMaFamilleCard(loc),
 
@@ -659,8 +649,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
