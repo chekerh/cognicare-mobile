@@ -14,6 +14,9 @@ export interface BookProduct {
   productUrl: string;
 }
 
+/** Produit depuis la liste (sans description, imageUrls optionnel). */
+type BookProductFromList = Omit<BookProduct, 'description'> & { imageUrls?: string[] };
+
 export interface BookCategory {
   name: string;
   slug: string;
@@ -48,11 +51,11 @@ export async function fetchBooksCategories(): Promise<BookCategory[]> {
  */
 export async function fetchBooksProductList(
   categoryUrl?: string,
-): Promise<{ products: Array<Omit<BookProduct, 'description'> & { imageUrls?: string[] }>; nextPageUrl?: string }> {
+): Promise<{ products: BookProductFromList[]; nextPageUrl?: string }> {
   const url = categoryUrl ?? `${BASE}/index.html`;
   const { data } = await axios.get<string>(url, { timeout: 15000 });
   const $ = cheerio.load(data);
-  const products: Array<Omit<BookProduct, 'description'> & { imageUrls?: string[] }> = [];
+  const products: BookProductFromList[] = [];
 
   $('article.product_pod').each((_, el) => {
     const article = $(el);
@@ -129,8 +132,8 @@ export async function fetchBooksProductDetail(productUrl: string): Promise<BookP
  */
 export async function fetchAllBooksProducts(
   categoryUrl?: string,
-): Promise<Array<Omit<BookProduct, 'description'> & { imageUrls?: string[] }>> {
-  const all: Array<Omit<BookProduct, 'description' | 'imageUrls'>> = [];
+): Promise<BookProductFromList[]> {
+  const all: BookProductFromList[] = [];
   let url: string | undefined = categoryUrl;
   do {
     const result = await fetchBooksProductList(url);
