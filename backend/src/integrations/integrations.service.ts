@@ -63,6 +63,7 @@ export class IntegrationsService implements OnModuleInit {
     websiteSlug: string,
     categorySlug?: string,
     page?: number,
+    forceRefresh?: boolean,
   ): Promise<{
     categories: Array<{ name: string; slug: string; url: string }>;
     products: Array<{
@@ -85,6 +86,10 @@ export class IntegrationsService implements OnModuleInit {
     let categories = await fetchBooksCategories();
     const limit = 20;
     const skip = ((page ?? 1) - 1) * limit;
+
+    if ((page ?? 1) === 1 && forceRefresh) {
+      await this.productModel.deleteMany({ websiteId }).exec();
+    }
 
     let products = await this.productModel
       .find({ websiteId })
@@ -144,6 +149,7 @@ export class IntegrationsService implements OnModuleInit {
               availability: item.availability,
               category: item.category,
               productUrl: item.productUrl,
+              imageUrls: item.imageUrls ?? [],
               lastScrapedAt: new Date(),
             },
           },

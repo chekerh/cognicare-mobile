@@ -34,6 +34,11 @@
 	<string>CogniCare needs microphone access to record voice messages in family chat.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>CogniCare needs access to your photos to attach images to your community posts.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

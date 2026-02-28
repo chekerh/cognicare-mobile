@@ -53,6 +53,14 @@ class AppConstants {
   static const String marketplaceUploadImageEndpoint =
       '/api/v1/marketplace/products/upload-image';
 
+  // Integrations (e-commerce scraped catalogs: Books to Scrape, etc.)
+  static const String integrationsWebsitesEndpoint =
+      '/api/v1/integrations/websites';
+  static String integrationsCatalogEndpoint(String slug) =>
+      '/api/v1/integrations/websites/$slug/catalog';
+  static String integrationsProductEndpoint(String slug, String externalId) =>
+      '/api/v1/integrations/websites/$slug/products/$externalId';
+
   // Healthcare cabinets (carte Tunisie — cabinets réels hors app)
   static const String healthcareCabinetsEndpoint = '/api/v1/healthcare-cabinets';
 

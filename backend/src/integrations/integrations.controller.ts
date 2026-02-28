@@ -33,9 +33,16 @@ export class IntegrationsController {
     @Param('slug') slug: string,
     @Query('category') categorySlug?: string,
     @Query('page') page?: string,
+    @Query('refresh') refresh?: string,
   ) {
     const pageNum = page ? parseInt(page, 10) : 1;
-    return this.integrationsService.getCatalog(slug, categorySlug, pageNum);
+    const forceRefresh = refresh === '1' || refresh === 'true';
+    return this.integrationsService.getCatalog(
+      slug,
+      categorySlug,
+      pageNum,
+      forceRefresh,
+    );
   }
 
   @Public()

@@ -48,12 +48,11 @@ export async function fetchBooksCategories(): Promise<BookCategory[]> {
  */
 export async function fetchBooksProductList(
   categoryUrl?: string,
-): Promise<{ products: Array<Omit<BookProduct, 'description' | 'imageUrls'>>; nextPageUrl?: string }> {
+): Promise<{ products: Array<Omit<BookProduct, 'description'> & { imageUrls?: string[] }>; nextPageUrl?: string }> {
   const url = categoryUrl ?? `${BASE}/index.html`;
   const { data } = await axios.get<string>(url, { timeout: 15000 });
   const $ = cheerio.load(data);
-  const products: Array<Omit<BookProduct, 'description' | 'imageUrls'>> = [];
-  const baseUrl = new URL(url).origin;
+  const products: Array<Omit<BookProduct, 'description'> & { imageUrls?: string[] }> = [];
 
   $('article.product_pod').each((_, el) => {
     const article = $(el);
@@ -68,6 +67,8 @@ export async function fetchBooksProductList(
     const price = article.find('.price_color').text().trim();
     const availabilityText = article.find('.availability').text().trim().toLowerCase();
     const availability = availabilityText.includes('in stock');
+    const imgSrc = article.find('.image_container img').attr('src');
+    const imageUrls = imgSrc ? [imgSrc.startsWith('http') ? imgSrc : new URL(imgSrc, url).href] : [];
 
     if (name && externalId) {
       products.push({
@@ -77,6 +78,7 @@ export async function fetchBooksProductList(
         availability,
         category: '',
         productUrl: href,
+        imageUrls,
       });
     }
   });
@@ -127,7 +129,7 @@ export async function fetchBooksProductDetail(productUrl: string): Promise<BookP
  */
 export async function fetchAllBooksProducts(
   categoryUrl?: string,
-): Promise<Array<Omit<BookProduct, 'description' | 'imageUrls'>>> {
+): Promise<Array<Omit<BookProduct, 'description'> & { imageUrls?: string[] }>> {
   const all: Array<Omit<BookProduct, 'description' | 'imageUrls'>> = [];
   let url: string | undefined = categoryUrl;
   do {
