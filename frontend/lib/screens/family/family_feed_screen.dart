@@ -17,6 +17,7 @@ import '../../services/healthcare_service.dart';
 import '../../services/marketplace_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
+import 'family_healthcare_map_screen.dart';
 
 // Couleurs du design HTML Family Community Feed
 const Color _feedPrimary = Color(0xFFA3D9E2);
@@ -50,7 +51,7 @@ class FamilyFeedScreen extends StatefulWidget {
 }
 
 class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
-  int _selectedTab = 0; // 0: Community, 1: Donations, 2: Healthcare
+  int _selectedTab = 0; // 0: Community, 1: Donations, 2: Map
   int _donationsCategoryIndex =
       0; // 0: Tout, 1: Mobilité, 2: Jouets, 3: Vêtements
   late final Future<List<MarketplaceProduct>> _marketplaceProductsFuture;
@@ -73,7 +74,6 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   void initState() {
     super.initState();
     _marketplaceProductsFuture = MarketplaceService().getProducts(limit: 6);
-    _loadHealthcareUsers();
     _loadDonations();
   }
 
@@ -179,7 +179,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                         context, feedProvider, bottomPadding)
                     : _selectedTab == 1
                         ? _buildDonationsContent(bottomPadding)
-                        : _buildHealthcareContent(bottomPadding),
+                        : FamilyHealthcareMapScreen(),
               ),
             ],
           );
@@ -274,7 +274,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         children: [
           _tab(loc.community, 0),
           _tab(loc.donations, 1),
-          _tab(loc.healthcare, 2),
+          _tab(loc.mapTab, 2),
         ],
       ),
     );

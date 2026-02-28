@@ -6,10 +6,12 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/gamification_provider.dart';
+import '../../models/user.dart' as app_user;
 import '../../services/availability_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
 import '../../services/children_service.dart';
+import '../../services/healthcare_service.dart';
 import '../../utils/constants.dart';
 import 'child_profile_setup_screen.dart';
 
@@ -61,6 +63,10 @@ class _FamilyMemberDashboardScreenState
   bool _loadingVolunteers = false;
   String? _volunteerError;
 
+  List<app_user.User>? _healthcareUsers;
+  bool _healthcareLoading = false;
+  String? _healthcareError;
+
   @override
   void initState() {
     super.initState();
@@ -70,6 +76,45 @@ class _FamilyMemberDashboardScreenState
       context.read<GamificationProvider>().initialize();
     });
     _loadVolunteerAvailabilities();
+    _loadHealthcareUsers();
+  }
+
+  Future<void> _loadHealthcareUsers() async {
+    setState(() {
+      _healthcareLoading = true;
+      _healthcareError = null;
+    });
+    try {
+      final list = await HealthcareService().getHealthcareProfessionals();
+      if (!mounted) return;
+      setState(() {
+        _healthcareUsers = list;
+        _healthcareLoading = false;
+        _healthcareError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _healthcareUsers = null;
+        _healthcareLoading = false;
+        _healthcareError = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  }
+
+  static String _healthcareRoleToLabel(String role) {
+    switch (role) {
+      case 'doctor':
+        return 'Médecin';
+      case 'psychologist':
+        return 'Pédopsychiatre / Psychologue';
+      case 'speech_therapist':
+        return 'Orthophoniste';
+      case 'occupational_therapist':
+        return 'Ergothérapeute';
+      default:
+        return role;
+    }
   }
 
   Future<void> _loadVolunteerAvailabilities() async {
@@ -213,6 +258,8 @@ class _FamilyMemberDashboardScreenState
                       _buildTwoColumnCards(context),
                       const SizedBox(height: 24),
                       _buildVolunteersSection(context),
+                      const SizedBox(height: 24),
+                      _buildHealthcareSection(context),
                       const SizedBox(height: 24),
                       _buildRecentActivityCard(context),
                       const SizedBox(height: 100),
@@ -633,95 +680,52 @@ class _FamilyMemberDashboardScreenState
   }
 
   Widget _buildTwoColumnCards(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _Card(
-                child: InkWell(
-                  onTap: () => context.go(AppConstants.familyFamiliesRoute),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: const BoxDecoration(
-                            color: _green100,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.forum_rounded,
-                              color: _green600, size: 22),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Chat Famille',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: _slate800,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          '2 nouveaux messages',
-                          style: TextStyle(fontSize: 12, color: _slate500),
-                        ),
-                      ],
+    return _Card(
+      child: InkWell(
+        onTap: () => context.go(AppConstants.familyFamiliesRoute),
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: _green100,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.forum_rounded,
+                    color: _green600, size: 22),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Chat Famille',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: _slate800,
+                      ),
                     ),
-                  ),
+                    SizedBox(height: 4),
+                    Text(
+                      '2 nouveaux messages',
+                      style: TextStyle(fontSize: 12, color: _slate500),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _Card(
-                child: InkWell(
-                  onTap: () =>
-                      context.push(AppConstants.familyPatientRecordRoute),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: _accentColor.withOpacity(0.12),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.medical_services_rounded,
-                              color: _accentColor, size: 22),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Suivi Médical',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: _slate800,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'RDV demain 10h',
-                          style: TextStyle(fontSize: 12, color: _slate500),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+              const Icon(Icons.arrow_forward_ios_rounded,
+                  color: _primary, size: 18),
+            ],
+          ),
         ),
-      ],
+      ),
     );
   }
 
@@ -780,6 +784,236 @@ class _FamilyMemberDashboardScreenState
                 child: _buildVolunteerCard(context, v),
               )),
       ],
+    );
+  }
+
+  Widget _buildHealthcareSection(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Text(
+            loc.healthcareProfessionalsLabel,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: _slate800,
+            ),
+          ),
+        ),
+        if (_healthcareLoading)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (_healthcareError != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Column(
+                children: [
+                  Text(_healthcareError!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: _slate500)),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: _loadHealthcareUsers,
+                    child: const Text('Réessayer'),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else if (_healthcareUsers == null || _healthcareUsers!.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Text(
+                'Aucun professionnel de santé pour le moment.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: _slate500),
+              ),
+            ),
+          )
+        else
+          ..._healthcareUsers!.map((user) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildHealthcareCard(context, user),
+              )),
+      ],
+    );
+  }
+
+  String _healthcareImageUrl(String? profilePic) {
+    if (profilePic == null || profilePic.isEmpty) return '';
+    if (profilePic.startsWith('http')) return profilePic;
+    final base = AppConstants.baseUrl.endsWith('/')
+        ? AppConstants.baseUrl.substring(0, AppConstants.baseUrl.length - 1)
+        : AppConstants.baseUrl;
+    return profilePic.startsWith('/') ? '$base$profilePic' : '$base/$profilePic';
+  }
+
+  Widget _buildHealthcareCard(BuildContext context, app_user.User user) {
+    final imageUrl = _healthcareImageUrl(user.profilePic);
+    final specialization = _healthcareRoleToLabel(user.role);
+    return _Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: imageUrl.isEmpty
+                      ? Container(
+                          width: 56,
+                          height: 56,
+                          decoration: const BoxDecoration(
+                            color: _primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.person_rounded,
+                              color: Colors.white, size: 28),
+                        )
+                      : Image.network(
+                          imageUrl,
+                          width: 56,
+                          height: 56,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 56,
+                            height: 56,
+                            decoration: const BoxDecoration(
+                              color: _primary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.person_rounded,
+                                color: Colors.white, size: 28),
+                          ),
+                        ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              user.fullName,
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: _slate800,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.verified_rounded,
+                                  size: 16, color: _accentColor),
+                              SizedBox(width: 4),
+                              Text(
+                                'VÉRIFIÉ',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: _accentColor,
+                                    letterSpacing: 0.5),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        specialization,
+                        style: const TextStyle(fontSize: 13, color: _slate500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on_outlined,
+                              size: 14, color: _slate400),
+                          const SizedBox(width: 4),
+                          const Expanded(
+                            child: Text(
+                              'CogniCare',
+                              style: TextStyle(fontSize: 12, color: _slate500),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      context.push(AppConstants.familyExpertBookingRoute,
+                          extra: {
+                            'name': user.fullName,
+                            'specialization': specialization,
+                            'location': 'CogniCare',
+                            'imageUrl': imageUrl,
+                          });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _accentColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                    child: Text(AppLocalizations.of(context)!.bookConsultation),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                OutlinedButton(
+                  onPressed: () {
+                    context.push(
+                      Uri(
+                        path: AppConstants.familyPrivateChatRoute,
+                        queryParameters: <String, String>{
+                          'id': user.id,
+                          'name': user.fullName,
+                          if (imageUrl.isNotEmpty) 'imageUrl': imageUrl,
+                        },
+                      ).toString(),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _slate800,
+                    side: const BorderSide(color: _slate300),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text(AppLocalizations.of(context)!.messageLabel),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 

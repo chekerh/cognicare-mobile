@@ -53,6 +53,9 @@ class AppConstants {
   static const String marketplaceUploadImageEndpoint =
       '/api/v1/marketplace/products/upload-image';
 
+  // Healthcare cabinets (carte Tunisie — cabinets réels hors app)
+  static const String healthcareCabinetsEndpoint = '/api/v1/healthcare-cabinets';
+
   // Donations (Le Cercle du Don)
   static const String donationsEndpoint = '/api/v1/donations';
   static const String donationsUploadImageEndpoint =

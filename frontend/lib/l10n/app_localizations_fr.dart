@@ -439,6 +439,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get donations => 'Dons';
 
   @override
+  String get mapTab => 'Carte';
+
+  @override
   String get experts => 'Experts';
 
   @override
