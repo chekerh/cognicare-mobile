@@ -60,6 +60,10 @@ class AppConstants {
       '/api/v1/integrations/websites/$slug/catalog';
   static String integrationsProductEndpoint(String slug, String externalId) =>
       '/api/v1/integrations/websites/$slug/products/$externalId';
+  static String integrationsOrdersEndpoint(String slug) =>
+      '/api/v1/integrations/websites/$slug/orders';
+
+  static const String familyIntegrationOrderRoute = '/family/integration-order';
 
   // Healthcare cabinets (carte Tunisie — cabinets réels hors app)
   static const String healthcareCabinetsEndpoint = '/api/v1/healthcare-cabinets';

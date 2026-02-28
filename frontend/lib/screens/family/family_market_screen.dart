@@ -25,6 +25,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
   /// Uniquement les produits scrapés (catalogue intégré, ex. Books to Scrape).
   List<MarketplaceProduct> _integrationProducts = [];
   String _integrationSectionTitle = '';
+  String _integrationWebsiteSlug = '';
   bool _integrationLoading = false;
 
   @override
@@ -62,6 +63,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
       }).toList();
       setState(() {
         _integrationSectionTitle = website.name;
+        _integrationWebsiteSlug = slug;
         _integrationProducts = list;
         _integrationLoading = false;
       });
@@ -198,6 +200,15 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
   }
 
   void _openProductDetail(MarketplaceProduct product) {
+    if (_integrationWebsiteSlug.isNotEmpty && product.externalUrl != null) {
+      context.push(AppConstants.familyIntegrationOrderRoute, extra: {
+        'websiteSlug': _integrationWebsiteSlug,
+        'externalId': product.id,
+        'productName': product.title,
+        'price': product.price,
+      });
+      return;
+    }
     final badgeColor = _badgeToColor(product.badge);
     context.push(
       AppConstants.familyProductDetailRoute,

@@ -33,6 +33,7 @@ import '../screens/family/expert_appointments_screen.dart';
 import '../screens/family/propose_donation_screen.dart';
 import '../screens/family/add_product_screen.dart';
 import '../screens/family/product_detail_screen.dart';
+import '../screens/family/integration_order_form_screen.dart';
 import '../models/healthcare_cabinet.dart';
 import '../screens/family/cabinet_route_screen.dart';
 import '../screens/family/clinical_patient_record_screen.dart';
@@ -648,6 +649,12 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               return CabinetRouteScreen(
                 cabinet: extra['cabinet'] as HealthcareCabinet,
               );
+            },
+          ),
+          GoRoute(
+            path: 'integration-order',
+            builder: (context, state) {
+              return IntegrationOrderFormScreen.fromState(state);
             },
           ),
           GoRoute(

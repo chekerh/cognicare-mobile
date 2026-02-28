@@ -8,6 +8,10 @@ import {
   ExternalProduct,
   ExternalProductSchema,
 } from './schemas/external-product.schema';
+import {
+  IntegrationOrder,
+  IntegrationOrderSchema,
+} from './schemas/integration-order.schema';
 import { IntegrationsService } from './integrations.service';
 import { IntegrationsController } from './integrations.controller';
 
@@ -16,6 +20,7 @@ import { IntegrationsController } from './integrations.controller';
     MongooseModule.forFeature([
       { name: ExternalWebsite.name, schema: ExternalWebsiteSchema },
       { name: ExternalProduct.name, schema: ExternalProductSchema },
+      { name: IntegrationOrder.name, schema: IntegrationOrderSchema },
     ]),
   ],
   controllers: [IntegrationsController],
