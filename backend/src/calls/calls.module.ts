@@ -24,4 +24,4 @@ import { ConversationsModule } from '../conversations/conversations.module';
   providers: [CallsService, CallsGateway, TranscriptionService],
   exports: [CallsService, CallsGateway, TranscriptionService],
 })
-export class CallsModule { }
+export class CallsModule {}

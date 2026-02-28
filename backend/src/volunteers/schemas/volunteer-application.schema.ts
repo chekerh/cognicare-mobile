@@ -35,6 +35,13 @@ export class VolunteerApplication {
   @Prop({ default: false })
   denialNotificationSent?: boolean;
 
+  /** Set when volunteer completes required training and passes the certification test */
+  @Prop({ default: false })
+  trainingCertified?: boolean;
+
+  @Prop()
+  trainingCertifiedAt?: Date;
+
   createdAt?: Date;
   updatedAt?: Date;
 }

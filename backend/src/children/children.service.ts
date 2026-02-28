@@ -8,7 +8,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Child, ChildDocument } from './schemas/child.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
-import { Organization, OrganizationDocument } from '../organization/schemas/organization.schema';
+import {
+  Organization,
+  OrganizationDocument,
+} from '../organization/schemas/organization.schema';
 import { OrganizationService } from '../organization/organization.service';
 import { AddChildDto } from './dto/add-child.dto';
 import { CreateFamilyDto } from '../organization/dto/create-family.dto';
@@ -45,7 +48,7 @@ export class ChildrenService {
     @InjectModel(Organization.name)
     private organizationModel: Model<OrganizationDocument>,
     private organizationService: OrganizationService,
-  ) { }
+  ) {}
 
   /**
    * Get children for a family. Secured: only the family (parent) or org leader can list.

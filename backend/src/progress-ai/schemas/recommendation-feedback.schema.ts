@@ -40,8 +40,9 @@ export class RecommendationFeedback {
   updatedAt?: Date;
 }
 
-export const RecommendationFeedbackSchema =
-  SchemaFactory.createForClass(RecommendationFeedback);
+export const RecommendationFeedbackSchema = SchemaFactory.createForClass(
+  RecommendationFeedback,
+);
 
 RecommendationFeedbackSchema.index({ childId: 1, recommendationId: 1 });
 RecommendationFeedbackSchema.index({ specialistId: 1 });

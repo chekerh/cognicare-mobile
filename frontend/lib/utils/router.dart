@@ -62,6 +62,7 @@ import '../screens/volunteer/volunteer_profile_screen.dart';
 import '../screens/volunteer/volunteer_application_screen.dart';
 import '../screens/volunteer/volunteer_courses_screen.dart';
 import '../screens/volunteer/volunteer_formations_hub_screen.dart';
+import '../screens/volunteer/volunteer_certification_test_screen.dart';
 import '../screens/volunteer/volunteer_mission_report_screen.dart';
 import '../screens/volunteer/volunteer_offer_help_screen.dart';
 import '../screens/volunteer/volunteer_new_availability_screen.dart';
@@ -302,6 +303,11 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           GoRoute(
             path: 'application',
             builder: (context, state) => const VolunteerApplicationScreen(),
+          ),
+          GoRoute(
+            path: 'certification-test',
+            builder: (context, state) =>
+                const VolunteerCertificationTestScreen(),
           ),
           GoRoute(
             path: 'courses',

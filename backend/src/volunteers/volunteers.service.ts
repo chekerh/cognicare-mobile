@@ -6,8 +6,11 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { VolunteerApplication } from './schemas/volunteer-application.schema';
+import { VolunteerTask } from './schemas/volunteer-task.schema';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { MailService } from '../mail/mail.service';
+import { CoursesService } from '../courses/courses.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { ReviewApplicationDto } from './dto/review-application.dto';
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
@@ -22,8 +25,12 @@ export class VolunteersService {
   constructor(
     @InjectModel(VolunteerApplication.name)
     private readonly applicationModel: Model<VolunteerApplication>,
+    @InjectModel(VolunteerTask.name)
+    private readonly volunteerTaskModel: Model<VolunteerTask>,
     private readonly cloudinary: CloudinaryService,
     private readonly mail: MailService,
+    private readonly coursesService: CoursesService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async getOrCreateApplication(userId: string) {
@@ -114,6 +121,40 @@ export class VolunteersService {
       uploadedAt: new Date(),
     });
     await app.save();
+    return this.getOrCreateApplication(userId);
+  }
+
+  /**
+   * Mark volunteer as training certified. Only allowed if they have completed
+   * at least one qualification course (status completed, progress 100%).
+   */
+  async completeCertification(userId: string) {
+    const completed =
+      await this.coursesService.hasCompletedQualificationCourse(userId);
+    if (!completed) {
+      throw new BadRequestException(
+        'Complete a qualification course (100%) before requesting certification.',
+      );
+    }
+    const app = await this.applicationModel
+      .findOne({ userId: new Types.ObjectId(userId) })
+      .exec();
+    if (!app) throw new NotFoundException('Application not found');
+    if (app.status !== 'approved') {
+      throw new BadRequestException(
+        'Your volunteer application must be approved first.',
+      );
+    }
+    app.trainingCertified = true;
+    app.trainingCertifiedAt = new Date();
+    await app.save();
+    await this.notifications.createForUser(userId, {
+      type: 'volunteer_certification_granted',
+      title: 'Certification obtenue',
+      description:
+        'Agenda et Messages sont maintenant accessibles. Merci pour votre engagement !',
+      data: { trainingCertifiedAt: app.trainingCertifiedAt?.toISOString() },
+    });
     return this.getOrCreateApplication(userId);
   }
 
@@ -215,11 +256,16 @@ export class VolunteersService {
       userIdRaw && typeof userIdRaw === 'object' && '_id' in userIdRaw
         ? (userIdRaw as { _id: { toString(): string } })._id?.toString?.()
         : (userIdRaw as Types.ObjectId)?.toString?.();
+    const documents = (app.documents ?? []) as unknown[];
+    const profileComplete = documents.length >= 1;
     const doc: Record<string, unknown> = {
       id,
       userId: userIdStr,
       status: app.status,
       documents: app.documents ?? [],
+      profileComplete,
+      trainingCertified: app.trainingCertified ?? false,
+      trainingCertifiedAt: app.trainingCertifiedAt,
       deniedReason: app.deniedReason,
       reviewedBy: (app.reviewedBy as Types.ObjectId)?.toString?.(),
       reviewedAt: app.reviewedAt,
@@ -230,5 +276,75 @@ export class VolunteersService {
       doc.user = userIdRaw;
     }
     return doc;
+  }
+
+  /**
+   * Specialist or admin assigns a task to a volunteer. Sends notification to volunteer.
+   */
+  async assignTask(
+    assignedByUserId: string,
+    dto: {
+      volunteerId: string;
+      title: string;
+      description?: string;
+      dueDate?: string;
+    },
+  ) {
+    if (!dto.title?.trim()) {
+      throw new BadRequestException('Title is required');
+    }
+    const task = await this.volunteerTaskModel.create({
+      assignedBy: new Types.ObjectId(assignedByUserId),
+      volunteerId: new Types.ObjectId(dto.volunteerId),
+      title: dto.title.trim(),
+      description: dto.description?.trim() ?? '',
+      status: 'pending',
+      dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
+    });
+    await this.notifications.createForUser(dto.volunteerId, {
+      type: 'volunteer_task_assigned',
+      title: 'Nouvelle tâche assignée',
+      description: dto.title.trim(),
+      data: {
+        taskId: (task as unknown as { _id: Types.ObjectId })._id?.toString?.(),
+        assignedBy: assignedByUserId,
+      },
+    });
+    return this.formatTask(task);
+  }
+
+  /** Volunteer lists their assigned tasks. */
+  async getMyTasks(volunteerId: string) {
+    const list = await this.volunteerTaskModel
+      .find({ volunteerId: new Types.ObjectId(volunteerId) })
+      .populate('assignedBy', 'fullName')
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+    return list.map((t) => this.formatTask(t as VolunteerTask & { _id: Types.ObjectId; assignedBy?: { fullName?: string } }));
+  }
+
+  private formatTask(
+    t: VolunteerTask & { _id: Types.ObjectId; assignedBy?: { fullName?: string } | Types.ObjectId },
+  ) {
+    const assignedBy = t.assignedBy;
+    const name =
+      assignedBy &&
+      typeof assignedBy === 'object' &&
+      'fullName' in assignedBy
+        ? (assignedBy as { fullName?: string }).fullName
+        : undefined;
+    return {
+      id: (t._id as Types.ObjectId)?.toString?.(),
+      volunteerId: (t.volunteerId as Types.ObjectId)?.toString?.(),
+      assignedBy: (t.assignedBy as Types.ObjectId)?.toString?.(),
+      assignedByName: name,
+      title: t.title,
+      description: t.description,
+      status: t.status,
+      dueDate: t.dueDate,
+      completedAt: t.completedAt,
+      createdAt: t.createdAt,
+    };
   }
 }

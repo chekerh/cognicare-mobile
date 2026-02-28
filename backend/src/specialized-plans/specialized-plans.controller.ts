@@ -39,7 +39,10 @@ export class SpecializedPlansController {
   @ApiOperation({ summary: 'Upload image for PECS card' })
   async uploadImage(
     @UploadedFile()
-    file?: { buffer: Buffer; mimetype: string },
+    file?: {
+      buffer: Buffer;
+      mimetype: string;
+    },
   ) {
     if (!file?.buffer) throw new BadRequestException('No file provided');
     const imageUrl = await this.plansService.uploadImage(file);
@@ -88,7 +91,9 @@ export class SpecializedPlansController {
 
   @Get('child/:childId/progress-summary')
   @Roles('family')
-  @ApiOperation({ summary: 'Get progress summary for a child (parent only, no plan content)' })
+  @ApiOperation({
+    summary: 'Get progress summary for a child (parent only, no plan content)',
+  })
   async getProgressSummary(
     @Request() req: { user: { id: string } },
     @Param('childId') childId: string,

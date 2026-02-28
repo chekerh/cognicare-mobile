@@ -30,7 +30,7 @@ export class RemindersService {
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private medicationVerificationService: MedicationVerificationService,
-  ) { }
+  ) {}
 
   /**
    * Create a task reminder for a child
@@ -221,28 +221,41 @@ export class RemindersService {
     }
 
     // Trigger AI verification if it's a medication task and has a proof image
-    this.logger.log(`Checking verification: type=${reminder.type}, hasPath=${!!proofImagePath}, completed=${dto.completed}`);
+    this.logger.log(
+      `Checking verification: type=${reminder.type}, hasPath=${!!proofImagePath}, completed=${dto.completed}`,
+    );
 
-    if (reminder.type === ReminderType.MEDICATION && proofImagePath && dto.completed && targetIndex >= 0) {
+    if (
+      reminder.type === ReminderType.MEDICATION &&
+      proofImagePath &&
+      dto.completed &&
+      targetIndex >= 0
+    ) {
       try {
-        const verificationResult = await this.medicationVerificationService.verifyMedication(
-          proofImagePath,
-          { title: reminder.title, description: reminder.description }
-        );
+        const verificationResult =
+          await this.medicationVerificationService.verifyMedication(
+            proofImagePath,
+            { title: reminder.title, description: reminder.description },
+          );
 
-        reminder.completionHistory[targetIndex].verificationStatus = verificationResult.status;
+        reminder.completionHistory[targetIndex].verificationStatus =
+          verificationResult.status;
         reminder.completionHistory[targetIndex].verificationMetadata = {
           ...verificationResult.metadata,
-          reasoning: verificationResult.reasoning
+          reasoning: verificationResult.reasoning,
         };
         reminder.markModified('completionHistory');
-        this.logger.log(`Verification saved: status=${verificationResult.status} for index ${targetIndex}`);
+        this.logger.log(
+          `Verification saved: status=${verificationResult.status} for index ${targetIndex}`,
+        );
       } catch (error) {
         this.logger.error('AI Verification failed:', error);
         if (reminder.completionHistory[targetIndex]) {
-          reminder.completionHistory[targetIndex].verificationStatus = 'UNCERTAIN';
+          reminder.completionHistory[targetIndex].verificationStatus =
+            'UNCERTAIN';
           reminder.completionHistory[targetIndex].verificationMetadata = {
-            reasoning: 'L\'analyse automatique a échoué. Un humain doit vérifier la photo.'
+            reasoning:
+              "L'analyse automatique a échoué. Un humain doit vérifier la photo.",
           };
         }
         reminder.markModified('completionHistory');
@@ -395,7 +408,7 @@ export class RemindersService {
       vibrationEnabled: reminder.vibrationEnabled,
       isActive: reminder.isActive,
       linkedNutritionPlanId: reminder.linkedNutritionPlanId?.toString(),
-      completionHistory: reminder.completionHistory?.map(c => ({
+      completionHistory: reminder.completionHistory?.map((c) => ({
         date: c.date,
         completed: c.completed,
         completedAt: c.completedAt,

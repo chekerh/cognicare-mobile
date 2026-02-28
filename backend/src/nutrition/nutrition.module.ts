@@ -31,4 +31,4 @@ import { HealthModule } from '../health/health.module';
   providers: [NutritionService, RemindersService],
   exports: [NutritionService, RemindersService],
 })
-export class NutritionModule { }
+export class NutritionModule {}

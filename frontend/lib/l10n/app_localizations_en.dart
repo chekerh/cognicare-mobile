@@ -895,6 +895,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get childProfileAlertLaterButton => 'Later';
 
   @override
+  String get volunteerProfileAlertTitle => 'Profile to complete';
+  @override
+  String get volunteerProfileAlertMessage =>
+      'Please complete your volunteer profile (upload diplomas or certificates, or access training modules) to access all features.';
+  @override
+  String get volunteerProfileAlertCompleteButton => 'Complete';
+  @override
+  String get volunteerProfileAlertLaterButton => 'Later';
+  @override
+  String get volunteerTrainingLockedTitle => 'Training required';
+  @override
+  String get volunteerTrainingLockedMessage =>
+      'Complete the required training and pass the certification test to access Agenda and Messages.';
+  @override
+  String get volunteerTrainingLockedGoToFormations => 'Go to Formations';
+
+  @override
   String get schedulePickup => 'Schedule pickup';
   @override
   String get itemReceived => 'Item received';

@@ -85,7 +85,7 @@ export class ProgressContextService {
       orgId,
     );
     const plansForContext = (plans as SpecializedPlanDocument[]).map((p) => ({
-      planId: (p._id as Types.ObjectId).toString(),
+      planId: p._id.toString(),
       type: p.type,
       title: p.title,
       content: p.content,
@@ -105,7 +105,9 @@ export class ProgressContextService {
           date: h.date ? new Date(h.date).toISOString().slice(0, 10) : '',
           completed: !!h.completed,
         }));
-      const completed = history.filter((h: { completed: boolean }) => h.completed).length;
+      const completed = history.filter(
+        (h: { completed: boolean }) => h.completed,
+      ).length;
       const feedbackEntries = history.filter(
         (h: { feedback?: string }) =>
           typeof h.feedback === 'string' && h.feedback.trim().length > 0,
@@ -113,9 +115,10 @@ export class ProgressContextService {
       const feedbackCount = feedbackEntries.length;
       const latestFeedback =
         feedbackCount > 0
-          ? String(
-              feedbackEntries[feedbackEntries.length - 1].feedback,
-            ).slice(0, 280)
+          ? String(feedbackEntries[feedbackEntries.length - 1].feedback).slice(
+              0,
+              280,
+            )
           : undefined;
       return {
         title: r.title,
@@ -132,9 +135,8 @@ export class ProgressContextService {
 
     const ageYears = ageFromDateOfBirth(child.dateOfBirth);
 
-    const progressNumericSummary = this.computeProgressNumericSummary(
-      plansForContext,
-    );
+    const progressNumericSummary =
+      this.computeProgressNumericSummary(plansForContext);
 
     return {
       child: {
@@ -160,7 +162,7 @@ export class ProgressContextService {
         let pass = 0,
           total = 0;
         for (const it of items) {
-          const trials = it?.trials as unknown[] | undefined;
+          const trials = it?.trials;
           if (trials) {
             for (const t of trials) {
               if (t === true) pass++;
@@ -168,9 +170,14 @@ export class ProgressContextService {
             }
           }
         }
-        out.PECS = { trialsPass: pass, trialsTotal: total, itemCount: items.length };
+        out.PECS = {
+          trialsPass: pass,
+          trialsTotal: total,
+          itemCount: items.length,
+        };
       } else if (p.type === 'TEACCH') {
-        const goals = (c.goals as Array<{ current?: number; target?: number }>) ?? [];
+        const goals =
+          (c.goals as Array<{ current?: number; target?: number }>) ?? [];
         let atTarget = 0;
         for (const g of goals) {
           const cur = typeof g?.current === 'number' ? g.current : 0;

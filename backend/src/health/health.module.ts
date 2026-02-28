@@ -10,4 +10,4 @@ import { MedicationVerificationService } from './medication-verification.service
   providers: [MedicationVerificationService],
   exports: [MedicationVerificationService],
 })
-export class HealthModule { }
+export class HealthModule {}

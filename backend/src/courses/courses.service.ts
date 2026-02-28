@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Course } from './schemas/course.schema';
 import { CourseEnrollment } from './schemas/course-enrollment.schema';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CoursesService {
@@ -10,24 +11,68 @@ export class CoursesService {
     @InjectModel(Course.name) private readonly courseModel: Model<Course>,
     @InjectModel(CourseEnrollment.name)
     private readonly enrollmentModel: Model<CourseEnrollment>,
+    private readonly notifications: NotificationsService,
   ) {}
 
-  async findAll(qualificationOnly?: boolean) {
+  async create(dto: {
+    title: string;
+    description?: string;
+    slug: string;
+    isQualificationCourse?: boolean;
+    startDate?: Date;
+    endDate?: Date;
+    courseType?: string;
+    price?: string;
+    location?: string;
+    enrollmentLink?: string;
+    certification?: string;
+    targetAudience?: string;
+    prerequisites?: string;
+    sourceUrl?: string;
+  }) {
+    const existing = await this.courseModel.findOne({ slug: dto.slug }).exec();
+    if (existing) {
+      return this.findAll();
+    }
+    await this.courseModel.create(dto);
+    return this.findAll();
+  }
+
+  async findAll(filters?: {
+    qualificationOnly?: boolean;
+    courseType?: string;
+    hasCertification?: boolean;
+  }) {
     const query: Record<string, unknown> = {};
-    if (qualificationOnly === true) query.isQualificationCourse = true;
+    if (filters?.qualificationOnly === true) query.isQualificationCourse = true;
+    if (filters?.courseType) query.courseType = filters.courseType;
+    if (filters?.hasCertification === true) {
+      query.certification = { $exists: true, $nin: [null, ''] };
+    }
     const list = await this.courseModel
       .find(query)
       .sort({ createdAt: 1 })
       .lean()
       .exec();
-    return list.map((c) => ({
-      id: (c as Record<string, unknown>)._id?.toString?.(),
-      title: (c as Record<string, unknown>).title,
-      description: (c as Record<string, unknown>).description,
-      slug: (c as Record<string, unknown>).slug,
-      isQualificationCourse: (c as Record<string, unknown>)
-        .isQualificationCourse,
-    }));
+    return list.map((c) => {
+      const r = c as Record<string, unknown>;
+      return {
+        id: r._id?.toString?.(),
+        title: r.title,
+        description: r.description,
+        slug: r.slug,
+        isQualificationCourse: r.isQualificationCourse,
+        startDate: r.startDate,
+        endDate: r.endDate,
+        courseType: r.courseType,
+        price: r.price,
+        location: r.location,
+        enrollmentLink: r.enrollmentLink,
+        certification: r.certification,
+        targetAudience: r.targetAudience,
+        prerequisites: r.prerequisites,
+      };
+    });
   }
 
   async enroll(userId: string, courseId: string) {
@@ -126,6 +171,8 @@ export class CoursesService {
       })
       .exec();
     if (!enrollment) throw new NotFoundException('Enrollment not found');
+    const wasCompleted =
+      enrollment.status === 'completed' && enrollment.progressPercent >= 100;
     enrollment.progressPercent = Math.min(100, Math.max(0, progressPercent));
     if (enrollment.progressPercent >= 100) {
       enrollment.status = 'completed';
@@ -134,6 +181,51 @@ export class CoursesService {
       enrollment.status = 'in_progress';
     }
     await enrollment.save();
+    if (
+      enrollment.progressPercent >= 100 &&
+      enrollment.status === 'completed' &&
+      !wasCompleted
+    ) {
+      const course = await this.courseModel
+        .findById(enrollment.courseId)
+        .lean()
+        .exec();
+      const isQualification = (course as Record<string, unknown>)
+        ?.isQualificationCourse;
+      if (isQualification) {
+        await this.notifications.createForUser(userId, {
+          type: 'volunteer_training_complete',
+          title: 'Formation qualifiante terminée',
+          description:
+            'Passez le test de certification pour débloquer l\'Agenda et les Messages.',
+          data: {
+            courseId: (enrollment.courseId as Types.ObjectId)?.toString?.(),
+          },
+        });
+      }
+    }
     return this.myEnrollments(userId);
+  }
+
+  /**
+   * Returns true if the user has at least one completed enrollment in a qualification course.
+   */
+  async hasCompletedQualificationCourse(userId: string): Promise<boolean> {
+    const list = await this.enrollmentModel
+      .find({
+        userId: new Types.ObjectId(userId),
+        status: 'completed',
+        progressPercent: 100,
+      })
+      .populate('courseId', 'isQualificationCourse')
+      .lean()
+      .exec();
+    for (const e of list) {
+      const course = (e as Record<string, unknown>).courseId as {
+        isQualificationCourse?: boolean;
+      } | null;
+      if (course?.isQualificationCourse) return true;
+    }
+    return false;
   }
 }

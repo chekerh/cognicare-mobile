@@ -24,4 +24,4 @@ import { OrganizationModule } from '../organization/organization.module';
   providers: [ChildrenService],
   exports: [ChildrenService],
 })
-export class ChildrenModule { }
+export class ChildrenModule {}

@@ -85,9 +85,13 @@ export class OrganizationController {
     'occupational_therapist',
     'other',
   )
-  @ApiOperation({ summary: 'Get org children with plan types and needAttention for filters' })
+  @ApiOperation({
+    summary: 'Get org children with plan types and needAttention for filters',
+  })
   async getMyChildrenWithPlans(@Request() req: any) {
-    return await this.organizationService.getMyChildrenWithPlans(req.user.id as string);
+    return await this.organizationService.getMyChildrenWithPlans(
+      req.user.id as string,
+    );
   }
 
   @Get('my-organization/stats')

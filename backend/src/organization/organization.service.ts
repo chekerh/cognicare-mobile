@@ -49,7 +49,7 @@ export class OrganizationService {
     private planModel: Model<SpecializedPlanDocument>,
     private mailService: MailService,
     private configService: ConfigService,
-  ) { }
+  ) {}
 
   async createOrganization(
     name: string,
@@ -242,26 +242,32 @@ export class OrganizationService {
     totalChildren: number;
     staffByRole: Record<string, number>;
   }> {
-    const [totalStaff, totalFamilies, totalChildren, staff] = await Promise.all([
-      this.userModel.countDocuments({
-        organizationId: orgId,
-        role: { $ne: 'family' },
-        deletedAt: null,
-      }),
-      this.userModel.countDocuments({
-        organizationId: orgId,
-        role: 'family',
-        deletedAt: null,
-      }),
-      this.childModel.countDocuments({
-        organizationId: new Types.ObjectId(orgId),
-        deletedAt: null,
-      }),
-      this.userModel
-        .find({ organizationId: orgId, role: { $ne: 'family' }, deletedAt: null })
-        .select('role')
-        .exec(),
-    ]);
+    const [totalStaff, totalFamilies, totalChildren, staff] = await Promise.all(
+      [
+        this.userModel.countDocuments({
+          organizationId: orgId,
+          role: { $ne: 'family' },
+          deletedAt: null,
+        }),
+        this.userModel.countDocuments({
+          organizationId: orgId,
+          role: 'family',
+          deletedAt: null,
+        }),
+        this.childModel.countDocuments({
+          organizationId: new Types.ObjectId(orgId),
+          deletedAt: null,
+        }),
+        this.userModel
+          .find({
+            organizationId: orgId,
+            role: { $ne: 'family' },
+            deletedAt: null,
+          })
+          .select('role')
+          .exec(),
+      ],
+    );
 
     const staffByRole: Record<string, number> = {};
     staff.forEach((member) => {
@@ -450,10 +456,14 @@ export class OrganizationService {
           notes: childDto.notes,
           parentId: family._id,
           organizationId: orgId ? new Types.ObjectId(orgId) : undefined,
-          specialistId: !orgId && requesterId ? new Types.ObjectId(requesterId) : undefined,
+          specialistId:
+            !orgId && requesterId ? new Types.ObjectId(requesterId) : undefined,
           addedByOrganizationId: orgId ? new Types.ObjectId(orgId) : undefined,
-          addedBySpecialistId: !orgId && requesterId ? new Types.ObjectId(requesterId) : undefined,
-          lastModifiedBy: requesterId ? new Types.ObjectId(requesterId) : undefined,
+          addedBySpecialistId:
+            !orgId && requesterId ? new Types.ObjectId(requesterId) : undefined,
+          lastModifiedBy: requesterId
+            ? new Types.ObjectId(requesterId)
+            : undefined,
         });
 
         await child.save();
@@ -718,9 +728,7 @@ export class OrganizationService {
    * Get org children with plan types and needAttention flag for specialist filters.
    * Returns { childId, childName, diagnosis, planTypes, needAttention }[].
    */
-  async getMyChildrenWithPlans(
-    userId: string,
-  ): Promise<
+  async getMyChildrenWithPlans(userId: string): Promise<
     Array<{
       childId: string;
       childName: string;
@@ -730,7 +738,9 @@ export class OrganizationService {
     }>
   > {
     const children = await this.getMyChildren(userId);
-    const orgId = (await this.userModel.findById(userId).select('organizationId').lean())?.organizationId;
+    const orgId = (
+      await this.userModel.findById(userId).select('organizationId').lean()
+    )?.organizationId;
     if (!children.length) return [];
 
     const childIds = children.map((c) => (c as any)._id || (c as any).id);
@@ -758,7 +768,11 @@ export class OrganizationService {
       planTypesByChild.set(cid, new Set());
       minProgressByChild.set(cid, 100);
     }
-    for (const p of plans as Array<{ childId: { toString(): string }; type: string; content?: any }>) {
+    for (const p of plans as Array<{
+      childId: { toString(): string };
+      type: string;
+      content?: any;
+    }>) {
       const cid = p.childId?.toString?.() ?? p.childId;
       if (!cid) continue;
       const set = planTypesByChild.get(cid);
@@ -789,7 +803,8 @@ export class OrganizationService {
     const c = content ?? {};
     if (type === 'PECS') {
       const items = c.items ?? [];
-      let pass = 0, total = 0;
+      let pass = 0,
+        total = 0;
       for (const it of items) {
         const trials = it?.trials ?? [];
         for (const t of trials) {
@@ -801,12 +816,15 @@ export class OrganizationService {
     }
     if (type === 'TEACCH') {
       const goals = c.goals ?? [];
-      let sumCur = 0, sumTarget = 0;
+      let sumCur = 0,
+        sumTarget = 0;
       for (const g of goals) {
         sumCur += typeof g?.current === 'number' ? g.current : 0;
         sumTarget += typeof g?.target === 'number' ? g.target : 0;
       }
-      return sumTarget > 0 ? Math.round(Math.min(100, (sumCur / sumTarget) * 100)) : 0;
+      return sumTarget > 0
+        ? Math.round(Math.min(100, (sumCur / sumTarget) * 100))
+        : 0;
     }
     if (type === 'SkillTracker') {
       const cur = typeof c.currentPercent === 'number' ? c.currentPercent : 0;

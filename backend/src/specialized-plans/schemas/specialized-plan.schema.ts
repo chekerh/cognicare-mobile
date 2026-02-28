@@ -14,7 +14,10 @@ export class SpecializedPlan {
   @Prop({ type: Types.ObjectId, ref: 'Organization' })
   organizationId?: Types.ObjectId;
 
-  @Prop({ required: true, enum: ['PECS', 'TEACCH', 'SkillTracker', 'Activity'] })
+  @Prop({
+    required: true,
+    enum: ['PECS', 'TEACCH', 'SkillTracker', 'Activity'],
+  })
   type!: 'PECS' | 'TEACCH' | 'SkillTracker' | 'Activity';
 
   @Prop({ required: true })

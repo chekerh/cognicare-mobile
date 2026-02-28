@@ -38,7 +38,7 @@ export class ConversationsService {
     private readonly userModel: Model<UserDocument>,
     private readonly configService: ConfigService,
     private readonly callsGateway: CallsGateway,
-  ) { }
+  ) {}
 
   private readonly logger = new Logger(ConversationsService.name);
 
@@ -111,7 +111,9 @@ export class ConversationsService {
       .limit(100)
       .lean()
       .exec();
-    this.logger.log(`findInboxForUser query took ${Date.now() - start}ms for userId: ${userId}`);
+    this.logger.log(
+      `findInboxForUser query took ${Date.now() - start}ms for userId: ${userId}`,
+    );
 
     type Doc = {
       user?: { toString(): string };
@@ -164,10 +166,10 @@ export class ConversationsService {
     const otherIds = otherIdStrs.map((id) => new Types.ObjectId(id));
     const users = otherIds.length
       ? await this.userModel
-        .find({ _id: { $in: otherIds } })
-        .select('role fullName profilePic')
-        .lean()
-        .exec()
+          .find({ _id: { $in: otherIds } })
+          .select('role fullName profilePic')
+          .lean()
+          .exec()
       : [];
     const roleById = new Map<string, string>();
     const nameById = new Map<string, string>();
@@ -295,7 +297,7 @@ export class ConversationsService {
     const otherRole = otherUserLean?.role?.toLowerCase?.();
     const otherProfilePic =
       otherUserLean?.profilePic &&
-        String(otherUserLean.profilePic).trim() !== ''
+      String(otherUserLean.profilePic).trim() !== ''
         ? String(otherUserLean.profilePic).trim()
         : '';
     const role = currentUserRole?.toLowerCase?.();
@@ -462,7 +464,9 @@ export class ConversationsService {
     const threadId = conv.threadId ?? conv._id;
     const isGroup = conv.participants && conv.participants.length > 0;
     const encryptedText = this.encryptMessage(text);
-    this.logger.log(`[ENCRYPTION CHECK] Thread: ${threadId}, Plaintext Length: ${text?.length}, Encrypted Length: ${encryptedText?.length}`);
+    this.logger.log(
+      `[ENCRYPTION CHECK] Thread: ${threadId}, Plaintext Length: ${text?.length}, Encrypted Length: ${encryptedText?.length}`,
+    );
     const created = await this.messageModel.create({
       threadId,
       senderId: uid,
@@ -491,13 +495,13 @@ export class ConversationsService {
     // Emit message:new to other participants for in-app notification
     const recipientIds = isGroup
       ? (conv.participants ?? [])
-        .filter((p) => !p.equals(uid))
-        .map((p) => p.toString())
+          .filter((p) => !p.equals(uid))
+          .map((p) => p.toString())
       : [
-        conv.user.equals(uid)
-          ? conv.otherUserId?.toString()
-          : conv.user?.toString(),
-      ].filter(Boolean);
+          conv.user.equals(uid)
+            ? conv.otherUserId?.toString()
+            : conv.user?.toString(),
+        ].filter(Boolean);
     for (const recipientId of recipientIds) {
       if (!recipientId) continue;
       const sender = await this.userModel

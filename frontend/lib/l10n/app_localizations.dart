@@ -673,6 +673,15 @@ abstract class AppLocalizations {
   String get childProfileAlertCompleteButton;
   String get childProfileAlertLaterButton;
 
+  /// Volunteer profile completion pop-up
+  String get volunteerProfileAlertTitle;
+  String get volunteerProfileAlertMessage;
+  String get volunteerProfileAlertCompleteButton;
+  String get volunteerProfileAlertLaterButton;
+  String get volunteerTrainingLockedTitle;
+  String get volunteerTrainingLockedMessage;
+  String get volunteerTrainingLockedGoToFormations;
+
   /// Donation chat
   String get schedulePickup;
   String get itemReceived;

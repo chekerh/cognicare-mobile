@@ -118,7 +118,6 @@ export class CreateTaskReminderDto {
   @IsBoolean()
   vibrationEnabled?: boolean;
 
-
   @ApiPropertyOptional({
     description: 'Link to nutrition plan ID if applicable',
     example: '507f1f77bcf86cd799439012',

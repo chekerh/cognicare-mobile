@@ -13,7 +13,10 @@ export class SubmitParentFeedbackDto {
   @IsString()
   comment?: string;
 
-  @ApiPropertyOptional({ description: 'Optional plan type this feedback relates to (PECS, TEACCH, etc.)' })
+  @ApiPropertyOptional({
+    description:
+      'Optional plan type this feedback relates to (PECS, TEACCH, etc.)',
+  })
   @IsOptional()
   @IsString()
   planType?: string;

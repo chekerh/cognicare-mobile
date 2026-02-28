@@ -168,3 +168,7 @@ firestore-debug.log
 frontend/assets/perso/
 **/logo_perso*
 **/ma_photo*
+
+# Doc interne (ne pas pousser)
+VOLUNTEER_PROFILE_AND_TRAINING_ROADMAP.md
+RENDER.md

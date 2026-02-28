@@ -31,11 +31,7 @@ import {
   SpecializedPlan,
   SpecializedPlanDocument,
 } from '../specialized-plans/schemas/specialized-plan.schema';
-import {
-  LlmService,
-  LlmPreferences,
-  LlmRecommendation,
-} from './llm.service';
+import { LlmService, LlmPreferences, LlmRecommendation } from './llm.service';
 import {
   TaskReminder,
   TaskReminderDocument,
@@ -93,7 +89,7 @@ export class ProgressAiService {
     private remindersService: RemindersService,
     private specializedPlansService: SpecializedPlansService,
     private llmService: LlmService,
-  ) { }
+  ) {}
 
   async verifySpecialistOrOrgAccessToChild(
     childId: string,
@@ -116,8 +112,7 @@ export class ProgressAiService {
     ];
     const isSpecialist = specialistRoles.includes(userRole);
     const isOrgLeader = userRole === 'organization_leader';
-    const isAssignedSpecialist =
-      child.specialistId?.toString() === userId;
+    const isAssignedSpecialist = child.specialistId?.toString() === userId;
     const isChildInUserOrg =
       isOrgLeader &&
       user.organizationId &&
@@ -130,9 +125,7 @@ export class ProgressAiService {
           .lean()
           .exec();
         if (!org || org._id.toString() !== user.organizationId?.toString()) {
-          throw new ForbiddenException(
-            'Not authorized to access this child',
-          );
+          throw new ForbiddenException('Not authorized to access this child');
         }
       }
     } else if (isOrgLeader && !isChildInUserOrg) {
@@ -149,7 +142,11 @@ export class ProgressAiService {
     userRole: string,
     options?: { planType?: string; preferences?: LlmPreferences },
   ): Promise<RecommendationResult> {
-    if (!childId || typeof childId !== 'string' || !/^[a-fA-F0-9]{24}$/.test(childId)) {
+    if (
+      !childId ||
+      typeof childId !== 'string' ||
+      !/^[a-fA-F0-9]{24}$/.test(childId)
+    ) {
       throw new BadRequestException('Invalid child ID');
     }
     try {
@@ -179,12 +176,10 @@ export class ProgressAiService {
     }
     let context;
     try {
-      context = await this.progressContextService.buildContext(
-        childId,
-        orgId,
-      );
+      context = await this.progressContextService.buildContext(childId, orgId);
     } catch (e) {
-      if (e instanceof NotFoundException || e instanceof ForbiddenException) throw e;
+      if (e instanceof NotFoundException || e instanceof ForbiddenException)
+        throw e;
       this.logger.warn(
         `buildContext failed for childId=${childId} userId=${userId}: ${(e as Error)?.message}`,
       );
@@ -200,7 +195,10 @@ export class ProgressAiService {
     }
     let llmResult: LlmRecommendation;
     try {
-      llmResult = await this.llmService.generateRecommendations(contextForPrompt, prefs);
+      llmResult = await this.llmService.generateRecommendations(
+        contextForPrompt,
+        prefs,
+      );
     } catch (e) {
       this.logger.warn(
         `LLM generateRecommendations failed childId=${childId} userId=${userId}: ${(e as Error)?.message}`,
@@ -212,9 +210,7 @@ export class ProgressAiService {
       recommendationId,
       summary: llmResult.summary,
       recommendations: planTypeFilter
-        ? llmResult.recommendations.filter(
-          (r) => r.planType === planTypeFilter,
-        )
+        ? llmResult.recommendations.filter((r) => r.planType === planTypeFilter)
         : llmResult.recommendations,
       milestones: llmResult.milestones,
       predictions: llmResult.predictions,
@@ -224,7 +220,8 @@ export class ProgressAiService {
   private fallbackRecommendationResult(): RecommendationResult {
     return {
       recommendationId: crypto.randomUUID(),
-      summary: 'Recommandations temporairement indisponibles. Vérifiez que le service IA (GEMINI_API_KEY) est configuré et que le contexte enfant est accessible.',
+      summary:
+        'Recommandations temporairement indisponibles. Vérifiez que le service IA (GEMINI_API_KEY) est configuré et que le contexte enfant est accessible.',
       recommendations: [],
       milestones: undefined,
       predictions: undefined,
@@ -281,7 +278,9 @@ export class ProgressAiService {
     return {
       planCountByType,
       totalPlans: plans.length,
-      childrenWithPlansCount: childIds.has('') ? childIds.size - 1 : childIds.size,
+      childrenWithPlansCount: childIds.has('')
+        ? childIds.size - 1
+        : childIds.size,
     };
   }
 
@@ -303,7 +302,11 @@ export class ProgressAiService {
       .exec();
     const byOrg = new Map<
       string,
-      { planCountByType: Record<string, number>; childIds: Set<string>; count: number }
+      {
+        planCountByType: Record<string, number>;
+        childIds: Set<string>;
+        count: number;
+      }
     >();
     const types = ['PECS', 'TEACCH', 'SkillTracker', 'Activity'] as const;
     for (const p of plans) {
@@ -325,7 +328,9 @@ export class ProgressAiService {
       orgId: orgId === '_no_org' ? '' : orgId,
       planCountByType: data.planCountByType,
       totalPlans: data.count,
-      childrenWithPlansCount: data.childIds.has('') ? data.childIds.size - 1 : data.childIds.size,
+      childrenWithPlansCount: data.childIds.has('')
+        ? data.childIds.size - 1
+        : data.childIds.size,
     }));
   }
 
@@ -343,7 +348,10 @@ export class ProgressAiService {
       .lean()
       .exec();
     if (!specialist) throw new NotFoundException('Specialist not found');
-    if ((specialist as any).organizationId?.toString() !== (org as any)._id?.toString()) {
+    if (
+      (specialist as any).organizationId?.toString() !==
+      (org as any)._id?.toString()
+    ) {
       throw new ForbiddenException('Specialist is not in your organization');
     }
     const plans = await this.planModel
@@ -422,7 +430,7 @@ export class ProgressAiService {
   ): Promise<{ suggestions: string[] }> {
     return {
       suggestions: [
-        'Augmenter les choix d\'images pour les cartes PECS en phase 2.',
+        "Augmenter les choix d'images pour les cartes PECS en phase 2.",
         'Travailler les objectifs sociaux dans les plans TEACCH cette semaine.',
         'Consulter les retours parents dans les recommandations IA pour ajuster les activités.',
       ],
@@ -453,7 +461,11 @@ export class ProgressAiService {
     frequency?: 'every_session' | 'weekly';
     planTypeWeights?: Record<string, number>;
   } | null> {
-    const user = await this.userModel.findById(userId).select('specialistAIPreferences').lean().exec();
+    const user = await this.userModel
+      .findById(userId)
+      .select('specialistAIPreferences')
+      .lean()
+      .exec();
     return (user as any)?.specialistAIPreferences ?? null;
   }
 
@@ -463,7 +475,11 @@ export class ProgressAiService {
     specialistRole: string,
     payload: { recommendationId?: string; message?: string; planType?: string },
   ): Promise<ParentFeedbackRequest> {
-    await this.verifySpecialistOrOrgAccessToChild(childId, specialistId, specialistRole);
+    await this.verifySpecialistOrOrgAccessToChild(
+      childId,
+      specialistId,
+      specialistRole,
+    );
     const doc = new this.parentFeedbackRequestModel({
       childId: new Types.ObjectId(childId),
       specialistId: new Types.ObjectId(specialistId),
@@ -487,7 +503,9 @@ export class ProgressAiService {
     const child = await this.childModel.findById(childId).lean().exec();
     if (!child) throw new NotFoundException('Child not found');
     if ((child as any).parentId?.toString() !== parentUserId) {
-      throw new ForbiddenException('Not authorized to submit feedback for this child');
+      throw new ForbiddenException(
+        'Not authorized to submit feedback for this child',
+      );
     }
     const doc = new this.parentFeedbackModel({
       childId: new Types.ObjectId(childId),
@@ -511,9 +529,11 @@ export class ProgressAiService {
     const child = await this.childModel.findById(childId).lean().exec();
     if (!child) throw new NotFoundException('Child not found');
     if ((child as any).parentId?.toString() !== parentUserId) {
-      throw new ForbiddenException('Not authorized to view feedback for this child');
+      throw new ForbiddenException(
+        'Not authorized to view feedback for this child',
+      );
     }
-    return await this.parentFeedbackModel
+    return (await this.parentFeedbackModel
       .find({
         childId: new Types.ObjectId(childId),
         parentId: new Types.ObjectId(parentUserId),
@@ -521,7 +541,7 @@ export class ProgressAiService {
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean()
-      .exec() as ParentFeedback[];
+      .exec()) as ParentFeedback[];
   }
 
   /**
@@ -538,15 +558,20 @@ export class ProgressAiService {
       throw new ForbiddenException('Not authorized to view this child');
     }
     const days = period === 'week' ? 7 : 30;
-    const stats = await this.remindersService.getCompletionStats(
+    const stats = (await this.remindersService.getCompletionStats(
       childId,
       parentUserId,
       days,
-    ) as { totalTasks: number; completedTasks: number; completionRate: number };
-    const planProgress = await this.specializedPlansService.getProgressSummaryForParent(
-      childId,
-      parentUserId,
-    );
+    )) as {
+      totalTasks: number;
+      completedTasks: number;
+      completionRate: number;
+    };
+    const planProgress =
+      await this.specializedPlansService.getProgressSummaryForParent(
+        childId,
+        parentUserId,
+      );
     const reminders = await this.taskReminderModel
       .find({ childId: new Types.ObjectId(childId), isActive: true })
       .select('completionHistory')
@@ -566,9 +591,9 @@ export class ProgressAiService {
 
     const ageYears = child.dateOfBirth
       ? Math.max(
-        0,
-        new Date().getFullYear() - new Date(child.dateOfBirth).getFullYear(),
-      )
+          0,
+          new Date().getFullYear() - new Date(child.dateOfBirth).getFullYear(),
+        )
       : 0;
     const summary = await this.llmService.generateParentSummary(period, {
       childAgeYears: ageYears,

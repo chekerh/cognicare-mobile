@@ -17,11 +17,20 @@ class CoursesService {
     return await _storage.read(key: AppConstants.jwtTokenKey);
   }
 
-  /// List courses. [qualificationOnly] true for qualification courses only.
-  Future<List<Map<String, dynamic>>> getCourses(
-      {bool qualificationOnly = false}) async {
+  /// List courses with optional filters.
+  Future<List<Map<String, dynamic>>> getCourses({
+    bool qualificationOnly = false,
+    String? courseType,
+    bool hasCertification = false,
+  }) async {
     var url = '${AppConstants.baseUrl}${AppConstants.coursesEndpoint}';
-    if (qualificationOnly) url += '?qualification=true';
+    final query = <String>[];
+    if (qualificationOnly) query.add('qualification=true');
+    if (courseType != null && courseType.isNotEmpty) {
+      query.add('courseType=${Uri.encodeComponent(courseType)}');
+    }
+    if (hasCertification) query.add('certification=true');
+    if (query.isNotEmpty) url += '?${query.join('&')}';
     final response = await _client.get(Uri.parse(url));
     if (response.statusCode != 200) {
       throw Exception('Failed to load courses');

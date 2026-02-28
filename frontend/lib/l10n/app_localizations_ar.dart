@@ -895,6 +895,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get childProfileAlertLaterButton => 'لاحقاً';
 
   @override
+  String get volunteerProfileAlertTitle => 'الملف الشخصي للإكمال';
+  @override
+  String get volunteerProfileAlertMessage =>
+      'يرجى إكمال ملفك التطوعي (رفع الشهادات أو الوثائق، أو الوصول إلى وحدات التدريب) للوصول إلى جميع الميزات.';
+  @override
+  String get volunteerProfileAlertCompleteButton => 'إكمال';
+  @override
+  String get volunteerProfileAlertLaterButton => 'لاحقاً';
+  @override
+  String get volunteerTrainingLockedTitle => 'التدريب مطلوب';
+  @override
+  String get volunteerTrainingLockedMessage =>
+      'أكمل التدريب المطلوب واجتز اختبار الشهادة للوصول إلى الأجندة والرسائل.';
+  @override
+  String get volunteerTrainingLockedGoToFormations => 'الذهاب إلى التكوينات';
+
+  @override
   String get schedulePickup => 'جدولة الاستلام';
   @override
   String get itemReceived => 'تم استلام العنصر';

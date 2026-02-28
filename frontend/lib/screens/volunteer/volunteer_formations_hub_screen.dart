@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/courses_service.dart';
+import '../../services/volunteer_service.dart';
 import '../../utils/constants.dart';
 
-const Color _primary = Color(0xFF3B82F6);
+const Color _primary = Color(0xFFa3dae1);
 const Color _background = Color(0xFFF8FAFC);
 const Color _cardBg = Color(0xFFFFFFFF);
 const Color _textPrimary = Color(0xFF1E293B);
@@ -23,10 +24,16 @@ class VolunteerFormationsHubScreen extends StatefulWidget {
 class _VolunteerFormationsHubScreenState
     extends State<VolunteerFormationsHubScreen> {
   final CoursesService _coursesService = CoursesService();
+  final VolunteerService _volunteerService = VolunteerService();
   List<Map<String, dynamic>> _courses = [];
   List<Map<String, dynamic>> _enrollments = [];
+  Map<String, dynamic>? _application;
   bool _loading = true;
   String? _error;
+  bool _catalogQualificationOnly = false;
+  String? _catalogCourseType;
+  bool _catalogHasCertification = false;
+  bool _insightsLoading = false;
 
   @override
   void initState() {
@@ -44,13 +51,20 @@ class _VolunteerFormationsHubScreenState
       _error = null;
     });
     try {
-      final courses =
-          await _coursesService.getCourses(qualificationOnly: false);
-      final enrollments = await _coursesService.myEnrollments();
+      final results = await Future.wait([
+        _coursesService.getCourses(
+          qualificationOnly: _catalogQualificationOnly,
+          courseType: _catalogCourseType,
+          hasCertification: _catalogHasCertification,
+        ),
+        _coursesService.myEnrollments(),
+        _volunteerService.getMyApplication(),
+      ]);
       if (mounted) {
         setState(() {
-          _courses = courses;
-          _enrollments = enrollments;
+          _courses = results[0] as List<Map<String, dynamic>>;
+          _enrollments = results[1] as List<Map<String, dynamic>>;
+          _application = results[2] as Map<String, dynamic>?;
         });
       }
     } catch (e) {
@@ -60,6 +74,20 @@ class _VolunteerFormationsHubScreenState
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  bool get _trainingCertified =>
+      _application?['trainingCertified'] == true;
+
+  bool get _hasCompletedQualificationCourse {
+    for (final e in _enrollments) {
+      final status = e['status'] as String?;
+      final progress = (e['progressPercent'] as num?)?.toInt() ?? 0;
+      final course = e['course'] as Map<String, dynamic>?;
+      final isQualif = course?['isQualificationCourse'] == true;
+      if (isQualif && status == 'completed' && progress >= 100) return true;
+    }
+    return false;
   }
 
   bool _isEnrolled(String courseId) {
@@ -92,6 +120,8 @@ class _VolunteerFormationsHubScreenState
                       slivers: [
                         SliverToBoxAdapter(child: _buildHeader()),
                         SliverToBoxAdapter(child: _buildCourseInProgress()),
+                        SliverToBoxAdapter(child: _buildCertificationTestCard()),
+                        SliverToBoxAdapter(child: _buildAiInsightsCard()),
                         SliverToBoxAdapter(child: _buildCatalogSection()),
                         SliverToBoxAdapter(
                             child: _buildCertificationsSection()),
@@ -335,6 +365,253 @@ class _VolunteerFormationsHubScreenState
     );
   }
 
+  Widget _buildCertificationTestCard() {
+    if (_trainingCertified) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFDCFCE7),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Color(0xFF22C55E), size: 32),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Certification obtenue. Accès Agenda et Messages débloqué.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF166534),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    if (_hasCompletedQualificationCourse) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+        child: Material(
+          color: _cardBg,
+          borderRadius: BorderRadius.circular(16),
+          elevation: 2,
+          shadowColor: Colors.black.withOpacity(0.04),
+          child: InkWell(
+            onTap: () => context.push(AppConstants.volunteerCertificationTestRoute),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: _primary.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.quiz, color: _primary, size: 26),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Test de certification',
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: _textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Formation qualifiante terminée. Passez le test pour débloquer Agenda et Messages.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: _textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, size: 16, color: _textSecondary),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return const SizedBox.shrink();
+  }
+
+  Future<void> _showAiInsights() async {
+    if (_insightsLoading) return;
+    setState(() => _insightsLoading = true);
+    try {
+      final data = await _volunteerService.getCertificationTestInsights();
+      if (!mounted) return;
+      final summary = data['summary'] as String? ?? '';
+      final recs = data['recommendations'] as List<dynamic>? ?? [];
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: _cardBg,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (ctx) => Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.auto_awesome, color: _primary, size: 28),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Recommandations personnalisées',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: _textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                summary,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: _textPrimary,
+                  height: 1.4,
+                ),
+              ),
+              if (recs.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'À faire :',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...recs.map((r) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('• ', style: TextStyle(color: _primary)),
+                          Expanded(
+                            child: Text(
+                              r is String ? r : '$r',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: _textPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
+              ],
+              SizedBox(height: MediaQuery.of(ctx).padding.bottom + 16),
+            ],
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _insightsLoading = false);
+    }
+  }
+
+  Widget _buildAiInsightsCard() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+      child: Material(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(16),
+        elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.04),
+        child: InkWell(
+          onTap: _insightsLoading ? null : _showAiInsights,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: _primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: _insightsLoading
+                      ? const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: CircularProgressIndicator(
+                            color: _primary,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.auto_awesome, color: _primary, size: 26),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Recommandations AI',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: _textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _insightsLoading
+                            ? 'Chargement...'
+                            : 'Voir votre résumé et conseils personnalisés',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: _textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (!_insightsLoading)
+                  const Icon(Icons.chevron_right, color: _textSecondary),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCatalogSection() {
     const catalogItems = [
       (
@@ -365,27 +642,79 @@ class _VolunteerFormationsHubScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const Text(
+            'Catalogue',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: _textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
             children: [
-              const Text(
-                'Catalogue',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: _textPrimary,
-                ),
+              ChoiceChip(
+                label: const Text('Tous'),
+                selected: !_catalogQualificationOnly,
+                onSelected: (selected) {
+                  if (selected && _catalogQualificationOnly) {
+                    setState(() => _catalogQualificationOnly = false);
+                    _load();
+                  }
+                },
+                selectedColor: _primary.withOpacity(0.3),
               ),
-              TextButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.filter_list, size: 18, color: _primary),
-                label: const Text(
-                  'Filtrer',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: _primary,
-                  ),
-                ),
+              ChoiceChip(
+                label: const Text('Qualifiantes'),
+                selected: _catalogQualificationOnly,
+                onSelected: (selected) {
+                  if (selected && !_catalogQualificationOnly) {
+                    setState(() => _catalogQualificationOnly = true);
+                    _load();
+                  }
+                },
+                selectedColor: _primary.withOpacity(0.3),
+              ),
+              ChoiceChip(
+                label: const Text('Avec certification'),
+                selected: _catalogHasCertification,
+                onSelected: (selected) {
+                  if (selected != _catalogHasCertification) {
+                    setState(() => _catalogHasCertification = selected);
+                    _load();
+                  }
+                },
+                selectedColor: _primary.withOpacity(0.3),
+              ),
+              ChoiceChip(
+                label: const Text('Débutant'),
+                selected: _catalogCourseType == 'basic',
+                onSelected: (selected) {
+                  if (selected && _catalogCourseType != 'basic') {
+                    setState(() => _catalogCourseType = 'basic');
+                    _load();
+                  } else if (!selected && _catalogCourseType == 'basic') {
+                    setState(() => _catalogCourseType = null);
+                    _load();
+                  }
+                },
+                selectedColor: _primary.withOpacity(0.3),
+              ),
+              ChoiceChip(
+                label: const Text('Avancé'),
+                selected: _catalogCourseType == 'advanced',
+                onSelected: (selected) {
+                  if (selected && _catalogCourseType != 'advanced') {
+                    setState(() => _catalogCourseType = 'advanced');
+                    _load();
+                  } else if (!selected && _catalogCourseType == 'advanced') {
+                    setState(() => _catalogCourseType = null);
+                    _load();
+                  }
+                },
+                selectedColor: _primary.withOpacity(0.3),
               ),
             ],
           ),
@@ -401,6 +730,16 @@ class _VolunteerFormationsHubScreenState
             final iconColor = fallback.$5;
             final icon = fallback.$2;
             final enrolled = _isEnrolled(id);
+            final List<String> parts = [];
+            if (c['location'] != null && (c['location'] as String).isNotEmpty) parts.add(c['location'] as String);
+            if (c['price'] != null && (c['price'] as String).isNotEmpty) parts.add(c['price'] as String);
+            if (c['startDate'] != null) {
+              try {
+                final d = DateTime.parse(c['startDate'] as String);
+                parts.add('${d.day}/${d.month}/${d.year}');
+              } catch (_) {}
+            }
+            final subtitle = parts.isEmpty ? null : parts.join(' · ');
             return _CatalogCard(
               title: title,
               duration: duration,
@@ -408,6 +747,7 @@ class _VolunteerFormationsHubScreenState
               icon: icon,
               iconColor: iconColor,
               enrolled: enrolled,
+              subtitle: subtitle,
               onTap: () => context.push(AppConstants.coursesRoute),
             );
           }),
@@ -471,6 +811,7 @@ class _CatalogCard extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final bool enrolled;
+  final String? subtitle;
   final VoidCallback onTap;
 
   const _CatalogCard({
@@ -480,6 +821,7 @@ class _CatalogCard extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     required this.enrolled,
+    this.subtitle,
     required this.onTap,
   });
 
@@ -521,6 +863,16 @@ class _CatalogCard extends StatelessWidget {
                           color: _textPrimary,
                         ),
                       ),
+                      if (subtitle != null && subtitle!.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle!,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: _textSecondary,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 4),
                       Row(
                         children: [

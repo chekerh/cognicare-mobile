@@ -18,7 +18,7 @@ import { CreateFamilyDto } from '../organization/dto/create-family.dto';
 @ApiTags('children')
 @Controller('children')
 export class ChildrenController {
-  constructor(private readonly childrenService: ChildrenService) { }
+  constructor(private readonly childrenService: ChildrenService) {}
 
   @Get()
   @ApiBearerAuth('JWT-auth')
@@ -96,8 +96,13 @@ export class ChildrenController {
     'volunteer',
     'other',
   )
-  @ApiOperation({ summary: 'Add a private family and their children (specialist only)' })
-  async addSpecialistFamily(@Request() req: any, @Body() body: CreateFamilyDto) {
+  @ApiOperation({
+    summary: 'Add a private family and their children (specialist only)',
+  })
+  async addSpecialistFamily(
+    @Request() req: any,
+    @Body() body: CreateFamilyDto,
+  ) {
     return this.childrenService.createPrivateFamily(
       req.user.id as string,
       body,

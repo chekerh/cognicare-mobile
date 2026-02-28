@@ -36,7 +36,10 @@ import { NutritionModule } from '../nutrition/nutrition.module';
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: RecommendationFeedback.name, schema: RecommendationFeedbackSchema },
+      {
+        name: RecommendationFeedback.name,
+        schema: RecommendationFeedbackSchema,
+      },
       { name: ParentFeedbackRequest.name, schema: ParentFeedbackRequestSchema },
       { name: ParentFeedback.name, schema: ParentFeedbackSchema },
       { name: Child.name, schema: ChildSchema },

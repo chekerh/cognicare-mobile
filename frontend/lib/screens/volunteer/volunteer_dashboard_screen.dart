@@ -9,7 +9,7 @@ import '../../services/children_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 
-const Color _primary = Color(0xFF89CFF0);
+const Color _primary = Color(0xFFa3dae1);
 
 String _fullImageUrl(String path) {
   if (path.isEmpty) return '';
@@ -592,18 +592,23 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  specialization,
-                  style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: _primary),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    specialization,
+                    style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: _primary),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ),
               ),
             ],
@@ -613,6 +618,8 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
             specialization,
             style: TextStyle(
                 fontSize: 14, color: Colors.grey.shade700, height: 1.5),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
           ),
           const SizedBox(height: 16),
           Container(

@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../utils/constants.dart';
 import '../../services/volunteer_service.dart';
 
-const Color _primary = Color(0xFFA4D9E5);
+const Color _primary = Color(0xFFa3dae1);
 const Color _background = Color(0xFFF8FAFC);
 const int _maxFileSizeBytes = 5 * 1024 * 1024; // 5MB
 

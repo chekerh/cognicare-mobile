@@ -7,6 +7,7 @@ import {
 } from './schemas/course-enrollment.schema';
 import { CoursesController } from './courses.controller';
 import { CoursesService } from './courses.service';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { CoursesService } from './courses.service';
       { name: Course.name, schema: CourseSchema },
       { name: CourseEnrollment.name, schema: CourseEnrollmentSchema },
     ]),
+    NotificationsModule,
   ],
   controllers: [CoursesController],
   providers: [CoursesService],

@@ -36,7 +36,7 @@ import { AdminGuard } from '../auth/admin.guard';
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Post()
   @UseGuards(AdminGuard)

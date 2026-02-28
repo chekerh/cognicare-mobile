@@ -24,7 +24,8 @@ export class ParentFeedback {
   updatedAt?: Date;
 }
 
-export const ParentFeedbackSchema = SchemaFactory.createForClass(ParentFeedback);
+export const ParentFeedbackSchema =
+  SchemaFactory.createForClass(ParentFeedback);
 
 ParentFeedbackSchema.index({ childId: 1, parentId: 1, createdAt: -1 });
 ParentFeedbackSchema.index({ childId: 1, createdAt: -1 });

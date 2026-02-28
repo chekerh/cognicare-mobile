@@ -45,7 +45,7 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private transcriptionService: TranscriptionService,
     @Inject(forwardRef(() => ConversationsService))
     private conversationsService: ConversationsService,
-  ) { }
+  ) {}
 
   handleConnection(client: SocketWithUserId) {
     this.logger.log(`[CALL] Connexion socket client.id=${client.id}`);
@@ -300,7 +300,9 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
           }
         },
         onError: (err) => {
-          this.logger.error(`Transcription stream error for ${client.id}: ${err.message}`);
+          this.logger.error(
+            `Transcription stream error for ${client.id}: ${err.message}`,
+          );
           this.transcriptionStreams.delete(client.id);
         },
       });

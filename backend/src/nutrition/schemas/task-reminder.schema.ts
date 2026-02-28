@@ -69,7 +69,6 @@ export class TaskReminder {
   @Prop({ default: true })
   vibrationEnabled!: boolean;
 
-
   // Completion tracking
   @Prop({
     type: [
@@ -82,7 +81,7 @@ export class TaskReminder {
         verificationStatus: {
           type: String,
           enum: ['PENDING', 'VALID', 'UNCERTAIN', 'INVALID'],
-          default: 'PENDING'
+          default: 'PENDING',
         },
         verificationMetadata: {
           medicineName: String,
@@ -92,7 +91,7 @@ export class TaskReminder {
           isExpired: Boolean,
           manufacturer: String,
           fda_generic_name: String,
-        }
+        },
       },
     ],
     default: [],

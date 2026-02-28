@@ -97,6 +97,15 @@ class AppConstants {
       '/api/v1/volunteers/application/documents';
   static String volunteerDocumentDeleteEndpoint(int index) =>
       '/api/v1/volunteers/application/documents/$index';
+  static const String volunteerCompleteCertificationEndpoint =
+      '/api/v1/volunteers/application/complete-certification';
+  static const String volunteerCertificationTestEndpoint =
+      '/api/v1/volunteers/certification-test';
+  static const String volunteerCertificationTestSubmitEndpoint =
+      '/api/v1/volunteers/certification-test/submit';
+  static const String volunteerCertificationTestInsightsEndpoint =
+      '/api/v1/volunteers/certification-test/insights';
+  static const String volunteerMyTasksEndpoint = '/api/v1/volunteers/my-tasks';
   static const String volunteerApplicationsAdminEndpoint =
       '/api/v1/volunteers/applications';
   static String volunteerApplicationAdminEndpoint(String id) =>
@@ -300,6 +309,8 @@ class AppConstants {
   static const String volunteerNewAvailabilityRoute =
       '/volunteer/new-availability';
   static const String volunteerApplicationRoute = '/volunteer/application';
+  static const String volunteerCertificationTestRoute =
+      '/volunteer/certification-test';
   static const String volunteerFormationsRoute = '/volunteer/formations';
   static const String coursesRoute = '/volunteer/courses';
   static const String specialistRoute = '/specialist';

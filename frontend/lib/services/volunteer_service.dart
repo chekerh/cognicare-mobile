@@ -93,4 +93,91 @@ class VolunteerService {
     }
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
+
+  /// Request certification after completing a qualification course (100%).
+  Future<Map<String, dynamic>> completeCertification() async {
+    final token = await _getToken();
+    if (token == null) throw Exception('No authentication token');
+    final response = await _client.post(
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.volunteerCompleteCertificationEndpoint}'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>?;
+      throw Exception(body?['message'] ?? 'Failed to complete certification');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  /// Get certification test (questions without answers). Returns alreadyCertified or test.
+  Future<Map<String, dynamic>> getCertificationTest() async {
+    final token = await _getToken();
+    if (token == null) throw Exception('No authentication token');
+    final response = await _client.get(
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.volunteerCertificationTestEndpoint}'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (response.statusCode != 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>?;
+      throw Exception(body?['message'] ?? 'Failed to load test');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  /// Submit certification test answers. Returns passed, scorePercent, certified.
+  Future<Map<String, dynamic>> submitCertificationTest(
+    List<Map<String, dynamic>> answers,
+  ) async {
+    final token = await _getToken();
+    if (token == null) throw Exception('No authentication token');
+    final response = await _client.post(
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.volunteerCertificationTestSubmitEndpoint}'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'answers': answers}),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>?;
+      throw Exception(body?['message'] ?? 'Submission failed');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  /// List tasks assigned to me (volunteer).
+  Future<List<dynamic>> getMyTasks() async {
+    final token = await _getToken();
+    if (token == null) throw Exception('No authentication token');
+    final response = await _client.get(
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.volunteerMyTasksEndpoint}'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (response.statusCode != 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>?;
+      throw Exception(body?['message'] ?? 'Failed to load tasks');
+    }
+    final list = jsonDecode(response.body);
+    return list is List ? list : [];
+  }
+
+  /// AI insights and recommendations for the volunteer.
+  Future<Map<String, dynamic>> getCertificationTestInsights() async {
+    final token = await _getToken();
+    if (token == null) throw Exception('No authentication token');
+    final response = await _client.get(
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.volunteerCertificationTestInsightsEndpoint}'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (response.statusCode != 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>?;
+      throw Exception(body?['message'] ?? 'Failed to load insights');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
 }

@@ -25,11 +25,56 @@ export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List courses (optionally qualification only)' })
+  @ApiOperation({
+    summary: 'List courses with optional filters (qualification, courseType, certification)',
+  })
   @ApiResponse({ status: 200, description: 'List of courses' })
-  async list(@Query('qualification') qualification?: string) {
+  async list(
+    @Query('qualification') qualification?: string,
+    @Query('courseType') courseType?: string,
+    @Query('certification') certification?: string,
+  ) {
     const qualificationOnly = qualification === 'true';
-    return this.coursesService.findAll(qualificationOnly);
+    const hasCertification = certification === 'true';
+    return this.coursesService.findAll({
+      qualificationOnly,
+      courseType: courseType?.trim() || undefined,
+      hasCertification,
+    });
+  }
+
+  @Post()
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({
+    summary: 'Create course (Admin). Used to import scraped training data.',
+  })
+  @ApiResponse({ status: 201, description: 'Course created' })
+  async create(
+    @Body()
+    body: {
+      title: string;
+      description?: string;
+      slug: string;
+      isQualificationCourse?: boolean;
+      startDate?: string;
+      endDate?: string;
+      courseType?: string;
+      price?: string;
+      location?: string;
+      enrollmentLink?: string;
+      certification?: string;
+      targetAudience?: string;
+      prerequisites?: string;
+      sourceUrl?: string;
+    },
+  ) {
+    const dto = {
+      ...body,
+      startDate: body.startDate ? new Date(body.startDate) : undefined,
+      endDate: body.endDate ? new Date(body.endDate) : undefined,
+    };
+    return this.coursesService.create(dto);
   }
 
   @Get('admin/enrollments')

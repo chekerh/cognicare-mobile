@@ -27,7 +27,8 @@ export class ParentFeedbackRequest {
   updatedAt?: Date;
 }
 
-export const ParentFeedbackRequestSchema =
-  SchemaFactory.createForClass(ParentFeedbackRequest);
+export const ParentFeedbackRequestSchema = SchemaFactory.createForClass(
+  ParentFeedbackRequest,
+);
 
 ParentFeedbackRequestSchema.index({ childId: 1, status: 1 });

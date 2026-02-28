@@ -21,7 +21,7 @@ export class NutritionService {
     private nutritionPlanModel: Model<NutritionPlanDocument>,
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-  ) { }
+  ) {}
 
   /**
    * Create a nutrition plan for a child

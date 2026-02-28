@@ -21,4 +21,4 @@ import { ChildrenModule } from '../children/children.module';
   providers: [NotificationsService],
   exports: [NotificationsService],
 })
-export class NotificationsModule { }
+export class NotificationsModule {}

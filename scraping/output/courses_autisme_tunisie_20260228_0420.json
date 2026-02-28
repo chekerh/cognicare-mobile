@@ -1,0 +1,22 @@
+{
+  "courses": [
+    {
+      "title": "Formation Autisme – Autisme Tunisie (exemple)",
+      "description": "Formation d’introduction. Données réelles à récupérer lorsque le site est accessible.",
+      "slug": "autisme-tunisie-formation-exemple",
+      "isQualificationCourse": false,
+      "startDate": null,
+      "endDate": null,
+      "courseType": "basic",
+      "price": "À préciser",
+      "location": null,
+      "enrollmentLink": "https://www.autisme-tunisie.org",
+      "certification": null,
+      "targetAudience": "volunteers, parents",
+      "prerequisites": "Aucun",
+      "sourceUrl": "https://www.autisme-tunisie.org"
+    }
+  ],
+  "scrapedAt": "2026-02-28T04:20:44.671393Z",
+  "source": "autisme-tunisie"
+}

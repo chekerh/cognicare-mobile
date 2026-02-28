@@ -62,7 +62,11 @@ export class LlmService {
       totalTasks: number;
       completedTasks: number;
       completionRate: number;
-      planProgress: Array<{ type: string; title: string; progressPercent: number }>;
+      planProgress: Array<{
+        type: string;
+        title: string;
+        progressPercent: number;
+      }>;
       recentFeedbackSnippets: string[];
     },
   ): Promise<string> {
@@ -82,7 +86,10 @@ Respond with only the summary text, no JSON and no preamble.`;
     }
     try {
       const raw = await this.callModel(prompt);
-      return raw.trim().slice(0, 800) || `Progression: ${context.completedTasks}/${context.totalTasks} tâches. Continuez comme ça !`;
+      return (
+        raw.trim().slice(0, 800) ||
+        `Progression: ${context.completedTasks}/${context.totalTasks} tâches. Continuez comme ça !`
+      );
     } catch {
       return `Progression ${periodLabel}: ${context.completedTasks} tâches complétées sur ${context.totalTasks}. Continuez comme ça !`;
     }
@@ -168,7 +175,10 @@ Rules:
       });
     }
 
-    const modelsToTry = [this.model, ...this.fallbackModels.filter((m) => m !== this.model)];
+    const modelsToTry = [
+      this.model,
+      ...this.fallbackModels.filter((m) => m !== this.model),
+    ];
 
     for (const model of modelsToTry) {
       const url = this.getModelUrl(model);
@@ -246,4 +256,3 @@ Rules:
     }
   }
 }
-

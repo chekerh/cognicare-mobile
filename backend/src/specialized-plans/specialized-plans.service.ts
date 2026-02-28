@@ -22,9 +22,12 @@ export class SpecializedPlansService {
     private planModel: Model<SpecializedPlanDocument>,
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     private cloudinary: CloudinaryService,
-  ) { }
+  ) {}
 
-  async uploadImage(file: { buffer: Buffer; mimetype: string }): Promise<string> {
+  async uploadImage(file: {
+    buffer: Buffer;
+    mimetype: string;
+  }): Promise<string> {
     const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
     const m = (file.mimetype ?? '').toLowerCase();
     const mimetype = !m || m === 'application/octet-stream' ? 'image/jpeg' : m;
@@ -40,7 +43,12 @@ export class SpecializedPlansService {
     }
     const uploadsDir = path.join(process.cwd(), 'uploads', 'pecs');
     await fs.mkdir(uploadsDir, { recursive: true });
-    const ext = mimetype === 'image/png' ? 'png' : mimetype === 'image/webp' ? 'webp' : 'jpg';
+    const ext =
+      mimetype === 'image/png'
+        ? 'png'
+        : mimetype === 'image/webp'
+          ? 'webp'
+          : 'jpg';
     const filename = `${crypto.randomUUID()}.${ext}`;
     await fs.writeFile(path.join(uploadsDir, filename), file.buffer);
     return `/uploads/pecs/${filename}`;
@@ -104,9 +112,7 @@ export class SpecializedPlansService {
         { organizationId: null },
       ];
     }
-    return this.planModel
-      .find(filter)
-      .sort({ createdAt: -1 });
+    return this.planModel.find(filter).sort({ createdAt: -1 });
   }
 
   /**
@@ -147,7 +153,8 @@ export class SpecializedPlansService {
       return total > 0 ? Math.round((pass / total) * 100) : 0;
     }
     if (plan.type === 'TEACCH') {
-      const goals = (content.goals as Array<{ current?: number; target?: number }>) ?? [];
+      const goals =
+        (content.goals as Array<{ current?: number; target?: number }>) ?? [];
       let sumCur = 0,
         sumTarget = 0;
       for (const g of goals) {
@@ -160,8 +167,10 @@ export class SpecializedPlansService {
       return Math.round(Math.min(100, (sumCur / sumTarget) * 100));
     }
     if (plan.type === 'SkillTracker') {
-      const cur = typeof content.currentPercent === 'number' ? content.currentPercent : 0;
-      const tgt = typeof content.targetPercent === 'number' ? content.targetPercent : 100;
+      const cur =
+        typeof content.currentPercent === 'number' ? content.currentPercent : 0;
+      const tgt =
+        typeof content.targetPercent === 'number' ? content.targetPercent : 100;
       if (tgt <= 0) return 0;
       return Math.round(Math.min(100, (cur / tgt) * 100));
     }
@@ -180,7 +189,15 @@ export class SpecializedPlansService {
   async getProgressSummaryForParent(
     childId: string,
     parentUserId: string,
-  ): Promise<Array<{ planId: string; type: string; title: string; progressPercent: number; lastUpdated?: string }>> {
+  ): Promise<
+    Array<{
+      planId: string;
+      type: string;
+      title: string;
+      progressPercent: number;
+      lastUpdated?: string;
+    }>
+  > {
     const child = await this.childModel.findById(childId).lean().exec();
     if (!child) throw new NotFoundException('Child not found');
     if ((child as any).parentId?.toString() !== parentUserId) {
@@ -195,7 +212,9 @@ export class SpecializedPlansService {
         type: p.type,
         content: p.content,
       }),
-      lastUpdated: p.updatedAt ? new Date(p.updatedAt).toISOString() : undefined,
+      lastUpdated: p.updatedAt
+        ? new Date(p.updatedAt).toISOString()
+        : undefined,
     }));
   }
 

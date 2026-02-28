@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/volunteer_service.dart';
 import '../../utils/constants.dart';
 
-const Color _navPrimary = Color(0xFFA4D9E5);
+const Color _navPrimary = Color(0xFFa3dae1);
 const Color _navInactive = Color(0xFF94A3B8);
 
 /// Shell secteur bénévole : Accueil | Agenda | Formations | Messages | Profil.
 /// Formations est l'écran affiché en premier après connexion.
-class VolunteerShellScreen extends StatelessWidget {
+class VolunteerShellScreen extends StatefulWidget {
   const VolunteerShellScreen({
     super.key,
     required this.navigationShell,
@@ -17,8 +19,92 @@ class VolunteerShellScreen extends StatelessWidget {
 
   final StatefulNavigationShell navigationShell;
 
+  @override
+  State<VolunteerShellScreen> createState() => _VolunteerShellScreenState();
+}
+
+class _VolunteerShellScreenState extends State<VolunteerShellScreen> {
+  Map<String, dynamic>? _application;
+
   void _onTap(int index) {
-    navigationShell.goBranch(index);
+    const int agendaIndex = 1;
+    const int messagesIndex = 3;
+    final trainingCertified = _application?['trainingCertified'] == true;
+    if ((index == agendaIndex || index == messagesIndex) && !trainingCertified) {
+      final loc = AppLocalizations.of(context)!;
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(loc.volunteerTrainingLockedTitle),
+          content: Text(loc.volunteerTrainingLockedMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(loc.volunteerProfileAlertLaterButton),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                widget.navigationShell.goBranch(2); // Formations
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _navPrimary,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(loc.volunteerTrainingLockedGoToFormations),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    widget.navigationShell.goBranch(index);
+  }
+
+  Future<void> _checkVolunteerProfileComplete() async {
+    try {
+      final app = await VolunteerService().getMyApplication();
+      if (mounted) setState(() => _application = app);
+      final profileComplete = app['profileComplete'] == true;
+      if (profileComplete) return;
+      if (!mounted) return;
+      final ctx = context;
+      final loc = AppLocalizations.of(ctx)!;
+      showDialog<void>(
+        context: ctx,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(loc.volunteerProfileAlertTitle),
+          content: Text(loc.volunteerProfileAlertMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(loc.volunteerProfileAlertLaterButton),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                if (!mounted) return;
+                context.push(AppConstants.volunteerApplicationRoute);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _navPrimary,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(loc.volunteerProfileAlertCompleteButton),
+            ),
+          ],
+        ),
+      );
+    } catch (_) {
+      // Ignore: user may not be volunteer or network error
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkVolunteerProfileComplete());
   }
 
   @override
@@ -30,7 +116,7 @@ class VolunteerShellScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: navigationShell,
+      body: widget.navigationShell,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,

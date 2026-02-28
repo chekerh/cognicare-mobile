@@ -24,6 +24,8 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminGuard } from '../auth/admin.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { VolunteersService, DocumentType } from './volunteers.service';
 import { ReviewApplicationDto } from './dto/review-application.dto';
 
@@ -97,6 +99,58 @@ export class VolunteersController {
       throw new BadRequestException('Invalid index');
     }
     return this.volunteersService.removeDocument(req.user.id, index);
+  }
+
+  @Post('application/complete-certification')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Mark training as certified',
+    description:
+      'Volunteer must have completed at least one qualification course (100%) and application must be approved.',
+  })
+  @ApiResponse({ status: 200, description: 'Updated application' })
+  @ApiResponse({
+    status: 400,
+    description: 'Course not completed or application not approved',
+  })
+  async completeCertification(@Request() req: { user: { id: string } }) {
+    return this.volunteersService.completeCertification(req.user.id);
+  }
+
+  @Get('my-tasks')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'List my assigned tasks (volunteer)' })
+  @ApiResponse({ status: 200, description: 'List of tasks' })
+  async getMyTasks(@Request() req: { user: { id: string } }) {
+    return this.volunteersService.getMyTasks(req.user.id);
+  }
+
+  @Post('tasks')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'admin',
+    'organization_leader',
+    'psychologist',
+    'speech_therapist',
+    'occupational_therapist',
+    'doctor',
+    'other',
+  )
+  @ApiOperation({
+    summary: 'Assign a task to a volunteer (specialist or admin)',
+  })
+  @ApiResponse({ status: 201, description: 'Task created; volunteer notified' })
+  async assignTask(
+    @Request() req: { user: { id: string } },
+    @Body()
+    body: { volunteerId: string; title: string; description?: string; dueDate?: string },
+  ) {
+    return this.volunteersService.assignTask(req.user.id, {
+      volunteerId: body.volunteerId,
+      title: body.title,
+      description: body.description,
+      dueDate: body.dueDate,
+    });
   }
 
   @Get('applications')

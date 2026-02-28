@@ -9,7 +9,12 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -50,7 +55,8 @@ export class ProgressAiController {
   )
   @ApiOperation({ summary: 'Get AI recommendations for a child' })
   async getRecommendations(
-    @Request() req: { user: { id: string; organizationId?: string; role: string } },
+    @Request()
+    req: { user: { id: string; organizationId?: string; role: string } },
     @Param('childId') childId: string,
     @Query('planType') planType?: string,
     @Query('summaryLength') summaryLength?: 'short' | 'detailed',
@@ -59,7 +65,7 @@ export class ProgressAiController {
     const preferences =
       summaryLength || focusPlanTypes
         ? {
-            summaryLength: summaryLength as 'short' | 'detailed' | undefined,
+            summaryLength: summaryLength,
             focusPlanTypes: focusPlanTypes
               ? focusPlanTypes.split(',').map((s) => s.trim())
               : undefined,
@@ -115,14 +121,18 @@ export class ProgressAiController {
   @Get('admin/summary-by-org')
   @Roles('admin')
   @UseGuards(AdminGuard)
-  @ApiOperation({ summary: 'Admin: aggregated progress summary per organization (no PII)' })
+  @ApiOperation({
+    summary: 'Admin: aggregated progress summary per organization (no PII)',
+  })
   async getAdminSummaryByOrg() {
     return await this.progressAiService.getAdminSummaryByOrg();
   }
 
   @Get('org/specialist/:specialistId/summary')
   @Roles('organization_leader')
-  @ApiOperation({ summary: 'Org leader: specialist progress summary (no child PII)' })
+  @ApiOperation({
+    summary: 'Org leader: specialist progress summary (no child PII)',
+  })
   async getOrgSpecialistSummary(
     @Request() req: { user: { id: string } },
     @Param('specialistId') specialistId: string,
@@ -141,7 +151,9 @@ export class ProgressAiController {
     'doctor',
     'volunteer',
   )
-  @ApiOperation({ summary: 'Get 2–3 activity suggestions for specialist dashboard' })
+  @ApiOperation({
+    summary: 'Get 2–3 activity suggestions for specialist dashboard',
+  })
   async getActivitySuggestions(@Request() req: { user: { id: string } }) {
     return await this.progressAiService.getActivitySuggestions(req.user.id);
   }
@@ -207,7 +219,9 @@ export class ProgressAiController {
     'volunteer',
     'organization_leader',
   )
-  @ApiOperation({ summary: 'Request parent feedback for a child (after AI suggestion)' })
+  @ApiOperation({
+    summary: 'Request parent feedback for a child (after AI suggestion)',
+  })
   async requestParentFeedback(
     @Request() req: { user: { id: string; role: string } },
     @Param('childId') childId: string,
@@ -227,7 +241,9 @@ export class ProgressAiController {
 
   @Post('child/:childId/parent-feedback')
   @Roles('family')
-  @ApiOperation({ summary: 'Submit parent feedback (rating + comment) for a child' })
+  @ApiOperation({
+    summary: 'Submit parent feedback (rating + comment) for a child',
+  })
   async submitParentFeedback(
     @Request() req: { user: { id: string } },
     @Param('childId') childId: string,
@@ -247,7 +263,12 @@ export class ProgressAiController {
   @Get('child/:childId/parent-feedback')
   @Roles('family')
   @ApiOperation({ summary: 'Get recent parent feedback entries for a child' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum number of entries (default: 10)' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Maximum number of entries (default: 10)',
+  })
   async getParentFeedback(
     @Request() req: { user: { id: string } },
     @Param('childId') childId: string,

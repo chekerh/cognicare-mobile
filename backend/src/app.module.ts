@@ -19,6 +19,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { GamificationModule } from './gamification/gamification.module';
 import { VolunteersModule } from './volunteers/volunteers.module';
 import { CoursesModule } from './courses/courses.module';
+import { CertificationTestModule } from './certification-test/certification-test.module';
 import { NutritionModule } from './nutrition/nutrition.module';
 import { CallsModule } from './calls/calls.module';
 import { EngagementModule } from './engagement/engagement.module';
@@ -67,6 +68,7 @@ import { ChatbotModule } from './chatbot/chatbot.module';
     GamificationModule,
     VolunteersModule,
     CoursesModule,
+    CertificationTestModule,
     NutritionModule,
     CallsModule,
     EngagementModule,
@@ -82,4 +84,4 @@ import { ChatbotModule } from './chatbot/chatbot.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

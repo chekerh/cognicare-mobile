@@ -26,7 +26,7 @@ import { CreateNotificationDto } from './dto/create-notification.dto';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
 export class NotificationsController {
-  constructor(private readonly notifications: NotificationsService) { }
+  constructor(private readonly notifications: NotificationsService) {}
 
   @Get()
   @ApiOperation({ summary: 'List notifications for the current user' })

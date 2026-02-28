@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsIn, IsMongoId, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsIn,
+  IsMongoId,
+  IsBoolean,
+} from 'class-validator';
 
 export class RecommendationFeedbackDto {
   @IsString()
