@@ -7,11 +7,16 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { VolunteerApplication } from './schemas/volunteer-application.schema';
 import { VolunteerTask } from './schemas/volunteer-task.schema';
+import { User, UserDocument } from '../users/schemas/user.schema';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { MailService } from '../mail/mail.service';
 import { CoursesService } from '../courses/courses.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ReviewApplicationDto } from './dto/review-application.dto';
+import {
+  UpdateApplicationMeDto,
+  CareProviderTypeDto,
+} from './dto/update-application-me.dto';
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -27,6 +32,7 @@ export class VolunteersService {
     private readonly applicationModel: Model<VolunteerApplication>,
     @InjectModel(VolunteerTask.name)
     private readonly volunteerTaskModel: Model<VolunteerTask>,
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private readonly cloudinary: CloudinaryService,
     private readonly mail: MailService,
     private readonly coursesService: CoursesService,
@@ -47,6 +53,41 @@ export class VolunteersService {
       app = created.toObject();
     }
     return this.toResponse(app as Record<string, unknown>);
+  }
+
+  /**
+   * Update current user's application (careProviderType, specialty, organization fields).
+   * Only allowed when status is pending.
+   */
+  async updateApplicationMe(
+    userId: string,
+    dto: UpdateApplicationMeDto,
+  ): Promise<Record<string, unknown>> {
+    let app = await this.applicationModel
+      .findOne({ userId: new Types.ObjectId(userId) })
+      .exec();
+    if (!app) {
+      app = await this.applicationModel.create({
+        userId: new Types.ObjectId(userId),
+        status: 'pending',
+        documents: [],
+      });
+    }
+    if (app.status !== 'pending') {
+      throw new BadRequestException(
+        'Cannot update application after it has been reviewed',
+      );
+    }
+    if (dto.careProviderType !== undefined) {
+      app.careProviderType = dto.careProviderType as CareProviderTypeDto;
+    }
+    if (dto.specialty !== undefined) app.specialty = dto.specialty;
+    if (dto.organizationName !== undefined)
+      app.organizationName = dto.organizationName;
+    if (dto.organizationRole !== undefined)
+      app.organizationRole = dto.organizationRole;
+    await app.save();
+    return this.toResponse(app.toObject() as unknown as Record<string, unknown>);
   }
 
   async addDocument(
@@ -217,6 +258,18 @@ export class VolunteersService {
     app.deniedReason = dto.deniedReason?.trim();
     await app.save();
 
+    const userId = (app.userId as Types.ObjectId).toString();
+
+    if (dto.decision === 'approved') {
+      const userDoc = await this.userModel.findById(userId).exec();
+      if (userDoc) {
+        if (app.careProviderType !== undefined)
+          userDoc.careProviderType = app.careProviderType;
+        if (app.specialty !== undefined) userDoc.specialty = app.specialty;
+        await userDoc.save();
+      }
+    }
+
     const populated = await this.applicationModel
       .findById(applicationId)
       .populate('userId', 'fullName email')
@@ -262,6 +315,10 @@ export class VolunteersService {
       id,
       userId: userIdStr,
       status: app.status,
+      careProviderType: app.careProviderType,
+      specialty: app.specialty,
+      organizationName: app.organizationName,
+      organizationRole: app.organizationRole,
       documents: app.documents ?? [],
       profileComplete,
       trainingCertified: app.trainingCertified ?? false,

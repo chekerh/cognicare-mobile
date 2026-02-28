@@ -47,31 +47,13 @@ export class SignupDto {
 
   @ApiProperty({
     description:
-      "User's role in the platform. Note: Specialized therapy roles (psychologist, speech_therapist, occupational_therapist, other) can only be assigned by organization leaders via staff management - they cannot self-signup.",
+      "User's role: Family Member or Care Provider. Care Provider sub-type (e.g. Speech Therapist, Caregiver) is chosen after signup in the application flow.",
     example: 'family',
-    enum: ['family', 'doctor', 'volunteer', 'organization_leader'],
+    enum: ['family', 'careProvider'],
   })
   @IsNotEmpty()
-  @IsEnum(['family', 'doctor', 'volunteer', 'organization_leader'])
-  role!: 'family' | 'doctor' | 'volunteer' | 'organization_leader';
-
-  @ApiPropertyOptional({
-    description:
-      'Organization name (required when role is organization_leader)',
-    example: 'Hope Care Foundation',
-  })
-  @IsOptional()
-  @IsString()
-  organizationName?: string;
-
-  @ApiPropertyOptional({
-    description:
-      'Brief description of the organization (optional for organization_leader)',
-    example: 'A community center focused on cognitive health support',
-  })
-  @IsOptional()
-  @IsString()
-  organizationDescription?: string;
+  @IsEnum(['family', 'careProvider'])
+  role!: 'family' | 'careProvider';
 
   @ApiProperty({
     description: '6-digit verification code sent to email',

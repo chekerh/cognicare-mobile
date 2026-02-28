@@ -20,6 +20,44 @@ export class VolunteerApplication {
   })
   status: 'pending' | 'approved' | 'denied';
 
+  /**
+   * Care Provider breakdown: specific role chosen after signup.
+   * speech_therapist | occupational_therapist | psychologist | doctor | ergotherapist | caregiver | organization_leader | other
+   */
+  @Prop({
+    enum: [
+      'speech_therapist',
+      'occupational_therapist',
+      'psychologist',
+      'doctor',
+      'ergotherapist',
+      'caregiver',
+      'organization_leader',
+      'other',
+    ],
+  })
+  careProviderType?:
+    | 'speech_therapist'
+    | 'occupational_therapist'
+    | 'psychologist'
+    | 'doctor'
+    | 'ergotherapist'
+    | 'caregiver'
+    | 'organization_leader'
+    | 'other';
+
+  /** Optional specialty (e.g. for healthcare providers). */
+  @Prop()
+  specialty?: string;
+
+  /** For organization leaders: organization name. */
+  @Prop()
+  organizationName?: string;
+
+  /** For organization leaders: role/title in the organization. */
+  @Prop()
+  organizationRole?: string;
+
   @Prop({ type: [VolunteerDocumentSchema], default: [] })
   documents: VolunteerDocument[];
 

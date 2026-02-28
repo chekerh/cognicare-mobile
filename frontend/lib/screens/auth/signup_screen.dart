@@ -28,7 +28,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _confirmPasswordController = TextEditingController();
   final _verificationCodeController = TextEditingController();
 
-  String _selectedRole = 'family';
+  String _selectedRole = 'family'; // 'family' | 'careProvider'
   bool _acceptTerms = false;
   bool _emailVerified = false;
   bool _codeSent = false;
@@ -195,6 +195,8 @@ class _SignupScreenState extends State<SignupScreen> {
         );
         if (_selectedRole == 'family') {
           context.go(AppConstants.familyChildProfileSetupRoute);
+        } else if (_selectedRole == 'careProvider') {
+          context.go(AppConstants.volunteerApplicationRoute);
         } else {
           context.go(AppConstants.loginRoute);
         }
@@ -224,12 +226,8 @@ class _SignupScreenState extends State<SignupScreen> {
     switch (role) {
       case 'family':
         return localizations.roleFamily;
-      case 'doctor':
-        return localizations.roleDoctor;
-      case 'volunteer':
-        return localizations.roleVolunteer;
-      case 'organization_leader':
-        return localizations.roleOrganizationLeader;
+      case 'careProvider':
+        return localizations.roleCareProvider;
       default:
         return role;
     }
@@ -687,8 +685,7 @@ class _SignupScreenState extends State<SignupScreen> {
           contentPadding: EdgeInsets.symmetric(vertical: 12),
         ),
         icon: Icon(Icons.expand_more, color: Colors.grey.shade400),
-        items: ['family', 'doctor', 'volunteer', 'organization_leader']
-            .map((role) {
+        items: ['family', 'careProvider'].map((role) {
           return DropdownMenuItem(
             value: role,
             child: Row(

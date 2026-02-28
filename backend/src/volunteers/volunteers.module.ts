@@ -10,6 +10,7 @@ import {
   VolunteerTask,
   VolunteerTaskSchema,
 } from './schemas/volunteer-task.schema';
+import { User, UserSchema } from '../users/schemas/user.schema';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { MailModule } from '../mail/mail.module';
 import { CoursesModule } from '../courses/courses.module';
@@ -23,6 +24,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
         schema: VolunteerApplicationSchema,
       },
       { name: VolunteerTask.name, schema: VolunteerTaskSchema },
+      { name: User.name, schema: UserSchema },
     ]),
     CloudinaryModule,
     MailModule,

@@ -3,9 +3,9 @@ import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 import '../../services/availability_service.dart';
 
-const Color _primary = Color(0xFF89CFF0);
-const Color _primaryDark = Color(0xFF5BAED4);
-const Color _brandBlue = Color(0xFF2563EB);
+const Color _primary = Color(0xFFa3dae1);
+const Color _primaryDark = Color(0xFF7bc5ce);
+const Color _brandBlue = Color(0xFFa3dae1);
 const Color _bgLight = Color(0xFFF0F9FF);
 
 /// Nouvelle Disponibilité — sélection dates, plage horaire, récurrence, enregistrer.

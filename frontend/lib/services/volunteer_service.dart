@@ -35,6 +35,37 @@ class VolunteerService {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
+  /// Update my application (careProviderType, specialty, organization). PATCH.
+  Future<Map<String, dynamic>> updateApplicationMe({
+    required String careProviderType,
+    String? specialty,
+    String? organizationName,
+    String? organizationRole,
+  }) async {
+    final token = await _getToken();
+    if (token == null) throw Exception('No authentication token');
+    final body = <String, dynamic>{
+      'careProviderType': careProviderType,
+    };
+    if (specialty != null) body['specialty'] = specialty;
+    if (organizationName != null) body['organizationName'] = organizationName;
+    if (organizationRole != null) body['organizationRole'] = organizationRole;
+    final response = await _client.patch(
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.volunteerApplicationEndpoint}'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
+    if (response.statusCode != 200) {
+      final respBody = jsonDecode(response.body) as Map<String, dynamic>?;
+      throw Exception(respBody?['message'] ?? 'Failed to update application');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
   /// Upload a document (id, certificate, other). Max 5MB. Images or PDF.
   Future<Map<String, dynamic>> uploadDocument({
     required File file,

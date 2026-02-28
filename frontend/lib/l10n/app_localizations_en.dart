@@ -143,6 +143,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roleFamily => 'Family Member';
 
   @override
+  String get roleCareProvider => 'Care Provider';
+
+  @override
   String get roleDoctor => 'Healthcare Professional';
 
   @override

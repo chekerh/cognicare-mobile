@@ -152,6 +152,7 @@ abstract class AppLocalizations {
 
   /// Roles
   String get roleFamily;
+  String get roleCareProvider;
   String get roleDoctor;
   String get roleVolunteer;
   String get roleOrganizationLeader;

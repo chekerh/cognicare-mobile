@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-const Color _primary = Color(0xFF89CFF0);
+const Color _primary = Color(0xFFa3dae1);
 const Color _bgLight = Color(0xFFF0F9FF);
 const Color _slate700 = Color(0xFF334155);
 
