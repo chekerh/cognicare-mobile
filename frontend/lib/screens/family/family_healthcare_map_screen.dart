@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/healthcare_cabinet.dart';
 import '../../services/healthcare_cabinets_service.dart';
+import '../../utils/constants.dart';
 
 /// Centre approximatif de la Tunisie (carte Glovo-style).
 const LatLng _tunisiaCenter = LatLng(34.0, 10.0);
@@ -307,14 +309,10 @@ class _FamilyHealthcareMapScreenState extends State<FamilyHealthcareMapScreen> {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () async {
+                    onPressed: () {
                       Navigator.of(ctx).pop();
-                      final uri = Uri.parse(
-                        'https://www.google.com/maps/search/?api=1&query=${cabinet.latitude},${cabinet.longitude}',
-                      );
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
-                      }
+                      context.push(AppConstants.familyCabinetRouteRoute,
+                          extra: {'cabinet': cabinet});
                     },
                     icon: const Icon(Icons.directions, size: 18),
                     label: Text(loc.viewItineraryLabel),

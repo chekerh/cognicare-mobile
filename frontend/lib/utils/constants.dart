@@ -247,6 +247,7 @@ class AppConstants {
   static const String familyAddProductRoute = '/family/add-product';
   static const String familyPatientRecordRoute = '/family/patient-record';
   static const String familyNotificationsRoute = '/family/notifications';
+  static const String familyCabinetRouteRoute = '/family/cabinet-route';
   static const String familyExpertBookingRoute = '/family/expert-booking';
   static const String familyExpertBookingConfirmationRoute =
       '/family/expert-booking-confirmation';
@@ -288,6 +289,7 @@ class AppConstants {
   static const String familyChildProgressSummaryRoute =
       '/family/child-progress-summary';
   static const String familyCreateReminderRoute = '/family/create-reminder';
+  static const String familyCalendarRoute = '/family/calendar';
   static const String familyMedicineVerificationRoute =
       '/family/medicine-verification';
   static const String familyReminderNotificationRoute =

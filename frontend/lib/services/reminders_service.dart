@@ -8,6 +8,29 @@ class RemindersService {
 
   RemindersService({required this.getToken});
 
+  /// GET /reminders/child/:childId — tous les rappels du child (pour le calendrier).
+  Future<List<TaskReminder>> getRemindersByChild(String childId) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Not authenticated');
+    final response = await http.get(
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.remindersByChildEndpoint(childId)}'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
+      return data
+          .map((json) => TaskReminder.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } else {
+      final error = jsonDecode(response.body) as Map<String, dynamic>;
+      throw Exception(error['message'] ?? 'Failed to get reminders');
+    }
+  }
+
   Future<List<TaskReminder>> getTodayReminders(String childId) async {
     final token = await getToken();
     if (token == null) throw Exception('Not authenticated');

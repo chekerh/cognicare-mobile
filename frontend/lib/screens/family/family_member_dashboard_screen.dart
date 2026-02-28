@@ -230,6 +230,7 @@ class _FamilyMemberDashboardScreenState
     final auth = context.watch<AuthProvider>();
     final userName = auth.user?.fullName ?? 'Sarah';
 
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
     return Scaffold(
       backgroundColor: _primary,
       body: SafeArea(
@@ -253,16 +254,12 @@ class _FamilyMemberDashboardScreenState
                       const SizedBox(height: 24),
                       _buildProgressSummaryCard(context),
                       const SizedBox(height: 24),
-                      _buildProgressSection(context),
-                      const SizedBox(height: 24),
                       _buildTwoColumnCards(context),
                       const SizedBox(height: 24),
                       _buildVolunteersSection(context),
                       const SizedBox(height: 24),
                       _buildHealthcareSection(context),
-                      const SizedBox(height: 24),
-                      _buildRecentActivityCard(context),
-                      const SizedBox(height: 100),
+                      SizedBox(height: 24 + bottomPadding + 60),
                     ]),
                   ),
                 ),
@@ -563,168 +560,110 @@ class _FamilyMemberDashboardScreenState
     );
   }
 
-  Widget _buildProgressSection(BuildContext context) {
-    const days = ['LUN', 'MAR', 'MER', 'JEU', 'VEN'];
-    const heights = [48.0, 80.0, 112.0, 64.0, 96.0];
-    const hasStar = [true, true, true, false, false];
-    const isCurrent = [false, false, true, false, false];
-
-    return _Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Progrès du jour',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: _slate800,
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _primary.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: const Text(
-                    'Léo • 6 ans',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: _primary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(5, (i) {
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 2),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          height: heights[i],
-                          decoration: BoxDecoration(
-                            color: hasStar[i]
-                                ? (isCurrent[i]
-                                    ? _primary
-                                    : _primary.withOpacity(0.2))
-                                : _slate300.withOpacity(0.5),
-                            borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(8)),
-                          ),
-                          child: hasStar[i]
-                              ? Align(
-                                  alignment: Alignment.bottomCenter,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(bottom: 8),
-                                    child: Icon(
-                                      Icons.star_rounded,
-                                      size: 16,
-                                      color: isCurrent[i]
-                                          ? Colors.white
-                                          : _primary,
-                                    ),
-                                  ),
-                                )
-                              : null,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          days[i],
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: isCurrent[i] ? _primary : _slate400,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-            ),
-            const SizedBox(height: 16),
-            RichText(
-              textAlign: TextAlign.center,
-              text: const TextSpan(
-                style: TextStyle(fontSize: 14, color: _slate500),
-                children: [
-                  TextSpan(
-                    text: 'Encore 2 étoiles ',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: _slate800,
-                    ),
-                  ),
-                  TextSpan(text: 'pour le défi de la semaine !'),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildTwoColumnCards(BuildContext context) {
-    return _Card(
-      child: InkWell(
-        onTap: () => context.go(AppConstants.familyFamiliesRoute),
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  color: _green100,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.forum_rounded,
-                    color: _green600, size: 22),
-              ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Chat Famille',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: _slate800,
+    return SizedBox(
+      height: 118,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _Card(
+              child: InkWell(
+                onTap: () => context.go(AppConstants.familyFamiliesRoute),
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 14),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: const BoxDecoration(
+                          color: _green100,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.forum_rounded,
+                            color: _green600, size: 20),
                       ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      '2 nouveaux messages',
-                      style: TextStyle(fontSize: 12, color: _slate500),
-                    ),
-                  ],
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Chat Famille',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: _slate800,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Messages',
+                        style: TextStyle(fontSize: 10, color: _slate500),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios_rounded,
-                  color: _primary, size: 18),
-            ],
+            ),
           ),
-        ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _Card(
+              child: InkWell(
+                onTap: () => context.push(AppConstants.familyCalendarRoute),
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 14),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: _primary.withOpacity(0.3),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.calendar_month_rounded,
+                            color: _slate800, size: 20),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Planning',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: _slate800,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Rendez-vous & routine',
+                        style: TextStyle(fontSize: 10, color: _slate500),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -968,6 +907,7 @@ class _FamilyMemberDashboardScreenState
                     onPressed: () {
                       context.push(AppConstants.familyExpertBookingRoute,
                           extra: {
+                            'expertId': user.id,
                             'name': user.fullName,
                             'specialization': specialization,
                             'location': 'CogniCare',
@@ -1164,52 +1104,6 @@ class _FamilyMemberDashboardScreenState
     );
   }
 
-  Widget _buildRecentActivityCard(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.4),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 16,
-            backgroundColor: _accentColor,
-            child: Icon(Icons.person_rounded, color: Colors.white, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: RichText(
-              text: const TextSpan(
-                style: TextStyle(fontSize: 12, color: _slate800, height: 1.3),
-                children: [
-                  TextSpan(
-                    text: 'Dr. Martin ',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  TextSpan(
-                    text: 'a mis à jour le programme de motricité fine.',
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          const Text(
-            'Il y a 2h',
-            style: TextStyle(
-              fontSize: 10,
-              color: _slate500,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _Card extends StatelessWidget {

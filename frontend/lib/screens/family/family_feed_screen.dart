@@ -1038,6 +1038,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           primaryColor: _feedSecondary,
           onBookConsultation: () {
             context.push(AppConstants.familyExpertBookingRoute, extra: {
+              'expertId': userId,
               'name': user.fullName,
               'specialization': _roleToSpecializationLabel(user.role),
               'location': 'CogniCare',
@@ -1059,138 +1060,6 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         ),
       );
     }).toList();
-  }
-
-  Widget _buildFamilyChatCard() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: () => context.go(AppConstants.familyFamiliesRoute),
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppTheme.text.withOpacity(0.08)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 104,
-                  height: 40,
-                  child: Stack(
-                    children: [
-                      Positioned(left: 0, child: _avatarCircle('D', 20)),
-                      Positioned(left: 32, child: _avatarCircle('M', 20)),
-                      Positioned(
-                        left: 64,
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: _feedPrimary,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: const Center(
-                            child: Text(
-                              '+2',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppLocalizations.of(context)!.familyChat,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                          color: AppTheme.text,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Mom: "Check out this toy!"',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.text.withOpacity(0.6),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Material(
-                  color: _feedPrimary.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(999),
-                  child: InkWell(
-                    onTap: () => context.go(AppConstants.familyFamiliesRoute),
-                    borderRadius: BorderRadius.circular(999),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
-                      child: Text(
-                        AppLocalizations.of(context)!.open,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: _feedSecondary,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _avatarCircle(String letter, double radius) {
-    return Container(
-      width: radius * 2,
-      height: radius * 2,
-      decoration: BoxDecoration(
-        color: _feedPrimary.withOpacity(0.4),
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
-      ),
-      child: Center(
-        child: Text(
-          letter,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
-            color: AppTheme.text,
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildShareCard() {

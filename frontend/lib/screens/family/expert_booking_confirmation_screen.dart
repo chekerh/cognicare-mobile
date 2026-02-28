@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../services/notification_service.dart';
+import '../../services/saved_appointments_service.dart';
 import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFFA3D9E2);
@@ -17,6 +19,8 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
     required this.time,
     required this.mode,
     this.expertImageUrl,
+    this.dateIso,
+    this.expertId,
   });
 
   final String expertName;
@@ -25,6 +29,10 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
   final String time;
   final String mode; // video | in_person
   final String? expertImageUrl;
+  /// Date au format ISO (YYYY-MM-DD) pour enregistrement dans le calendrier.
+  final String? dateIso;
+  /// UserId du professionnel (pour "Rejoindre l'appel").
+  final String? expertId;
 
   static ExpertBookingConfirmationScreen fromState(GoRouterState state) {
     final e = (state.extra as Map<String, dynamic>?) ?? {};
@@ -35,6 +43,8 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
       date: e['date'] as String? ?? '4 Octobre 2023',
       time: e['time'] as String? ?? '10:30',
       mode: e['mode'] as String? ?? 'video',
+      dateIso: e['dateIso'] as String?,
+      expertId: e['expertId'] as String?,
     );
   }
 
@@ -60,7 +70,7 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
                     _buildConfirmationCard(
                         context, loc, modeLabel, dateTimeStr),
                     const SizedBox(height: 32),
-                    _buildAddToCalendarButton(loc),
+                    _buildAddToCalendarButton(context, loc),
                     const SizedBox(height: 12),
                     _buildViewAppointmentsButton(context, loc),
                   ],
@@ -208,14 +218,37 @@ class ExpertBookingConfirmationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAddToCalendarButton(AppLocalizations loc) {
+  Widget _buildAddToCalendarButton(
+      BuildContext context, AppLocalizations loc) {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(16),
       elevation: 2,
       shadowColor: _primary.withOpacity(0.5),
       child: InkWell(
-        onTap: () {},
+        onTap: () async {
+          final iso = dateIso;
+          if (iso != null && iso.isNotEmpty) {
+            await SavedAppointmentsService.saveAppointment(
+              SavedAppointment(
+                dateIso: iso,
+                time: time,
+                title: expertName,
+                subtitle: expertSpecialty,
+                mode: mode,
+                expertUserId: expertId,
+              ),
+            );
+            await NotificationService().scheduleAppointmentReminder(
+              dateIso: iso,
+              time: time,
+              title: expertName,
+              subtitle: expertSpecialty,
+            );
+          }
+          if (!context.mounted) return;
+          context.push(AppConstants.familyCalendarRoute);
+        },
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16),

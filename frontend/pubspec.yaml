@@ -91,6 +91,9 @@ dependencies:
   # Position GPS pour calcul de distance
   geolocator: ^13.0.2
 
+  # Calendrier (planning famille : rendez-vous, routine)
+  table_calendar: ^3.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
