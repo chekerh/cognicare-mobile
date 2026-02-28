@@ -5,6 +5,10 @@ export type HealthcareCabinetDocument = HealthcareCabinet & Document;
 
 @Schema({ timestamps: true })
 export class HealthcareCabinet {
+  /** Google Place ID (ex: ChIJ...) pour déduplication lors du refresh depuis l'API Places. */
+  @Prop({ unique: true, sparse: true })
+  placeId?: string;
+
   @Prop({ required: true })
   name: string;
 

@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import axios from 'axios';
 import { Model } from 'mongoose';
 import {
   HealthcareCabinet,
@@ -7,119 +8,38 @@ import {
 } from './schemas/healthcare-cabinet.schema';
 
 /**
- * Cabinets et centres en Tunisie (maladies cognitives, autisme, orthophonie, pédopsychiatrie, etc.).
- * La carte famille utilise OpenStreetMap (flutter_map) — pas besoin de GOOGLE_MAPS_API_KEY pour l'affichage.
- * La clé Google dans .env peut servir plus tard pour du géocodage côté backend si besoin.
+ * Source des cabinets : OpenStreetMap (Overpass API), gratuit, sans clé.
+ * Aucun Google Cloud requis.
  */
-const SEED_CABINETS: Array<{
-  name: string;
-  specialty: string;
-  address: string;
-  city: string;
-  latitude: number;
-  longitude: number;
-  phone?: string;
-  website?: string;
-}> = [
-  {
-    name: 'Cabinet Dr. Zayneb Zouch - Orthophoniste',
-    specialty: 'Orthophoniste',
-    address: 'Route de Tunis km 6, Immeuble Ennakhla, 1er étage, Sfax',
-    city: 'Sfax',
-    latitude: 34.7406,
-    longitude: 10.7603,
-    phone: '+216 20 671 867',
-  },
-  {
-    name: 'Cabinet Yasmine Zaghbani - Orthophoniste',
-    specialty: 'Orthophoniste',
-    address: '24 rue Habib Bourguiba, Centre médical Ibn Rochd, 1er étage',
-    city: 'Hammam Lif',
-    latitude: 36.7333,
-    longitude: 10.3333,
-    phone: '28 160 380',
-  },
-  {
-    name: 'Centre de Rééducation du Langage - Tunis',
-    specialty: 'Orthophoniste',
-    address: 'Avenue de la Liberté, Tunis',
-    city: 'Tunis',
-    latitude: 36.8065,
-    longitude: 10.1815,
-  },
-  {
-    name: 'Unité de Pédopsychiatrie - Hôpital Razi',
-    specialty: 'Pédopsychiatrie',
-    address: 'La Manouba, Tunis',
-    city: 'Tunis',
-    latitude: 36.8092,
-    longitude: 10.0956,
-  },
-  {
-    name: 'Cabinet Psychologue Enfant - Les Berges du Lac',
-    specialty: 'Psychologue',
-    address: 'Les Berges du Lac, Tunis',
-    city: 'Tunis',
-    latitude: 36.8333,
-    longitude: 10.25,
-  },
-  {
-    name: 'Centre d\'Accueil et d\'Orientation - Sousse',
-    specialty: 'Centre multidisciplinaire',
-    address: 'Avenue Habib Bourguiba, Sousse',
-    city: 'Sousse',
-    latitude: 35.8256,
-    longitude: 10.6346,
-  },
-  {
-    name: 'Cabinet Ergothérapie - Sfax',
-    specialty: 'Ergothérapeute',
-    address: 'Route de la Plage, Sfax',
-    city: 'Sfax',
-    latitude: 34.735,
-    longitude: 10.758,
-  },
-  {
-    name: 'Association Tunisienne de l\'Autisme - Siège',
-    specialty: 'Association / Ressources',
-    address: 'Tunis',
-    city: 'Tunis',
-    latitude: 36.7989,
-    longitude: 10.1656,
-  },
-  {
-    name: 'Centre de Santé Mentale Infantile - Nabeul',
-    specialty: 'Pédopsychiatrie',
-    address: 'Nabeul',
-    city: 'Nabeul',
-    latitude: 36.4561,
-    longitude: 10.7376,
-  },
-  {
-    name: 'Cabinet Orthophonie - Monastir',
-    specialty: 'Orthophoniste',
-    address: 'Avenue de l\'Environnement, Monastir',
-    city: 'Monastir',
-    latitude: 35.7772,
-    longitude: 10.8261,
-  },
-  {
-    name: 'Unité TSA - Hôpital Charles Nicolle',
-    specialty: 'Pédopsychiatrie / TSA',
-    address: 'Boulevard du 9 Avril, Tunis',
-    city: 'Tunis',
-    latitude: 36.8144,
-    longitude: 10.0839,
-  },
-  {
-    name: 'Cabinet Psychologue - Sousse Médina',
-    specialty: 'Psychologue',
-    address: 'Sousse Médina',
-    city: 'Sousse',
-    latitude: 35.8272,
-    longitude: 10.6342,
-  },
-];
+
+/** Bbox Tunisie (sud, ouest, nord, est) pour Overpass. */
+const TUNISIA_BBOX = [32.3, 8.1, 37.3, 11.3];
+const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
+
+/** Requête Overpass : établissements de santé en Tunisie (hôpitaux, cliniques, cabinets, etc.). */
+const OVERPASS_QUERY = `
+[out:json][timeout:60];
+(
+  node["amenity"~"hospital|clinic|doctors|dentist"](${TUNISIA_BBOX.join(',')});
+  way["amenity"~"hospital|clinic|doctors|dentist"](${TUNISIA_BBOX.join(',')});
+  node["healthcare"](${TUNISIA_BBOX.join(',')});
+  way["healthcare"](${TUNISIA_BBOX.join(',')});
+);
+out center;
+`;
+
+interface OverpassElement {
+  type: 'node' | 'way' | 'relation';
+  id: number;
+  lat?: number;
+  lon?: number;
+  center?: { lat: number; lon: number };
+  tags?: Record<string, string>;
+}
+
+interface OverpassResponse {
+  elements?: OverpassElement[];
+}
 
 @Injectable()
 export class HealthcareCabinetsService implements OnModuleInit {
@@ -131,20 +51,133 @@ export class HealthcareCabinetsService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    try {
-      const count = await this.cabinetModel.countDocuments().exec();
-      if (count === 0) {
-        this.logger.log(
-          'Seeding healthcare cabinets (Tunisia — orthophonistes, pédopsychiatres, centres)...',
-        );
-        await this.cabinetModel.insertMany(SEED_CABINETS);
-        this.logger.log(`Seeded ${SEED_CABINETS.length} healthcare cabinets.`);
-      }
-    } catch (e) {
-      this.logger.warn(
-        `Healthcare cabinets seed failed: ${(e as Error).message}`,
+    const count = await this.cabinetModel.countDocuments().exec();
+    if (count === 0) {
+      this.logger.log(
+        'Aucun cabinet en base — chargement depuis OpenStreetMap (Tunisie)...',
       );
+      try {
+        await this.fetchFromOverpassAndUpsert();
+      } catch (e) {
+        this.logger.warn(
+          `Overpass échoué: ${(e as Error).message}. Seed minimal.`,
+        );
+        await this.seedIfEmpty();
+      }
+    } else {
+      this.logger.log(`${count} cabinet(s) en base.`);
     }
+  }
+
+  private async seedIfEmpty() {
+    const count = await this.cabinetModel.countDocuments().exec();
+    if (count > 0) return;
+    const minimalSeed = [
+      {
+        name: 'Centre de Rééducation du Langage - Tunis',
+        specialty: 'Orthophoniste',
+        address: 'Avenue de la Liberté, Tunis',
+        city: 'Tunis',
+        latitude: 36.8065,
+        longitude: 10.1815,
+      },
+      {
+        name: 'Unité de Pédopsychiatrie - Hôpital Razi',
+        specialty: 'Pédopsychiatrie',
+        address: 'La Manouba, Tunis',
+        city: 'Tunis',
+        latitude: 36.8092,
+        longitude: 10.0956,
+      },
+    ];
+    await this.cabinetModel.insertMany(minimalSeed);
+    this.logger.log(`Seed minimal: ${minimalSeed.length} cabinets.`);
+  }
+
+  /**
+   * Récupère les établissements de santé en Tunisie via Overpass API (OpenStreetMap)
+   * et les enregistre en base. Aucune clé API requise.
+   */
+  async fetchFromOverpassAndUpsert(): Promise<{ added: number; total: number }> {
+    const response = await axios.post<OverpassResponse>(
+      OVERPASS_URL,
+      new URLSearchParams({ data: OVERPASS_QUERY }).toString(),
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        timeout: 90000,
+      },
+    );
+
+    const elements = response.data?.elements ?? [];
+    let added = 0;
+
+    for (const el of elements) {
+      const lat = el.lat ?? el.center?.lat;
+      const lon = el.lon ?? el.center?.lon;
+      if (lat == null || lon == null) continue;
+
+      const name =
+        el.tags?.name ??
+        el.tags?.['addr:street'] ??
+        `Établissement de santé ${el.type}/${el.id}`;
+      const address = this.formatAddress(el.tags);
+      const city =
+        el.tags?.['addr:city'] ??
+        el.tags?.['addr:place'] ??
+        el.tags?.['addr:suburb'] ??
+        'Tunisie';
+      const specialty = this.specialtyFromOsmTags(el.tags);
+      const placeId = `osm_${el.type}_${el.id}`;
+
+      const doc: Partial<HealthcareCabinet> = {
+        placeId,
+        name,
+        specialty,
+        address,
+        city,
+        latitude: lat,
+        longitude: lon,
+        phone: el.tags?.phone ?? el.tags?.['contact:phone'] ?? undefined,
+        website: el.tags?.website ?? el.tags?.['contact:website'] ?? undefined,
+      };
+
+      const updated = await this.cabinetModel
+        .findOneAndUpdate({ placeId }, { $set: doc }, { upsert: true, new: true })
+        .exec();
+      if (updated) added++;
+    }
+
+    const total = await this.cabinetModel.countDocuments().exec();
+    this.logger.log(
+      `OpenStreetMap refresh: ${added} nouveau(x), total ${total} cabinet(s).`,
+    );
+    return { added, total };
+  }
+
+  private formatAddress(tags?: Record<string, string>): string {
+    if (!tags) return '';
+    const parts = [
+      tags['addr:housenumber'],
+      tags['addr:street'],
+      tags['addr:place'],
+      tags['addr:city'],
+      tags['addr:postcode'],
+    ].filter(Boolean);
+    return parts.join(', ') || tags['address'] || '';
+  }
+
+  private specialtyFromOsmTags(tags?: Record<string, string>): string {
+    if (!tags) return 'Cabinet / Centre';
+    const a = (tags['amenity'] ?? '').toLowerCase();
+    const h = (tags['healthcare'] ?? '').toLowerCase();
+    const spec = (tags['healthcare:speciality'] ?? '').toLowerCase();
+    if (a.includes('hospital') || h.includes('hospital')) return 'Hôpital';
+    if (a.includes('clinic') || h.includes('clinic')) return 'Clinique';
+    if (a.includes('doctors')) return 'Cabinet médical';
+    if (a.includes('dentist')) return 'Dentiste';
+    if (spec) return spec;
+    if (h) return h;
+    return 'Cabinet / Centre';
   }
 
   async findAll(): Promise<HealthcareCabinet[]> {
