@@ -146,7 +146,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roleDoctor => 'Healthcare Professional';
 
   @override
-  String get roleVolunteer => 'Volunteer';
+  String get roleVolunteer => 'Caregiver';
 
   @override
   String get roleOrganizationLeader => 'Organization Leader';
@@ -1245,7 +1245,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextAppointmentLabel => 'Appt tomorrow 10am';
 
   @override
-  String get volunteersLabel => 'Volunteers';
+  String get volunteersLabel => 'Caregiver';
 
   @override
   String get askForHelp => 'Ask for help';
@@ -1271,7 +1271,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get volunteerLabel => 'Volunteer';
+  String get volunteerLabel => 'Caregiver';
 
 
   @override
@@ -2072,7 +2072,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get familiesToContact => 'Families to contact';
   @override
-  String get noVolunteersAvailable => 'No volunteers available yet.\nYour conversations will appear here.';
+  String get noVolunteersAvailable => 'No caregivers available yet.\nPublished availabilities will appear here.';
   @override
   String get volunteersToContact => 'Volunteers to contact';
   @override

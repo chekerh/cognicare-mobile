@@ -146,7 +146,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get roleDoctor => 'Professionnel de santé';
 
   @override
-  String get roleVolunteer => 'Bénévole';
+  String get roleVolunteer => 'Caregiver';
 
   @override
   String get roleOrganizationLeader => 'Responsable d\'organisation';
@@ -1245,13 +1245,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nextAppointmentLabel => 'RDV demain 10h';
 
   @override
-  String get volunteersLabel => 'Bénévoles';
+  String get volunteersLabel => 'Caregiver';
 
   @override
   String get askForHelp => 'Demander de l\'aide';
 
   @override
-  String get noVolunteersAvailable => 'Aucun bénévole disponible pour le moment.\nLes disponibilités publiées apparaîtront ici.';
+  String get noVolunteersAvailable => 'Aucun caregiver disponible pour le moment.\nLes disponibilités publiées apparaîtront ici.';
 
   @override
   String get retryButton => 'Réessayer';
@@ -1274,7 +1274,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get volunteerLabel => 'Bénévole';
+  String get volunteerLabel => 'Caregiver';
 
 
   @override

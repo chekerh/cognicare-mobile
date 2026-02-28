@@ -30,7 +30,7 @@ const Color _green600 = Color(0xFF16A34A);
 /// Même gris foncé que "Commande Confirmée" (boutons, icônes d'accent)
 const Color _accentColor = Color(0xFF212121);
 
-/// Données d'un bénévole affiché sur l'accueil famille.
+/// Données d'un caregiver (volunteer) affiché sur l'accueil famille.
 class _VolunteerCardData {
   final String id;
   final String name;
@@ -669,14 +669,15 @@ class _FamilyMemberDashboardScreenState
   }
 
   Widget _buildVolunteersSection(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(bottom: 16),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16),
           child: Text(
-            'Bénévoles',
-            style: TextStyle(
+            loc.volunteersLabel,
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: _slate800,
@@ -700,20 +701,20 @@ class _FamilyMemberDashboardScreenState
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: _loadVolunteerAvailabilities,
-                    child: const Text('Réessayer'),
+                    child: Text(loc.retryButton),
                   ),
                 ],
               ),
             ),
           )
         else if (_volunteerCards == null || _volunteerCards!.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
             child: Center(
               child: Text(
-                'Aucun bénévole disponible pour le moment.\nLes disponibilités publiées apparaîtront ici.',
+                loc.noVolunteersAvailable,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: _slate500),
+                style: const TextStyle(fontSize: 14, color: _slate500),
               ),
             ),
           )

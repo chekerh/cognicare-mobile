@@ -155,7 +155,7 @@ class _FamilyHealthcareMapScreenState extends State<FamilyHealthcareMapScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Aucun cabinet enregistré pour le moment.',
+                  'Aucun cabinet ou centre maladies cognitives enregistré pour le moment.',
                   style: TextStyle(fontSize: 14, color: _slate500),
                   textAlign: TextAlign.center,
                 ),
@@ -179,7 +179,7 @@ class _FamilyHealthcareMapScreenState extends State<FamilyHealthcareMapScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        '${list.length} cabinet(s) et centre(s) en Tunisie',
+                        '${list.length} cabinet(s) / centre(s) maladies cognitives en Tunisie',
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,

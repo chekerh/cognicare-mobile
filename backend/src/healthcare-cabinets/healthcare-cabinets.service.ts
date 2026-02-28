@@ -6,7 +6,11 @@ import {
   HealthcareCabinetDocument,
 } from './schemas/healthcare-cabinet.schema';
 
-/** Cabinets et centres en Tunisie (maladies cognitives, autisme, orthophonie, etc.) — données réelles ou représentatives. */
+/**
+ * Cabinets et centres en Tunisie (maladies cognitives, autisme, orthophonie, pédopsychiatrie, etc.).
+ * La carte famille utilise OpenStreetMap (flutter_map) — pas besoin de GOOGLE_MAPS_API_KEY pour l'affichage.
+ * La clé Google dans .env peut servir plus tard pour du géocodage côté backend si besoin.
+ */
 const SEED_CABINETS: Array<{
   name: string;
   specialty: string;
