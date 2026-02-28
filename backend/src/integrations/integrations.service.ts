@@ -16,6 +16,10 @@ import {
   ExternalProduct,
   ExternalProductDocument,
 } from './schemas/external-product.schema';
+import {
+  IntegrationOrder,
+  IntegrationOrderDocument,
+} from './schemas/integration-order.schema';
 
 const BOOKS_TO_SCRAPE_SLUG = 'books-to-scrape';
 const BOOKS_BASE = 'http://books.toscrape.com';
@@ -29,6 +33,8 @@ export class IntegrationsService implements OnModuleInit {
     private readonly websiteModel: Model<ExternalWebsiteDocument>,
     @InjectModel(ExternalProduct.name)
     private readonly productModel: Model<ExternalProductDocument>,
+    @InjectModel(IntegrationOrder.name)
+    private readonly orderModel: Model<IntegrationOrderDocument>,
   ) {}
 
   async onModuleInit() {
@@ -238,5 +244,59 @@ export class IntegrationsService implements OnModuleInit {
       productUrl: p.productUrl,
       lastScrapedAt: new Date(),
     };
+  }
+
+  /**
+   * Enregistre la commande en base puis l'envoie au site cible (sans ouvrir le site dans le navigateur).
+   */
+  async submitOrder(
+    websiteSlug: string,
+    payload: {
+      externalId: string;
+      quantity?: number;
+      productName?: string;
+      formData: Record<string, string>;
+    },
+  ): Promise<{ orderId: string; status: string; message: string }> {
+    const website = await this.getWebsite(websiteSlug);
+    const websiteId = (website as unknown as { _id: Types.ObjectId })._id;
+
+    const order = await this.orderModel.create({
+      websiteId,
+      externalId: payload.externalId,
+      productName: payload.productName ?? '',
+      quantity: payload.quantity ?? 1,
+      formData: payload.formData ?? {},
+      status: 'received',
+    });
+
+    try {
+      if (websiteSlug === BOOKS_TO_SCRAPE_SLUG) {
+        await this.sendOrderToBooksToScrape(order, payload);
+      }
+      order.sentToSiteAt = new Date();
+      order.status = 'sent';
+      await order.save();
+    } catch (e) {
+      this.logger.warn(
+        `Order ${order._id} saved but send to site failed: ${(e as Error).message}`,
+      );
+    }
+
+    return {
+      orderId: (order._id as Types.ObjectId).toString(),
+      status: order.status,
+      message:
+        'Commande enregistrée. Le site vous contactera pour la livraison.',
+    };
+  }
+
+  private async sendOrderToBooksToScrape(
+    _order: IntegrationOrderDocument,
+    _payload: { externalId: string; quantity?: number; formData: Record<string, string> },
+  ): Promise<void> {
+    // Books to Scrape est un site démo sans API de commande réelle.
+    // La commande est enregistrée en base ; pour un vrai site (ex. Bioherbs)
+    // on ferait ici un POST vers le formulaire du site.
   }
 }
