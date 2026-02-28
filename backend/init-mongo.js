@@ -58,4 +58,18 @@ db.users.insertOne({
 });
 */
 
+// Optional: enable real order send to an external site (e.g. Formspree)
+// 1. Get your form URL from https://formspree.io (e.g. https://formspree.io/f/xxxxx)
+// 2. In MongoDB: db.externalwebsites.updateOne(
+//      { slug: "books-to-scrape" },
+//      { $set: { formActionUrl: "https://formspree.io/f/YOUR_FORM_ID" } }
+//    )
+// 3. Optionally set formFieldMapping to map app fields to site fields, e.g.:
+//    formFieldMapping: [
+//      { appFieldName: "fullName", siteSelector: "name" },
+//      { appFieldName: "email", siteSelector: "email" },
+//      { appFieldName: "address", siteSelector: "message" }
+//    ]
+// Then orders from the app will be POSTed to that URL and status will be "sent".
+
 print('Database initialization completed.');

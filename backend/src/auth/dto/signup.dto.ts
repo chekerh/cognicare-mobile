@@ -47,13 +47,29 @@ export class SignupDto {
 
   @ApiProperty({
     description:
-      "User's role: Family Member or Care Provider. Care Provider sub-type (e.g. Speech Therapist, Caregiver) is chosen after signup in the application flow.",
+      "User's role: Family Member, Care Provider, or Organization Leader. Care Provider sub-type is chosen after signup.",
     example: 'family',
-    enum: ['family', 'careProvider'],
+    enum: ['family', 'careProvider', 'organization_leader'],
   })
   @IsNotEmpty()
-  @IsEnum(['family', 'careProvider'])
-  role!: 'family' | 'careProvider';
+  @IsEnum(['family', 'careProvider', 'organization_leader'])
+  role!: 'family' | 'careProvider' | 'organization_leader';
+
+  @ApiPropertyOptional({
+    description: 'Organization name (required when role is organization_leader)',
+    example: 'Care Plus Association',
+  })
+  @IsOptional()
+  @IsString()
+  organizationName?: string;
+
+  @ApiPropertyOptional({
+    description: 'Organization description (optional for organization_leader)',
+    example: 'Non-profit supporting families.',
+  })
+  @IsOptional()
+  @IsString()
+  organizationDescription?: string;
 
   @ApiProperty({
     description: '6-digit verification code sent to email',

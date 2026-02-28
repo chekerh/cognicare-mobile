@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import axios from 'axios';
 import {
   fetchBooksCategories,
   fetchBooksProductDetail,
@@ -11,6 +12,7 @@ import {
 import {
   ExternalWebsite,
   ExternalWebsiteDocument,
+  FormFieldMapping,
 } from './schemas/external-website.schema';
 import {
   ExternalProduct,
@@ -270,17 +272,21 @@ export class IntegrationsService implements OnModuleInit {
       status: 'received',
     });
 
+    const websiteDoc = await this.websiteModel.findOne({ slug: websiteSlug }).lean().exec();
+    const formActionUrl = websiteDoc?.formActionUrl?.trim();
+
     try {
-      if (websiteSlug === BOOKS_TO_SCRAPE_SLUG) {
-        await this.sendOrderToBooksToScrape(order, payload);
-        // Site démo : pas d’envoi réel, on ne marque pas comme envoyé.
-      } else {
-        // Pour un vrai site (ex. Bioherbs) : envoyer ici puis marquer envoyé quand implémenté.
-        // await this.sendOrderToExternalSite(order, payload);
-        // order.sentToSiteAt = new Date();
-        // order.status = 'sent';
-        // await order.save();
+      if (formActionUrl) {
+        await this.sendOrderToExternalSite(
+          websiteDoc as ExternalWebsite & { _id: Types.ObjectId },
+          order,
+          payload,
+        );
+        order.sentToSiteAt = new Date();
+        order.status = 'sent';
+        await order.save();
       }
+      // Books to Scrape n’a pas de formActionUrl : pas d’envoi réel.
     } catch (e) {
       this.logger.warn(
         `Order ${order._id} saved but send to site failed: ${(e as Error).message}`,
@@ -301,12 +307,54 @@ export class IntegrationsService implements OnModuleInit {
     };
   }
 
-  private async sendOrderToBooksToScrape(
-    _order: IntegrationOrderDocument,
-    _payload: { externalId: string; quantity?: number; formData: Record<string, string> },
+  /**
+   * Envoi réel de la commande vers le site : POST du formulaire vers formActionUrl.
+   * Utilise formFieldMapping pour mapper nos champs (fullName, email, …) vers les noms attendus par le site.
+   */
+  private async sendOrderToExternalSite(
+    website: ExternalWebsite & { _id?: Types.ObjectId },
+    order: IntegrationOrderDocument,
+    payload: {
+      externalId: string;
+      quantity?: number;
+      productName?: string;
+      formData: Record<string, string>;
+    },
   ): Promise<void> {
-    // Books to Scrape est un site démo sans API de commande réelle.
-    // La commande est enregistrée en base ; pour un vrai site (ex. Bioherbs)
-    // on ferait ici un POST vers le formulaire du site.
+    const formActionUrl = website.formActionUrl?.trim();
+    if (!formActionUrl) return;
+
+    const formData = payload.formData ?? {};
+    const mapping = website.formFieldMapping as FormFieldMapping[] | undefined;
+    const params = new URLSearchParams();
+
+    if (mapping?.length) {
+      for (const m of mapping) {
+        const value = formData[m.appFieldName] ?? '';
+        params.append(m.siteSelector, value);
+      }
+    } else {
+      for (const [k, v] of Object.entries(formData)) {
+        params.append(k, String(v ?? ''));
+      }
+    }
+
+    params.append('productId', payload.externalId);
+    params.append('productName', payload.productName ?? order.productName ?? '');
+    params.append('quantity', String(payload.quantity ?? order.quantity ?? 1));
+
+    await axios.post(formActionUrl, params.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      timeout: 15000,
+      maxRedirects: 5,
+      validateStatus: (status) => status >= 200 && status < 400,
+    }).catch((err) => {
+      const msg = axios.isAxiosError(err)
+        ? `${err.response?.status ?? err.code}: ${err.message}`
+        : (err as Error).message;
+      throw new Error(`Envoi au site échoué: ${msg}`);
+    });
+
+    this.logger.log(`Order ${order._id} sent to site ${website.slug} (${formActionUrl})`);
   }
 }
