@@ -38,29 +38,6 @@ class CommunityMemberProfileScreen extends StatefulWidget {
   @override
   State<CommunityMemberProfileScreen> createState() =>
       _CommunityMemberProfileScreenState();
-}
-
-class _CommunityMemberProfileScreenState
-    extends State<CommunityMemberProfileScreen> {
-  String? _followStatus;
-  bool _followLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadFollowStatus();
-  }
-
-  Future<void> _loadFollowStatus() async {
-    if (widget.memberId.isEmpty) return;
-    try {
-      final status =
-          await CommunityService().getFollowStatus(widget.memberId);
-      if (mounted) setState(() => _followStatus = status);
-    } catch (_) {
-      if (mounted) setState(() => _followStatus = null);
-    }
-  }
 
   static CommunityMemberProfileScreen fromState(GoRouterState state) {
     final e = (state.extra as Map<String, dynamic>?) ?? {};
@@ -85,6 +62,29 @@ class _CommunityMemberProfileScreenState
       followersCount: e['followersCount'] as int? ?? 1200,
       helpsCount: e['helpsCount'] as int? ?? 450,
     );
+  }
+}
+
+class _CommunityMemberProfileScreenState
+    extends State<CommunityMemberProfileScreen> {
+  String? _followStatus;
+  bool _followLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFollowStatus();
+  }
+
+  Future<void> _loadFollowStatus() async {
+    if (widget.memberId.isEmpty) return;
+    try {
+      final status =
+          await CommunityService().getFollowStatus(widget.memberId);
+      if (mounted) setState(() => _followStatus = status);
+    } catch (_) {
+      if (mounted) setState(() => _followStatus = null);
+    }
   }
 
   static const String _defaultRole = 'Parent de Léo';
