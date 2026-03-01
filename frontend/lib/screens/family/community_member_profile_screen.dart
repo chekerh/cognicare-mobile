@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../services/auth_service.dart';
 import '../../services/community_service.dart';
 import '../../utils/constants.dart';
 
@@ -70,11 +71,25 @@ class _CommunityMemberProfileScreenState
   String? _followStatus;
   String? _followRequestId;
   bool _followLoading = false;
+  bool? _isOnline;
 
   @override
   void initState() {
     super.initState();
     _loadFollowStatus();
+    _loadPresence();
+  }
+
+  Future<void> _loadPresence() async {
+    if (widget.memberId.isEmpty) return;
+    try {
+      final online = await AuthService().getPresence(widget.memberId);
+      if (!mounted) return;
+      setState(() => _isOnline = online);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isOnline = false);
+    }
   }
 
   Future<void> _loadFollowStatus() async {
@@ -199,18 +214,19 @@ class _CommunityMemberProfileScreenState
                     : null,
               ),
             ),
-            Positioned(
-              bottom: 4,
-              right: 4,
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 4)),
+            if (_isOnline == true)
+              Positioned(
+                bottom: 4,
+                right: 4,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 4)),
+                ),
               ),
-            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -220,6 +236,18 @@ class _CommunityMemberProfileScreenState
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Color(0xFF334155)),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          _isOnline == true ? 'En ligne' : 'Hors ligne',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: _isOnline == true
+                ? Colors.green.shade700
+                : Colors.grey.shade600,
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 4),

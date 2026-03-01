@@ -359,6 +359,8 @@ class AppConstants {
       '/volunteer/community/market';
   static const String volunteerDonationDetailRoute =
       '/volunteer/community/donation-detail';
+  static const String volunteerProposeDonationRoute =
+      '/volunteer/propose-donation';
   static const String volunteerCommunityCreatePostRoute =
       '/volunteer/community/create-post';
   static const String volunteerProductDetailRoute =

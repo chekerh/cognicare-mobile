@@ -20,6 +20,33 @@ const Color _background = Color(0xFFF8FAFC);
 const Color _grey600 = Color(0xFF757575);
 const Color _grey700 = Color(0xFF616161);
 
+String _roleDisplayLabel(String? role) {
+  if (role == null || role.isEmpty) return 'Bénévole';
+  switch (role.toLowerCase()) {
+    case 'doctor':
+      return 'Médecin';
+    case 'psychologist':
+      return 'Pédopsychiatre / Psychologue';
+    case 'speech_therapist':
+      return 'Orthophoniste';
+    case 'occupational_therapist':
+      return 'Ergothérapeute';
+    case 'volunteer':
+      return 'Bénévole';
+    case 'family':
+      return 'Famille';
+    case 'healthcare':
+    case 'professional':
+      return 'Professionnel de santé';
+    case 'careprovider':
+      return 'Aidant';
+    case 'organization_leader':
+      return 'Responsable d\'organisation';
+    default:
+      return role;
+  }
+}
+
 class VolunteerProfileScreen extends StatefulWidget {
   const VolunteerProfileScreen({super.key});
 
@@ -65,11 +92,22 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
 
   Future<void> _refreshProfile() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    // Utiliser le cache : si le provider n'a pas encore l'utilisateur, charger depuis le stockage local
+    if (authProvider.user == null) {
+      try {
+        final storedUser = await AuthService().getStoredUser();
+        if (storedUser != null && mounted) {
+          authProvider.updateUser(storedUser);
+        }
+      } catch (_) {}
+    }
     final hasCachedUser = authProvider.user != null;
-    setState(() {
-      _error = null;
-      _isLoading = !hasCachedUser;
-    });
+    if (mounted) {
+      setState(() {
+        _error = null;
+        _isLoading = !hasCachedUser;
+      });
+    }
     try {
       final user = await AuthService().getProfile();
       if (mounted) {
@@ -81,13 +119,26 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
       final isUnauthorized = message.contains('Unauthorized') ||
           message.contains('No authentication token');
       if (mounted) {
-        setState(() {
-          _error = message;
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
         if (isUnauthorized) {
           await authProvider.logout();
           if (mounted) context.go(AppConstants.loginRoute);
+          return;
+        }
+        // Si on a déjà un utilisateur en cache, ne pas afficher l'écran d'erreur :
+        // on affiche le profil en cache et on évite le message bloquant à chaque visite.
+        if (!hasCachedUser) {
+          setState(() => _error = message);
+        } else {
+          // Indiquer que le rafraîchissement a échoué (réseau lent/timeout), profil affiché depuis le cache
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Profil affiché depuis le cache'),
+              backgroundColor: _grey600,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
         }
       }
     }
@@ -194,6 +245,102 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
         );
       }
     }
+  }
+
+  void _showAccountSettingsSheet() {
+    final loc = AppLocalizations.of(context)!;
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(loc.accountSettings,
+                    style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.text)),
+                const SizedBox(height: 16),
+                _buildActionTile(
+                  icon: Icons.lock_outline,
+                  label: loc.changePassword,
+                  onTap: () async {
+                    navigator.pop();
+                    final result = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => const ChangePasswordDialog());
+                    if (result != true) return;
+                    if (!mounted) return;
+                    messenger.showSnackBar(const SnackBar(
+                        content: Text(
+                            'Mot de passe mis à jour. Veuillez vous reconnecter.'),
+                        backgroundColor: Colors.green));
+                    await _handleLogout();
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildActionTile(
+                  icon: Icons.email_outlined,
+                  label: loc.changeEmail,
+                  onTap: () async {
+                    navigator.pop();
+                    final result = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => const ChangeEmailDialog());
+                    if (result != true) return;
+                    if (!mounted) return;
+                    messenger.showSnackBar(const SnackBar(
+                        content: Text(
+                            'Email mis à jour. Veuillez vous reconnecter.'),
+                        backgroundColor: Colors.green));
+                    await _handleLogout();
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildActionTile(
+                  icon: Icons.language_outlined,
+                  label: loc.changeLanguage,
+                  onTap: () async {
+                    navigator.pop();
+                    await _showLanguageDialog();
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildActionTile(
+                  icon: Icons.phone_outlined,
+                  label: loc.changePhone,
+                  onTap: () async {
+                    navigator.pop();
+                    final result = await showDialog<bool>(
+                        context: context,
+                        builder: (_) =>
+                            ChangePhoneDialog(currentPhone: user?.phone));
+                    if (result != true) return;
+                    _refreshProfile();
+                    if (!mounted) return;
+                    messenger.showSnackBar(const SnackBar(
+                        content: Text('Téléphone mis à jour'),
+                        backgroundColor: Colors.green));
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _showLanguageDialog() async {
@@ -393,7 +540,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                                     fontWeight: FontWeight.w600,
                                     color: Colors.white)),
                             _headerButton(Icons.settings_outlined,
-                                onTap: () {}),
+                                onTap: _showAccountSettingsSheet),
                           ],
                         ),
                         const SizedBox(height: 24),
@@ -466,6 +613,17 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                             ],
                           ),
                         ),
+                        if (user?.role != null && user!.role.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            _roleDisplayLabel(user?.role),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF1E293B),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -701,68 +859,6 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                           value: user?.createdAt != null
                               ? _formatDate(user!.createdAt)
                               : 'N/A'),
-
-                      const SizedBox(height: 24),
-
-                      // Account Settings
-                      Text(loc.accountSettings,
-                          style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.text)),
-                      const SizedBox(height: 12),
-                      _buildActionTile(
-                          icon: Icons.lock_outline,
-                          label: loc.changePassword,
-                          onTap: () async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            final result = await showDialog<bool>(
-                                context: context,
-                                builder: (_) => const ChangePasswordDialog());
-                            if (result != true) return;
-                            messenger.showSnackBar(const SnackBar(
-                                content: Text(
-                                    'Mot de passe mis à jour. Veuillez vous reconnecter.'),
-                                backgroundColor: Colors.green));
-                            await _handleLogout();
-                          }),
-                      const SizedBox(height: 8),
-                      _buildActionTile(
-                          icon: Icons.email_outlined,
-                          label: loc.changeEmail,
-                          onTap: () async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            final result = await showDialog<bool>(
-                                context: context,
-                                builder: (_) => const ChangeEmailDialog());
-                            if (result != true) return;
-                            messenger.showSnackBar(const SnackBar(
-                                content: Text(
-                                    'Email mis à jour. Veuillez vous reconnecter.'),
-                                backgroundColor: Colors.green));
-                            await _handleLogout();
-                          }),
-                      const SizedBox(height: 8),
-                      _buildActionTile(
-                          icon: Icons.language_outlined,
-                          label: loc.changeLanguage,
-                          onTap: _showLanguageDialog),
-                      const SizedBox(height: 8),
-                      _buildActionTile(
-                          icon: Icons.phone_outlined,
-                          label: loc.changePhone,
-                          onTap: () async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            final result = await showDialog<bool>(
-                                context: context,
-                                builder: (_) => ChangePhoneDialog(
-                                    currentPhone: user?.phone));
-                            if (result != true) return;
-                            _refreshProfile();
-                            messenger.showSnackBar(const SnackBar(
-                                content: Text('Téléphone mis à jour'),
-                                backgroundColor: Colors.green));
-                          }),
 
                       const SizedBox(height: 24),
 
