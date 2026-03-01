@@ -1286,6 +1286,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         return (c.$1, e.value);
       }).toList();
       final comments = feedProvider.getComments(post.id);
+      final commentCount = feedProvider.getCommentCount(post.id);
       final lastComment = comments.isNotEmpty
           ? '${comments.first.authorName}: ${comments.first.text}'
           : null;
@@ -1305,7 +1306,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         text: post.text,
         tagStyles: tagStyles,
         likes: feedProvider.getLikeCount(post.id),
-        comments: comments.length,
+        comments: commentCount,
         liked: feedProvider.isLiked(post.id),
         hasImage: post.hasImage,
         imagePath: post.imagePath,

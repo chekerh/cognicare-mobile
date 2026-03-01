@@ -538,6 +538,7 @@ class _VolunteerCommunityFeedScreenState
     final likeCount = feed.getLikeCount(post.id);
     final liked = feed.isLiked(post.id);
     final comments = feed.getComments(post.id);
+    final commentCount = feed.getCommentCount(post.id);
     final avatarBg = _avatarColorFor(post.authorName);
     final avatarFg = _avatarTextColorFor(post.authorName);
 
@@ -667,7 +668,7 @@ class _VolunteerCommunityFeedScreenState
                         const SizedBox(width: 24),
                         _actionChip(
                           icon: Icons.chat_bubble_outline,
-                          label: '${comments.length}',
+                          label: '$commentCount',
                           color: _textSlate400,
                           onTap: () async {
                             await feed.loadCommentsForPost(post.id);

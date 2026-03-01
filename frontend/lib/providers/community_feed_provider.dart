@@ -21,6 +21,8 @@ class CommunityFeedProvider with ChangeNotifier {
   final Map<String, bool> _postLiked = {};
   final Map<String, int> _postLikeCount = {};
   final Map<String, List<FeedComment>> _postComments = {};
+  /// Compteur de commentaires par post (mis à jour au chargement et à chaque nouvel ajout).
+  final Map<String, int> _postCommentCount = {};
   bool _loaded = false;
   bool _useBackend = false;
   final CommunityService _api = CommunityService();
@@ -30,6 +32,9 @@ class CommunityFeedProvider with ChangeNotifier {
 
   bool isLiked(String postId) => _postLiked[postId] ?? false;
   int getLikeCount(String postId) => _postLikeCount[postId] ?? 0;
+  /// Nombre de commentaires affiché sur la carte (s'incrémente dès qu'on charge les commentaires ou qu'on en ajoute un).
+  int getCommentCount(String postId) =>
+      _postCommentCount[postId] ?? _postComments[postId]?.length ?? 0;
   List<FeedComment> getComments(String postId) =>
       List.unmodifiable(_postComments[postId] ?? []);
 
@@ -59,6 +64,7 @@ class CommunityFeedProvider with ChangeNotifier {
         _postLiked[p.id] = status[p.id] ?? false;
       }
       _postComments.clear();
+      _postCommentCount.clear();
       _useBackend = true;
     } catch (_) {
       // Pas de token ou erreur API : charger depuis le stockage local
@@ -145,6 +151,7 @@ class CommunityFeedProvider with ChangeNotifier {
       try {
         final list = await _api.getComments(postId);
         _postComments[postId] = list;
+        _postCommentCount[postId] = list.length;
         notifyListeners();
       } catch (_) {}
     }
@@ -182,6 +189,7 @@ class CommunityFeedProvider with ChangeNotifier {
         final comment = await _api.addComment(postId, text.trim());
         _postComments[postId] ??= [];
         _postComments[postId]!.insert(0, comment);
+        _postCommentCount[postId] = (_postCommentCount[postId] ?? 0) + 1;
         notifyListeners();
         return;
       } catch (_) {}
@@ -192,6 +200,7 @@ class CommunityFeedProvider with ChangeNotifier {
       FeedComment(
           authorName: authorName, text: text.trim(), createdAt: DateTime.now()),
     );
+    _postCommentCount[postId] = (_postCommentCount[postId] ?? 0) + 1;
     notifyListeners();
     _saveToStorage();
   }
