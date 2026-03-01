@@ -59,6 +59,22 @@ class CommunityService {
     };
   }
 
+  /// Récupère les posts d'un auteur (pour le profil type Facebook).
+  Future<List<CommunityPost>> getPostsByAuthor(String authorId) async {
+    if (authorId.isEmpty) return [];
+    final uri = Uri.parse(
+            '${AppConstants.baseUrl}${AppConstants.communityPostsEndpoint}')
+        .replace(queryParameters: {'authorId': authorId});
+    final response = await _client.get(uri, headers: await _headers());
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load posts: ${response.statusCode}');
+    }
+    final list = jsonDecode(response.body) as List<dynamic>;
+    return list
+        .map((e) => CommunityService._postFromApi(e as Map<String, dynamic>))
+        .toList();
+  }
+
   /// Crée un post sur le backend.
   Future<CommunityPost> createPost({
     required String authorName,
@@ -351,6 +367,8 @@ class CommunityService {
       hasImage: hasImage,
       imagePath: imageUrl,
       tags: (e['tags'] as List<dynamic>?)?.cast<String>() ?? const [],
+      likeCount: (e['likeCount'] as num?)?.toInt() ?? 0,
+      commentCount: (e['commentCount'] as num?)?.toInt() ?? 0,
     );
   }
 }

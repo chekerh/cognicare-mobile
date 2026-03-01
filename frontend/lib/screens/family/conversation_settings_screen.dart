@@ -158,6 +158,25 @@ class _ConversationSettingsScreenState
                 _Section(
                   title: 'Autres actions',
                   children: [
+                    if (widget.personId != null && !widget.isGroup)
+                      _SettingsTile(
+                        icon: Icons.person_outline_rounded,
+                        iconColor: _textMuted,
+                        label: 'Voir le profil',
+                        onTap: () {
+                          context.push(
+                            AppConstants.familyCommunityMemberProfileRoute,
+                            extra: <String, dynamic>{
+                              'memberId': widget.personId!,
+                              'memberName': widget.title,
+                              if (widget.personImageUrl != null &&
+                                  widget.personImageUrl!.isNotEmpty)
+                                'memberImageUrl': widget.personImageUrl,
+                            },
+                          );
+                        },
+                        showArrow: true,
+                      ),
                     _SettingsTile(
                       icon: Icons.group_add_rounded,
                       iconColor: _textMuted,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../models/community_post.dart';
 import '../../services/auth_service.dart';
 import '../../services/community_service.dart';
 import '../../utils/constants.dart';
@@ -74,12 +75,42 @@ class _CommunityMemberProfileScreenState
   bool? _isOnline;
   bool _isInFriendsList = false;
 
+  List<CommunityPost>? _memberPosts;
+  bool _loadingPosts = false;
+  String? _postsError;
+
   @override
   void initState() {
     super.initState();
     _loadFollowStatus();
     _loadPresence();
     _loadFriendsCheck();
+    _loadMemberPosts();
+  }
+
+  Future<void> _loadMemberPosts() async {
+    if (widget.memberId.isEmpty) return;
+    setState(() {
+      _loadingPosts = true;
+      _postsError = null;
+    });
+    try {
+      final list =
+          await CommunityService().getPostsByAuthor(widget.memberId);
+      if (!mounted) return;
+      setState(() {
+        _memberPosts = list;
+        _loadingPosts = false;
+        _postsError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _memberPosts = null;
+        _loadingPosts = false;
+        _postsError = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
   }
 
   Future<void> _loadPresence() async {
@@ -143,7 +174,7 @@ class _CommunityMemberProfileScreenState
     final diagnosis = widget.memberDiagnosis ?? _defaultDiagnosis;
     final journey = widget.memberJourney ?? _defaultJourney;
     final tags = widget.memberTags ?? _defaultTags;
-    final posts = widget.postsCount ?? 124;
+    final posts = _memberPosts != null ? _memberPosts!.length : (widget.postsCount ?? 124);
     final followers = widget.followersCount ?? 1200;
     final helps = widget.helpsCount ?? 450;
 
@@ -165,6 +196,8 @@ class _CommunityMemberProfileScreenState
                     _buildParcoursCard(diagnosis, journey),
                     const SizedBox(height: 16),
                     _buildPrincipauxCard(tags),
+                    const SizedBox(height: 24),
+                    _buildPublicationsSection(),
                     const SizedBox(height: 24),
                     _buildStatsCard(posts, followers, helps),
                   ],
@@ -525,6 +558,266 @@ class _CommunityMemberProfileScreenState
                               color: Color(0xFF334155))),
                     ))
                 .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPublicationsSection() {
+    if (_loadingPosts) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+      );
+    }
+    if (_postsError != null) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Text(
+              'Publications',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _postsError!,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+    final list = _memberPosts ?? [];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          child: Text(
+            'Publications',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade800,
+            ),
+          ),
+        ),
+        if (list.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(Icons.article_outlined,
+                      size: 48, color: _primary.withOpacity(0.6)),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Aucune publication',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          ...list.map((post) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildPostCard(post),
+              )),
+      ],
+    );
+  }
+
+  Widget _buildPostCard(CommunityPost post) {
+    final imageUrl = post.authorProfilePic != null &&
+            post.authorProfilePic!.isNotEmpty
+        ? AppConstants.fullImageUrl(post.authorProfilePic!)
+        : null;
+    final postImageUrl = post.hasImage && post.imagePath != null
+        ? (post.imagePath!.startsWith('http')
+            ? post.imagePath!
+            : AppConstants.fullImageUrl(post.imagePath!))
+        : null;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: _primary.withOpacity(0.3),
+                backgroundImage: imageUrl != null
+                    ? NetworkImage(imageUrl)
+                    : null,
+                child: imageUrl == null
+                    ? const Icon(Icons.person, color: _secondary, size: 22)
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      post.authorName,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF334155),
+                      ),
+                    ),
+                    Text(
+                      post.timeAgo,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            post.text,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF334155),
+              height: 1.45,
+            ),
+          ),
+          if (post.tags.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: post.tags
+                  .map((t) => Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _primary.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          t,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: _secondary,
+                          ),
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ],
+          if (postImageUrl != null) ...[
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                postImageUrl,
+                width: double.infinity,
+                height: 200,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 200,
+                  color: _primary.withOpacity(0.2),
+                  child: const Icon(Icons.broken_image, size: 48),
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(Icons.favorite_border, size: 18, color: Colors.grey.shade600),
+              const SizedBox(width: 4),
+              Text(
+                '${post.likeCount}',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Icon(Icons.chat_bubble_outline,
+                  size: 18, color: Colors.grey.shade600),
+              const SizedBox(width: 4),
+              Text(
+                '${post.commentCount}',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -11,6 +11,8 @@ class CommunityPost {
   /// Chemin local de l'image uploadée (après sélection galerie/caméra).
   final String? imagePath;
   final List<String> tags;
+  final int likeCount;
+  final int commentCount;
 
   const CommunityPost({
     required this.id,
@@ -22,6 +24,8 @@ class CommunityPost {
     this.hasImage = false,
     this.imagePath,
     this.tags = const [],
+    this.likeCount = 0,
+    this.commentCount = 0,
   });
 
   Map<String, dynamic> toJson() => {
@@ -34,6 +38,8 @@ class CommunityPost {
         'hasImage': hasImage,
         'imagePath': imagePath,
         'tags': tags,
+        'likeCount': likeCount,
+        'commentCount': commentCount,
       };
 
   factory CommunityPost.fromJson(Map<String, dynamic> json) => CommunityPost(
@@ -46,6 +52,8 @@ class CommunityPost {
         hasImage: json['hasImage'] as bool? ?? false,
         imagePath: json['imagePath'] as String?,
         tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? const [],
+        likeCount: (json['likeCount'] as num?)?.toInt() ?? 0,
+        commentCount: (json['commentCount'] as num?)?.toInt() ?? 0,
       );
 
   String get timeAgo {

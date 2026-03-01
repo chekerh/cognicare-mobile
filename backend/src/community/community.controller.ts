@@ -84,9 +84,12 @@ export class CommunityController {
   }
 
   @Get('posts')
-  @ApiOperation({ summary: 'Get all posts (feed)' })
+  @ApiOperation({ summary: 'Get all posts (feed) or posts by author (profile)' })
   @ApiResponse({ status: 200, description: 'List of posts' })
-  async getPosts() {
+  async getPosts(@Query('authorId') authorId?: string) {
+    if (authorId && authorId.trim()) {
+      return this.communityService.getPostsByAuthor(authorId.trim());
+    }
     return this.communityService.getPosts();
   }
 

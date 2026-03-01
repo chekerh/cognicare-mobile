@@ -68,6 +68,29 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
   bool _volunteersLoading = false;
   String? _volunteersError;
 
+  /// Présence en ligne par otherUserId (pour afficher le point vert dans la liste).
+  Map<String, bool> _presenceByUserId = {};
+
+  Future<void> _loadPresenceForInbox() async {
+    final list = _inboxConversations;
+    if (list == null || list.isEmpty) return;
+    final ids = list
+        .where((c) => c.otherUserId != null && c.otherUserId!.isNotEmpty)
+        .map((c) => c.otherUserId!)
+        .toSet()
+        .toList();
+    if (ids.isEmpty) return;
+    final results = <String, bool>{};
+    for (final id in ids) {
+      try {
+        results[id] = await AuthService().getPresence(id);
+      } catch (_) {
+        results[id] = false;
+      }
+    }
+    if (mounted) setState(() => _presenceByUserId = results);
+  }
+
   Future<void> _loadInbox() async {
     final chatService = ChatService();
 
@@ -91,6 +114,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
                   ))
               .toList();
         });
+        _loadPresenceForInbox();
       }
     } catch (_) {}
 
@@ -120,6 +144,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
         _inboxLoading = false;
         _inboxError = null;
       });
+      _loadPresenceForInbox();
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -250,19 +275,34 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
         ).toString(),
       );
     } else {
-      // Families (0) → groupe
-      final membersMatch = RegExp(r'(\d+)').firstMatch(c.subtitle ?? '');
-      final members = membersMatch != null ? membersMatch.group(1)! : '2';
-      context.push(
-        Uri(
-          path: AppConstants.familyGroupChatRoute,
-          queryParameters: {
-            'name': c.name,
-            'members': members,
-            'id': c.id,
-          },
-        ).toString(),
-      );
+      // Families (0) : 1-1 → chat privé (photo + En ligne/Hors ligne), sinon → groupe
+      if (c.otherUserId != null && c.otherUserId!.isNotEmpty) {
+        context.push(
+          Uri(
+            path: AppConstants.familyPrivateChatRoute,
+            queryParameters: {
+              'id': c.otherUserId!,
+              'name': c.name,
+              if (c.imageUrl.isNotEmpty)
+                'imageUrl': AppConstants.fullImageUrl(c.imageUrl),
+              'conversationId': c.conversationId ?? c.id,
+            },
+          ).toString(),
+        );
+      } else {
+        final membersMatch = RegExp(r'(\d+)').firstMatch(c.subtitle ?? '');
+        final members = membersMatch != null ? membersMatch.group(1)! : '2';
+        context.push(
+          Uri(
+            path: AppConstants.familyGroupChatRoute,
+            queryParameters: {
+              'name': c.name,
+              'members': members,
+              'id': c.id,
+            },
+          ).toString(),
+        );
+      }
     }
   }
 
@@ -795,6 +835,9 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
             },
             child: _ConversationTile(
               conversation: c,
+              isOnline: c.otherUserId != null
+                  ? (_presenceByUserId[c.otherUserId!] ?? false)
+                  : false,
               onTap: () => _openChat(context, c),
             ),
           );
@@ -874,10 +917,15 @@ class _FamilyContactTile extends StatelessWidget {
 }
 
 class _ConversationTile extends StatelessWidget {
-  const _ConversationTile({required this.conversation, required this.onTap});
+  const _ConversationTile({
+    required this.conversation,
+    required this.onTap,
+    this.isOnline = false,
+  });
 
   final _Conversation conversation;
   final VoidCallback onTap;
+  final bool isOnline;
 
   @override
   Widget build(BuildContext context) {
@@ -888,40 +936,64 @@ class _ConversationTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipOval(
-              child: conversation.imageUrl.isEmpty
-                  ? Container(
-                      width: 56,
-                      height: 56,
-                      color: _primary.withOpacity(0.3),
-                      child: const Icon(Icons.person, size: 28),
-                    )
-                  : Image.network(
-                      AppConstants.fullImageUrl(conversation.imageUrl),
-                      width: 56,
-                      height: 56,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (_, child, progress) => progress == null
-                          ? child
-                          : SizedBox(
-                              width: 56,
-                              height: 56,
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  value: progress.expectedTotalBytes != null
-                                      ? progress.cumulativeBytesLoaded /
-                                          progress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              ),
-                            ),
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 56,
-                        height: 56,
-                        color: _primary.withOpacity(0.3),
-                        child: const Icon(Icons.person, size: 28),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                ClipOval(
+                  child: conversation.imageUrl.isEmpty
+                      ? Container(
+                          width: 56,
+                          height: 56,
+                          color: _primary.withOpacity(0.3),
+                          child: const Icon(Icons.person, size: 28),
+                        )
+                      : Image.network(
+                          AppConstants.fullImageUrl(conversation.imageUrl),
+                          width: 56,
+                          height: 56,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (_, child, progress) =>
+                              progress == null
+                                  ? child
+                                  : SizedBox(
+                                      width: 56,
+                                      height: 56,
+                                      child: Center(
+                                        child: CircularProgressIndicator(
+                                          value:
+                                              progress.expectedTotalBytes !=
+                                                      null
+                                                  ? progress
+                                                          .cumulativeBytesLoaded /
+                                                      progress
+                                                          .expectedTotalBytes!
+                                                  : null,
+                                        ),
+                                      ),
+                                    ),
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 56,
+                            height: 56,
+                            color: _primary.withOpacity(0.3),
+                            child: const Icon(Icons.person, size: 28),
+                          ),
+                        ),
+                ),
+                if (isOnline)
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
                       ),
                     ),
+                  ),
+              ],
             ),
             const SizedBox(width: 16),
             Expanded(

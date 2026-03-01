@@ -745,14 +745,14 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
               CircleAvatar(
                 radius: 24,
                 backgroundColor: _primary.withOpacity(0.3),
-                          backgroundImage: widget.personImageUrl != null &&
-                                  widget.personImageUrl!.isNotEmpty
-                    ? NetworkImage(widget.personImageUrl!)
+                backgroundImage: widget.personImageUrl != null &&
+                        widget.personImageUrl!.isNotEmpty
+                    ? NetworkImage(
+                        AppConstants.fullImageUrl(widget.personImageUrl!))
                     : null,
-                          child: widget.personImageUrl == null ||
-                                  widget.personImageUrl!.isEmpty
-                              ? const Icon(Icons.person,
-                                  color: _textMuted, size: 28)
+                child: widget.personImageUrl == null ||
+                        widget.personImageUrl!.isEmpty
+                    ? const Icon(Icons.person, color: _textMuted, size: 28)
                     : null,
               ),
               if (_isOnline == true)
@@ -1144,8 +1144,9 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       backgroundColor: _primary.withOpacity(0.3),
       backgroundImage:
           widget.personImageUrl != null && widget.personImageUrl!.isNotEmpty
-          ? NetworkImage(widget.personImageUrl!)
-          : null,
+              ? NetworkImage(
+                  AppConstants.fullImageUrl(widget.personImageUrl!))
+              : null,
       child: widget.personImageUrl == null || widget.personImageUrl!.isEmpty
           ? const Icon(Icons.person, size: 16, color: _textMuted)
           : null,

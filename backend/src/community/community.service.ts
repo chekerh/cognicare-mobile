@@ -191,6 +191,67 @@ export class CommunityService {
     }));
   }
 
+  /** Get posts by a specific author (for profile feed). Same shape as getPosts(). */
+  async getPostsByAuthor(authorId: string): Promise<
+    {
+      id: string;
+      authorName: string;
+      authorId: string;
+      authorProfilePic?: string | null;
+      text: string;
+      createdAt: string;
+      hasImage: boolean;
+      imagePath: string | null;
+      imageUrl?: string;
+      tags: string[];
+      likeCount: number;
+      commentCount: number;
+    }[]
+  > {
+    const oid = new Types.ObjectId(authorId);
+    const posts = await this.postModel
+      .find({ authorId: oid })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+
+    const postIds = (posts as PostLean[]).map((p) => p._id);
+    const users = await this.userModel
+      .find({ _id: oid })
+      .select('profilePic')
+      .lean()
+      .exec();
+    const profilePic =
+      (users as { _id: Types.ObjectId; profilePic?: string }[])[0]?.profilePic ??
+      null;
+
+    const commentCounts = await this.commentModel
+      .aggregate<{ _id: Types.ObjectId; count: number }>([
+        { $match: { postId: { $in: postIds } } },
+        { $group: { _id: '$postId', count: { $sum: 1 } } },
+      ])
+      .exec();
+    const countByPostId = new Map<string, number>();
+    for (const row of commentCounts) {
+      countByPostId.set(row._id.toString(), row.count);
+    }
+
+    return (posts as PostLean[]).map((p) => ({
+      id: p._id.toString(),
+      authorId: p.authorId.toString(),
+      authorName: p.authorName,
+      authorProfilePic: profilePic,
+      text: p.text,
+      createdAt: p.createdAt.toISOString(),
+      hasImage: !!p.imageUrl,
+      imagePath: p.imageUrl ?? null,
+      imageUrl: p.imageUrl,
+      tags: p.tags ?? [],
+      likeCount: (p.likedBy ?? []).length,
+      commentCount: countByPostId.get(p._id.toString()) ?? 0,
+    }));
+  }
+
   private normalizeUserId(userId: string | { toString(): string }): string {
     const s = typeof userId === 'string' ? userId : userId.toString();
     return (s ?? '').trim();
