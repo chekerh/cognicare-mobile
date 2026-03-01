@@ -443,14 +443,13 @@ export class CommunityService {
     userId: string,
   ): Promise<void> {
     const doc = await this.followRequestModel.findById(requestId).exec();
-    if (!doc) throw new NotFoundException('Follow request not found');
-    if (!doc.targetId.equals(new Types.ObjectId(userId))) {
+    if (doc && !doc.targetId.equals(new Types.ObjectId(userId))) {
       throw new ForbiddenException('Only the target user can decline');
     }
-    if (doc.status !== 'pending') {
-      throw new BadRequestException('Request is no longer pending');
-    }
-    await this.followRequestModel.deleteOne({ _id: doc._id }).exec();
+    // Toujours supprimer la notif en premier pour qu'elle disparaisse au prochain rechargement.
     await this.notifications.deleteByFollowRequestId(userId, requestId);
+    if (doc && doc.status === 'pending') {
+      await this.followRequestModel.deleteOne({ _id: doc._id }).exec();
+    }
   }
 }
