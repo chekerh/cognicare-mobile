@@ -159,23 +159,35 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
       });
     }
 
+    const stepDelay = Duration(milliseconds: 380);
+
     try {
       addStep('Titre', value: title.isNotEmpty ? title : '—');
-      await Future.delayed(const Duration(milliseconds: 350));
+      await Future.delayed(stepDelay);
       if (!mounted) return;
       addStep('Catégorie', value: _categories[_categoryIndex]);
-      await Future.delayed(const Duration(milliseconds: 350));
+      await Future.delayed(stepDelay);
       if (!mounted) return;
       addStep('État', value: _conditions[_conditionIndex]);
-      await Future.delayed(const Duration(milliseconds: 350));
+      await Future.delayed(stepDelay);
       if (!mounted) return;
-      addStep('Description', value: description.length > 40 ? '${description.substring(0, 40)}...' : (description.isEmpty ? '—' : description));
-      await Future.delayed(const Duration(milliseconds: 350));
+      addStep(
+        'Description',
+        value: description.length > 40
+            ? '${description.substring(0, 40)}...'
+            : (description.isEmpty ? '—' : description),
+      );
+      await Future.delayed(stepDelay);
       if (!mounted) return;
       addStep('Lieu', value: location.isEmpty ? '—' : location);
-      await Future.delayed(const Duration(milliseconds: 350));
+      await Future.delayed(stepDelay);
       if (!mounted) return;
-      addStep('Photos', value: _photos.isEmpty ? 'Aucune' : '${_photos.length} photo(s)');
+      addStep(
+        'Photos',
+        value: _photos.isEmpty ? 'Aucune' : '${_photos.length} photo(s)',
+      );
+      await Future.delayed(stepDelay);
+      if (!mounted) return;
 
       addStep('Envoi des photos', status: _StepStatus.loading);
       if (!mounted) return;
@@ -304,7 +316,7 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Vérification des informations...',
+                'Publication en cours...',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey.shade600,
@@ -319,7 +331,7 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
                     return TweenAnimationBuilder<double>(
                       key: ValueKey('step_$index'),
                       tween: Tween(begin: 0, end: 1),
-                      duration: const Duration(milliseconds: 400),
+                      duration: const Duration(milliseconds: 180),
                       curve: Curves.easeOutCubic,
                       builder: (context, value, child) {
                         return Opacity(
@@ -344,18 +356,9 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
                                 child: step.status == _StepStatus.done
                                     ? Icon(Icons.check_circle,
                                         color: _checkColor, size: 28)
-                                    : step.status == _StepStatus.loading
-                                        ? SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: _primary,
-                                            ),
-                                          )
-                                        : Icon(Icons.radio_button_unchecked,
-                                            color: Colors.grey.shade400,
-                                            size: 28),
+                                    : Icon(Icons.radio_button_unchecked,
+                                        color: Colors.grey.shade400,
+                                        size: 28),
                               ),
                             ),
                             const SizedBox(width: 12),

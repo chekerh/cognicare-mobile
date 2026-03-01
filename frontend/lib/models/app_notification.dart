@@ -35,4 +35,13 @@ class AppNotification {
 
   String? get followRequestId =>
       data != null ? data!['requestId'] as String? : null;
+
+  String? get requesterId =>
+      data != null ? data!['requesterId'] as String? : null;
+
+  String? get requesterName =>
+      data != null ? data!['requesterName'] as String? : null;
+
+  String? get requesterProfilePic =>
+      data != null ? data!['requesterProfilePic'] as String? : null;
 }

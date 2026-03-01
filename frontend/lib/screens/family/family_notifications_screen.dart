@@ -4,9 +4,19 @@ import '../../l10n/app_localizations.dart';
 import '../../models/app_notification.dart';
 import '../../services/community_service.dart';
 import '../../services/notifications_feed_service.dart';
+import '../../utils/constants.dart';
 
 /// Family Notifications Center — données depuis l'API (pas de mock).
 const Color _bgLight = Color(0xFFA2D9E3);
+
+String _fullImageUrl(String? path) {
+  if (path == null || path.isEmpty) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  final base = AppConstants.baseUrl.endsWith('/')
+      ? AppConstants.baseUrl.substring(0, AppConstants.baseUrl.length - 1)
+      : AppConstants.baseUrl;
+  return path.startsWith('/') ? '$base$path' : '$base/$path';
+}
 const Color _textPrimary = Color(0xFF0F172A);
 const Color _textMuted = Color(0xFF64748B);
 const Color _textSoft = Color(0xFF475569);
@@ -95,20 +105,19 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
     }
   }
 
-  Future<void> _declineFollowRequest(String requestId) async {
+  /// Refuser une demande de suivi : on retire la notif de l'écran sans message.
+  Future<void> _declineFollowRequest(String requestId, String notificationId) async {
+    if (!mounted) return;
+    setState(() {
+      _notifications = _notifications
+          .where((n) => n.id != notificationId)
+          .toList();
+      if (_unreadCount > 0) _unreadCount--;
+    });
     try {
       await CommunityService().declineFollowRequest(requestId);
-      if (mounted) _load();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+    } catch (_) {
+      // Ne rien afficher : la notif est déjà retirée (y compris si "Request is no longer pending").
     }
   }
 
@@ -222,10 +231,14 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
                                 ? () => _acceptFollowRequest(requestId)
                                 : null,
                             onDecline: requestId != null
-                                ? () => _declineFollowRequest(requestId)
+                                ? () => _declineFollowRequest(requestId, n.id)
                                 : null,
                             acceptLabel: loc.followRequestAccept,
                             declineLabel: loc.followRequestDecline,
+                            requesterProfilePic: n.requesterProfilePic,
+                            requesterId: n.requesterId,
+                            requesterName: n.requesterName,
+                            notificationType: n.type,
                           ),
                         );
                       },
@@ -326,6 +339,10 @@ class _NotificationCard extends StatelessWidget {
   final VoidCallback? onDecline;
   final String acceptLabel;
   final String declineLabel;
+  final String? requesterProfilePic;
+  final String? requesterId;
+  final String? requesterName;
+  final String notificationType;
 
   const _NotificationCard({
     required this.categoryLabel,
@@ -340,12 +357,20 @@ class _NotificationCard extends StatelessWidget {
     this.onDecline,
     this.acceptLabel = 'Accept',
     this.declineLabel = 'Decline',
+    this.requesterProfilePic,
+    this.requesterId,
+    this.requesterName,
+    this.notificationType = '',
   });
 
   @override
   Widget build(BuildContext context) {
     final showFollowActions =
         followRequestId != null && onAccept != null && onDecline != null;
+    final isFollowRequest = notificationType == 'follow_request';
+    final avatarUrl = isFollowRequest && requesterProfilePic != null && requesterProfilePic!.isNotEmpty
+        ? _fullImageUrl(requesterProfilePic)
+        : '';
 
     return Container(
       decoration: BoxDecoration(
@@ -369,14 +394,28 @@ class _NotificationCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+            if (isFollowRequest && (avatarUrl.isNotEmpty || requesterId != null))
+              ClipRRect(
                 borderRadius: BorderRadius.circular(16),
+                child: avatarUrl.isNotEmpty
+                    ? Image.network(
+                        avatarUrl,
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _avatarPlaceholder(),
+                      )
+                    : _avatarPlaceholder(),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, color: color, size: 24),
               ),
-              child: Icon(icon, color: color, size: 24),
-            ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -424,6 +463,47 @@ class _NotificationCard extends StatelessWidget {
                       height: 1.35,
                     ),
                   ),
+                  if (isFollowRequest && (requesterId != null || requesterName != null)) ...[
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            final id = requesterId ?? '';
+                            final name = Uri.encodeComponent(requesterName ?? '');
+                            final img = Uri.encodeComponent(_fullImageUrl(requesterProfilePic));
+                            context.push(
+                              '${AppConstants.familyPrivateChatRoute}?id=$id&name=$name&imageUrl=$img',
+                            );
+                          },
+                          icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                          label: Text(AppLocalizations.of(context)!.messageLabel),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF7FBAC4),
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: requesterId != null
+                              ? () => context.push(
+                                    AppConstants.familyCommunityMemberProfileRoute,
+                                    extra: {
+                                      'memberId': requesterId!,
+                                      'memberName': requesterName ?? 'Membre',
+                                      'memberImageUrl': _fullImageUrl(requesterProfilePic).isEmpty ? null : _fullImageUrl(requesterProfilePic),
+                                    },
+                                  )
+                              : null,
+                          icon: const Icon(Icons.person_outline, size: 18),
+                          label: const Text('Voir le profil'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF7FBAC4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   if (showFollowActions) ...[
                     const SizedBox(height: 12),
                     Row(
@@ -450,6 +530,18 @@ class _NotificationCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _avatarPlaceholder() {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Icon(icon, color: color, size: 24),
     );
   }
 }

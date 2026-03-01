@@ -324,11 +324,13 @@ export class CommunityService {
 
     const requester = await this.userModel
       .findById(requesterOid)
-      .select('fullName')
+      .select('fullName profilePic')
       .lean()
       .exec();
     const requesterName =
       (requester as { fullName?: string } | null)?.fullName ?? 'Un membre';
+    const requesterProfilePic =
+      (requester as { profilePic?: string } | null)?.profilePic ?? undefined;
 
     let doc = await this.followRequestModel
       .findOne({ requesterId: requesterOid, targetId: targetOid })
@@ -354,11 +356,12 @@ export class CommunityService {
     await this.notifications.createForUser(targetUserId, {
       type: 'follow_request',
       title: 'Demande de suivi',
-      description: `${requesterName} souhaite vous suivre. Acceptez pour qu'il puisse voir vos partages.`,
+      description: `${requesterName} souhaite vous suivre. Acceptez pour pouvoir le contacter (appel, message).`,
       data: {
         requestId: doc._id.toString(),
         requesterId: requesterId,
         requesterName,
+        requesterProfilePic: requesterProfilePic ?? null,
       },
     });
 

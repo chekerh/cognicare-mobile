@@ -25,8 +25,13 @@ const Color _feedPrimary = Color(0xFFA3D9E2);
 const Color _feedSecondary = Color(0xFF7FBAC4);
 const Color _feedBackground = Color(0xFFF8FAFC);
 
-// Couleurs Le Cercle du Don
+// Couleurs Le Cercle du Don — alignées sur volunteer_community (Stitch)
 const Color _donationPrimary = Color(0xFFA3D9E2);
+const Color _donationCardBg = Color(0xFFFFFFFF);
+const Color _donationTextPrimary = Color(0xFF1E293B);
+const Color _donationTextSecondary = Color(0xFF64748B);
+const Color _donationTextSlate400 = Color(0xFF94A3B8);
+const Color _donationBorderSlate = Color(0xFFF8FAFC);
 
 /// Construit l'URL complète pour une image (backend ou Cloudinary).
 /// - Déjà absolue (http/https) → retournée telle quelle.
@@ -197,8 +202,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           }
           return Column(
             children: [
-              _buildHeaderWidget(),
-              _buildTabs(),
+              _buildHeaderWave(),
               Expanded(
                 child: _selectedTab == 0
                     ? _buildCommunityScrollContent(
@@ -214,66 +218,102 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     );
   }
 
-  /// Header fixe (CogniCare + search + notifications) — même design que le HTML.
-  Widget _buildHeaderWidget() {
+  /// Header type première screenshot : carte bleue arrondie, logo, CogniCare, cloche (badge orange), onglets en pill.
+  Widget _buildHeaderWave() {
+    final loc = AppLocalizations.of(context)!;
     final padding = MediaQuery.paddingOf(context);
-    final horizontal = (padding.horizontal + 16).clamp(16.0, 24.0);
     return Container(
-      color: _feedPrimary,
-      padding: EdgeInsets.fromLTRB(horizontal, padding.top + 12, horizontal, 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      padding: EdgeInsets.only(
+        top: padding.top + 12,
+        left: 24,
+        right: 24,
+        bottom: 24,
+      ),
+      decoration: BoxDecoration(
+        color: _feedPrimary,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.elliptical(400, 28),
+          bottomRight: Radius.elliptical(400, 28),
+        ),
+      ),
+      child: Column(
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: SizedBox(
-                  width: 36,
-                  height: 36,
-                  child: Image.asset(
-                    'assets/images/app_logo.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => Container(
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
                       color: Colors.white,
-                      padding: const EdgeInsets.all(6),
-                      child: const Icon(Icons.psychology, color: _feedPrimary, size: 22),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.06),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.psychology_rounded,
+                      color: _feedPrimary,
+                      size: 28,
                     ),
                   ),
-                ),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'CogniCare',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              const Text(
-                'CogniCare',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
-                ),
-              ),
-            ],
-          ),
-          Row(
-            children: [
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  _headerButton(Icons.notifications_outlined,
-                      onPressed: () =>
-                          context.push(AppConstants.familyNotificationsRoute)),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () =>
+                          context.push(AppConstants.familyNotificationsRoute),
+                      borderRadius: BorderRadius.circular(24),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: const Icon(
+                          Icons.notifications_outlined,
+                          color: Colors.white,
+                          size: 26,
+                        ),
+                      ),
+                    ),
+                  ),
                   Positioned(
                     top: 6,
                     right: 6,
                     child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade400,
+                        border: Border.all(color: _feedPrimary, width: 2),
                         shape: BoxShape.circle,
-                        border: Border.fromBorderSide(
-                          BorderSide(color: _feedPrimary, width: 1),
-                        ),
                       ),
                     ),
                   ),
@@ -281,67 +321,62 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 20),
+          _buildHeaderSegmentTabs(loc),
         ],
       ),
     );
   }
 
-  Widget _headerButton(IconData icon, {VoidCallback? onPressed}) {
-    return IconButton(
-      onPressed: onPressed ?? () {},
-      icon: Icon(icon, color: Colors.white, size: 22),
-      splashRadius: 22,
-    );
-  }
-
-  Widget _buildTabs() {
-    final loc = AppLocalizations.of(context)!;
+  Widget _buildHeaderSegmentTabs(AppLocalizations loc) {
     return Container(
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: _feedPrimary,
-        border: Border(
-          bottom: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
-        ),
+        color: Colors.black.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         children: [
-          _tab(loc.community, 0),
-          _tab(loc.donations, 1),
-          _tab(loc.mapTab, 2),
+          _headerTab(loc.community, 0),
+          _headerTab(loc.donations, 1),
+          _headerTab(loc.mapTab, 2),
         ],
       ),
     );
   }
 
-  Widget _tab(String label, int index) {
+  Widget _headerTab(String label, int index) {
     final selected = _selectedTab == index;
     return Expanded(
-      child: InkWell(
-        onTap: () => setState(() => _selectedTab = index),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  color: selected ? Colors.white : Colors.white70,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                  fontSize: 14,
-                ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => setState(() => _selectedTab = index),
+          borderRadius: BorderRadius.circular(999),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: selected ? Colors.white : Colors.transparent,
+              borderRadius: BorderRadius.circular(999),
+              boxShadow: selected
+                  ? [
+                      BoxShadow(
+                        color: Colors.white.withOpacity(0.3),
+                        blurRadius: 12,
+                        spreadRadius: 2,
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+                color: selected ? _donationTextPrimary : Colors.white70,
               ),
-              if (selected)
-                Container(
-                  margin: const EdgeInsets.only(top: 4),
-                  height: 3,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                ),
-            ],
+            ),
           ),
         ),
       ),
@@ -404,71 +439,41 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     );
   }
 
-  /// Contenu onglet Donations — Le Cercle du Don.
+  /// Contenu onglet Donations — Le Cercle du Don (design aligné volunteer_community).
   Widget _buildDonationsContent(double bottomPadding) {
     final loc = AppLocalizations.of(context)!;
     final padding = MediaQuery.paddingOf(context);
+    const horizontalPadding = 24.0;
     return Stack(
       children: [
         RefreshIndicator(
           onRefresh: _loadDonations,
+          color: _donationPrimary,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.fromLTRB(
-              16 + padding.left,
+              horizontalPadding + padding.left,
               16,
-              16 + padding.right,
+              horizontalPadding + padding.right,
               bottomPadding + 72,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Le Cercle du Don header (in-content)
-                Row(
-                  children: [
-                    const Icon(Icons.favorite,
-                        color: _donationPrimary, size: 28),
-                    const SizedBox(width: 8),
-                    Text(
-                      loc.leCercleDuDon,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF111418),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Category chips
-                SizedBox(
-                  height: 44,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      _donationCategoryChip(loc.all, Icons.grid_view, 0),
-                      const SizedBox(width: 8),
-                      _donationCategoryChip(
-                          loc.mobility, Icons.accessibility_new, 1),
-                      const SizedBox(width: 8),
-                      _donationCategoryChip(loc.earlyLearning, Icons.toys, 2),
-                      const SizedBox(width: 8),
-                      _donationCategoryChip(loc.clothing, Icons.checkroom, 3),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 _buildDonationSearchBar(),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
+                _buildDonationCategoryChips(loc),
+                const SizedBox(height: 24),
                 ..._buildDonationCards(loc),
                 SizedBox(height: bottomPadding),
               ],
             ),
           ),
         ),
-        // FAB "Proposer un don" — respecte la safe area
+        // FAB "Proposer un don" — aligné volunteer (padding 24)
         Positioned(
-          right: 16 + padding.right,
+          right: 24 + padding.right,
           bottom: padding.bottom + 100,
           child: Tooltip(
             message: loc.proposeDonation,
@@ -497,91 +502,139 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     );
   }
 
-  Widget _donationCategoryChip(String label, IconData icon, int index) {
-    final selected = _donationsCategoryIndex == index;
-    return Material(
-      color: selected ? _donationPrimary : Colors.white,
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        onTap: () {
-          setState(() => _donationsCategoryIndex = index);
-          _loadDonations();
-        },
-        borderRadius: BorderRadius.circular(999),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: selected
-                  ? _donationPrimary
-                  : _donationPrimary.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon,
-                  size: 16, color: selected ? Colors.white : _donationPrimary),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: selected ? Colors.white : const Color(0xFF111418),
+  /// Chips de catégories — style volunteer (pill, ombre, bordure).
+  Widget _buildDonationCategoryChips(AppLocalizations loc) {
+    final labels = [loc.all, loc.mobility, loc.earlyLearning, loc.clothing];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(labels.length, (i) {
+          final selected = _donationsCategoryIndex == i;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Material(
+              color: selected ? _donationPrimary : _donationCardBg,
+              borderRadius: BorderRadius.circular(999),
+              child: InkWell(
+                onTap: () {
+                  setState(() => _donationsCategoryIndex = i);
+                  _loadDonations();
+                },
+                borderRadius: BorderRadius.circular(999),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    border: selected
+                        ? null
+                        : Border.all(color: _donationBorderSlate),
+                    boxShadow: selected
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                  ),
+                  child: Text(
+                    labels[i],
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: selected
+                          ? Colors.white
+                          : _donationTextSecondary,
+                    ),
+                  ),
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        }),
       ),
     );
   }
 
+  /// Barre de recherche — style volunteer (container arrondi, icône filtre).
   Widget _buildDonationSearchBar() {
     final loc = AppLocalizations.of(context)!;
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _donationPrimary.withOpacity(0.2)),
+        color: Colors.white.withOpacity(0.85),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withOpacity(0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: TextField(
-        controller: _donationSearchController,
-        focusNode: _donationSearchFocusNode,
-        decoration: InputDecoration(
-          hintText: loc.searchDonationsHint,
-          hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-          prefixIcon: Icon(Icons.search,
-              color: _donationPrimary.withOpacity(0.8), size: 22),
-          suffixIcon: _donationSearchQuery.isNotEmpty
-              ? IconButton(
-                  icon:
-                      Icon(Icons.clear, size: 20, color: Colors.grey.shade600),
-                  onPressed: () {
-                    _donationSearchController.clear();
-                    setState(() => _donationSearchQuery = '');
-                    _loadDonations();
-                  },
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          filled: true,
-          fillColor: Colors.white,
-        ),
-        onChanged: _onDonationSearchChanged,
-        onSubmitted: (_) => _loadDonations(),
+      child: Row(
+        children: [
+          Icon(Icons.search, size: 22, color: _donationTextSlate400),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              controller: _donationSearchController,
+              focusNode: _donationSearchFocusNode,
+              onChanged: _onDonationSearchChanged,
+              onSubmitted: (_) => _loadDonations(),
+              decoration: InputDecoration(
+                hintText: loc.searchDonationsHint,
+                hintStyle: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: _donationTextSlate400,
+                ),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                suffixIcon: _donationSearchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(
+                          Icons.clear,
+                          size: 20,
+                          color: _donationTextSlate400,
+                        ),
+                        onPressed: () {
+                          _donationSearchController.clear();
+                          setState(() => _donationSearchQuery = '');
+                          _loadDonations();
+                        },
+                      )
+                    : null,
+              ),
+            ),
+          ),
+          Material(
+            color: _donationPrimary,
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(16),
+              child: const Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(
+                  Icons.tune_rounded,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -655,7 +708,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
       final displayLocation = isFrench ? locationToFrench(d.location) : d.location;
       final myDonation = isMyDonation(d.donorId);
       return Padding(
-        padding: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.only(bottom: 24),
         child: _donationCard(
           title: d.title,
           description: d.description,
@@ -667,6 +720,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           imageUrl: imageUrl,
           isOffer: d.isOffer,
           loc: loc,
+          donorName: d.donorName,
           isMyDonation: myDonation,
           donationId: d.id,
           onDeleteTap: myDonation
@@ -747,6 +801,27 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     }).toList();
   }
 
+  static String _donationShortLocation(String location) {
+    if (location.length <= 20) return location;
+    final parts = location.split(',').map((e) => e.trim()).toList();
+    if (parts.isEmpty) return location;
+    if (parts.length >= 2) return '${parts[0]}, ${parts[1]}';
+    return parts[0];
+  }
+
+  static String _donationDonorInitials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty) return '?';
+    if (parts.length == 1) {
+      return parts[0].length >= 2
+          ? parts[0].substring(0, 2).toUpperCase()
+          : parts[0].toUpperCase();
+    }
+    return ((parts[0].isNotEmpty ? parts[0][0] : '') +
+            (parts[1].isNotEmpty ? parts[1][0] : ''))
+        .toUpperCase();
+  }
+
   Widget _donationCard({
     required String title,
     required String description,
@@ -758,213 +833,249 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     required String imageUrl,
     required bool isOffer,
     required AppLocalizations loc,
+    String? donorName,
     VoidCallback? onDetailsTap,
     bool isMyDonation = false,
     String? donationId,
     VoidCallback? onDeleteTap,
   }) {
-    final conditionLabels = [
-      loc.veryGoodCondition,
-      loc.goodCondition,
-      loc.likeNew,
-    ];
-    final conditionColors = [
-      Colors.green,
-      Colors.amber,
-      Colors.green,
-    ];
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: _donationCardBg,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: _donationCardBg),
         boxShadow: [
           BoxShadow(
-            color: _donationPrimary.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
+            color: _donationPrimary.withOpacity(0.2),
+            blurRadius: 30,
+            offset: const Offset(0, 12),
           ),
         ],
-        border: Border.all(color: Colors.white.withOpacity(0.5)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Image
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: SizedBox(
-              height: 192,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: Colors.grey.shade300,
-                      child: Icon(Icons.image_not_supported,
-                          size: 48, color: Colors.grey.shade600),
-                    ),
-                  ),
-                  // Condition badge
-                  Positioned(
-                    top: 12,
-                    left: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: conditionColors[conditionIndex],
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        conditionLabels[conditionIndex].toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Bouton supprimer (mes dons uniquement) + favori
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (onDeleteTap != null) ...[
-                          Material(
-                            color: Colors.white.withOpacity(0.9),
-                            shape: const CircleBorder(),
-                            elevation: 1,
-                            child: InkWell(
-                              onTap: onDeleteTap,
-                              customBorder: const CircleBorder(),
-                              child: const Padding(
-                                padding: EdgeInsets.all(8),
-                                child: Icon(Icons.delete_outline,
-                                    color: Colors.red, size: 20),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                        ],
-                        Material(
-                          color: Colors.white.withOpacity(0.9),
-                          shape: const CircleBorder(),
-                          elevation: 1,
-                          child: InkWell(
-                            onTap: () {},
-                            customBorder: const CircleBorder(),
-                            child: const Padding(
-                              padding: EdgeInsets.all(8),
-                              child: Icon(Icons.favorite,
-                                  color: _donationPrimary, size: 20),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onDetailsTap,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
+                SizedBox(
+                  height: 256,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (imageUrl.isNotEmpty)
+                        Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _donationImagePlaceholder(),
+                        )
+                      else
+                        _donationImagePlaceholder(),
+                      Positioned(
+                        top: 16,
+                        left: 16,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(999),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.06),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.location_on,
+                                  size: 16, color: _donationPrimary),
+                              const SizedBox(width: 6),
+                              Text(
+                                _donationShortLocation(location),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: _donationTextPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                          top: 16,
+                          right: 16,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (onDeleteTap != null) ...[
+                                Material(
+                                  color: Colors.white.withOpacity(0.9),
+                                  shape: const CircleBorder(),
+                                  elevation: 1,
+                                  child: InkWell(
+                                    onTap: onDeleteTap,
+                                    customBorder: const CircleBorder(),
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(8),
+                                      child: Icon(Icons.delete_outline,
+                                          color: Colors.red, size: 20),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                              ],
+                              Material(
+                                color: Colors.white.withOpacity(0.9),
+                                shape: const CircleBorder(),
+                                elevation: 1,
+                                child: InkWell(
+                                  onTap: () {},
+                                  customBorder: const CircleBorder(),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(8),
+                                    child: Icon(Icons.favorite,
+                                        color: _donationPrimary, size: 20),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
                         title,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF111418),
+                          color: _donationTextPrimary,
+                          height: 1.2,
                         ),
                       ),
-                    ),
-                    Text(
-                      isOffer ? loc.donation : loc.recherche,
-                      style: const TextStyle(
-                        color: _donationPrimary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                      const SizedBox(height: 8),
+                      Text(
+                        description,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: _donationTextSecondary,
+                          height: 1.4,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF64748B),
-                    height: 1.4,
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.only(top: 16),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            top: BorderSide(color: _donationBorderSlate),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: _donationPrimary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: _donationPrimary.withOpacity(0.2)),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  _donationDonorInitials(donorName ?? ''),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: _donationPrimary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'DONATEUR',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: _donationTextSlate400,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                  Text(
+                                    donorName ?? '—',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: _donationTextPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Material(
+                              color: _donationPrimary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(999),
+                              child: InkWell(
+                                onTap: onDetailsTap,
+                                borderRadius: BorderRadius.circular(999),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 10),
+                                  child: Text(
+                                    loc.details,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: _donationPrimary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Icon(Icons.location_on,
-                              size: 14, color: Colors.grey.shade600),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              location,
-                              style: TextStyle(
-                                  fontSize: 12, color: Colors.grey.shade600),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    TextButton(
-                      onPressed: onDetailsTap,
-                      style: TextButton.styleFrom(
-                        minimumSize: Size.zero,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            loc.details,
-                            style: const TextStyle(
-                              color: _donationPrimary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.chevron_right,
-                              color: _donationPrimary, size: 18),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _donationImagePlaceholder() {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: _donationPrimary.withOpacity(0.12),
+      child: Center(
+        child: Icon(
+          Icons.favorite_border,
+          size: 48,
+          color: _donationPrimary.withOpacity(0.5),
+        ),
       ),
     );
   }
