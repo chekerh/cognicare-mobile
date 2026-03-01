@@ -13,7 +13,6 @@ import '../../providers/language_provider.dart';
 import '../../utils/theme.dart';
 import '../../utils/constants.dart';
 import '../../services/auth_service.dart';
-import '../../services/community_service.dart';
 import '../../providers/child_security_code_provider.dart';
 import '../../providers/gamification_provider.dart';
 import 'change_password_dialog.dart';
@@ -78,7 +77,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _familyNotifications = true;
 
   List<_FamilyMemberItem> _familyMembers = [];
-  List<CommunityFriend> _friends = [];
 
   @override
   void initState() {
@@ -86,16 +84,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _refreshProfile();
     _loadLocalProfilePic();
     _loadFamilyMembers();
-    _loadFriends();
-  }
-
-  Future<void> _loadFriends() async {
-    try {
-      final list = await CommunityService().getFriends();
-      if (mounted) setState(() => _friends = list);
-    } catch (_) {
-      if (mounted) setState(() => _friends = []);
-    }
   }
 
   Future<void> _loadFamilyMembers() async {
@@ -998,97 +986,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildAmisCard(AppLocalizations loc) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => context.push(AppConstants.familyFriendsRoute),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 2)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            loc.profileFriendsSection,
-            style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.text),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.grey.shade100),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2)),
+            ],
           ),
-          const SizedBox(height: 16),
-          if (_friends.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                '—',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppTheme.text.withOpacity(0.6),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: _profilePrimary.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(Icons.people, color: _profilePrimary, size: 26),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      loc.profileFriendsSection,
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.text),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Gérer votre liste d\'amis',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.text.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            )
-          else
-            ..._friends.map((f) {
-              final imageUrl = f.profilePic != null && f.profilePic!.isNotEmpty
-                  ? (f.profilePic!.startsWith('http')
-                      ? f.profilePic!
-                      : AppConstants.fullImageUrl(f.profilePic!))
-                  : null;
-              return Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () => context.push(
-                    AppConstants.familyCommunityMemberProfileRoute,
-                    extra: {
-                      'memberId': f.id,
-                      'memberName': f.fullName,
-                      'memberImageUrl': imageUrl,
-                    },
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundColor: _profilePrimary.withOpacity(0.2),
-                          backgroundImage: imageUrl != null && imageUrl.isNotEmpty
-                              ? NetworkImage(imageUrl)
-                              : null,
-                          child: imageUrl == null || imageUrl.isEmpty
-                              ? const Icon(Icons.person, color: _profilePrimary)
-                              : null,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            f.fullName,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: AppTheme.text,
-                            ),
-                          ),
-                        ),
-                        const Icon(
-                          Icons.arrow_forward_ios,
-                          size: 14,
-                          color: Color(0xFF94A3B8),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }),
-        ],
+              const Icon(
+                Icons.chevron_right,
+                size: 24,
+                color: Color(0xFF94A3B8),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

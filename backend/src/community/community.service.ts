@@ -447,7 +447,7 @@ export class CommunityService {
   async listPendingFollowRequests(
     userId: string,
   ): Promise<
-    { id: string; requesterId: string; requesterName: string; createdAt: string }[]
+    { id: string; requesterId: string; requesterName: string; requesterProfilePic?: string; createdAt: string }[]
   > {
     const list = await this.followRequestModel
       .find({ targetId: new Types.ObjectId(userId), status: 'pending' })
@@ -464,12 +464,15 @@ export class CommunityService {
     ];
     const users = await this.userModel
       .find({ _id: { $in: requesterIds.map((id) => new Types.ObjectId(id)) } })
-      .select('fullName')
+      .select('fullName profilePic')
       .lean()
       .exec();
     const nameById: Record<string, string> = {};
-    for (const u of users as { _id: Types.ObjectId; fullName?: string }[]) {
-      nameById[u._id.toString()] = u.fullName ?? 'Membre';
+    const picById: Record<string, string | undefined> = {};
+    for (const u of users as { _id: Types.ObjectId; fullName?: string; profilePic?: string }[]) {
+      const id = u._id.toString();
+      nameById[id] = u.fullName ?? 'Membre';
+      picById[id] = u.profilePic;
     }
 
     return (list as { _id: Types.ObjectId; requesterId: Types.ObjectId; createdAt: Date }[]).map(
@@ -477,6 +480,7 @@ export class CommunityService {
         id: r._id.toString(),
         requesterId: r.requesterId.toString(),
         requesterName: nameById[r.requesterId.toString()] ?? 'Membre',
+        requesterProfilePic: picById[r.requesterId.toString()],
         createdAt: r.createdAt.toISOString(),
       }),
     );

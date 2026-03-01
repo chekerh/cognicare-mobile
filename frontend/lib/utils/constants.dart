@@ -291,6 +291,8 @@ class AppConstants {
   static const String familyAddProductRoute = '/family/add-product';
   static const String familyPatientRecordRoute = '/family/patient-record';
   static const String familyNotificationsRoute = '/family/notifications';
+  static const String familyFriendsRoute = '/family/friends';
+  static const String familyFriendRequestsRoute = '/family/friend-requests';
   static const String familyCabinetRouteRoute = '/family/cabinet-route';
   static const String familyExpertBookingRoute = '/family/expert-booking';
   static const String familyExpertBookingConfirmationRoute =

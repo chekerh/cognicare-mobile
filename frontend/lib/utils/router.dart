@@ -38,6 +38,8 @@ import '../models/healthcare_cabinet.dart';
 import '../screens/family/cabinet_route_screen.dart';
 import '../screens/family/clinical_patient_record_screen.dart';
 import '../screens/family/family_notifications_screen.dart';
+import '../screens/family/family_friends_screen.dart';
+import '../screens/family/family_friend_requests_screen.dart';
 import '../screens/family/cart_screen.dart';
 import '../screens/family/checkout_screen.dart';
 import '../screens/family/order_confirmation_screen.dart';
@@ -758,6 +760,14 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           GoRoute(
             path: 'notifications',
             builder: (context, state) => const FamilyNotificationsScreen(),
+          ),
+          GoRoute(
+            path: 'friends',
+            builder: (context, state) => const FamilyFriendsScreen(),
+          ),
+          GoRoute(
+            path: 'friend-requests',
+            builder: (context, state) => const FamilyFriendRequestsScreen(),
           ),
           GoRoute(
             path: 'group-chat',

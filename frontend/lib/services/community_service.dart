@@ -247,6 +247,27 @@ class CommunityService {
         .toList();
   }
 
+  /// List pending follow requests (people who want to follow me). For badge count use .length.
+  Future<List<PendingFollowRequest>> getPendingFollowRequests() async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.communityFollowRequestsPendingEndpoint}');
+    final response = await _client.get(uri, headers: await _headers());
+    if (response.statusCode != 200) return [];
+    final list = jsonDecode(response.body) as List<dynamic>?;
+    if (list == null) return [];
+    return list
+        .map((e) {
+          final m = e as Map<String, dynamic>;
+          return PendingFollowRequest(
+            id: m['id'] as String? ?? '',
+            requesterId: m['requesterId'] as String? ?? '',
+            requesterName: m['requesterName'] as String? ?? 'Membre',
+            requesterProfilePic: m['requesterProfilePic'] as String?,
+          );
+        })
+        .toList();
+  }
+
   /// Get follow status from current user toward [targetUserId].
   /// Returns status and requestId (when pending, for cancel).
   Future<FollowStatusResult?> getFollowStatus(String targetUserId) async {
@@ -355,4 +376,17 @@ class CommunityFriend {
   final String id;
   final String fullName;
   final String? profilePic;
+}
+
+class PendingFollowRequest {
+  const PendingFollowRequest({
+    required this.id,
+    required this.requesterId,
+    required this.requesterName,
+    this.requesterProfilePic,
+  });
+  final String id;
+  final String requesterId;
+  final String requesterName;
+  final String? requesterProfilePic;
 }
