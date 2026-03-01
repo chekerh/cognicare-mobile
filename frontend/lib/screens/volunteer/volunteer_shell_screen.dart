@@ -183,18 +183,12 @@ class _VolunteerShellScreenState extends State<VolunteerShellScreen> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _navItem(context, 0, Icons.groups_outlined, Icons.groups,
-                    'Communauté', currentIndex),
-                _navItem(context, 1, Icons.home_outlined, Icons.home_rounded,
-                    'Service Hub', currentIndex),
-                _navItem(context, 2, Icons.school_outlined,
-                    Icons.school_rounded, 'Formations', currentIndex),
-                _navItem(context, 3, Icons.chat_bubble_outline,
-                    Icons.chat_bubble, 'Messages', currentIndex),
-                _navItem(context, 4, Icons.person_outline, Icons.person,
-                    'Profil', currentIndex),
+                Expanded(child: _navItem(context, 0, Icons.groups_outlined, Icons.groups, 'Communauté', currentIndex)),
+                Expanded(child: _navItem(context, 2, Icons.school_outlined, Icons.school_rounded, 'Formations', currentIndex)),
+                Expanded(child: _serviceHubCircleButton(context, 1, currentIndex)),
+                Expanded(child: _navItem(context, 3, Icons.chat_bubble_outline, Icons.chat_bubble, 'Messages', currentIndex)),
+                Expanded(child: _navItem(context, 4, Icons.person_outline, Icons.person, 'Profil', currentIndex)),
               ],
             ),
           ),
@@ -221,6 +215,54 @@ class _VolunteerShellScreenState extends State<VolunteerShellScreen> {
     return 1; // Service Hub (dashboard) for regular volunteers
   }
 
+  static const double _navIconSize = 40;
+
+  /// Service Hub au centre, cercle charte, même emprise que les autres boutons.
+  Widget _serviceHubCircleButton(BuildContext context, int index, int currentIndex) {
+    final isSelected = currentIndex == index;
+    return InkWell(
+      onTap: () => _onTap(index),
+      borderRadius: BorderRadius.circular(_navIconSize / 2 + 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: _navIconSize,
+            height: _navIconSize,
+            child: Container(
+              decoration: BoxDecoration(
+                color: _navPrimary,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: _navPrimary.withOpacity(0.45),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Icon(
+                isSelected ? Icons.home_rounded : Icons.home_outlined,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Service Hub',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color: isSelected ? _navPrimary : _navInactive,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _navItem(
     BuildContext context,
     int index,
@@ -233,27 +275,31 @@ class _VolunteerShellScreenState extends State<VolunteerShellScreen> {
     return InkWell(
       onTap: () => _onTap(index),
       borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isSelected ? activeIcon : icon,
-              size: 26,
-              color: isSelected ? _navPrimary : _navInactive,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: _navIconSize,
+            height: _navIconSize,
+            child: Center(
+              child: Icon(
+                isSelected ? activeIcon : icon,
+                size: 24,
                 color: isSelected ? _navPrimary : _navInactive,
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color: isSelected ? _navPrimary : _navInactive,
+            ),
+          ),
+        ],
       ),
     );
   }
