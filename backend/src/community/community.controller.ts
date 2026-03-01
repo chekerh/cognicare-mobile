@@ -12,6 +12,8 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -216,6 +218,7 @@ export class CommunityController {
   }
 
   @Post('follow-requests/:id/cancel')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Cancel your own follow request (requester withdraws)' })
   @ApiResponse({ status: 200, description: 'Cancelled' })
   @ApiResponse({ status: 403, description: 'Not the requester' })

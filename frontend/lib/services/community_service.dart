@@ -262,7 +262,7 @@ class CommunityService {
     final uri = Uri.parse(
         '${AppConstants.baseUrl}${AppConstants.communityFollowRequestCancelEndpoint(requestId)}');
     final response = await _client.post(uri, headers: await _headers());
-    if (response.statusCode != 200) {
+    if (response.statusCode != 200 && response.statusCode != 201) {
       final body = response.body;
       try {
         final err = jsonDecode(body) as Map<String, dynamic>;
