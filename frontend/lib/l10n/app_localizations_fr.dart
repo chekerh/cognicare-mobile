@@ -2277,7 +2277,7 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get categoryLabel => 'Catégorie';
   @override
-  String get privateMessageAction => 'Message Privé';
+  String get privateMessageAction => 'Message';
   @override
   String get followAction => 'Suivre';
   @override
@@ -2285,6 +2285,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Demande envoyée. Il recevra une notification pour accepter.';
   @override
   String get followRequestPendingLabel => 'Demande envoyée';
+  @override
+  String get cancelFollowRequestLabel => 'Annuler la demande';
   @override
   String get followRequestAccept => 'Accepter';
   @override

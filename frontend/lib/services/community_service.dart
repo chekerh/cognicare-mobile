@@ -266,7 +266,11 @@ class CommunityService {
       final body = response.body;
       try {
         final err = jsonDecode(body) as Map<String, dynamic>;
-        throw Exception(err['message'] ?? 'Failed to cancel');
+        final msg = err['message'];
+        final str = msg is List
+            ? (msg.isNotEmpty ? msg.first.toString() : 'Failed to cancel')
+            : (msg?.toString() ?? 'Failed to cancel');
+        throw Exception(str);
       } catch (e) {
         if (e is Exception) rethrow;
         throw Exception('Failed to cancel: ${response.statusCode}');

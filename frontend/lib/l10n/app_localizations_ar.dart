@@ -1305,7 +1305,7 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get categoryLabel => 'الفئة';
   @override
-  String get privateMessageAction => 'رسالة خاصة';
+  String get privateMessageAction => 'رسالة';
   @override
   String get followAction => 'متابعة';
   @override
@@ -1313,6 +1313,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم إرسال الطلب. سيستلم إشعاراً لقبوله.';
   @override
   String get followRequestPendingLabel => 'تم إرسال الطلب';
+  @override
+  String get cancelFollowRequestLabel => 'إلغاء الطلب';
   @override
   String get followRequestAccept => 'قبول';
   @override

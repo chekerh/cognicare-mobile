@@ -8,7 +8,7 @@ import '../../utils/constants.dart';
 const Color _primary = Color(0xFFA3D9E2);
 const Color _secondary = Color(0xFF7FBAC4);
 
-/// Profil d'un membre de la communauté — avatar, nom, rôle, Message Privé, Suivre, Parcours, Principaux, stats.
+/// Profil d'un membre de la communauté — avatar, nom, rôle, Message, Suivre, Parcours, Principaux, stats.
 class CommunityMemberProfileScreen extends StatefulWidget {
   const CommunityMemberProfileScreen({
     super.key,
@@ -279,12 +279,16 @@ class _CommunityMemberProfileScreenState
                   icon: Icon(
                       isAccepted ? Icons.people : Icons.person_add,
                       size: 20),
-                  label: Text(
-                    isAccepted
-                        ? loc.followStatusFriends
-                        : isPending
-                            ? loc.followRequestPendingLabel
-                            : loc.followAction,
+                  label: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      isAccepted
+                          ? loc.followStatusFriends
+                          : isPending
+                              ? loc.cancelFollowRequestLabel
+                              : loc.followAction,
+                      maxLines: 1,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isPending || isAccepted
@@ -358,6 +362,7 @@ class _CommunityMemberProfileScreenState
           behavior: SnackBarBehavior.floating,
         ),
       );
+      _loadFollowStatus();
     } catch (e) {
       if (!mounted) return;
       final msg = e.toString().replaceFirst('Exception: ', '');

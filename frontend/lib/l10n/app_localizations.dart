@@ -230,6 +230,7 @@ abstract class AppLocalizations {
   String get followAction;
   String get followRequestSent;
   String get followRequestPendingLabel;
+  String get cancelFollowRequestLabel;
   String get followRequestAccept;
   String get followRequestDecline;
   String get followRequestNotificationLabel;

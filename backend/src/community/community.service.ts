@@ -464,14 +464,20 @@ export class CommunityService {
     requestId: string,
     userId: string,
   ): Promise<void> {
+    if (!requestId || !Types.ObjectId.isValid(requestId)) return;
     const doc = await this.followRequestModel.findById(requestId).exec();
     if (!doc) return; // Déjà supprimée (ex. refusée par la cible) → succès pour l'UI
-    if (!doc.requesterId.equals(new Types.ObjectId(userId))) {
+    const requesterIdStr = doc.requesterId.toString();
+    if (requesterIdStr !== userId) {
       throw new ForbiddenException('Only the requester can cancel their request');
     }
     if (doc.status !== 'pending') return;
     const targetId = doc.targetId.toString();
-    await this.notifications.deleteByFollowRequestId(targetId, requestId);
+    try {
+      await this.notifications.deleteByFollowRequestId(targetId, requestId);
+    } catch (e) {
+      this.logger.warn('deleteByFollowRequestId failed on cancel', e);
+    }
     await this.followRequestModel.deleteOne({ _id: doc._id }).exec();
   }
 
