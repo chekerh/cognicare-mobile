@@ -14,6 +14,7 @@ import {
   getVolunteerApprovedTemplate,
   getVolunteerDeniedTemplate,
   getOrderConfirmationTemplate,
+  getBioherbsOrderConfirmationTemplate,
 } from './templates/email-templates';
 
 @Injectable()
@@ -556,6 +557,42 @@ export class MailService {
       return true;
     } catch (err: unknown) {
       console.error('Failed to send order confirmation to customer:', err);
+      return false;
+    }
+  }
+
+  /**
+   * Envoie au client un court email pour les commandes BioHerbs : indique que la confirmation viendra de BioHerbs.
+   * Utilisé à la place de sendOrderConfirmationToCustomer pour BioHerbs, pour que le client attende l’email de BioHerbs.
+   */
+  async sendBioherbsOrderConfirmationToCustomer(
+    customerEmail: string,
+    params: {
+      orderId: string;
+      productName: string;
+      quantity: number;
+      sentToBioherbs: boolean;
+    },
+  ): Promise<boolean> {
+    if (!this.apiKey || !this.from) return false;
+    if (!customerEmail?.trim()) return false;
+
+    const emailContent = getBioherbsOrderConfirmationTemplate(params);
+    const htmlContent = getEmailBaseTemplate(emailContent);
+
+    const msg = {
+      to: customerEmail.trim(),
+      from: this.from,
+      subject: `Commande transmise à BioHerbs - #${params.orderId}`,
+      html: htmlContent,
+    };
+
+    try {
+      await sgMail.send(msg);
+      console.log(`BioHerbs order confirmation email sent to ${customerEmail}`);
+      return true;
+    } catch (err: unknown) {
+      console.error('Failed to send BioHerbs order confirmation:', err);
       return false;
     }
   }
