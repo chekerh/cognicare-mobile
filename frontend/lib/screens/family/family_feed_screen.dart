@@ -1315,6 +1315,10 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
 
   Widget _buildShareCard() {
     final user = Provider.of<AuthProvider>(context).user;
+    final profilePicUrl = user != null && user.profilePic != null && user.profilePic!.isNotEmpty
+        ? _fullImageUrl(user.profilePic!)
+        : null;
+    final initial = (user?.fullName ?? 'U').substring(0, 1).toUpperCase();
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Material(
@@ -1337,18 +1341,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
             ),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: _feedPrimary.withOpacity(0.3),
-                  child: Text(
-                    (user?.fullName ?? 'U').substring(0, 1).toUpperCase(),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.text,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
+                _buildShareCardAvatar(profilePicUrl: profilePicUrl, initial: initial),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Container(
@@ -1373,6 +1366,44 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShareCardAvatar({String? profilePicUrl, required String initial}) {
+    const radius = 20.0;
+    if (profilePicUrl != null && profilePicUrl.isNotEmpty) {
+      return ClipOval(
+        child: Image.network(
+          profilePicUrl,
+          width: radius * 2,
+          height: radius * 2,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => CircleAvatar(
+            radius: radius,
+            backgroundColor: _feedPrimary.withOpacity(0.3),
+            child: Text(
+              initial,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppTheme.text,
+                fontSize: 18,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: _feedPrimary.withOpacity(0.3),
+      child: Text(
+        initial,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          color: AppTheme.text,
+          fontSize: 18,
         ),
       ),
     );
