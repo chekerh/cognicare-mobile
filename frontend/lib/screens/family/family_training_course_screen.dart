@@ -67,17 +67,33 @@ class _FamilyTrainingCourseScreenState extends State<FamilyTrainingCourseScreen>
     }
   }
 
+  bool get _hasQuiz {
+    final q = _course?['quiz'];
+    return q is List<dynamic> && q.isNotEmpty;
+  }
+
   Future<void> _onStartQuiz() async {
     final id = _courseId;
-    if (id.isEmpty) return;
+    if (id.isEmpty || !_hasQuiz) return;
     setState(() => _markingComplete = true);
     try {
       await _service.markContentCompleted(id);
       if (!mounted) return;
-      if (!mounted) return;
       context.push('quiz', extra: {'courseId': id, 'title': _title});
-    } catch (_) {}
-    if (mounted) setState(() => _markingComplete = false);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e.toString().replaceFirst('Exception: ', ''),
+            ),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _markingComplete = false);
+    }
   }
 
   @override
@@ -120,7 +136,7 @@ class _FamilyTrainingCourseScreenState extends State<FamilyTrainingCourseScreen>
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _markingComplete ? null : _onStartQuiz,
+                          onPressed: (_markingComplete || !_hasQuiz) ? null : _onStartQuiz,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _primary,
                             foregroundColor: AppTheme.text,
@@ -135,7 +151,7 @@ class _FamilyTrainingCourseScreenState extends State<FamilyTrainingCourseScreen>
                                   width: 24,
                                   child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                 )
-                              : const Text('Commencer le quiz'),
+                              : Text(_hasQuiz ? 'Commencer le quiz' : 'Quiz à venir'),
                         ),
                       ),
                       const SizedBox(height: 48),
@@ -146,15 +162,20 @@ class _FamilyTrainingCourseScreenState extends State<FamilyTrainingCourseScreen>
   }
 
   List<Widget> _buildSections() {
-    final sections = _course?['contentSections'] as List<dynamic>? ?? [];
+    final rawSections = _course?['contentSections'];
+    final sections = rawSections is List<dynamic> ? rawSections : <dynamic>[];
     final list = <Widget>[];
     for (var i = 0; i < sections.length; i++) {
-      final s = sections[i] is Map<String, dynamic> ? sections[i] as Map<String, dynamic> : <String, dynamic>{};
+      final item = sections[i];
+      if (item is! Map<String, dynamic>) continue;
+      final s = item;
       final type = s['type'] as String? ?? 'text';
       final title = s['title'] as String?;
       final content = s['content'] as String?;
-      final listItems = s['listItems'] as List<dynamic>?;
-      final definitions = s['definitions'] as Map<String, dynamic>?;
+      final rawListItems = s['listItems'];
+      final listItems = rawListItems is List<dynamic> ? rawListItems : null;
+      final rawDefs = s['definitions'];
+      final definitions = rawDefs is Map<String, dynamic> ? rawDefs : null;
       final videoUrl = s['videoUrl'] as String?;
       if (title != null && title.isNotEmpty) {
         list.add(Padding(

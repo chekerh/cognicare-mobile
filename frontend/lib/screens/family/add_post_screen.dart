@@ -9,10 +9,10 @@ import '../../providers/auth_provider.dart';
 import '../../providers/community_feed_provider.dart';
 import '../../utils/theme.dart';
 
-const Color _primary = Color(0xFFA3D9E2);
-const Color _background = Color(0xFFF8FAFC);
+const Color _primary = Color(0xFFA3DAE1);
+const Color _backgroundLight = Color(0xFFF5F9FA);
 
-/// Écran « New post » style Facebook : navigation pleine page, header, user, tags, champ texte, barre d’actions (Gallery, etc.).
+/// Écran « Nouvelle Publication » : design Stitch (header, user + Public, cartes catégorie, zone texte type glass, Galerie/Humeur/Lieu, bouton Publier).
 class AddPostScreen extends StatefulWidget {
   const AddPostScreen({super.key});
 
@@ -24,13 +24,18 @@ class _AddPostScreenState extends State<AddPostScreen> {
   final _controller = TextEditingController();
   bool _isPosting = false;
   String? _selectedImagePath;
-  int? _selectedTagIndex;
+  int _selectedCategoryIndex = 0;
 
-  static const List<({String label, IconData icon})> _tags = [
-    (label: 'Milestone', icon: Icons.emoji_events_outlined),
-    (label: 'Tip', icon: Icons.lightbulb_outline),
-    (label: 'Question', icon: Icons.help_outline),
-    (label: 'Feeling', icon: Icons.mood_outlined),
+  static const List<({String label, IconData icon, Color color})> _categories = [
+    (label: 'Milestone', icon: Icons.emoji_events, color: Color(0xFFFEF3C7)),
+    (label: 'Tip', icon: Icons.lightbulb_outline, color: Color(0xFFDBEAFE)),
+    (label: 'Question', icon: Icons.help_outline, color: Color(0xFFF3E8FF)),
+  ];
+
+  static const List<Color> _categoryIconColors = [
+    Color(0xFFEAB308),
+    Color(0xFF3B82F6),
+    Color(0xFFA855F7),
   ];
 
   @override
@@ -56,7 +61,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
     if (text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please write something to share.'),
+          content: Text('Partagez votre expérience pour publier.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -83,7 +88,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
         SnackBar(
           content: Text(e is Exception
               ? e.toString().replaceFirst('Exception: ', '')
-              : 'Failed to share post'),
+              : 'Échec de la publication'),
           behavior: SnackBarBehavior.floating,
           backgroundColor: Colors.red,
         ),
@@ -96,7 +101,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
     context.pop();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Post shared in the community.'),
+        content: Text('Publication partagée dans la communauté.'),
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.green,
       ),
@@ -106,225 +111,343 @@ class _AddPostScreenState extends State<AddPostScreen> {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context).user;
+    final initial = (user?.fullName ?? 'U').substring(0, 1).toUpperCase();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF0F9FA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: AppTheme.text),
+          icon: const Icon(Icons.close, color: AppTheme.text, size: 28),
           onPressed: () => context.pop(),
         ),
         title: const Text(
-          'New post',
+          'Nouvelle Publication',
           style: TextStyle(
             color: AppTheme.text,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            fontSize: 20,
+            letterSpacing: -0.5,
           ),
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_horiz, color: AppTheme.text),
-            onPressed: () {
-              // Menu options
-            },
+            icon: const Icon(Icons.more_horiz, color: AppTheme.text, size: 28),
+            onPressed: () {},
           ),
         ],
       ),
       body: SafeArea(
         top: true,
         bottom: false,
-        child: Column(
-          children: [
-            // Partie haute scrollable : user, tags, aperçu image
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundColor: _primary.withOpacity(0.4),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 24),
+              // User row: avatar + status dot, name, Public
+              Row(
+                children: [
+                  Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _primary.withOpacity(0.2),
+                          border: Border.all(color: Colors.white, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: _primary.withOpacity(0.2),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Center(
                           child: Text(
-                            (user?.fullName ?? 'U')
-                                .substring(0, 1)
-                                .toUpperCase(),
+                            initial,
                             style: const TextStyle(
+                              fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: AppTheme.text,
-                              fontSize: 22,
+                              color: _primary,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            user?.fullName ?? 'Anonymous',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.text,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      height: 44,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _tags.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 8),
-                        itemBuilder: (context, i) {
-                          final tag = _tags[i];
-                          final selected = _selectedTagIndex == i;
-                          return FilterChip(
-                            selected: selected,
-                            label: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(tag.icon,
-                                    size: 18,
-                                    color: selected
-                                        ? Colors.white
-                                        : AppTheme.text),
-                                const SizedBox(width: 6),
-                                Text(tag.label),
-                              ],
-                            ),
-                            onSelected: (v) => setState(
-                                () => _selectedTagIndex = v ? i : null),
-                            selectedColor: _primary,
-                            checkmarkColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                          );
-                        },
                       ),
-                    ),
-                    if (_selectedImagePath != null) ...[
-                      const SizedBox(height: 20),
-                      Stack(
-                        alignment: Alignment.topRight,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.file(
-                              File(_selectedImagePath!),
-                              width: double.infinity,
-                              height: 240,
-                              fit: BoxFit.cover,
-                            ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade400,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
                           ),
-                          IconButton(
-                            icon: const CircleAvatar(
-                              backgroundColor: Colors.black54,
-                              child: Icon(Icons.close,
-                                  color: Colors.white, size: 20),
-                            ),
-                            onPressed: () =>
-                                setState(() => _selectedImagePath = null),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
-                  ],
-                ),
-              ),
-            ),
-            // Partie fixe en bas : champ texte + actions + bouton Post
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.fromLTRB(
-                  16, 12, 16, 12 + MediaQuery.paddingOf(context).bottom),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(
-                    top: BorderSide(color: AppTheme.text.withOpacity(0.1))),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextField(
-                    controller: _controller,
-                    maxLines: 3,
-                    minLines: 1,
-                    decoration: InputDecoration(
-                      hintText: "What's on your mind?",
-                      hintStyle: TextStyle(
-                        color: AppTheme.text.withOpacity(0.5),
-                        fontSize: 16,
-                      ),
-                      border: InputBorder.none,
-                      filled: true,
-                      fillColor: _background,
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                    ),
-                    style: const TextStyle(fontSize: 16, color: AppTheme.text),
                   ),
-                  const SizedBox(height: 12),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _bottomAction(Icons.photo_library_outlined, 'Gallery',
-                            () async {
-                          final path = await _pickImage();
-                          if (path != null && mounted) {
-                            setState(() => _selectedImagePath = path);
-                          }
-                        }),
-                        _bottomAction(
-                            Icons.emoji_emotions_outlined, 'Feeling', () {}),
-                        _bottomAction(Icons.place_outlined, 'Location', () {}),
-                        _bottomAction(Icons.star_outline, 'Life event', () {}),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: _isPosting ? null : _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primary,
-                        foregroundColor: AppTheme.text,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(24)),
-                      ),
-                      child: _isPosting
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white),
-                            )
-                          : const Text('Post',
+                        Text(
+                          user?.fullName ?? 'Anonymous',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.text,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.public, size: 14, color: Colors.grey.shade500),
+                            const SizedBox(width: 4),
+                            Text(
+                              'PUBLIC',
                               style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16)),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 1,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 40),
+              // Category cards grid (3)
+              Row(
+                children: List.generate(3, (i) {
+                  final cat = _categories[i];
+                  final isActive = _selectedCategoryIndex == i;
+                  return Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(left: i == 0 ? 0 : 6, right: i == 2 ? 0 : 6),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => setState(() => _selectedCategoryIndex = i),
+                          borderRadius: BorderRadius.circular(24),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: isActive ? Colors.white : Colors.white.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: isActive ? _primary : Colors.transparent,
+                                width: 2,
+                              ),
+                              boxShadow: isActive
+                                  ? [
+                                      BoxShadow(
+                                        color: _primary.withOpacity(0.25),
+                                        blurRadius: 20,
+                                        offset: const Offset(0, 10),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: cat.color,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Icon(
+                                    cat.icon,
+                                    size: 24,
+                                    color: _categoryIconColors[i],
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  cat.label,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.text,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 32),
+              // Glass-style content container
+              Container(
+                constraints: const BoxConstraints(minHeight: 300),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(40),
+                  border: Border.all(color: Colors.white.withOpacity(0.7)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _primary.withOpacity(0.15),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: _controller,
+                      maxLines: 8,
+                      minLines: 5,
+                      decoration: InputDecoration(
+                        hintText: 'Partagez votre expérience...',
+                        hintStyle: TextStyle(
+                          color: AppTheme.text.withOpacity(0.5),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.text,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.only(top: 16),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(
+                            color: AppTheme.text.withOpacity(0.12),
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _actionButton(Icons.image_outlined, 'Galerie', () async {
+                            final path = await _pickImage();
+                            if (path != null && mounted) {
+                              setState(() => _selectedImagePath = path);
+                            }
+                          }),
+                          _actionButton(Icons.mood_outlined, 'Humeur', () {}),
+                          _actionButton(Icons.location_on_outlined, 'Lieu', () {}),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_selectedImagePath != null) ...[
+                const SizedBox(height: 16),
+                Stack(
+                  alignment: Alignment.topRight,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.file(
+                        File(_selectedImagePath!),
+                        width: double.infinity,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const CircleAvatar(
+                        backgroundColor: Colors.black54,
+                        child: Icon(Icons.close, color: Colors.white, size: 20),
+                      ),
+                      onPressed: () => setState(() => _selectedImagePath = null),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 32),
+              // Publier button
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: _isPosting ? null : _submit,
+                  borderRadius: BorderRadius.circular(24),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    decoration: BoxDecoration(
+                      color: _primary,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _primary.withOpacity(0.5),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: _isPosting
+                        ? const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            ),
+                          )
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Publier',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Icon(Icons.send_rounded, color: Colors.white, size: 22),
+                            ],
+                          ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _bottomAction(IconData icon, String label, VoidCallback onTap) {
+  Widget _actionButton(IconData icon, String label, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
@@ -333,12 +456,15 @@ class _AddPostScreenState extends State<AddPostScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 24, color: _primary),
-            const SizedBox(width: 6),
+            Icon(icon, size: 22, color: Colors.grey.shade600),
+            const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                  fontSize: 13, color: AppTheme.text.withOpacity(0.8)),
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade600,
+              ),
             ),
           ],
         ),

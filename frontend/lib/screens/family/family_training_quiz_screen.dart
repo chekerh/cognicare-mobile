@@ -46,8 +46,12 @@ class _FamilyTrainingQuizScreenState extends State<FamilyTrainingQuizScreen> {
     });
     try {
       final course = await _service.getCourse(widget.courseId);
-      final quiz = course['quiz'] as List<dynamic>? ?? [];
-      final questions = quiz.map((e) => e as Map<String, dynamic>).toList();
+      final rawQuiz = course['quiz'];
+      final quiz = rawQuiz is List<dynamic> ? rawQuiz : <dynamic>[];
+      final questions = <Map<String, dynamic>>[];
+      for (final e in quiz) {
+        if (e is Map<String, dynamic>) questions.add(e);
+      }
       if (mounted) {
         setState(() {
           _questions = questions;

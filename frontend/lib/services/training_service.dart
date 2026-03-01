@@ -37,7 +37,12 @@ class TrainingService {
       final body = jsonDecode(response.body) as Map<String, dynamic>?;
       throw Exception(body?['message'] ?? 'Course not found');
     }
-    return jsonDecode(response.body) as Map<String, dynamic>;
+    final decoded = jsonDecode(response.body);
+    if (decoded is Map<String, dynamic>) return decoded;
+    if (decoded is List<dynamic> && decoded.isNotEmpty && decoded.first is Map<String, dynamic>) {
+      return decoded.first as Map<String, dynamic>;
+    }
+    throw Exception('Invalid course response');
   }
 
   /// Enroll in a course. Returns updated enrollments.
