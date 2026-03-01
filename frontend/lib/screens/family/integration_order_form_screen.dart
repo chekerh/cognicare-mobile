@@ -49,30 +49,44 @@ class IntegrationOrderFormScreen extends StatefulWidget {
 
 class _IntegrationOrderFormScreenState extends State<IntegrationOrderFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _addressController = TextEditingController();
+  final _postalCodeController = TextEditingController();
   final _cityController = TextEditingController();
   final _phoneController = TextEditingController();
   int _quantity = 1;
+  String _country = 'Tunisie';
+  bool _billingSameAsDelivery = true;
   bool _submitting = false;
   String? _error;
+
+  static const String _shippingCost = '7,500 DT';
 
   @override
   void initState() {
     super.initState();
     final user = Provider.of<AuthProvider>(context, listen: false).user;
     if (user != null) {
-      _fullNameController.text = user.fullName;
       _emailController.text = user.email;
+      final parts = user.fullName.split(' ');
+      if (parts.isNotEmpty) {
+        _firstNameController.text = parts.first;
+        if (parts.length > 1) {
+          _lastNameController.text = parts.sublist(1).join(' ');
+        }
+      }
     }
   }
 
   @override
   void dispose() {
-    _fullNameController.dispose();
     _emailController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _addressController.dispose();
+    _postalCodeController.dispose();
     _cityController.dispose();
     _phoneController.dispose();
     super.dispose();
@@ -98,26 +112,42 @@ class _IntegrationOrderFormScreenState extends State<IntegrationOrderFormScreen>
           'quantity': _quantity,
           'productName': widget.productName,
           'formData': {
-            'fullName': _fullNameController.text.trim(),
             'email': _emailController.text.trim(),
+            'country': _country,
+            'firstName': _firstNameController.text.trim(),
+            'lastName': _lastNameController.text.trim(),
+            'fullName': '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'.trim(),
             'address': _addressController.text.trim(),
+            'postalCode': _postalCodeController.text.trim(),
             'city': _cityController.text.trim(),
             'phone': _phoneController.text.trim(),
+            'shippingMethod': 'Standard',
+            'shippingCost': _shippingCost,
+            'paymentMethod': 'Paiement à la livraison',
+            'billingSameAsDelivery': _billingSameAsDelivery.toString(),
+            'price': widget.price,
           },
         }),
       );
       if (!mounted) return;
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final status = data['status'] as String? ?? '';
         final message =
             data['message'] as String? ?? 'Commande enregistrée avec succès.';
+        // Expliquer comment la commande sera traitée
+        final String detail = status == 'sent'
+            ? 'Votre commande a été envoyée au marchand (ex. BioHerbs).\n\n'
+              'Il vous contactera par email ou téléphone pour confirmer la livraison et le paiement.'
+            : 'Votre commande est enregistrée dans l’application.\n\n'
+              'Le marchand pourra la consulter et vous recontactera pour organiser la livraison.';
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
             title: const Text('Commande enregistrée'),
             content: SingleChildScrollView(
-              child: Text(message),
+              child: Text(detail),
             ),
             actions: [
               TextButton(
@@ -417,16 +447,33 @@ class _IntegrationOrderFormScreenState extends State<IntegrationOrderFormScreen>
           child: Column(
             children: [
               _buildFloatingField(
-                controller: _fullNameController,
-                label: 'Nom complet',
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requis' : null,
-              ),
-              const SizedBox(height: 16),
-              _buildFloatingField(
                 controller: _emailController,
                 label: 'Email',
                 keyboardType: TextInputType.emailAddress,
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'Requis' : null,
+              ),
+              const SizedBox(height: 16),
+              _buildDropdownCountry(),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildFloatingField(
+                      controller: _firstNameController,
+                      label: 'Prénom (optionnel)',
+                      hint: 'Prénom',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildFloatingField(
+                      controller: _lastNameController,
+                      label: 'Nom',
+                      hint: 'Nom',
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Requis' : null,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               _buildFloatingField(
@@ -436,21 +483,165 @@ class _IntegrationOrderFormScreenState extends State<IntegrationOrderFormScreen>
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'Requis' : null,
               ),
               const SizedBox(height: 16),
-              _buildFloatingField(
-                controller: _cityController,
-                label: 'Ville',
-                hint: 'Paris, Lyon...',
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requis' : null,
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: _buildFloatingField(
+                      controller: _postalCodeController,
+                      label: 'Code postal (facultatif)',
+                      hint: '8000',
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 3,
+                    child: _buildFloatingField(
+                      controller: _cityController,
+                      label: 'Ville',
+                      hint: 'Nabeul, Tunis...',
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Requis' : null,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               _buildFloatingField(
                 controller: _phoneController,
-                label: 'Téléphone (optionnel)',
-                hint: '+33 6 00 00 00 00',
+                label: 'Téléphone',
+                hint: '+216 20 00 00 00',
                 keyboardType: TextInputType.phone,
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requis' : null,
+              ),
+              const SizedBox(height: 20),
+              _buildShippingMethod(),
+              const SizedBox(height: 16),
+              _buildPaymentMethod(),
+              const SizedBox(height: 16),
+              _buildBillingAddress(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdownCountry() {
+    return DropdownButtonFormField<String>(
+      value: _country,
+      decoration: InputDecoration(
+        labelText: 'Pays / région',
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide(color: _primary.withOpacity(0.2)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: const BorderSide(color: _primary, width: 2),
+        ),
+      ),
+      items: const [
+        DropdownMenuItem(value: 'Tunisie', child: Text('Tunisie')),
+        DropdownMenuItem(value: 'France', child: Text('France')),
+      ],
+      onChanged: (v) => setState(() => _country = v ?? 'Tunisie'),
+    );
+  }
+
+  Widget _buildShippingMethod() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Mode d\'expédition',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: _textDark,
+            ),
+          ),
+          Row(
+            children: [
+              const Text('Standard', style: TextStyle(color: _textDark)),
+              const SizedBox(width: 8),
+              Text(
+                _shippingCost,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: _brandBlue,
+                ),
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentMethod() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.payments_rounded, size: 22, color: _primary),
+          const SizedBox(width: 12),
+          const Text(
+            'Paiement à la livraison',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: _textDark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBillingAddress() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Adresse de facturation',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: _textDark,
+          ),
+        ),
+        const SizedBox(height: 8),
+        RadioListTile<bool>(
+          title: const Text('Identique à l\'adresse de livraison'),
+          value: true,
+          groupValue: _billingSameAsDelivery,
+          onChanged: (v) => setState(() => _billingSameAsDelivery = v ?? true),
+          activeColor: _primary,
+          contentPadding: EdgeInsets.zero,
+        ),
+        RadioListTile<bool>(
+          title: const Text('Utiliser une adresse de facturation différente'),
+          value: false,
+          groupValue: _billingSameAsDelivery,
+          onChanged: (v) => setState(() => _billingSameAsDelivery = v ?? false),
+          activeColor: _primary,
+          contentPadding: EdgeInsets.zero,
         ),
       ],
     );

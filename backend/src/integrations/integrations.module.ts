@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { MailModule } from '../mail/mail.module';
 import {
   ExternalWebsite,
   ExternalWebsiteSchema,
@@ -17,6 +18,7 @@ import { IntegrationsController } from './integrations.controller';
 
 @Module({
   imports: [
+    MailModule,
     MongooseModule.forFeature([
       { name: ExternalWebsite.name, schema: ExternalWebsiteSchema },
       { name: ExternalProduct.name, schema: ExternalProductSchema },

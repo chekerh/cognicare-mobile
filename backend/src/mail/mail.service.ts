@@ -453,4 +453,71 @@ export class MailService {
       return false;
     }
   }
+
+  /**
+   * Envoie un email à CogniCare avec le détail de la commande (pour traitement / passage commande côté marchand).
+   */
+  async sendOrderToCogniCare(payload: {
+    orderId: string;
+    productName: string;
+    quantity: number;
+    price?: string;
+    formData: Record<string, string>;
+  }): Promise<boolean> {
+    const to =
+      this.configService.get<string>('COGNICARE_ORDER_EMAIL') || this.from;
+    if (!this.apiKey || !this.from || !to) {
+      console.warn(
+        'Skipping order email to CogniCare: SENDGRID_API_KEY, MAIL_FROM or COGNICARE_ORDER_EMAIL not configured',
+      );
+      return false;
+    }
+
+    const d = payload.formData;
+    const lines = [
+      `<p><strong>Commande #${payload.orderId}</strong></p>`,
+      `<p><strong>Produit:</strong> ${payload.productName}</p>`,
+      `<p><strong>Quantité:</strong> ${payload.quantity}</p>`,
+      payload.price ? `<p><strong>Prix:</strong> ${payload.price}</p>` : '',
+      '<hr/><p><strong>Coordonnées / Livraison</strong></p>',
+      d.email ? `<p>Email: ${d.email}</p>` : '',
+      d.country ? `<p>Pays: ${d.country}</p>` : '',
+      d.firstName || d.lastName
+        ? `<p>Nom: ${[d.firstName, d.lastName].filter(Boolean).join(' ')}</p>`
+        : d.fullName
+          ? `<p>Nom: ${d.fullName}</p>`
+          : '',
+      d.address ? `<p>Adresse: ${d.address}</p>` : '',
+      d.postalCode ? `<p>Code postal: ${d.postalCode}</p>` : '',
+      d.city ? `<p>Ville: ${d.city}</p>` : '',
+      d.phone ? `<p>Téléphone: ${d.phone}</p>` : '',
+      d.shippingMethod
+        ? `<p><strong>Mode d'expédition:</strong> ${d.shippingMethod}${d.shippingCost ? ` (${d.shippingCost})` : ''}</p>`
+        : '',
+      d.paymentMethod
+        ? `<p><strong>Paiement:</strong> ${d.paymentMethod}</p>`
+        : '',
+      d.billingSameAsDelivery !== undefined
+        ? `<p>Facturation: ${d.billingSameAsDelivery === 'true' ? 'Identique à la livraison' : 'Adresse différente'}</p>`
+        : '',
+    ].filter(Boolean);
+
+    const htmlContent = getEmailBaseTemplate(lines.join(''));
+
+    const msg = {
+      to,
+      from: this.from,
+      subject: `CogniCare - Nouvelle commande #${payload.orderId} (${payload.productName})`,
+      html: htmlContent,
+    };
+
+    try {
+      await sgMail.send(msg);
+      console.log(`Order notification email sent to ${to}`);
+      return true;
+    } catch (err: unknown) {
+      console.error('Failed to send order email to CogniCare:', err);
+      return false;
+    }
+  }
 }

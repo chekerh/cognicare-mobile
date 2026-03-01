@@ -58,6 +58,9 @@ db.users.insertOne({
 });
 */
 
+// Optional: email where order notifications are sent (CogniCare). Defaults to MAIL_FROM if not set.
+// Set in backend .env: COGNICARE_ORDER_EMAIL=orders@cognicare.com
+
 // Optional: for non-BioHerbs sites, enable real order send to a form (e.g. Formspree)
 // db.externalwebsites.updateOne(
 //   { slug: "..." },
