@@ -195,6 +195,77 @@ class CommunityService {
     return map.map((k, v) => MapEntry(k, v as bool));
   }
 
+  /// Send a follow request to [targetUserId]. Target receives a notification to accept/decline.
+  Future<FollowRequestResult> createFollowRequest(String targetUserId) async {
+    final response = await _client.post(
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.communityFollowRequestsEndpoint}'),
+      headers: await _headers(),
+      body: jsonEncode({'targetUserId': targetUserId}),
+    );
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final status = data['status'] as String? ?? 'pending';
+      return FollowRequestResult(
+        requestId: data['requestId'] as String? ?? '',
+        status: status,
+      );
+    }
+    final body = response.body;
+    try {
+      final err = jsonDecode(body) as Map<String, dynamic>;
+      throw Exception(err['message'] ?? 'Failed to send follow request');
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Failed to send follow request: ${response.statusCode}');
+    }
+  }
+
+  /// Get follow status from current user toward [targetUserId].
+  /// Returns status: "pending" | "accepted" | "declined" or null if no request.
+  Future<String?> getFollowStatus(String targetUserId) async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.communityFollowRequestsStatusEndpoint}?targetUserId=${Uri.encodeComponent(targetUserId)}');
+    final response = await _client.get(uri, headers: await _headers());
+    if (response.statusCode != 200) return null;
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return data['status'] as String?;
+  }
+
+  /// Accept a follow request (caller must be the target user).
+  Future<void> acceptFollowRequest(String requestId) async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.communityFollowRequestAcceptEndpoint(requestId)}');
+    final response = await _client.post(uri, headers: await _headers());
+    if (response.statusCode != 200) {
+      final body = response.body;
+      try {
+        final err = jsonDecode(body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to accept');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to accept: ${response.statusCode}');
+      }
+    }
+  }
+
+  /// Decline a follow request (caller must be the target user).
+  Future<void> declineFollowRequest(String requestId) async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.communityFollowRequestDeclineEndpoint(requestId)}');
+    final response = await _client.post(uri, headers: await _headers());
+    if (response.statusCode != 200) {
+      final body = response.body;
+      try {
+        final err = jsonDecode(body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to decline');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to decline: ${response.statusCode}');
+      }
+    }
+  }
+
   static CommunityPost _postFromApi(Map<String, dynamic> e) {
     final id = e['id'] as String;
     final createdAt = DateTime.parse(e['createdAt'] as String);
@@ -211,4 +282,10 @@ class CommunityService {
       tags: (e['tags'] as List<dynamic>?)?.cast<String>() ?? const [],
     );
   }
+}
+
+class FollowRequestResult {
+  const FollowRequestResult({required this.requestId, required this.status});
+  final String requestId;
+  final String status;
 }

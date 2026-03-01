@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/marketplace_product.dart';
 import '../../services/integrations_service.dart';
 import '../../utils/constants.dart';
@@ -33,13 +34,13 @@ String _formatPriceDt(String price) {
   return '$p DT';
 }
 
-/// Labels des catégories (Tout = pas de filtre).
-const List<String> _categoryLabels = [
-  'Tout',
-  'Sensory',
-  'Éducatif',
-  'Mobilité',
-  'Nouveautés',
+/// Clés de filtre (index 0 = pas de filtre). Les libellés viennent de l10n.
+const List<String> _categoryFilterKeys = [
+  '',
+  'sensory',
+  'educational',
+  'mobility',
+  'new',
 ];
 
 /// Marketplace bénévole — même logique que family: catalogue intégré (IntegrationsService),
@@ -132,18 +133,17 @@ class _VolunteerCommunityMarketScreenState
     if (_integrationProducts.isEmpty) return [];
     var list = List<MarketplaceProduct>.from(_integrationProducts);
     if (_selectedCategoryIndex > 0) {
-      final label = _categoryLabels[_selectedCategoryIndex];
-      final labelLower = label.toLowerCase();
+      final key = _categoryFilterKeys[_selectedCategoryIndex];
       list = list.where((p) {
         final cat = p.category.toLowerCase();
         final badge = (p.badge ?? '').toLowerCase();
-        if (labelLower == 'sensory') {
+        if (key == 'sensory') {
           return cat.contains('sensor') || badge.contains('premium') || badge.contains('sensory');
         }
-        if (labelLower == 'nouveautés') {
+        if (key == 'new') {
           return cat.contains('new') || badge.contains('new') || badge.contains('nouveau');
         }
-        return cat.contains(labelLower) || badge.contains(labelLower);
+        return cat.contains(key) || badge.contains(key);
       }).toList();
     }
     final q = _searchController.text.trim().toLowerCase();
@@ -164,6 +164,14 @@ class _VolunteerCommunityMarketScreenState
     if (b.contains('SKILL') || b.contains('BUILDER')) return Colors.green;
     if (b.contains('POPULAR')) return Colors.orange;
     return _primary;
+  }
+
+  String _productDescription(AppLocalizations loc, MarketplaceProduct product) {
+    if (product.description.isEmpty) return loc.productAdaptedCommunity;
+    final d = product.description;
+    if (d == 'En stock' || d.toLowerCase() == 'stock available') return loc.stockAvailable;
+    if (d == 'Rupture de stock' || d.toLowerCase().contains('out of stock')) return loc.outOfStock;
+    return d;
   }
 
   /// Même logique que family: si produit intégré → formulaire de commande; sinon détail produit.
@@ -210,7 +218,7 @@ class _VolunteerCommunityMarketScreenState
                   backgroundColor: _primary,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Réessayer'),
+                child: Text(AppLocalizations.of(context)!.retry),
               ),
             ],
           ),
@@ -449,8 +457,8 @@ class _VolunteerCommunityMarketScreenState
                   ),
                 ],
               ),
-              child: const Text(
-                'Marketplace',
+              child: Text(
+                AppLocalizations.of(context)!.marketplaceTitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
@@ -491,7 +499,7 @@ class _VolunteerCommunityMarketScreenState
                 controller: _searchController,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  hintText: 'Rechercher un outil sensoriel...',
+                  hintText: AppLocalizations.of(context)!.searchSensoryToolHint,
                   hintStyle: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -525,12 +533,30 @@ class _VolunteerCommunityMarketScreenState
     );
   }
 
+  String _categoryLabel(AppLocalizations loc, int index) {
+    switch (index) {
+      case 0:
+        return loc.all;
+      case 1:
+        return loc.sensory;
+      case 2:
+        return loc.filterEducational;
+      case 3:
+        return loc.mobility;
+      case 4:
+        return loc.newArrivals;
+      default:
+        return loc.all;
+    }
+  }
+
   Widget _buildCategoryChips() {
+    final loc = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
-        children: List.generate(_categoryLabels.length, (i) {
+        children: List.generate(_categoryFilterKeys.length, (i) {
           final selected = i == _selectedCategoryIndex;
           return Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -565,7 +591,7 @@ class _VolunteerCommunityMarketScreenState
                           ],
                   ),
                   child: Text(
-                    _categoryLabels[i],
+                    _categoryLabel(loc, i),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -582,12 +608,16 @@ class _VolunteerCommunityMarketScreenState
   }
 
   Widget _productCard(MarketplaceProduct product, int index) {
+    final loc = AppLocalizations.of(context)!;
     final imageUrl = product.imageUrl.isNotEmpty
         ? (product.imageUrl.startsWith('http')
             ? product.imageUrl
             : _fullImageUrl(product.imageUrl))
         : '';
-    final badgeLabel = product.badge ?? 'Premium';
+    final badgeLabel = product.badge == null ||
+            product.badge!.toLowerCase() == 'premium'
+        ? loc.premiumLabel
+        : product.badge!;
     final showDelivery = index.isEven;
 
     return Container(
@@ -737,9 +767,7 @@ class _VolunteerCommunityMarketScreenState
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        product.description.isNotEmpty
-                            ? product.description
-                            : 'Produit adapté à la communauté CogniCare.',
+                        _productDescription(loc, product),
                         style: TextStyle(
                           fontSize: 14,
                           color: _textMuted,
@@ -774,8 +802,8 @@ class _VolunteerCommunityMarketScreenState
                                   Flexible(
                                     child: Text(
                                       showDelivery
-                                          ? 'LIVRAISON OFFERTE'
-                                          : 'GARANTIE 2 ANS',
+                                          ? loc.freeDelivery.toUpperCase()
+                                          : loc.twoYearWarranty.toUpperCase(),
                                       style: const TextStyle(
                                         fontSize: 11,
                                         fontWeight: FontWeight.bold,
@@ -801,7 +829,7 @@ class _VolunteerCommunityMarketScreenState
                                         horizontal: 16, vertical: 10),
                                     child: Center(
                                       child: Text(
-                                        'Ajouter au panier',
+                                        loc.addToCart,
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,

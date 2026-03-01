@@ -378,6 +378,10 @@ class _LoginScreenState extends State<LoginScreen> {
         keyboardType: keyboardType,
         obscureText: obscureText,
         validator: validator,
+        // Avoid Flutter VerticalCaretMovementRun assertion when pressing Arrow Up/Down
+        // in RTL/locales (see https://github.com/flutter/flutter/issues/139201).
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.left,
         decoration: InputDecoration(
           hintText: hint,
           prefixIcon: icon != null

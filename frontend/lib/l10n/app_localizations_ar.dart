@@ -335,6 +335,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get outOfStock => 'نفد المخزون';
+  String get searchSensoryToolHint => 'البحث عن أداة حسية...';
+  String get filterEducational => 'تعليمي';
+  String get premiumLabel => 'مميز';
+  String get freeDelivery => 'توصيل مجاني';
+  String get twoYearWarranty => 'ضمان سنتين';
+  String get productAdaptedCommunity => 'منتج مناسب لمجتمع CogniCare.';
 
   @override
   String get productDetails => 'تفاصيل المنتج';
@@ -443,7 +449,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get mapTab => 'الخريطة';
-
+  @override
+  String get mapNoCabinetsYet => 'لا يوجد cabinet أو مركز أمراض إدراكية مسجل حتى الآن.';
+  @override
+  String mapCabinetsCountInTunisia(int count) => '$count cabinet(s) / مركز (مراكز) أمراض إدراكية في تونس';
   @override
   String get experts => 'الخبراء';
 
@@ -451,7 +460,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get healthcare => 'Healthcare';
 
   @override
-  String get leCercleDuDon => 'Le Cercle du Don';
+  String get leCercleDuDon => 'دائرة العطاء';
 
   @override
   String get jeDonne => 'أنا أمنح';
@@ -1300,6 +1309,17 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get followAction => 'متابعة';
   @override
+  String get followRequestSent =>
+      'تم إرسال الطلب. سيستلم إشعاراً لقبوله.';
+  @override
+  String get followRequestPendingLabel => 'تم إرسال الطلب';
+  @override
+  String get followRequestAccept => 'قبول';
+  @override
+  String get followRequestDecline => 'رفض';
+  @override
+  String get followRequestNotificationLabel => 'طلب متابعة';
+  @override
   String get sectionJourney => 'الرحلة';
   @override
   String get sectionMainTopics => 'المواضيع الرئيسية';
@@ -1626,7 +1646,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get viewChildDailyTasks => 'شاهد المهام اليومية لطفلك';
-
+  @override
+  String get autismTrainingTitle => 'تدريب التوحد';
+  @override
+  String get autismTrainingSubtitle => 'دورات واختبارات للمقدمي الرعاية';
   @override
   String get dailyProgress => 'تقدم اليوم';
 
@@ -2702,6 +2725,8 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get notificationsTitle => 'الإشعارات';
 
+  @override
+  String get notificationsPaymentConfirmed => 'الدفع مؤكد';
   @override
   String get markAllAsRead => 'تحديد الكل كمقروء';
   @override

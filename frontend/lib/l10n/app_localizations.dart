@@ -228,6 +228,11 @@ abstract class AppLocalizations {
   String get categoryLabel;
   String get privateMessageAction;
   String get followAction;
+  String get followRequestSent;
+  String get followRequestPendingLabel;
+  String get followRequestAccept;
+  String get followRequestDecline;
+  String get followRequestNotificationLabel;
   String get sectionJourney;
   String get sectionMainTopics;
   String get statsPosts;
@@ -428,6 +433,12 @@ abstract class AppLocalizations {
   String get quickBuy;
   String get stockAvailable;
   String get outOfStock;
+  String get searchSensoryToolHint;
+  String get filterEducational;
+  String get premiumLabel;
+  String get freeDelivery;
+  String get twoYearWarranty;
+  String get productAdaptedCommunity;
 
   /// Product Detail
   String get productDetails;
@@ -470,6 +481,8 @@ abstract class AppLocalizations {
   String get community;
   String get donations;
   String get mapTab;
+  String get mapNoCabinetsYet;
+  String mapCabinetsCountInTunisia(int count);
   String get experts;
   String get healthcare;
   String get leCercleDuDon;
@@ -817,6 +830,8 @@ abstract class AppLocalizations {
   String get launchPlayTherapy;
   String get routineAndReminders;
   String get viewChildDailyTasks;
+  String get autismTrainingTitle;
+  String get autismTrainingSubtitle;
   String get dailyProgress;
   String childAgeLabel(Object name, Object age);
   String starsNeededForChallenge(Object count);
@@ -1360,6 +1375,7 @@ abstract class AppLocalizations {
 
   // Volunteer Notifications
   String get notificationsTitle;
+  String get notificationsPaymentConfirmed;
   String get markAllAsRead;
   String get timeAgoJustNow;
   String timeAgoMinutes(int n);

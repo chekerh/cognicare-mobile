@@ -335,6 +335,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get outOfStock => 'Out of stock';
+  String get searchSensoryToolHint => 'Search for a sensory tool...';
+  String get filterEducational => 'Educational';
+  String get premiumLabel => 'Premium';
+  String get freeDelivery => 'Free delivery';
+  String get twoYearWarranty => '2-year warranty';
+  String get productAdaptedCommunity => 'Product suited for the CogniCare community.';
 
   @override
   String get productDetails => 'Product Details';
@@ -443,7 +449,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapTab => 'Map';
-
+  @override
+  String get mapNoCabinetsYet => 'No cabinet or cognitive disorders center registered yet.';
+  @override
+  String mapCabinetsCountInTunisia(int count) => '$count cabinet(s) / center(s) for cognitive disorders in Tunisia';
   @override
   String get experts => 'Experts';
 
@@ -1229,7 +1238,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewChildDailyTasks => 'View your child\'s daily tasks';
-
+  @override
+  String get autismTrainingTitle => 'Autism Training';
+  @override
+  String get autismTrainingSubtitle => 'Courses and quizzes for caregivers';
   @override
   String get dailyProgress => 'Daily Progress';
 
@@ -2264,6 +2276,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get followAction => 'Follow';
   @override
+  String get followRequestSent =>
+      'Request sent. They will get a notification to accept.';
+  @override
+  String get followRequestPendingLabel => 'Request sent';
+  @override
+  String get followRequestAccept => 'Accept';
+  @override
+  String get followRequestDecline => 'Decline';
+  @override
+  String get followRequestNotificationLabel => 'Follow request';
+  @override
   String get sectionJourney => 'Journey';
   @override
   String get sectionMainTopics => 'Main Topics';
@@ -2698,6 +2721,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notificationsTitle => 'Notifications';
 
+  @override
+  String get notificationsPaymentConfirmed => 'PAYMENT CONFIRMED';
   @override
   String get markAllAsRead => 'Mark all as read';
   @override

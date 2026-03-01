@@ -284,9 +284,9 @@ class _FamilyMemberDashboardScreenState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              const Text(
-                'Membre de la famille',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.familyMemberRole,
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
                   color: _slate800,
@@ -315,6 +315,7 @@ class _FamilyMemberDashboardScreenState
   }
 
   Widget _buildPlayWithLeoCard(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     return _Card(
       child: InkWell(
         onTap: () => context.push(AppConstants.familyGamesSelectionRoute),
@@ -334,21 +335,22 @@ class _FamilyMemberDashboardScreenState
                     color: Colors.white, size: 32),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Jouer avec Cogni',
-                      style: TextStyle(
+                      loc.playWithLeo,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: _slate800,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Lancer une session de thérapie ludique',
+                      loc.launchPlayTherapy,
                       style: TextStyle(
                         fontSize: 14,
                         color: _slate500,
@@ -440,21 +442,22 @@ class _FamilyMemberDashboardScreenState
                 ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Routine & Rappels',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.routineAndReminders,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: _slate800,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Voir les tâches quotidiennes de votre enfant',
+                      AppLocalizations.of(context)!.viewChildDailyTasks,
                       style: TextStyle(
                         fontSize: 14,
                         color: _slate500,
@@ -530,21 +533,22 @@ class _FamilyMemberDashboardScreenState
                 ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Résumé de progrès',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.progressSummary,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: _slate800,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Progression par plan et tâches complétées',
+                      AppLocalizations.of(context)!.progressSummaryDesc,
                       style: TextStyle(
                         fontSize: 14,
                         color: _slate500,
@@ -689,22 +693,23 @@ class _FamilyMemberDashboardScreenState
                 child: const Icon(Icons.school_rounded, color: _slate800, size: 24),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Formation Autisme',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.autismTrainingTitle,
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                         color: _slate800,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      'Cours et quiz pour aidants',
+                      AppLocalizations.of(context)!.autismTrainingSubtitle,
                       style: TextStyle(fontSize: 12, color: _slate500),
                     ),
                   ],

@@ -739,6 +739,8 @@ class _SignupScreenState extends State<SignupScreen> {
         obscureText: obscureText,
         maxLength: maxLength,
         validator: validator,
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.left,
         decoration: InputDecoration(
           hintText: hint,
           prefixIcon: Icon(icon, color: Colors.grey.shade400, size: 22),

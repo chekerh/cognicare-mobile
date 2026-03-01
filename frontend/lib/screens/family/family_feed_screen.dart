@@ -634,7 +634,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     size: 56, color: _donationPrimary.withOpacity(0.5)),
                 const SizedBox(height: 16),
                 Text(
-                  'Aucun don pour le moment',
+                  loc.noDonationsYet,
                   style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
                 ),
               ],
@@ -1050,19 +1050,20 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   }
 
   int _healthcareFilterIndex = 0;
-  static const List<String> _healthcareFilterLabels = [
-    'Tous',
-    'Orthophonistes',
-    'Pédopsychiatres',
-    'Ergothérapeutes',
-  ];
 
   Widget _buildHealthcareFilterChips() {
+    final loc = AppLocalizations.of(context)!;
+    final labels = [
+      loc.filterAll,
+      loc.filterSpeechTherapists,
+      loc.filterChildPsychiatrists,
+      loc.filterOccupationalTherapists,
+    ];
     return SizedBox(
       height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: _healthcareFilterLabels.length,
+        itemCount: labels.length,
         itemBuilder: (context, index) {
           final selected = _healthcareFilterIndex == index;
           return Padding(
@@ -1096,7 +1097,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    _healthcareFilterLabels[index],
+                    labels[index],
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -1112,16 +1113,16 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     );
   }
 
-  static String _roleToSpecializationLabel(String role) {
+  static String _roleToSpecializationLabel(AppLocalizations loc, String role) {
     switch (role) {
       case 'doctor':
-        return 'Médecin';
+        return loc.doctor;
       case 'psychologist':
-        return 'Pédopsychiatre / Psychologue';
+        return loc.psychologist;
       case 'speech_therapist':
-        return 'Orthophoniste';
+        return loc.speechTherapist;
       case 'occupational_therapist':
-        return 'Ergothérapeute';
+        return loc.occupationalTherapist;
       default:
         return role;
     }
@@ -1139,12 +1140,13 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     } else if (_healthcareFilterIndex == 3) {
       filtered = list.where((u) => u.role == 'occupational_therapist').toList();
     }
+    final loc = AppLocalizations.of(context)!;
     if (_healthcareSearchQuery.isNotEmpty) {
       final q = _healthcareSearchQuery.toLowerCase();
       filtered = filtered
           .where((u) =>
               u.fullName.toLowerCase().contains(q) ||
-              _roleToSpecializationLabel(u.role).toLowerCase().contains(q))
+              _roleToSpecializationLabel(loc, u.role).toLowerCase().contains(q))
           .toList();
     }
     if (filtered.isEmpty) {
@@ -1153,8 +1155,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           padding: const EdgeInsets.all(24),
           child: Center(
             child: Text(
-              'Aucun professionnel pour le moment.',
+              loc.noProfessionalsYet,
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              textAlign: TextAlign.center,
             ),
           ),
         ),
@@ -1169,7 +1172,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         padding: const EdgeInsets.only(bottom: 16),
         child: _ExpertCard(
           name: user.fullName,
-          specialization: _roleToSpecializationLabel(user.role),
+          specialization: _roleToSpecializationLabel(loc, user.role),
           location: 'CogniCare',
           imageUrl: imageUrl,
           primaryColor: _feedSecondary,
@@ -1177,7 +1180,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
             context.push(AppConstants.familyExpertBookingRoute, extra: {
               'expertId': userId,
               'name': user.fullName,
-              'specialization': _roleToSpecializationLabel(user.role),
+              'specialization': _roleToSpecializationLabel(loc, user.role),
               'location': 'CogniCare',
               'imageUrl': imageUrl,
             });
@@ -2298,6 +2301,7 @@ class _ExpertCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     const Color slate900 = Color(0xFF0F172A);
     const Color slate400 = Color(0xFF94A3B8);
     const Color verifiedAccent = Color(0xFF212121);
@@ -2355,7 +2359,7 @@ class _ExpertCard extends StatelessWidget {
                                   size: 14, color: verifiedAccent),
                               const SizedBox(width: 4),
                               Text(
-                                'VERIFIED',
+                                loc.verifiedLabel,
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
@@ -2410,12 +2414,12 @@ class _ExpertCard extends StatelessWidget {
                   child: InkWell(
                     onTap: onBookConsultation,
                     borderRadius: BorderRadius.circular(12),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Center(
                         child: Text(
-                          'Book Consultation',
-                          style: TextStyle(
+                          loc.bookConsultation,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -2441,9 +2445,9 @@ class _ExpertCard extends StatelessWidget {
                         border: Border.all(color: const Color(0xFFF1F5F9)),
                       ),
                       alignment: Alignment.center,
-                      child: const Text(
-                        'Message',
-                        style: TextStyle(
+                      child: Text(
+                        loc.messageLabel,
+                        style: const TextStyle(
                           color: Color(0xFF475569),
                           fontSize: 12,
                           fontWeight: FontWeight.bold,

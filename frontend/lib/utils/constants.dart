@@ -43,6 +43,16 @@ class AppConstants {
       '/api/v1/community/posts/like-status';
   static const String communityUploadPostImageEndpoint =
       '/api/v1/community/upload-post-image';
+  static const String communityFollowRequestsEndpoint =
+      '/api/v1/community/follow-requests';
+  static const String communityFollowRequestsPendingEndpoint =
+      '/api/v1/community/follow-requests/pending';
+  static const String communityFollowRequestsStatusEndpoint =
+      '/api/v1/community/follow-requests/status';
+  static String communityFollowRequestAcceptEndpoint(String id) =>
+      '/api/v1/community/follow-requests/$id/accept';
+  static String communityFollowRequestDeclineEndpoint(String id) =>
+      '/api/v1/community/follow-requests/$id/decline';
 
   // Marketplace
   static const String marketplaceProductsEndpoint =

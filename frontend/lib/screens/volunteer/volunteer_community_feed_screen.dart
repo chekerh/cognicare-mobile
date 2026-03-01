@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/community_post.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/community_feed_provider.dart';
@@ -70,32 +71,38 @@ class _VolunteerCommunityFeedScreenState
                   SliverFillRemaining(
                     hasScrollBody: false,
                     child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.article_outlined,
-                            size: 56,
-                            color: _volunteerPrimary.withOpacity(0.5),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Aucune publication pour le moment.',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: _textMuted,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.auto_awesome_outlined,
+                              size: 56,
+                              color: _volunteerPrimary.withOpacity(0.6),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Soyez le premier à partager.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: _textMuted.withOpacity(0.8),
+                            const SizedBox(height: 20),
+                            Text(
+                              AppLocalizations.of(context)!.noPostsYet,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                                color: _textPrimary,
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 10),
+                            Text(
+                              AppLocalizations.of(context)!.tapToShare,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: _textMuted,
+                                height: 1.35,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   )
@@ -306,6 +313,7 @@ class _VolunteerCommunityFeedScreenState
   }
 
   Widget _buildCreatePostCard(BuildContext context, CommunityFeedProvider feed) {
+    final loc = AppLocalizations.of(context)!;
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final name = auth.user?.fullName?.trim() ?? '';
     final initial = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'U';
@@ -313,49 +321,57 @@ class _VolunteerCommunityFeedScreenState
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: _volunteerPrimary,
-          borderRadius: BorderRadius.circular(40),
-          border: Border.all(color: Colors.white.withOpacity(0.3)),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: _borderSlate),
           boxShadow: [
             BoxShadow(
-              color: _volunteerPrimary.withOpacity(0.25),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
+              color: _volunteerPrimary.withOpacity(0.12),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.5),
-                    border: Border.all(color: Colors.white, width: 2),
+                    color: _volunteerPrimary.withOpacity(0.15),
+                    border: Border.all(color: _volunteerPrimary.withOpacity(0.3)),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
-                        blurRadius: 4,
+                        color: _volunteerPrimary.withOpacity(0.15),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
                   child: Center(
                     child: Text(
                       initial,
-                      style: const TextStyle(
-                        fontSize: 20,
+                      style: TextStyle(
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: _volunteerPrimary,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Material(
                     color: Colors.transparent,
@@ -365,23 +381,26 @@ class _VolunteerCommunityFeedScreenState
                         if (!context.mounted) return;
                         feed.loadFromStorage();
                       },
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(20),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 14),
+                            horizontal: 18, vertical: 16),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.4),
-                          borderRadius: BorderRadius.circular(24),
+                          color: _volunteerPrimary.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                              color: Colors.white.withOpacity(0.5)),
+                              color: _volunteerPrimary.withOpacity(0.2)),
                         ),
+                        alignment: Alignment.centerLeft,
                         child: Text(
-                          'Share an experience...',
+                          loc.shareExperiencePlaceholder,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 15,
                             fontWeight: FontWeight.w500,
-                            color: _textMuted.withOpacity(0.9),
+                            color: _textMuted,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
@@ -389,7 +408,7 @@ class _VolunteerCommunityFeedScreenState
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -397,17 +416,17 @@ class _VolunteerCommunityFeedScreenState
                   children: [
                     _createPostAction(
                       icon: Icons.image_outlined,
-                      label: 'Photo',
+                      label: loc.photoLabel,
                       onTap: () async {
                         await context.push(AppConstants.volunteerCommunityCreatePostRoute);
                         if (!context.mounted) return;
                         feed.loadFromStorage();
                       },
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     _createPostAction(
                       icon: Icons.mood_outlined,
-                      label: 'Feeling',
+                      label: loc.postActionFeeling,
                       onTap: () async {
                         await context.push(AppConstants.volunteerCommunityCreatePostRoute);
                         if (!context.mounted) return;
@@ -417,24 +436,26 @@ class _VolunteerCommunityFeedScreenState
                   ],
                 ),
                 Material(
-                  color: _cardBg,
-                  borderRadius: BorderRadius.circular(999),
+                  color: _volunteerPrimary,
+                  borderRadius: BorderRadius.circular(20),
+                  elevation: 0,
+                  shadowColor: _volunteerPrimary.withOpacity(0.4),
                   child: InkWell(
                     onTap: () async {
                       await context.push(AppConstants.volunteerCommunityCreatePostRoute);
                       if (!context.mounted) return;
                       feed.loadFromStorage();
                     },
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(20),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
+                          horizontal: 22, vertical: 12),
                       child: Text(
-                        'Post',
-                        style: TextStyle(
-                          fontSize: 14,
+                        loc.postButton,
+                        style: const TextStyle(
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: _volunteerPrimary,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -454,24 +475,24 @@ class _VolunteerCommunityFeedScreenState
     required VoidCallback onTap,
   }) {
     return Material(
-      color: Colors.white.withOpacity(0.2),
-      borderRadius: BorderRadius.circular(999),
+      color: _volunteerPrimary.withOpacity(0.1),
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: Colors.white, size: 20),
-              const SizedBox(width: 6),
+              Icon(icon, color: _volunteerPrimary, size: 22),
+              const SizedBox(width: 8),
               Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 12,
+                style: TextStyle(
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: _textPrimary,
                 ),
               ),
             ],

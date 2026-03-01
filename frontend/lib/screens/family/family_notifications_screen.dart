@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/app_notification.dart';
+import '../../services/community_service.dart';
 import '../../services/notifications_feed_service.dart';
 
 /// Family Notifications Center — données depuis l'API (pas de mock).
@@ -67,20 +69,63 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
     }
   }
 
-  static String _timeAgo(DateTime? date) {
+  Future<void> _acceptFollowRequest(String requestId) async {
+    try {
+      await CommunityService().acceptFollowRequest(requestId);
+      if (mounted) {
+        _load();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.followRequestAccept),
+            backgroundColor: const Color(0xFF059669),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _declineFollowRequest(String requestId) async {
+    try {
+      await CommunityService().declineFollowRequest(requestId);
+      if (mounted) _load();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceFirst('Exception: ', '')),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  static String _timeAgo(DateTime? date, AppLocalizations loc) {
     if (date == null) return '';
     final now = DateTime.now();
     final diff = now.difference(date);
-    if (diff.inMinutes < 1) return 'À l\'instant';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} min';
-    if (diff.inHours < 24) return '${diff.inHours}h';
-    if (diff.inDays == 1) return 'Hier';
-    if (diff.inDays < 7) return '${diff.inDays} jours';
+    if (diff.inMinutes < 1) return loc.timeAgoJustNow;
+    if (diff.inMinutes < 60) return loc.timeAgoMinutes(diff.inMinutes);
+    if (diff.inHours < 24) return loc.timeAgoHours(diff.inHours);
+    if (diff.inDays == 1) return loc.yesterdayLabel;
+    if (diff.inDays < 7) return loc.timeAgoDays(diff.inDays);
     return '${date.day}/${date.month}/${date.year}';
   }
 
   static ({String label, IconData icon, Color color, bool alert}) _styleForType(
-      String type) {
+      AppLocalizations loc, String type) {
     switch (type) {
       case 'health_alert':
         return (
@@ -112,7 +157,7 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
         );
       case 'order_confirmed':
         return (
-          label: 'PAIEMENT CONFIRMÉ',
+          label: loc.notificationsPaymentConfirmed,
           icon: Icons.check_circle,
           color: const Color(0xFF059669),
           alert: false
@@ -122,6 +167,13 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
           label: 'ROUTINE',
           icon: Icons.alarm,
           color: const Color(0xFF0EA5E9),
+          alert: false
+        );
+      case 'follow_request':
+        return (
+          label: loc.followRequestNotificationLabel.toUpperCase(),
+          icon: Icons.person_add,
+          color: const Color(0xFF7FBAC4),
           alert: false
         );
       default:
@@ -150,19 +202,30 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
                       itemCount: _notifications.length,
                       itemBuilder: (context, index) {
+                        final loc = AppLocalizations.of(context)!;
                         final n = _notifications[index];
-                        final style = _styleForType(n.type);
+                        final style = _styleForType(loc, n.type);
+                        final requestId = n.followRequestId;
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 16),
                           child: _NotificationCard(
                             categoryLabel: style.label,
                             icon: style.icon,
                             color: style.color,
-                            timeAgo: _timeAgo(n.createdAt),
+                            timeAgo: _timeAgo(n.createdAt, loc),
                             title: n.title,
                             description:
                                 n.description.isEmpty ? '—' : n.description,
                             hasAlertBorder: style.alert,
+                            followRequestId: requestId,
+                            onAccept: requestId != null
+                                ? () => _acceptFollowRequest(requestId)
+                                : null,
+                            onDecline: requestId != null
+                                ? () => _declineFollowRequest(requestId)
+                                : null,
+                            acceptLabel: loc.followRequestAccept,
+                            declineLabel: loc.followRequestDecline,
                           ),
                         );
                       },
@@ -197,11 +260,12 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     final unreadStr = _unreadCount == 0
-        ? 'Aucune mise à jour non lue'
+        ? loc.noUnreadUpdates
         : (_unreadCount == 1
-            ? '1 mise à jour non lue'
-            : '$_unreadCount mises à jour non lues');
+            ? loc.oneUnreadUpdate
+            : loc.unreadUpdatesCount(_unreadCount));
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
       child: Row(
@@ -211,9 +275,9 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Notifications',
-                style: TextStyle(
+              Text(
+                loc.notificationsTitle,
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: _textPrimary,
@@ -257,6 +321,11 @@ class _NotificationCard extends StatelessWidget {
   final String title;
   final String description;
   final bool hasAlertBorder;
+  final String? followRequestId;
+  final VoidCallback? onAccept;
+  final VoidCallback? onDecline;
+  final String acceptLabel;
+  final String declineLabel;
 
   const _NotificationCard({
     required this.categoryLabel,
@@ -266,10 +335,18 @@ class _NotificationCard extends StatelessWidget {
     required this.title,
     required this.description,
     this.hasAlertBorder = false,
+    this.followRequestId,
+    this.onAccept,
+    this.onDecline,
+    this.acceptLabel = 'Accept',
+    this.declineLabel = 'Decline',
   });
 
   @override
   Widget build(BuildContext context) {
+    final showFollowActions =
+        followRequestId != null && onAccept != null && onDecline != null;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -347,6 +424,26 @@ class _NotificationCard extends StatelessWidget {
                       height: 1.35,
                     ),
                   ),
+                  if (showFollowActions) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: onDecline,
+                          child: Text(declineLabel),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton(
+                          onPressed: onAccept,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF7FBAC4),
+                          ),
+                          child: Text(acceptLabel),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

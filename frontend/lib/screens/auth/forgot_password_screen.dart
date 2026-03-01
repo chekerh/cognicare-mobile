@@ -351,6 +351,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       child: TextFormField(
         controller: _emailController,
         keyboardType: TextInputType.emailAddress,
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.left,
         decoration: InputDecoration(
           hintText: localizations.emailLabel,
           border: InputBorder.none,
@@ -503,6 +505,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             keyboardType: TextInputType.number,
             maxLength: 6,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            textDirection: TextDirection.ltr,
+            textAlign: TextAlign.left,
             decoration: InputDecoration(
               hintText: localizations.verificationCodeLabel,
               prefixIcon: Icon(Icons.pin_outlined,
@@ -608,6 +612,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       child: TextFormField(
         controller: controller,
         obscureText: true,
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.left,
         decoration: InputDecoration(
           hintText: label,
           prefixIcon: Icon(Icons.lock, color: Colors.grey.shade400, size: 22),

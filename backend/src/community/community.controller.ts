@@ -25,6 +25,7 @@ import { CommunityService } from './community.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { CreateFollowRequestDto } from './dto/create-follow-request.dto';
 
 @ApiTags('community')
 @ApiBearerAuth('JWT-auth')
@@ -154,5 +155,63 @@ export class CommunityController {
   ) {
     const postIds = postIdsParam ? postIdsParam.split(',').filter(Boolean) : [];
     return this.communityService.getPostLikeStatus(postIds, req.user.id);
+  }
+
+  @Post('follow-requests')
+  @ApiOperation({ summary: 'Send a follow request to a user' })
+  @ApiResponse({ status: 201, description: 'Request created; target gets a notification' })
+  @ApiResponse({ status: 400, description: 'Invalid target or self-follow' })
+  async createFollowRequest(
+    @Request() req: { user: { id: string } },
+    @Body() dto: CreateFollowRequestDto,
+  ) {
+    return this.communityService.createFollowRequest(
+      req.user.id,
+      dto.targetUserId,
+    );
+  }
+
+  @Get('follow-requests/status')
+  @ApiOperation({ summary: 'Get follow status toward a user' })
+  @ApiResponse({ status: 200, description: '{ status: "pending" | "accepted" | "declined" | null }' })
+  async getFollowStatus(
+    @Request() req: { user: { id: string } },
+    @Query('targetUserId') targetUserId: string,
+  ) {
+    if (!targetUserId) {
+      return { status: null };
+    }
+    return this.communityService.getFollowStatus(req.user.id, targetUserId);
+  }
+
+  @Get('follow-requests/pending')
+  @ApiOperation({ summary: 'List pending follow requests for the current user' })
+  @ApiResponse({ status: 200, description: 'List of pending requests' })
+  async listPendingFollowRequests(@Request() req: { user: { id: string } }) {
+    return this.communityService.listPendingFollowRequests(req.user.id);
+  }
+
+  @Post('follow-requests/:id/accept')
+  @ApiOperation({ summary: 'Accept a follow request' })
+  @ApiResponse({ status: 200, description: 'Accepted' })
+  @ApiResponse({ status: 403, description: 'Not the target user' })
+  async acceptFollowRequest(
+    @Request() req: { user: { id: string } },
+    @Param('id') requestId: string,
+  ) {
+    await this.communityService.acceptFollowRequest(requestId, req.user.id);
+    return { success: true };
+  }
+
+  @Post('follow-requests/:id/decline')
+  @ApiOperation({ summary: 'Decline a follow request' })
+  @ApiResponse({ status: 200, description: 'Declined' })
+  @ApiResponse({ status: 403, description: 'Not the target user' })
+  async declineFollowRequest(
+    @Request() req: { user: { id: string } },
+    @Param('id') requestId: string,
+  ) {
+    await this.communityService.declineFollowRequest(requestId, req.user.id);
+    return { success: true };
   }
 }

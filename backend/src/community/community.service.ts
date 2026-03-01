@@ -2,17 +2,24 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Post, PostDocument } from './schemas/post.schema';
 import { Comment, CommentDocument } from './schemas/comment.schema';
+import {
+  FollowRequest,
+  FollowRequestDocument,
+  FollowRequestStatus,
+} from './schemas/follow-request.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 interface PostLean {
   _id: Types.ObjectId;
@@ -39,8 +46,11 @@ export class CommunityService {
   constructor(
     @InjectModel(Post.name) private postModel: Model<PostDocument>,
     @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
+    @InjectModel(FollowRequest.name)
+    private followRequestModel: Model<FollowRequestDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     private cloudinary: CloudinaryService,
+    private notifications: NotificationsService,
   ) {}
 
   async uploadPostImage(file: {
@@ -282,5 +292,148 @@ export class CommunityService {
       result[id] = likedBy.some((oid) => oid.equals(uid));
     }
     return result;
+  }
+
+  // --- Follow requests ---
+
+  async createFollowRequest(
+    requesterId: string,
+    targetUserId: string,
+  ): Promise<{ requestId: string; status: FollowRequestStatus }> {
+    const requesterOid = new Types.ObjectId(requesterId);
+    const targetOid = new Types.ObjectId(targetUserId);
+    if (requesterOid.equals(targetOid)) {
+      throw new BadRequestException('Cannot follow yourself');
+    }
+    const target = await this.userModel.findById(targetOid).exec();
+    if (!target) throw new NotFoundException('User not found');
+
+    const requester = await this.userModel
+      .findById(requesterOid)
+      .select('fullName')
+      .lean()
+      .exec();
+    const requesterName =
+      (requester as { fullName?: string } | null)?.fullName ?? 'Un membre';
+
+    let doc = await this.followRequestModel
+      .findOne({ requesterId: requesterOid, targetId: targetOid })
+      .exec();
+    if (doc) {
+      if (doc.status === 'accepted') {
+        return { requestId: doc._id.toString(), status: 'accepted' };
+      }
+      if (doc.status === 'pending') {
+        return { requestId: doc._id.toString(), status: 'pending' };
+      }
+      doc.status = 'pending';
+      doc.updatedAt = new Date();
+      await doc.save();
+    } else {
+      doc = await this.followRequestModel.create({
+        requesterId: requesterOid,
+        targetId: targetOid,
+        status: 'pending',
+      });
+    }
+
+    await this.notifications.createForUser(targetUserId, {
+      type: 'follow_request',
+      title: 'Demande de suivi',
+      description: `${requesterName} souhaite vous suivre. Acceptez pour qu'il puisse voir vos partages.`,
+      data: {
+        requestId: doc._id.toString(),
+        requesterId: requesterId,
+        requesterName,
+      },
+    });
+
+    return { requestId: doc._id.toString(), status: 'pending' };
+  }
+
+  async getFollowStatus(
+    currentUserId: string,
+    targetUserId: string,
+  ): Promise<{ status: FollowRequestStatus | null }> {
+    const doc = await this.followRequestModel
+      .findOne({
+        requesterId: new Types.ObjectId(currentUserId),
+        targetId: new Types.ObjectId(targetUserId),
+      })
+      .lean()
+      .exec();
+    return { status: doc?.status ?? null };
+  }
+
+  async listPendingFollowRequests(
+    userId: string,
+  ): Promise<
+    { id: string; requesterId: string; requesterName: string; createdAt: string }[]
+  > {
+    const list = await this.followRequestModel
+      .find({ targetId: new Types.ObjectId(userId), status: 'pending' })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+
+    const requesterIds = [
+      ...new Set(
+        (list as { requesterId: Types.ObjectId }[]).map((r) =>
+          r.requesterId.toString(),
+        ),
+      ),
+    ];
+    const users = await this.userModel
+      .find({ _id: { $in: requesterIds.map((id) => new Types.ObjectId(id)) } })
+      .select('fullName')
+      .lean()
+      .exec();
+    const nameById: Record<string, string> = {};
+    for (const u of users as { _id: Types.ObjectId; fullName?: string }[]) {
+      nameById[u._id.toString()] = u.fullName ?? 'Membre';
+    }
+
+    return (list as { _id: Types.ObjectId; requesterId: Types.ObjectId; createdAt: Date }[]).map(
+      (r) => ({
+        id: r._id.toString(),
+        requesterId: r.requesterId.toString(),
+        requesterName: nameById[r.requesterId.toString()] ?? 'Membre',
+        createdAt: r.createdAt.toISOString(),
+      }),
+    );
+  }
+
+  async acceptFollowRequest(
+    requestId: string,
+    userId: string,
+  ): Promise<void> {
+    const doc = await this.followRequestModel.findById(requestId).exec();
+    if (!doc) throw new NotFoundException('Follow request not found');
+    if (!doc.targetId.equals(new Types.ObjectId(userId))) {
+      throw new ForbiddenException('Only the target user can accept');
+    }
+    if (doc.status !== 'pending') {
+      throw new BadRequestException('Request is no longer pending');
+    }
+    doc.status = 'accepted';
+    doc.updatedAt = new Date();
+    await doc.save();
+  }
+
+  async declineFollowRequest(
+    requestId: string,
+    userId: string,
+  ): Promise<void> {
+    const doc = await this.followRequestModel.findById(requestId).exec();
+    if (!doc) throw new NotFoundException('Follow request not found');
+    if (!doc.targetId.equals(new Types.ObjectId(userId))) {
+      throw new ForbiddenException('Only the target user can decline');
+    }
+    if (doc.status !== 'pending') {
+      throw new BadRequestException('Request is no longer pending');
+    }
+    doc.status = 'declined';
+    doc.updatedAt = new Date();
+    await doc.save();
   }
 }

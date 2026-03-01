@@ -335,6 +335,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get outOfStock => 'Rupture de stock';
+  String get searchSensoryToolHint => 'Rechercher un outil sensoriel...';
+  String get filterEducational => 'Éducatif';
+  String get premiumLabel => 'Premium';
+  String get freeDelivery => 'Livraison offerte';
+  String get twoYearWarranty => 'Garantie 2 ans';
+  String get productAdaptedCommunity => 'Produit adapté à la communauté CogniCare.';
 
   @override
   String get productDetails => 'Détails du Produit';
@@ -443,7 +449,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mapTab => 'Carte';
-
+  @override
+  String get mapNoCabinetsYet => 'Aucun cabinet ou centre maladies cognitives enregistré pour le moment.';
+  @override
+  String mapCabinetsCountInTunisia(int count) => '$count cabinet(s) / centre(s) maladies cognitives en Tunisie';
   @override
   String get experts => 'Experts';
 
@@ -1229,7 +1238,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get viewChildDailyTasks => 'Voir les tâches quotidiennes de votre enfant';
-
+  @override
+  String get autismTrainingTitle => 'Formation Autisme';
+  @override
+  String get autismTrainingSubtitle => 'Cours et quiz pour aidants';
   @override
   String get dailyProgress => 'Progrès du jour';
 
@@ -2269,6 +2281,17 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get followAction => 'Suivre';
   @override
+  String get followRequestSent =>
+      'Demande envoyée. Il recevra une notification pour accepter.';
+  @override
+  String get followRequestPendingLabel => 'Demande envoyée';
+  @override
+  String get followRequestAccept => 'Accepter';
+  @override
+  String get followRequestDecline => 'Refuser';
+  @override
+  String get followRequestNotificationLabel => 'Demande de suivi';
+  @override
   String get sectionJourney => 'Parcours';
   @override
   String get sectionMainTopics => 'Principaux';
@@ -2702,6 +2725,8 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get notificationsTitle => 'Notifications';
 
+  @override
+  String get notificationsPaymentConfirmed => 'PAIEMENT CONFIRMÉ';
   @override
   String get markAllAsRead => 'Tout lire';
   @override

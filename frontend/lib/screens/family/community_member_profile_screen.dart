@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/app_localizations.dart';
+import '../../services/community_service.dart';
 import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFFA3D9E2);
 const Color _secondary = Color(0xFF7FBAC4);
 
 /// Profil d'un membre de la communauté — avatar, nom, rôle, Message Privé, Suivre, Parcours, Principaux, stats.
-class CommunityMemberProfileScreen extends StatelessWidget {
+class CommunityMemberProfileScreen extends StatefulWidget {
   const CommunityMemberProfileScreen({
     super.key,
     required this.memberId,
@@ -32,6 +34,33 @@ class CommunityMemberProfileScreen extends StatelessWidget {
   final int? postsCount;
   final int? followersCount;
   final int? helpsCount;
+
+  @override
+  State<CommunityMemberProfileScreen> createState() =>
+      _CommunityMemberProfileScreenState();
+}
+
+class _CommunityMemberProfileScreenState
+    extends State<CommunityMemberProfileScreen> {
+  String? _followStatus;
+  bool _followLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFollowStatus();
+  }
+
+  Future<void> _loadFollowStatus() async {
+    if (widget.memberId.isEmpty) return;
+    try {
+      final status =
+          await CommunityService().getFollowStatus(widget.memberId);
+      if (mounted) setState(() => _followStatus = status);
+    } catch (_) {
+      if (mounted) setState(() => _followStatus = null);
+    }
+  }
 
   static CommunityMemberProfileScreen fromState(GoRouterState state) {
     final e = (state.extra as Map<String, dynamic>?) ?? {};
@@ -71,13 +100,13 @@ class CommunityMemberProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final role = memberRole ?? _defaultRole;
-    final diagnosis = memberDiagnosis ?? _defaultDiagnosis;
-    final journey = memberJourney ?? _defaultJourney;
-    final tags = memberTags ?? _defaultTags;
-    final posts = postsCount ?? 124;
-    final followers = followersCount ?? 1200;
-    final helps = helpsCount ?? 450;
+    final role = widget.memberRole ?? _defaultRole;
+    final diagnosis = widget.memberDiagnosis ?? _defaultDiagnosis;
+    final journey = widget.memberJourney ?? _defaultJourney;
+    final tags = widget.memberTags ?? _defaultTags;
+    final posts = widget.postsCount ?? 124;
+    final followers = widget.followersCount ?? 1200;
+    final helps = widget.helpsCount ?? 450;
 
     return Scaffold(
       backgroundColor: _primary,
@@ -90,7 +119,7 @@ class CommunityMemberProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
                 child: Column(
                   children: [
-                    _buildProfileSection(memberName, role),
+                    _buildProfileSection(widget.memberName, role),
                     const SizedBox(height: 24),
                     _buildActionButtons(context),
                     const SizedBox(height: 32),
@@ -145,10 +174,12 @@ class CommunityMemberProfileScreen extends StatelessWidget {
                 radius: 60,
                 backgroundColor: Colors.grey.shade200,
                 backgroundImage:
-                    memberImageUrl != null && memberImageUrl!.isNotEmpty
-                        ? NetworkImage(memberImageUrl!)
+                    widget.memberImageUrl != null &&
+                            widget.memberImageUrl!.isNotEmpty
+                        ? NetworkImage(widget.memberImageUrl!)
                         : null,
-                child: memberImageUrl == null || memberImageUrl!.isEmpty
+                child: widget.memberImageUrl == null ||
+                        widget.memberImageUrl!.isEmpty
                     ? Text(
                         name.substring(0, 1).toUpperCase(),
                         style: const TextStyle(
@@ -195,17 +226,21 @@ class CommunityMemberProfileScreen extends StatelessWidget {
   }
 
   Widget _buildActionButtons(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    final isPending = _followStatus == 'pending';
+    final isAccepted = _followStatus == 'accepted';
+
     return Row(
       children: [
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () {
               context.push(
-                '${AppConstants.familyPrivateChatRoute}?id=${Uri.encodeComponent(memberId)}&name=${Uri.encodeComponent(memberName)}${memberImageUrl != null && memberImageUrl!.isNotEmpty ? '&imageUrl=${Uri.encodeComponent(memberImageUrl!)}' : ''}',
+                '${AppConstants.familyPrivateChatRoute}?id=${Uri.encodeComponent(widget.memberId)}&name=${Uri.encodeComponent(widget.memberName)}${widget.memberImageUrl != null && widget.memberImageUrl!.isNotEmpty ? '&imageUrl=${Uri.encodeComponent(widget.memberImageUrl!)}' : ''}',
               );
             },
             icon: const Icon(Icons.mail_outline, size: 20),
-            label: const Text('Message Privé'),
+            label: Text(loc.privateMessageAction),
             style: OutlinedButton.styleFrom(
               foregroundColor: _secondary,
               side: const BorderSide(color: _secondary),
@@ -215,19 +250,72 @@ class CommunityMemberProfileScreen extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.person_add, size: 20),
-            label: const Text('Suivre'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _secondary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-          ),
+          child: _followLoading
+              ? const SizedBox(
+                  height: 48,
+                  child: Center(
+                      child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2))),
+                )
+              : ElevatedButton.icon(
+                  onPressed: (isPending || isAccepted)
+                      ? null
+                      : () => _onFollowTap(context),
+                  icon: Icon(
+                      isAccepted ? Icons.check_circle : Icons.person_add,
+                      size: 20),
+                  label: Text(
+                    isAccepted
+                        ? loc.followAction
+                        : isPending
+                            ? loc.followRequestPendingLabel
+                            : loc.followAction,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isPending || isAccepted
+                        ? _secondary.withOpacity(0.6)
+                        : _secondary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    disabledBackgroundColor: _secondary.withOpacity(0.5),
+                    disabledForegroundColor: Colors.white70,
+                  ),
+                ),
         ),
       ],
     );
+  }
+
+  Future<void> _onFollowTap(BuildContext context) async {
+    if (widget.memberId.isEmpty) return;
+    setState(() => _followLoading = true);
+    try {
+      await CommunityService().createFollowRequest(widget.memberId);
+      if (!mounted) return;
+      setState(() {
+        _followLoading = false;
+        _followStatus = 'pending';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.followRequestSent),
+          backgroundColor: _secondary,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _followLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Widget _buildParcoursCard(String diagnosis, String journey) {
