@@ -649,6 +649,8 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get myFamily => 'Ma Famille';
   @override
+  String get profileFriendsSection => 'Amis';
+  @override
   String get quickSettings => 'Paramètres rapides';
   @override
   String get childMode => 'Mode Enfant';

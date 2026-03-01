@@ -193,7 +193,15 @@ export class CommunityController {
     return this.communityService.listPendingFollowRequests(req.user.id);
   }
 
+  @Get('follow-requests/friends')
+  @ApiOperation({ summary: 'List accepted friends (people I follow or who follow me)' })
+  @ApiResponse({ status: 200, description: 'List of { id, fullName, profilePic }' })
+  async listFriends(@Request() req: { user: { id: string } }) {
+    return this.communityService.listFriends(req.user.id);
+  }
+
   @Post('follow-requests/:id/accept')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Accept a follow request' })
   @ApiResponse({ status: 200, description: 'Accepted' })
   @ApiResponse({ status: 403, description: 'Not the target user' })
@@ -206,6 +214,7 @@ export class CommunityController {
   }
 
   @Post('follow-requests/:id/decline')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Decline a follow request' })
   @ApiResponse({ status: 200, description: 'Declined' })
   @ApiResponse({ status: 403, description: 'Not the target user' })

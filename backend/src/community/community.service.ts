@@ -386,6 +386,40 @@ export class CommunityService {
     return { requestId: doc._id.toString(), status: 'pending' };
   }
 
+  /** Liste des amis (personnes avec relation acceptée : je les suis ou ils me suivent). */
+  async listFriends(
+    userId: string,
+  ): Promise<{ id: string; fullName: string; profilePic?: string }[]> {
+    const list = await this.followRequestModel
+      .find({ status: 'accepted' })
+      .or([
+        { targetId: new Types.ObjectId(userId) },
+        { requesterId: new Types.ObjectId(userId) },
+      ])
+      .lean()
+      .exec();
+    const otherIds = new Set<string>();
+    for (const r of list as { requesterId: Types.ObjectId; targetId: Types.ObjectId }[]) {
+      const req = r.requesterId.toString();
+      const tgt = r.targetId.toString();
+      if (req === userId) otherIds.add(tgt);
+      else otherIds.add(req);
+    }
+    if (otherIds.size === 0) return [];
+    const users = await this.userModel
+      .find({ _id: { $in: [...otherIds].map((id) => new Types.ObjectId(id)) } })
+      .select('_id fullName profilePic')
+      .lean()
+      .exec();
+    return (users as { _id: Types.ObjectId; fullName?: string; profilePic?: string }[]).map(
+      (u) => ({
+        id: u._id.toString(),
+        fullName: u.fullName ?? 'Membre',
+        profilePic: u.profilePic,
+      }),
+    );
+  }
+
   async getFollowStatus(
     currentUserId: string,
     targetUserId: string,
@@ -457,6 +491,11 @@ export class CommunityService {
     doc.status = 'accepted';
     doc.updatedAt = new Date();
     await doc.save();
+    try {
+      await this.notifications.deleteByFollowRequestId(userId, requestId);
+    } catch (e) {
+      this.logger.warn('deleteByFollowRequestId failed on accept', e);
+    }
   }
 
   /** Annuler sa propre demande de suivi (le demandeur retire sa demande). Idempotent : si la demande n'existe plus (déjà refusée/supprimée), on ne lance pas d'erreur. */

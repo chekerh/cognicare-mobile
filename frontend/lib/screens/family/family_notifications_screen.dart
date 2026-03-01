@@ -83,7 +83,11 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
     try {
       await CommunityService().acceptFollowRequest(requestId);
       if (mounted) {
-        _load();
+        setState(() {
+          _notifications =
+              _notifications.where((n) => n.followRequestId != requestId).toList();
+          if (_unreadCount > 0) _unreadCount--;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.followRequestAccept),
@@ -463,47 +467,6 @@ class _NotificationCard extends StatelessWidget {
                       height: 1.35,
                     ),
                   ),
-                  if (isFollowRequest && (requesterId != null || requesterName != null)) ...[
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            final id = requesterId ?? '';
-                            final name = Uri.encodeComponent(requesterName ?? '');
-                            final img = Uri.encodeComponent(_fullImageUrl(requesterProfilePic));
-                            context.push(
-                              '${AppConstants.familyPrivateChatRoute}?id=$id&name=$name&imageUrl=$img',
-                            );
-                          },
-                          icon: const Icon(Icons.chat_bubble_outline, size: 18),
-                          label: Text(AppLocalizations.of(context)!.messageLabel),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF7FBAC4),
-                          ),
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: requesterId != null
-                              ? () => context.push(
-                                    AppConstants.familyCommunityMemberProfileRoute,
-                                    extra: {
-                                      'memberId': requesterId!,
-                                      'memberName': requesterName ?? 'Membre',
-                                      'memberImageUrl': _fullImageUrl(requesterProfilePic).isEmpty ? null : _fullImageUrl(requesterProfilePic),
-                                    },
-                                  )
-                              : null,
-                          icon: const Icon(Icons.person_outline, size: 18),
-                          label: const Text('Voir le profil'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF7FBAC4),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                   if (showFollowActions) ...[
                     const SizedBox(height: 12),
                     Row(

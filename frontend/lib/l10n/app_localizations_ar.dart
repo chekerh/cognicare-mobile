@@ -649,6 +649,8 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get myFamily => 'عائلتي';
   @override
+  String get profileFriendsSection => 'أصدقاء';
+  @override
   String get quickSettings => 'إعدادات سريعة';
   @override
   String get childMode => 'وضع الطفل';

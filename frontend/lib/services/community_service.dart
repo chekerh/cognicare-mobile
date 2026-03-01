@@ -227,6 +227,26 @@ class CommunityService {
     }
   }
 
+  /// List of accepted friends (people I follow or who follow me).
+  Future<List<CommunityFriend>> getFriends() async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.communityFriendsEndpoint}');
+    final response = await _client.get(uri, headers: await _headers());
+    if (response.statusCode != 200) return [];
+    final list = jsonDecode(response.body) as List<dynamic>?;
+    if (list == null) return [];
+    return list
+        .map((e) {
+          final m = e as Map<String, dynamic>;
+          return CommunityFriend(
+            id: m['id'] as String? ?? '',
+            fullName: m['fullName'] as String? ?? 'Membre',
+            profilePic: m['profilePic'] as String?,
+          );
+        })
+        .toList();
+  }
+
   /// Get follow status from current user toward [targetUserId].
   /// Returns status and requestId (when pending, for cancel).
   Future<FollowStatusResult?> getFollowStatus(String targetUserId) async {
@@ -245,7 +265,7 @@ class CommunityService {
     final uri = Uri.parse(
         '${AppConstants.baseUrl}${AppConstants.communityFollowRequestAcceptEndpoint(requestId)}');
     final response = await _client.post(uri, headers: await _headers());
-    if (response.statusCode != 200) {
+    if (response.statusCode != 200 && response.statusCode != 201) {
       final body = response.body;
       try {
         final err = jsonDecode(body) as Map<String, dynamic>;
@@ -324,4 +344,15 @@ class FollowStatusResult {
   const FollowStatusResult({this.status, this.requestId});
   final String? status;
   final String? requestId;
+}
+
+class CommunityFriend {
+  const CommunityFriend({
+    required this.id,
+    required this.fullName,
+    this.profilePic,
+  });
+  final String id;
+  final String fullName;
+  final String? profilePic;
 }

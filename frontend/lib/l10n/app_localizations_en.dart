@@ -649,6 +649,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get myFamily => 'My Family';
   @override
+  String get profileFriendsSection => 'Friends';
+  @override
   String get quickSettings => 'Quick Settings';
   @override
   String get childMode => 'Child Mode';

@@ -555,6 +555,7 @@ abstract class AppLocalizations {
   String get monProfil;
   String get familyCaregiver;
   String get myFamily;
+  String get profileFriendsSection;
   String get quickSettings;
   String get childMode;
   String get dataSharing;
