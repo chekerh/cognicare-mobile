@@ -437,7 +437,7 @@ export class CommunityService {
     await doc.save();
   }
 
-  /** Refuser une demande de suivi : suppression totale (demande + notification). */
+  /** Refuser une demande de suivi : suppression totale (demande + notification). Le demandeur (ex. Malek) pourra renvoyer une demande. */
   async declineFollowRequest(
     requestId: string,
     userId: string,
@@ -446,9 +446,10 @@ export class CommunityService {
     if (doc && !doc.targetId.equals(new Types.ObjectId(userId))) {
       throw new ForbiddenException('Only the target user can decline');
     }
-    // Toujours supprimer la notif en premier pour qu'elle disparaisse au prochain rechargement.
+    // Supprimer la notif pour qu'elle disparaisse au rechargement.
     await this.notifications.deleteByFollowRequestId(userId, requestId);
-    if (doc && doc.status === 'pending') {
+    // Toujours supprimer le document demande pour que le demandeur (Malek) puisse recliquer « Suivre ».
+    if (doc) {
       await this.followRequestModel.deleteOne({ _id: doc._id }).exec();
     }
   }

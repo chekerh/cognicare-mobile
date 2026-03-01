@@ -1320,6 +1320,8 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get followRequestNotificationLabel => 'طلب متابعة';
   @override
+  String get followStatusFriends => 'أصدقاء';
+  @override
   String get sectionJourney => 'الرحلة';
   @override
   String get sectionMainTopics => 'المواضيع الرئيسية';

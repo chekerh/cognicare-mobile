@@ -232,23 +232,25 @@ class _CommunityMemberProfileScreenState
 
     return Row(
       children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () {
-              context.push(
-                '${AppConstants.familyPrivateChatRoute}?id=${Uri.encodeComponent(widget.memberId)}&name=${Uri.encodeComponent(widget.memberName)}${widget.memberImageUrl != null && widget.memberImageUrl!.isNotEmpty ? '&imageUrl=${Uri.encodeComponent(widget.memberImageUrl!)}' : ''}',
-              );
-            },
-            icon: const Icon(Icons.mail_outline, size: 20),
-            label: Text(loc.privateMessageAction),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: _secondary,
-              side: const BorderSide(color: _secondary),
-              padding: const EdgeInsets.symmetric(vertical: 14),
+        if (!isAccepted) ...[
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () {
+                context.push(
+                  '${AppConstants.familyPrivateChatRoute}?id=${Uri.encodeComponent(widget.memberId)}&name=${Uri.encodeComponent(widget.memberName)}${widget.memberImageUrl != null && widget.memberImageUrl!.isNotEmpty ? '&imageUrl=${Uri.encodeComponent(widget.memberImageUrl!)}' : ''}',
+                );
+              },
+              icon: const Icon(Icons.mail_outline, size: 20),
+              label: Text(loc.privateMessageAction),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _secondary,
+                side: const BorderSide(color: _secondary),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 12),
+          const SizedBox(width: 12),
+        ],
         Expanded(
           child: _followLoading
               ? const SizedBox(
@@ -264,11 +266,11 @@ class _CommunityMemberProfileScreenState
                       ? null
                       : () => _onFollowTap(context),
                   icon: Icon(
-                      isAccepted ? Icons.check_circle : Icons.person_add,
+                      isAccepted ? Icons.people : Icons.person_add,
                       size: 20),
                   label: Text(
                     isAccepted
-                        ? loc.followAction
+                        ? loc.followStatusFriends
                         : isPending
                             ? loc.followRequestPendingLabel
                             : loc.followAction,

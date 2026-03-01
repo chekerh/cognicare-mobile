@@ -2287,6 +2287,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get followRequestNotificationLabel => 'Follow request';
   @override
+  String get followStatusFriends => 'Friends';
+  @override
   String get sectionJourney => 'Journey';
   @override
   String get sectionMainTopics => 'Main Topics';
