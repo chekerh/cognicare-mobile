@@ -168,11 +168,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _refreshProfile() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    // Cache : si le provider n'a pas l'utilisateur, charger depuis le stockage local
+    if (authProvider.user == null) {
+      try {
+        final storedUser = await AuthService().getStoredUser();
+        if (storedUser != null && mounted) {
+          authProvider.updateUser(storedUser);
+        }
+      } catch (_) {}
+    }
     final hasCachedUser = authProvider.user != null;
-    setState(() {
-      _error = null;
-      _isLoading = !hasCachedUser;
-    });
+    if (mounted) {
+      setState(() {
+        _error = null;
+        _isLoading = !hasCachedUser;
+      });
+    }
     try {
       final user = await AuthService().getProfile();
       if (mounted) {
@@ -184,13 +195,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final isUnauthorized = message.contains('Unauthorized') ||
           message.contains('No authentication token');
       if (mounted) {
-        setState(() {
-          _error = message;
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
         if (isUnauthorized) {
           await authProvider.logout();
           if (mounted) context.go(AppConstants.loginRoute);
+          return;
+        }
+        // Si on a déjà un utilisateur en cache, ne pas afficher l'écran d'erreur.
+        if (!hasCachedUser) {
+          setState(() => _error = message);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Profil affiché depuis le cache'),
+              backgroundColor: Colors.grey.shade600,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
         }
       }
     }

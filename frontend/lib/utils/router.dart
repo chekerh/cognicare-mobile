@@ -348,6 +348,10 @@ GoRouter createAppRouter(AuthProvider authProvider) {
             builder: (context, state) => const VolunteerNotificationsScreen(),
           ),
           GoRoute(
+            path: 'propose-donation',
+            builder: (context, state) => const ProposeDonationScreen(),
+          ),
+          GoRoute(
             path: 'agenda',
             builder: (context, state) => const VolunteerAgendaScreen(),
           ),

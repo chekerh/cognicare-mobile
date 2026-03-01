@@ -174,10 +174,14 @@ class _VolunteerCommunityFeedScreenState
                         ),
                       ],
                     ),
-                    child: Icon(
-                      Icons.psychology_rounded,
-                      color: _volunteerPrimary,
-                      size: 28,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        'assets/images/app_logo.png',
+                        width: 32,
+                        height: 32,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -192,35 +196,39 @@ class _VolunteerCommunityFeedScreenState
                   ),
                 ],
               ),
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: const Icon(
-                      Icons.notifications_outlined,
-                      color: Colors.white,
-                      size: 26,
-                    ),
-                  ),
-                  Positioned(
-                    top: 6,
-                    right: 6,
-                    child: Container(
-                      width: 10,
-                      height: 10,
+              InkWell(
+                onTap: () => context.push(AppConstants.volunteerNotificationsRoute),
+                borderRadius: BorderRadius.circular(24),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.orange.shade400,
-                        border: Border.all(color: _volunteerPrimary, width: 2),
-                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: const Icon(
+                        Icons.notifications_outlined,
+                        color: Colors.white,
+                        size: 26,
                       ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade400,
+                          border: Border.all(color: _volunteerPrimary, width: 2),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -317,6 +325,7 @@ class _VolunteerCommunityFeedScreenState
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final name = auth.user?.fullName?.trim() ?? '';
     final initial = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : 'U';
+    final profilePicUrl = auth.user?.profilePic;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
@@ -360,15 +369,34 @@ class _VolunteerCommunityFeedScreenState
                       ),
                     ],
                   ),
-                  child: Center(
-                    child: Text(
-                      initial,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: _volunteerPrimary,
-                      ),
-                    ),
+                  child: ClipOval(
+                    child: profilePicUrl != null && profilePicUrl.isNotEmpty
+                        ? Image.network(
+                            _fullImageUrl(profilePicUrl),
+                            width: 52,
+                            height: 52,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Center(
+                              child: Text(
+                                initial,
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: _volunteerPrimary,
+                                ),
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: Text(
+                              initial,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: _volunteerPrimary,
+                              ),
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -410,31 +438,8 @@ class _VolunteerCommunityFeedScreenState
             ),
             const SizedBox(height: 18),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Row(
-                  children: [
-                    _createPostAction(
-                      icon: Icons.image_outlined,
-                      label: loc.photoLabel,
-                      onTap: () async {
-                        await context.push(AppConstants.volunteerCommunityCreatePostRoute);
-                        if (!context.mounted) return;
-                        feed.loadFromStorage();
-                      },
-                    ),
-                    const SizedBox(width: 12),
-                    _createPostAction(
-                      icon: Icons.mood_outlined,
-                      label: loc.postActionFeeling,
-                      onTap: () async {
-                        await context.push(AppConstants.volunteerCommunityCreatePostRoute);
-                        if (!context.mounted) return;
-                        feed.loadFromStorage();
-                      },
-                    ),
-                  ],
-                ),
                 Material(
                   color: _volunteerPrimary,
                   borderRadius: BorderRadius.circular(20),
@@ -590,19 +595,44 @@ class _VolunteerCommunityFeedScreenState
                               border: Border.all(
                                   color: avatarFg.withOpacity(0.2)),
                             ),
-                            child: Center(
-                              child: Text(
-                                post.authorName.isNotEmpty
-                                    ? post.authorName
-                                        .substring(0, 1)
-                                        .toUpperCase()
-                                    : '?',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: avatarFg,
-                                  fontSize: 20,
-                                ),
-                              ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: post.authorProfilePic != null &&
+                                      post.authorProfilePic!.isNotEmpty
+                                  ? Image.network(
+                                      _fullImageUrl(post.authorProfilePic!),
+                                      width: 48,
+                                      height: 48,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Center(
+                                        child: Text(
+                                          post.authorName.isNotEmpty
+                                              ? post.authorName
+                                                  .substring(0, 1)
+                                                  .toUpperCase()
+                                              : '?',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: avatarFg,
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : Center(
+                                      child: Text(
+                                        post.authorName.isNotEmpty
+                                            ? post.authorName
+                                                .substring(0, 1)
+                                                .toUpperCase()
+                                            : '?',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: avatarFg,
+                                          fontSize: 20,
+                                        ),
+                                      ),
+                                    ),
                             ),
                           ),
                           const SizedBox(width: 12),

@@ -84,6 +84,7 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
   bool _loading = false;
   String? _loadError;
   bool _sending = false;
+  bool? _isOnline;
   bool _isRecording = false;
   Duration _recordingDuration = Duration.zero;
   Timer? _recordingTimer;
@@ -95,9 +96,22 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
   Timer? _typingTimer;
   Timer? _remoteTypingTimer;
 
+  Future<void> _loadPresence() async {
+    if (widget.familyId.isEmpty) return;
+    try {
+      final online = await AuthService().getPresence(widget.familyId);
+      if (!mounted) return;
+      setState(() => _isOnline = online);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isOnline = false);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _loadPresence();
     _audioPlayer.onPlayerComplete.listen((_) {
       if (mounted) setState(() => _playingVoiceUrl = null);
     });
@@ -617,21 +631,36 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                 ),
                 child: const Icon(Icons.group, color: _textMuted, size: 22),
               ),
-              Positioned(
-                bottom: -2,
-                right: -2,
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: _primary,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+              if (_isOnline == true)
+                Positioned(
+                  bottom: -2,
+                  right: -2,
+                  child: Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
                   ),
-                  child: Icon(_missionIcon(widget.missionType),
-                      color: Colors.white, size: 12),
+                )
+              else
+                Positioned(
+                  bottom: -2,
+                  right: -2,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: _primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: Icon(_missionIcon(widget.missionType),
+                        color: Colors.white, size: 12),
+                  ),
                 ),
-              ),
             ],
           ),
           const SizedBox(width: 12),
@@ -647,9 +676,24 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                       color: _textPrimary),
                 ),
                 Text(
-                  'Mission : ${widget.missionType}',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                  _isOnline == true ? 'En ligne' : 'Hors ligne',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: _isOnline == true
+                        ? Colors.green.shade700
+                        : _textMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
+                if (widget.missionType.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      'Mission : ${widget.missionType}',
+                      style: TextStyle(
+                          fontSize: 11, color: Colors.grey.shade500),
+                    ),
+                  ),
               ],
             ),
           ),

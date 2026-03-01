@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/donation.dart';
 import '../../services/donation_service.dart';
 import '../../utils/constants.dart';
@@ -203,6 +204,7 @@ class _VolunteerDonationsListScreenState
   Widget build(BuildContext context) {
     final showHeader = widget.showHeader;
     final content = _buildBodyContent();
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: _background,
       body: showHeader
@@ -213,6 +215,28 @@ class _VolunteerDonationsListScreenState
               ],
             )
           : SizedBox.expand(child: content),
+      floatingActionButton: Tooltip(
+        message: loc.proposeDonation,
+        child: Material(
+          elevation: 8,
+          shadowColor: _primary.withOpacity(0.3),
+          shape: const CircleBorder(),
+          color: _primary,
+          child: InkWell(
+            onTap: () async {
+              await context.push(AppConstants.volunteerProposeDonationRoute);
+              if (!mounted) return;
+              _load();
+            },
+            customBorder: const CircleBorder(),
+            child: const SizedBox(
+              width: 56,
+              height: 56,
+              child: Icon(Icons.add, color: Colors.white, size: 28),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -258,10 +282,14 @@ class _VolunteerDonationsListScreenState
                         ),
                       ],
                     ),
-                    child: Icon(
-                      Icons.psychology_rounded,
-                      color: _primary,
-                      size: 28,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        'assets/images/app_logo.png',
+                        width: 32,
+                        height: 32,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -276,35 +304,39 @@ class _VolunteerDonationsListScreenState
                   ),
                 ],
               ),
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: const Icon(
-                      Icons.notifications_outlined,
-                      color: Colors.white,
-                      size: 26,
-                    ),
-                  ),
-                  Positioned(
-                    top: 6,
-                    right: 6,
-                    child: Container(
-                      width: 8,
-                      height: 8,
+              InkWell(
+                onTap: () => context.push(AppConstants.volunteerNotificationsRoute),
+                borderRadius: BorderRadius.circular(24),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.orange.shade400,
-                        border: Border.all(color: _primary, width: 1),
-                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: const Icon(
+                        Icons.notifications_outlined,
+                        color: Colors.white,
+                        size: 26,
                       ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade400,
+                          border: Border.all(color: _primary, width: 1),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -638,15 +670,36 @@ class _VolunteerDonationsListScreenState
                                 border: Border.all(
                                     color: _primary.withOpacity(0.2)),
                               ),
-                              child: Center(
-                                child: Text(
-                                  donorInitials,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: _primary,
-                                  ),
-                                ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: d.donorProfilePic != null &&
+                                        d.donorProfilePic!.isNotEmpty
+                                    ? Image.network(
+                                        _fullImageUrl(d.donorProfilePic!),
+                                        width: 40,
+                                        height: 40,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Center(
+                                          child: Text(
+                                            donorInitials,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: _primary,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    : Center(
+                                        child: Text(
+                                          donorInitials,
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: _primary,
+                                          ),
+                                        ),
+                                      ),
                               ),
                             ),
                             const SizedBox(width: 12),
