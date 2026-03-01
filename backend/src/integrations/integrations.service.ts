@@ -6,7 +6,9 @@ import { MailService } from '../mail/mail.service';
 import {
   fetchAllBioherbsProducts,
   fetchBioherbsProducts,
+  fetchBioherbsProductByHandle,
 } from './scraper/bioherbs.scraper';
+import { submitBioherbsOrderWithPuppeteer } from './bioherbs-checkout.puppeteer';
 import {
   ExternalWebsite,
   ExternalWebsiteDocument,
@@ -250,7 +252,27 @@ export class IntegrationsService implements OnModuleInit {
     const formActionUrl = websiteDoc?.formActionUrl?.trim();
 
     try {
-      if (formActionUrl) {
+      if (websiteSlug === BIOHERBS_SLUG) {
+        const product = await fetchBioherbsProductByHandle(payload.externalId);
+        if (product) {
+          const result = await submitBioherbsOrderWithPuppeteer({
+            variantId: product.variantId,
+            quantity: payload.quantity ?? order.quantity ?? 1,
+            formData: payload.formData ?? {},
+          });
+          if (result.success) {
+            order.sentToSiteAt = new Date();
+            order.status = 'sent';
+            if (result.externalOrderId) {
+              order.externalOrderId = result.externalOrderId;
+            }
+            await order.save();
+            this.logger.log(`Order ${order._id} submitted to BioHerbs via Puppeteer (external: ${result.externalOrderId ?? 'n/a'})`);
+          } else {
+            this.logger.warn(`BioHerbs Puppeteer: ${result.error}`);
+          }
+        }
+      } else if (formActionUrl) {
         await this.sendOrderToExternalSite(
           websiteDoc as ExternalWebsite & { _id: Types.ObjectId },
           order,
@@ -260,7 +282,6 @@ export class IntegrationsService implements OnModuleInit {
         order.status = 'sent';
         await order.save();
       }
-      // Pas d’ouverture du site : commande uniquement dans l’app, données envoyées vers formActionUrl si configuré (ex. BioHerbs).
     } catch (e) {
       this.logger.warn(
         `Order ${order._id} saved but send to site failed: ${(e as Error).message}`,
