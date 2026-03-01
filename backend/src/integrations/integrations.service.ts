@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/com
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import axios from 'axios';
+import { MailService } from '../mail/mail.service';
 import {
   fetchAllBioherbsProducts,
   fetchBioherbsProducts,
@@ -34,6 +35,7 @@ export class IntegrationsService implements OnModuleInit {
     private readonly productModel: Model<ExternalProductDocument>,
     @InjectModel(IntegrationOrder.name)
     private readonly orderModel: Model<IntegrationOrderDocument>,
+    private readonly mailService: MailService,
   ) {}
 
   async onModuleInit() {
@@ -224,6 +226,15 @@ export class IntegrationsService implements OnModuleInit {
       quantity: payload.quantity ?? 1,
       formData: payload.formData ?? {},
       status: 'received',
+    });
+
+    const orderIdStr = (order._id as Types.ObjectId).toString();
+    await this.mailService.sendOrderToCogniCare({
+      orderId: orderIdStr,
+      productName: order.productName,
+      quantity: order.quantity,
+      price: payload.formData?.price,
+      formData: payload.formData ?? {},
     });
 
     const websiteDoc = await this.websiteModel.findOne({ slug: websiteSlug }).lean().exec();
