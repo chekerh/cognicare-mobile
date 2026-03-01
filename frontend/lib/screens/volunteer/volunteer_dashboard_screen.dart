@@ -63,10 +63,12 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
   Future<void> _loadApplication() async {
     try {
       final app = await VolunteerService().getMyApplication();
-      if (mounted) setState(() {
-        _application = app;
-        _applicationLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _application = app;
+          _applicationLoading = false;
+        });
+      }
     } catch (_) {
       if (mounted) setState(() => _applicationLoading = false);
     }
@@ -130,7 +132,6 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
     }
   }
 
-  @override
   Widget _buildApprovalPendingContent(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     return Scaffold(

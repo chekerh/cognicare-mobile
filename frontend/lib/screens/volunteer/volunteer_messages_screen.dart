@@ -59,10 +59,12 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
   Future<void> _loadApplication() async {
     try {
       final app = await VolunteerService().getMyApplication();
-      if (mounted) setState(() {
-        _application = app;
-        _applicationLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _application = app;
+          _applicationLoading = false;
+        });
+      }
     } catch (_) {
       if (mounted) setState(() => _applicationLoading = false);
     }
