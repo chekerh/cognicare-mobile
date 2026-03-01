@@ -1035,6 +1035,7 @@ export class OrganizationService {
     const staffRoles = [
       'doctor',
       'volunteer',
+      'careProvider',
       'psychologist',
       'speech_therapist',
       'occupational_therapist',
@@ -1106,18 +1107,32 @@ export class OrganizationService {
       userId: user._id,
     });
 
-    // Determine base URL for frontend activation page
-    // Using a separate config for dashboard URL would be ideal
-    let dashboardUrl =
-      this.configService.get<string>('DASHBOARD_URL') ||
-      this.configService.get<string>('FRONTEND_URL') ||
-      'http://localhost:5173'; // Default to Vite port
+    // Determine URLs based on whether user already has an account
+    let activationUrl: string;
+    let rejectUrl: string;
 
-    dashboardUrl = dashboardUrl.replace(/\/$/, '');
-
-    // The specialist will confirm on the web dashboard
-    const activationUrl = `${dashboardUrl}/confirm-account?token=${token}`;
-    const rejectUrl = `${dashboardUrl}/reject-invitation?token=${token}`; // Minimal placeholder for now
+    if (user.isConfirmed) {
+      // Existing confirmed user: link directly to backend accept/reject endpoints
+      // so they don't have to set a password again
+      let backendUrl =
+        this.configService.get<string>('BACKEND_URL') ||
+        this.configService.get<string>('RENDER_EXTERNAL_URL') ||
+        'http://localhost:3000';
+      backendUrl = backendUrl.replace(/\/$/, '');
+      activationUrl = `${backendUrl}/api/v1/organizations/invitations/${token}/accept`;
+      rejectUrl = `${backendUrl}/api/v1/organizations/invitations/${token}/reject`;
+      console.log('[INVITE] Existing confirmed user – using direct accept URL');
+    } else {
+      // New unconfirmed user: link to web dashboard confirm-account page to set password
+      let dashboardUrl =
+        this.configService.get<string>('DASHBOARD_URL') ||
+        this.configService.get<string>('FRONTEND_URL') ||
+        'http://localhost:5173';
+      dashboardUrl = dashboardUrl.replace(/\/$/, '');
+      activationUrl = `${dashboardUrl}/confirm-account?token=${token}`;
+      rejectUrl = `${dashboardUrl}/reject-invitation?token=${token}`;
+      console.log('[INVITE] New unconfirmed user – using confirm-account URL');
+    }
 
     console.log('[INVITE] Sending email to:', userEmail);
 
@@ -1203,6 +1218,7 @@ export class OrganizationService {
     const staffRoles = [
       'doctor',
       'volunteer',
+      'careProvider',
       'psychologist',
       'speech_therapist',
       'occupational_therapist',
