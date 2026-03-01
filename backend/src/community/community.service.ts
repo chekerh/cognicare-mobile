@@ -486,6 +486,14 @@ export class CommunityService {
       throw new ForbiddenException('Only the target user can accept');
     }
     if (doc.status !== 'pending') {
+      if (doc.status === 'accepted') {
+        try {
+          await this.notifications.deleteByFollowRequestId(userId, requestId);
+        } catch (e) {
+          this.logger.warn('deleteByFollowRequestId failed on accept (idempotent)', e);
+        }
+        return;
+      }
       throw new BadRequestException('Request is no longer pending');
     }
     doc.status = 'accepted';

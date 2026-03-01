@@ -97,15 +97,24 @@ class _FamilyNotificationsScreenState extends State<FamilyNotificationsScreen> {
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+      if (!mounted) return;
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      if (msg.toLowerCase().contains('no longer pending') ||
+          msg.toLowerCase().contains('not found')) {
+        setState(() {
+          _notifications =
+              _notifications.where((n) => n.followRequestId != requestId).toList();
+          if (_unreadCount > 0) _unreadCount--;
+        });
+        return;
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(msg),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
