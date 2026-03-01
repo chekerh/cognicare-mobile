@@ -611,7 +611,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final loc = AppLocalizations.of(context)!;
     final hasExternalUrl = widget.externalUrl?.trim().isNotEmpty ?? false;
     return Container(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomPadding),
+      padding: EdgeInsets.fromLTRB(12, 12, 12, 12 + bottomPadding),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -641,28 +641,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               },
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: ElevatedButton(
               onPressed: _handleBuy,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _marketPrimary,
                 foregroundColor: AppTheme.text,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(hasExternalUrl ? Icons.open_in_new : Icons.shopping_cart),
-                  const SizedBox(width: 8),
-                  Text(
-                    hasExternalUrl ? loc.buyOnPartnerSite : loc.addToCart,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  Icon(hasExternalUrl ? Icons.open_in_new : Icons.shopping_cart, size: 20),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      hasExternalUrl ? loc.buyOnPartnerSite : loc.addToCart,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                 ],

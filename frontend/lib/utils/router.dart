@@ -53,6 +53,9 @@ import '../screens/family/child_progress_summary_screen.dart';
 import '../screens/family/create_reminder_screen.dart';
 import '../screens/family/family_calendar_screen.dart';
 import '../screens/family/medicine_verification_screen.dart';
+import '../screens/family/family_training_list_screen.dart';
+import '../screens/family/family_training_course_screen.dart';
+import '../screens/family/family_training_quiz_screen.dart';
 import '../screens/volunteer/volunteer_dashboard_screen.dart';
 import '../screens/volunteer/volunteer_shell_screen.dart';
 import '../screens/volunteer/volunteer_agenda_screen.dart';
@@ -662,6 +665,32 @@ GoRouter createAppRouter(AuthProvider authProvider) {
             builder: (context, state) {
               return IntegrationOrderFormScreen.fromState(state);
             },
+          ),
+          GoRoute(
+            path: 'training',
+            builder: (context, state) => const FamilyTrainingListScreen(),
+            routes: [
+              GoRoute(
+                path: 'course',
+                builder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>? ?? {};
+                  return FamilyTrainingCourseScreen(
+                    courseId: extra['courseId'] as String? ?? '',
+                    title: extra['title'] as String? ?? 'Cours',
+                  );
+                },
+              ),
+              GoRoute(
+                path: 'quiz',
+                builder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>? ?? {};
+                  return FamilyTrainingQuizScreen(
+                    courseId: extra['courseId'] as String? ?? '',
+                    title: extra['title'] as String? ?? 'Quiz',
+                  );
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: 'product-detail',

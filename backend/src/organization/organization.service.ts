@@ -1068,7 +1068,7 @@ export class OrganizationService {
       );
     }
 
-    // Check for existing pending invitation
+    // If a pending invitation already exists, cancel it so we can resend
     const existingInvitation = await this.invitationModel.findOne({
       organizationId: orgId,
       userEmail: userEmail,
@@ -1076,9 +1076,12 @@ export class OrganizationService {
     });
 
     if (existingInvitation) {
-      throw new ConflictException(
-        'A pending invitation already exists for this email',
+      console.log(
+        '[INVITE] Cancelling previous pending invitation for',
+        userEmail,
       );
+      existingInvitation.status = 'cancelled' as any;
+      await existingInvitation.save();
     }
 
     // Generate unique token

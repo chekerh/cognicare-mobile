@@ -23,6 +23,13 @@ String _fullImageUrl(String path) {
   return path.startsWith('/') ? '$base$path' : '$base/$path';
 }
 
+/// Affiche le prix en dinars tunisiens (DT), en remplaçant € par DT.
+String _formatPriceDt(String price) {
+  final p = price.trim().replaceAll('€', '').trim();
+  if (p.isEmpty) return '0 DT';
+  return p.toUpperCase().endsWith('DT') ? p : '$p DT';
+}
+
 /// Labels des catégories (Tout = pas de filtre).
 const List<String> _categoryLabels = [
   'Tout',
@@ -634,7 +641,7 @@ class _VolunteerCommunityMarketScreenState
                             ],
                           ),
                           child: Text(
-                            '${product.price} €',
+                            _formatPriceDt(product.price),
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
@@ -749,44 +756,56 @@ class _VolunteerCommunityMarketScreenState
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  showDelivery
-                                      ? Icons.local_shipping_outlined
-                                      : Icons.verified_user_outlined,
-                                  size: 20,
-                                  color: _primary,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  showDelivery
-                                      ? 'LIVRAISON OFFERTE'
-                                      : 'GARANTIE 2 ANS',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: _textSlate400,
-                                    letterSpacing: 0.8,
+                            Flexible(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    showDelivery
+                                        ? Icons.local_shipping_outlined
+                                        : Icons.verified_user_outlined,
+                                    size: 20,
+                                    color: _primary,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      showDelivery
+                                          ? 'LIVRAISON OFFERTE'
+                                          : 'GARANTIE 2 ANS',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: _textSlate400,
+                                        letterSpacing: 0.8,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            Material(
-                              color: _primary,
-                              borderRadius: BorderRadius.circular(16),
-                              child: InkWell(
-                                onTap: () => _openProduct(product),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Material(
+                                color: _primary,
                                 borderRadius: BorderRadius.circular(16),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 24, vertical: 10),
-                                  child: Text(
-                                    'Ajouter au panier',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                child: InkWell(
+                                  onTap: () => _openProduct(product),
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 10),
+                                    child: Center(
+                                      child: Text(
+                                        'Ajouter au panier',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ),
                                 ),
