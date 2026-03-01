@@ -12,6 +12,16 @@ import '../../widgets/location_search_field.dart';
 const Color _primary = Color(0xFFA3D9E2);
 const Color _primaryDark = Color(0xFF7FBAC4);
 const Color _bgLight = Color(0xFFF0F7FF);
+const Color _checkColor = Color(0xFF212121);
+
+enum _StepStatus { pending, loading, done }
+
+class _ValidationStep {
+  final String label;
+  final String? value;
+  _StepStatus status;
+  _ValidationStep(this.label, {this.value, this.status = _StepStatus.pending});
+}
 
 /// Écran « Proposer un don » — aligné sur le design HTML : photos, titre, catégorie, état, description, localisation.
 class ProposeDonationScreen extends StatefulWidget {
@@ -34,6 +44,8 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
   int _conditionIndex = 1; // 0=Neuf, 1=Très bon état, 2=Bon état
   int _suitableAgeIndex = -1; // -1 = non sélectionné
   bool _isSubmitting = false;
+  bool _showValidationOverlay = false;
+  final List<_ValidationStep> _validationSteps = [];
   final ImagePicker _picker = ImagePicker();
   double? _mapLat;
   double? _mapLng;
@@ -130,22 +142,64 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
       return;
     }
 
-    setState(() => _isSubmitting = true);
+    final title = _titleController.text.trim();
+    final description = _descriptionController.text.trim();
+    final location = _locationController.text.trim();
+
+    setState(() {
+      _isSubmitting = true;
+      _showValidationOverlay = true;
+      _validationSteps.clear();
+    });
+
+    void addStep(String label, {String? value, _StepStatus status = _StepStatus.done}) {
+      if (!mounted) return;
+      setState(() {
+        _validationSteps.add(_ValidationStep(label, value: value, status: status));
+      });
+    }
 
     try {
+      addStep('Titre', value: title.isNotEmpty ? title : '—');
+      await Future.delayed(const Duration(milliseconds: 350));
+      if (!mounted) return;
+      addStep('Catégorie', value: _categories[_categoryIndex]);
+      await Future.delayed(const Duration(milliseconds: 350));
+      if (!mounted) return;
+      addStep('État', value: _conditions[_conditionIndex]);
+      await Future.delayed(const Duration(milliseconds: 350));
+      if (!mounted) return;
+      addStep('Description', value: description.length > 40 ? '${description.substring(0, 40)}...' : (description.isEmpty ? '—' : description));
+      await Future.delayed(const Duration(milliseconds: 350));
+      if (!mounted) return;
+      addStep('Lieu', value: location.isEmpty ? '—' : location);
+      await Future.delayed(const Duration(milliseconds: 350));
+      if (!mounted) return;
+      addStep('Photos', value: _photos.isEmpty ? 'Aucune' : '${_photos.length} photo(s)');
+
+      addStep('Envoi des photos', status: _StepStatus.loading);
+      if (!mounted) return;
       final service = DonationService();
       final imageUrls = <String>[];
       for (final photo in _photos) {
         final url = await service.uploadImage(photo);
         imageUrls.add(url);
       }
+      if (!mounted) return;
+      setState(() {
+        final i = _validationSteps.length - 1;
+        if (i >= 0) _validationSteps[i].status = _StepStatus.done;
+      });
+      await Future.delayed(const Duration(milliseconds: 300));
 
+      addStep('Enregistrement du don', status: _StepStatus.loading);
+      if (!mounted) return;
       await service.createDonation(
-        title: _titleController.text.trim(),
-        description: _descriptionController.text.trim(),
+        title: title,
+        description: description,
         category: _categoryIndex,
         condition: _conditionIndex,
-        location: _locationController.text.trim(),
+        location: location,
         imageUrls: imageUrls,
         isOffer: true,
         latitude: _mapLat,
@@ -153,8 +207,32 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
         suitableAge:
             _suitableAgeIndex >= 0 ? _suitableAges[_suitableAgeIndex] : null,
       );
+      if (!mounted) return;
+      setState(() {
+        final i = _validationSteps.length - 1;
+        if (i >= 0) _validationSteps[i].status = _StepStatus.done;
+      });
+      addStep('Don publié !', value: 'Merci pour votre générosité.');
+      await Future.delayed(const Duration(milliseconds: 1500));
+      if (!mounted) return;
+
+      final loc = AppLocalizations.of(context)!;
+      final messenger = ScaffoldMessenger.of(context);
+      context.pop();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(loc.donationProposedSuccess),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: _checkColor,
+        ),
+      );
     } catch (e) {
-      setState(() => _isSubmitting = false);
+      setState(() {
+        _isSubmitting = false;
+        _showValidationOverlay = false;
+        final i = _validationSteps.indexWhere((s) => s.status == _StepStatus.loading);
+        if (i >= 0) _validationSteps[i].status = _StepStatus.pending;
+      });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -163,22 +241,7 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
           backgroundColor: Colors.red,
         ),
       );
-      return;
     }
-
-    setState(() => _isSubmitting = false);
-    if (!mounted) return;
-
-    final loc = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
-    context.pop();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(loc.donationProposedSuccess),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.green,
-      ),
-    );
   }
 
   @override
@@ -187,31 +250,154 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
 
     return Scaffold(
       backgroundColor: _bgLight,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(context),
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 180),
-                  children: [
-                    _buildPhotosSection(),
-                    const SizedBox(height: 24),
-                    _buildDetailsCard(loc),
-                    const SizedBox(height: 16),
-                    _buildDescriptionCard(loc),
-                    const SizedBox(height: 16),
-                    _buildLocationCard(loc),
-                  ],
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(context),
+                Expanded(
+                  child: Form(
+                    key: _formKey,
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 180),
+                      children: [
+                        _buildPhotosSection(),
+                        const SizedBox(height: 24),
+                        _buildDetailsCard(loc),
+                        const SizedBox(height: 16),
+                        _buildDescriptionCard(loc),
+                        const SizedBox(height: 16),
+                        _buildLocationCard(loc),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_showValidationOverlay) _buildValidationOverlay(),
+        ],
+      ),
+      bottomNavigationBar: _showValidationOverlay
+          ? null
+          : _buildPublishButton(loc),
+    );
+  }
+
+  Widget _buildValidationOverlay() {
+    return Material(
+      color: _bgLight,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Publication de votre don',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: _primaryDark,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                'Vérification des informations...',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 28),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _validationSteps.length,
+                  itemBuilder: (context, index) {
+                    final step = _validationSteps[index];
+                    return TweenAnimationBuilder<double>(
+                      key: ValueKey('step_$index'),
+                      tween: Tween(begin: 0, end: 1),
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, child) {
+                        return Opacity(
+                          opacity: value,
+                          child: Transform.translate(
+                            offset: Offset(0, 16 * (1 - value)),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 250),
+                              child: SizedBox(
+                                key: ValueKey('${step.status}_$index'),
+                                width: 28,
+                                height: 28,
+                                child: step.status == _StepStatus.done
+                                    ? Icon(Icons.check_circle,
+                                        color: _checkColor, size: 28)
+                                    : step.status == _StepStatus.loading
+                                        ? SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: _primary,
+                                            ),
+                                          )
+                                        : Icon(Icons.radio_button_unchecked,
+                                            color: Colors.grey.shade400,
+                                            size: 28),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    step.label,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  if (step.value != null &&
+                                      step.value!.isNotEmpty) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      step.value!,
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        color: Color(0xFF334155),
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      bottomNavigationBar: _buildPublishButton(loc),
     );
   }
 

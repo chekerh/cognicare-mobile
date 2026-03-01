@@ -2071,9 +2071,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tabFamilies => 'Families';
   @override
-  String get tabVolunteers => 'Volunteers';
+  String get tabVolunteers => 'Care provider';
   @override
-  String get tabHealthcare => 'Healthcare';
+  String get tabHealthcare => 'Care provider';
   @override
   String get conversationsTitle => 'Conversations';
   @override
@@ -2087,7 +2087,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get volunteersToContact => 'Volunteers to contact';
   @override
-  String get noHealthcareConversations => 'No conversations with healthcare professionals.';
+  String get noHealthcareConversations => 'No conversations with a care provider.';
+  @override
+  String get tabDons => 'Donations';
+  @override
+  String get noDonationConversations => 'No donation-related conversations.\nDiscussions with donors will appear here (Donation Circle).';
   @override
   String get failedToOpenConversation => 'Failed to open conversation.';
   @override

@@ -14,7 +14,7 @@ import '../../models/marketplace_product.dart';
 import '../../models/user.dart' as app_user;
 import '../../services/donation_service.dart';
 import '../../services/healthcare_service.dart';
-import '../../services/marketplace_service.dart';
+import '../../services/integrations_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 import 'family_healthcare_map_screen.dart';
@@ -73,8 +73,33 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   @override
   void initState() {
     super.initState();
-    _marketplaceProductsFuture = MarketplaceService().getProducts(limit: 6);
+    _marketplaceProductsFuture = _loadIntegrationProductsForFeed();
     _loadDonations();
+  }
+
+  /// Charge les produits du catalogue intégré (BioHerbs) pour la section marketplace de l'accueil.
+  Future<List<MarketplaceProduct>> _loadIntegrationProductsForFeed() async {
+    try {
+      final websites = await IntegrationsService().getWebsites();
+      if (websites.isEmpty) return [];
+      final slug = websites.first.slug;
+      final catalog = await IntegrationsService().getCatalog(slug, page: 1);
+      final list = catalog.products.take(6).map((p) {
+        final imageUrl = p.imageUrls.isNotEmpty ? p.imageUrls.first : '';
+        return MarketplaceProduct(
+          id: p.externalId,
+          title: p.name,
+          price: p.price,
+          imageUrl: imageUrl,
+          description: p.availability ? 'En stock' : 'Rupture de stock',
+          category: p.category,
+          externalUrl: p.productUrl,
+        );
+      }).toList();
+      return list;
+    } catch (_) {
+      return [];
+    }
   }
 
   void _onDonationSearchChanged(String value) {

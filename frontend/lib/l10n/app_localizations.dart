@@ -1240,6 +1240,8 @@ abstract class AppLocalizations {
   String get familiesToContact;
   String get volunteersToContact;
   String get noHealthcareConversations;
+  String get tabDons;
+  String get noDonationConversations;
   String get failedToOpenConversation;
   String get noProductsForCategory;
 

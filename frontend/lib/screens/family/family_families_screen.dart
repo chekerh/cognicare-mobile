@@ -55,7 +55,7 @@ class FamilyFamiliesScreen extends StatefulWidget {
 }
 
 class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
-  int _selectedTab = 0; // 0: Families, 1: Benevole, 2: Healthcare
+  int _selectedTab = 0; // 0: Families, 1: Care provider (bénévole), 2: Care provider (santé), 3: Dons
   String _searchQuery = '';
   List<_Conversation>? _inboxConversations;
   bool _inboxLoading = false;
@@ -237,8 +237,8 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
   }
 
   void _openChat(BuildContext context, _Conversation c) {
-    // Families (0) → groupe ; Benevole (1), Healthcare (2) → chat privé 1-à-1.
-    if (_selectedTab == 1 || _selectedTab == 2) {
+    // Families (0) → groupe ; Care provider (1, 2), Dons (3) → chat privé 1-à-1.
+    if (_selectedTab == 1 || _selectedTab == 2 || _selectedTab == 3) {
       // Use otherUserId for calls (bénévole/healthcare); fallback to id for compatibility.
       final personId = c.otherUserId ?? c.id;
       final params = <String, String>{
@@ -362,6 +362,7 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
           _tab(AppLocalizations.of(context)!.tabFamilies, 0),
           _tab(AppLocalizations.of(context)!.tabVolunteers, 1),
           _tab(AppLocalizations.of(context)!.tabHealthcare, 2),
+          _tab(AppLocalizations.of(context)!.tabDons, 3),
         ],
       ),
     );
@@ -463,16 +464,38 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
       } else if (_selectedTab == 1) {
         rawList =
             _inboxConversations!.where((c) => c.segment == 'benevole').toList();
-      } else {
+      } else if (_selectedTab == 2) {
         rawList = _inboxConversations!
             .where((c) => c.segment == 'healthcare')
             .toList();
+      } else {
+        rawList = []; // Dons (3): pas encore de segment donation en backend
       }
     } else {
       rawList = [];
     }
     final list = _filterBySearch(rawList);
     if (list.isEmpty) {
+      if (_selectedTab == 3) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.volunteer_activism,
+                    size: 64, color: Colors.grey.shade400),
+                const SizedBox(height: 16),
+                Text(
+                  AppLocalizations.of(context)!.noDonationConversations,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
       if (_selectedTab == 0) {
         if (_familiesToContact == null && !_familiesLoading) {
           WidgetsBinding.instance

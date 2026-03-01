@@ -2485,6 +2485,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get noHealthcareConversations => 'لا توجد محادثات مع المتخصصين في الرعاية الصحية.';
   @override
+  String get tabDons => 'التبرعات';
+  @override
+  String get noDonationConversations => 'لا توجد محادثات متعلقة بالتبرعات. ستظهر مناقشات المتبرعين هنا.';
+  @override
   String get failedToOpenConversation => 'فشل فتح المحادثة.';
   @override
   String get noProductsForCategory => 'لا توجد منتجات لهذه الفئة.';

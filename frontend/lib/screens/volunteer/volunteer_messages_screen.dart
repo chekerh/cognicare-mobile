@@ -323,8 +323,8 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
       return Center(
         child: Text(
           _selectedTab == 0
-              ? 'Aucune conversation avec des familles.'
-              : 'Aucune conversation avec des professionnels de santé.',
+              ? AppLocalizations.of(context)!.noFamilyMessages
+              : AppLocalizations.of(context)!.noHealthcareConversations,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
         ),

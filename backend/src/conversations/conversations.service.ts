@@ -211,12 +211,13 @@ export class ConversationsService {
       const isCurrentInUser = userStr === userId;
       const otherId = isCurrentInUser ? otherUserIdStr : userStr;
       const otherRole = otherId ? (roleById.get(otherId) ?? null) : null;
+      const roleLower = otherRole ? String(otherRole).toLowerCase() : '';
       const segment: ConversationSegment =
-        otherRole === 'volunteer'
+        roleLower === 'volunteer'
           ? 'benevole'
-          : otherRole === 'family'
+          : roleLower === 'family'
             ? 'families'
-            : otherRole === 'healthcare'
+            : roleLower === 'healthcare' || roleLower.includes('healthcare')
               ? 'healthcare'
               : ((c.segment as ConversationSegment) ?? 'persons');
       const displayName = otherId
@@ -294,7 +295,8 @@ export class ConversationsService {
       fullName?: string;
       profilePic?: string;
     } | null;
-    const otherRole = otherUserLean?.role?.toLowerCase?.();
+    const otherRoleRaw = otherUserLean?.role ?? '';
+    const otherRole = String(otherRoleRaw).toLowerCase();
     const otherProfilePic =
       otherUserLean?.profilePic &&
       String(otherUserLean.profilePic).trim() !== ''
@@ -308,8 +310,8 @@ export class ConversationsService {
         ? 'benevole' // current user talks to a volunteer
         : otherRole === 'family'
           ? 'families' // current user talks to a family
-          : otherRole === 'healthcare'
-            ? 'healthcare' // current user talks to healthcare
+          : otherRole === 'healthcare' || otherRole.includes('healthcare')
+            ? 'healthcare' // current user talks to healthcare / care provider
             : 'persons';
 
     // Segment for the other side (so that conversations appear correctly in their inbox)
