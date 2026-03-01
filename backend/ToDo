@@ -1,0 +1,93 @@
+
+
+rebuild the backend from scratch in a new backend folder improve the code and optimise it for scalibily ensuring architecture "CLEAN"
+
+
+Description
+
+🔄 Task Title:
+Complete Backend Refactor & Rebuild with Clean Architecture for Scalability
+📌 Task Description:
+We need to rebuild the backend from scratch with a strong focus on:
+Clean Architecture principles
+Scalability
+Maintainability
+Testability
+Clear separation of concerns
+The current backend follows a standard NestJS layered MVC-like structure (Controller → Service → Schema), which is functional but does not strictly follow Clean Architecture principles. The goal of this refactor is to redesign the architecture to be scalable, modular, and domain-driven.
+🎯 Objectives
+
+1️⃣ Re-Architect Using Clean Architecture
+Reorganize each module into clear layers:
+Domain (Core)
+  - Entities
+  - Interfaces (Repository contracts)
+  - Business rules
+Application
+  - Use Cases (Interactors)
+  - DTOs
+Infrastructure
+  - Database implementations (Mongoose)
+  - External services
+  - Repository implementations
+Interface Layer
+  - Controllers (HTTP)
+
+2️⃣ Introduce Repository Pattern
+Services must not call this.model.find() directly.
+Create repository interfaces in the domain layer.
+Implement Mongo repositories separately in the infrastructure layer.
+Use dependency injection to bind interfaces to implementations.
+This ensures:
+Database independence
+Easier unit testing
+Future database replacement flexibility
+
+3️⃣ Separate Use Cases from Services
+Move business logic into Use Case classes.
+Controllers should call use cases.
+Use cases should not depend on Mongoose or NestJS decorators.
+Services should not mix:
+Database logic
+Business logic
+External API calls
+Notifications
+Each use case should have a single responsibility.
+
+4️⃣ Improve Scalability & Performance
+Optimize query structure.
+Add indexing strategy where necessary.
+Prepare for horizontal scaling.
+Separate configuration clearly.
+Improve error handling and logging strategy.
+Ensure stateless service design.
+Optional improvements (if applicable):
+Caching layer (Redis or similar)
+Centralized validation strategy
+Global exception filters
+
+5️⃣ Improve Code Quality
+Strict typing everywhere.
+Remove duplicated logic.
+Consistent naming conventions.
+Modular folder structure.
+Proper environment configuration handling.
+Clear separation between domain and infrastructure.
+
+6️⃣ Improve Testability
+Business logic must be testable without database access.
+Unit tests for use cases.
+Mock repository interfaces.
+Prepare foundation for integration tests.
+
+✅ Acceptance Criteria
+Backend fully rebuilt using Clean Architecture.
+No direct database calls inside use cases.
+Repository abstraction implemented for all modules.
+Clear separation between domain, application, infrastructure, and interface layers.
+Business logic isolated and testable.
+Improved scalability and maintainability.
+Documentation explaining architectural decisions.
+📎 Important Note
+This is not just a refactor — it is a structural redesign. The goal is to build a backend that can scale with the startup as it grows, without becoming tightly coupled or difficult to maintain.
+All architectural decisions should be documented clearly.
