@@ -157,30 +157,77 @@ export async function submitBioherbsOrderWithPuppeteer(
       // pays peut être pré-rempli
     }
 
-    // 6) Continuer vers expédition puis paiement
-    for (let i = 0; i < 3; i++) {
-      try {
-        const submit = await page.$('button[type="submit"], input[type="submit"], button[name="button"]');
-        if (submit) {
-          await submit.click();
-          await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 15000 }).catch(() => {});
+    // 6) Sélectionner "Paiement à la livraison" si présent (pour pouvoir passer commande sans carte)
+    await new Promise((r) => setTimeout(r, 1000));
+    await page.evaluate(() => {
+      const labels = Array.from(document.querySelectorAll('label, span, div[role="button"]'));
+      for (const el of labels) {
+        const t = (el.textContent || '').toLowerCase();
+        if (t.includes('livraison') && (t.includes('paiement') || t.includes('payment') || t.includes('cash'))) {
+          el.click();
+          break;
         }
-      } catch {
-        break;
       }
+      const radios = Array.from(document.querySelectorAll('input[type="radio"]'));
+      for (const r of radios) {
+        const label = r.closest('label') || document.querySelector(`label[for="${r.id}"]`);
+        if (label && /livraison|delivery|cash/i.test(label.textContent || '')) {
+          (r as HTMLInputElement).click();
+          break;
+        }
+      }
+    });
+
+    // 7) Cliquer sur "Continuer" jusqu'à l'étape paiement, puis "Passer la commande"
+    const continueButtonTexts = ['Continuer', 'Continue', 'Next', 'Suivant'];
+    const completeOrderTexts = ['Passer la commande', 'Complete order', 'Commander', 'Pay now', 'Payer maintenant'];
+
+    for (let step = 0; step < 5; step++) {
+      await new Promise((r) => setTimeout(r, 1500));
+      const clicked = await page.evaluate(
+        (continueTexts: string[], completeTexts: string[]) => {
+          const buttons = Array.from(document.querySelectorAll('button, [type="submit"], input[type="submit"]'));
+          for (const btn of buttons) {
+            const text = (btn.textContent || '').trim();
+            if (completeTexts.some((t) => text.toLowerCase().includes(t.toLowerCase()))) {
+              (btn as HTMLElement).click();
+              return 'complete';
+            }
+            if (continueTexts.some((t) => text.toLowerCase().includes(t.toLowerCase()))) {
+              (btn as HTMLElement).click();
+              return 'continue';
+            }
+          }
+          return null;
+        },
+        continueButtonTexts,
+        completeOrderTexts,
+      );
+      if (clicked === 'complete') break;
+      await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 12000 }).catch(() => {});
     }
 
-    // 7) Attendre la page de remerciement ou un numéro de commande
-    await new Promise((r) => setTimeout(r, 3000));
+    // 8) Attendre la page de remerciement ou un numéro de commande
+    await new Promise((r) => setTimeout(r, 4000));
     const thankYouContent = await page.content();
-    const orderMatch = thankYouContent.match(/COMMANDE\s*#?(\d+)/i) || thankYouContent.match(/order[_\s]?(?:number|#)?\s*(\d+)/i);
+    const orderMatch =
+      thankYouContent.match(/COMMANDE\s*#?(\d+)/i) ||
+      thankYouContent.match(/order[_\s]?(?:number|#)?\s*(\d+)/i) ||
+      thankYouContent.match(/#(\d{4,})/);
     const externalOrderId = orderMatch ? orderMatch[1] : undefined;
 
-    if (thankYouContent.includes('Merci') || thankYouContent.includes('Thank you') || thankYouContent.includes('confirmation')) {
+    const isThankYouPage =
+      thankYouContent.includes('Merci') ||
+      thankYouContent.includes('Thank you') ||
+      thankYouContent.includes('confirmation') ||
+      thankYouContent.includes('votre achat') ||
+      thankYouContent.includes('order confirmed');
+
+    if (isThankYouPage) {
       return { success: true, externalOrderId };
     }
 
-    return { success: false, error: 'Confirmation de commande non détectée', externalOrderId };
+    return { success: false, error: 'Confirmation de commande non détectée (étape paiement ou bouton final non atteinte)', externalOrderId };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return { success: false, error: message };

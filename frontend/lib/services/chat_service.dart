@@ -416,12 +416,12 @@ class ChatService {
     if (callDuration != null) body['callDuration'] = callDuration;
     final response = await _client
         .post(
-          uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-          body: jsonEncode(body),
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(body),
         )
         .timeout(const Duration(seconds: 20));
     if (response.statusCode == 401) throw Exception('Unauthorized');
@@ -450,12 +450,12 @@ class ChatService {
     );
     final response = await _client
         .post(
-          uri,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-          body: jsonEncode({'name': name, 'participantIds': participantIds}),
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'name': name, 'participantIds': participantIds}),
         )
         .timeout(const Duration(seconds: 20));
     if (response.statusCode != 200 && response.statusCode != 201) {

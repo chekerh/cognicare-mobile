@@ -255,6 +255,7 @@ export class IntegrationsService implements OnModuleInit {
       if (websiteSlug === BIOHERBS_SLUG) {
         const product = await fetchBioherbsProductByHandle(payload.externalId);
         if (product) {
+          this.logger.log(`BioHerbs: submitting order ${order._id} via Puppeteer (variant ${product.variantId})`);
           const result = await submitBioherbsOrderWithPuppeteer({
             variantId: product.variantId,
             quantity: payload.quantity ?? order.quantity ?? 1,
@@ -267,10 +268,17 @@ export class IntegrationsService implements OnModuleInit {
               order.externalOrderId = result.externalOrderId;
             }
             await order.save();
-            this.logger.log(`Order ${order._id} submitted to BioHerbs via Puppeteer (external: ${result.externalOrderId ?? 'n/a'})`);
+            this.logger.log(
+              `BioHerbs: order ${order._id} submitted successfully. External order #${result.externalOrderId ?? 'n/a'}. ` +
+                'Customer should receive BioHerbs confirmation email.',
+            );
           } else {
-            this.logger.warn(`BioHerbs Puppeteer: ${result.error}`);
+            this.logger.warn(
+              `BioHerbs Puppeteer failed for order ${order._id}. No BioHerbs email will be sent. Error: ${result.error}`,
+            );
           }
+        } else {
+          this.logger.warn(`BioHerbs: product handle "${payload.externalId}" not found, skipping Puppeteer submission`);
         }
       } else if (formActionUrl) {
         await this.sendOrderToExternalSite(

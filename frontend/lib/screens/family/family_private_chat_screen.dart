@@ -213,10 +213,10 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     final cid = _conversationId;
     if (cid == null) return;
     if (!silent) {
-      setState(() {
-        _loading = true;
-        _loadError = null;
-      });
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
     }
     try {
       final auth = Provider.of<AuthProvider>(context, listen: false);
@@ -740,66 +740,66 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                 borderRadius: BorderRadius.circular(12),
                 child: Row(
                   children: [
-                    Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundColor: _primary.withOpacity(0.3),
+          Stack(
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: _primary.withOpacity(0.3),
                           backgroundImage: widget.personImageUrl != null &&
                                   widget.personImageUrl!.isNotEmpty
-                              ? NetworkImage(widget.personImageUrl!)
-                              : null,
+                    ? NetworkImage(widget.personImageUrl!)
+                    : null,
                           child: widget.personImageUrl == null ||
                                   widget.personImageUrl!.isEmpty
                               ? const Icon(Icons.person,
                                   color: _textMuted, size: 28)
-                              : null,
-                        ),
-                        if (_isOnline == true)
-                          Positioned(
-                            bottom: 2,
-                            right: 2,
-                            child: Container(
-                              width: 14,
-                              height: 14,
-                              decoration: BoxDecoration(
-                                color: Colors.green,
-                                shape: BoxShape.circle,
+                    : null,
+              ),
+              if (_isOnline == true)
+                Positioned(
+                  bottom: 2,
+                  right: 2,
+                  child: Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
                                 border:
                                     Border.all(color: Colors.white, width: 2),
-                              ),
-                            ),
-                          ),
-                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            widget.personName,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: _textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _isOnline == true ? 'En ligne' : 'Hors ligne',
-                            style: TextStyle(
-                              fontSize: 13,
+              children: [
+                Text(
+                  widget.personName,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: _textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _isOnline == true ? 'En ligne' : 'Hors ligne',
+                  style: TextStyle(
+                    fontSize: 13,
                               color: _isOnline == true
                                   ? Colors.green.shade700
                                   : _textMuted,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
                   ],
                 ),
               ),
@@ -911,7 +911,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                             ),
                           ),
                         )
-                      : msg.attachmentType == 'voice'
+                          : msg.attachmentType == 'voice'
                           ? Material(
                               color: Colors.transparent,
                               child: InkWell(
@@ -1098,19 +1098,19 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                                                   color: msg.isMe
                                                       ? Colors.white
                                                       : _primary)),
-                                        ),
-                                      ],
-                                    )
-                                  : Text(
-                                      msg.text,
-                                      style: TextStyle(
-                                        fontSize: 15,
+                                    ),
+                                  ],
+                                )
+                          : Text(
+                              msg.text,
+                              style: TextStyle(
+                                fontSize: 15,
                                         color: msg.isMe
                                             ? Colors.white
                                             : _textPrimary,
-                                        height: 1.4,
-                                      ),
-                                    ),
+                                height: 1.4,
+                              ),
+                            ),
                 ),
                 const SizedBox(height: 6),
                 Row(
@@ -1144,8 +1144,8 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
       backgroundColor: _primary.withOpacity(0.3),
       backgroundImage:
           widget.personImageUrl != null && widget.personImageUrl!.isNotEmpty
-              ? NetworkImage(widget.personImageUrl!)
-              : null,
+          ? NetworkImage(widget.personImageUrl!)
+          : null,
       child: widget.personImageUrl == null || widget.personImageUrl!.isEmpty
           ? const Icon(Icons.person, size: 16, color: _textMuted)
           : null,
