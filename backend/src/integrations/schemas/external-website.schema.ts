@@ -37,7 +37,7 @@ export const FormFieldMappingSchema = SchemaFactory.createForClass(FormFieldMapp
 @Schema({ timestamps: true })
 export class ExternalWebsite {
   @Prop({ required: true, unique: true })
-  slug: string; // e.g. "books-to-scrape", "bioherbs"
+  slug: string; // e.g. "bioherbs"
 
   @Prop({ required: true })
   name: string;

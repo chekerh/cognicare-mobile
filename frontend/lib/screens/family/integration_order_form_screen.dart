@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
@@ -109,8 +110,9 @@ class _IntegrationOrderFormScreenState extends State<IntegrationOrderFormScreen>
         final sentToSiteAt = data['sentToSiteAt'] != null
             ? DateTime.tryParse(data['sentToSiteAt'] as String)
             : null;
+        final cartUrl = data['cartUrl'] as String?;
         String detail = message;
-        if (status == 'sent' && sentToSiteAt != null) {
+        if (status == 'sent' && sentToSiteAt != null && cartUrl == null) {
           final dateStr = '${sentToSiteAt.day}/${sentToSiteAt.month}/${sentToSiteAt.year} à ${sentToSiteAt.hour}h${sentToSiteAt.minute.toString().padLeft(2, '0')}';
           detail = '$message\n\nEnvoyée au site le $dateStr.';
         } else if (status == 'received') {
@@ -121,14 +123,41 @@ class _IntegrationOrderFormScreenState extends State<IntegrationOrderFormScreen>
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
             title: const Text('Commande enregistrée'),
-            content: Text(detail),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(detail),
+                  if (cartUrl != null && cartUrl.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Vous pouvez finaliser le paiement sur le site du marchand.',
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ],
+              ),
+            ),
             actions: [
+              if (cartUrl != null && cartUrl.isNotEmpty)
+                TextButton(
+                  onPressed: () async {
+                    final uri = Uri.parse(cartUrl);
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    }
+                    if (ctx.mounted) Navigator.of(ctx).pop();
+                    if (mounted) context.go(AppConstants.familyMarketRoute);
+                  },
+                  child: const Text('Ouvrir le panier'),
+                ),
               TextButton(
                 onPressed: () {
                   Navigator.of(ctx).pop();
                   context.go(AppConstants.familyMarketRoute);
                 },
-                child: const Text('OK'),
+                child: Text(cartUrl != null && cartUrl.isNotEmpty ? 'Fermer' : 'OK'),
               ),
             ],
           ),

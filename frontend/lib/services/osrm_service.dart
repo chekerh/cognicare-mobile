@@ -43,7 +43,7 @@ Future<OSRMRouteResult?> getRoute({
   TravelMode travelMode = TravelMode.car,
 }) async {
   final profile = osrmProfileFromTravelMode(travelMode);
-  final coords = '${startLng},$startLat;${endLng},$endLat';
+  final coords = '$startLng,$startLat;$endLng,$endLat';
   final uri = Uri.parse(
     '$_osrmBase/route/v1/$profile/$coords?overview=full&geometries=geojson',
   );

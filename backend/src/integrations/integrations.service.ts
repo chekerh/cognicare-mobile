@@ -3,12 +3,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import axios from 'axios';
 import {
-  fetchBooksCategories,
-  fetchBooksProductDetail,
-  fetchBooksProductList,
-  fetchAllBooksProducts,
-  BookProduct,
-} from './scraper/books-to-scrape.scraper';
+  fetchAllBioherbsProducts,
+  fetchBioherbsProducts,
+  addBioherbsToCart,
+  fetchBioherbsProductByHandle,
+} from './scraper/bioherbs.scraper';
 import {
   ExternalWebsite,
   ExternalWebsiteDocument,
@@ -23,8 +22,8 @@ import {
   IntegrationOrderDocument,
 } from './schemas/integration-order.schema';
 
-const BOOKS_TO_SCRAPE_SLUG = 'books-to-scrape';
-const BOOKS_BASE = 'http://books.toscrape.com';
+const BIOHERBS_SLUG = 'bioherbs';
+const BIOHERBS_BASE = 'https://www.bioherbs.tn';
 
 @Injectable()
 export class IntegrationsService implements OnModuleInit {
@@ -40,21 +39,26 @@ export class IntegrationsService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    const exists = await this.websiteModel.findOne({ slug: BOOKS_TO_SCRAPE_SLUG }).exec();
+    await this.websiteModel.deleteMany({ slug: 'books-to-scrape' }).exec();
+    let exists = await this.websiteModel.findOne({ slug: BIOHERBS_SLUG }).exec();
     if (!exists) {
       await this.websiteModel.create({
-        slug: BOOKS_TO_SCRAPE_SLUG,
-        name: 'Books to Scrape',
-        baseUrl: BOOKS_BASE,
+        slug: BIOHERBS_SLUG,
+        name: 'BioHerbs',
+        baseUrl: BIOHERBS_BASE,
         isActive: true,
         refreshIntervalMinutes: 60,
       });
-      this.logger.log('Registered external website: Books to Scrape');
+      this.logger.log('Registered external website: BioHerbs');
     }
   }
 
   async listWebsites(): Promise<ExternalWebsite[]> {
-    return this.websiteModel.find({ isActive: true }).sort({ name: 1 }).lean().exec();
+    return this.websiteModel
+      .find({ isActive: true, slug: BIOHERBS_SLUG })
+      .sort({ name: 1 })
+      .lean()
+      .exec();
   }
 
   async getWebsite(slug: string): Promise<ExternalWebsite> {
@@ -64,8 +68,7 @@ export class IntegrationsService implements OnModuleInit {
   }
 
   /**
-   * Catalog for a website. For Books to Scrape: returns categories and products from DB;
-   * if DB is empty for this site, runs initial scrape and then returns.
+   * Catalogue pour un site intégré (BioHerbs uniquement).
    */
   async getCatalog(
     websiteSlug: string,
@@ -84,21 +87,18 @@ export class IntegrationsService implements OnModuleInit {
       imageUrls: string[];
     }>;
   }> {
-    if (websiteSlug !== BOOKS_TO_SCRAPE_SLUG) {
-      throw new NotFoundException(`Scraper for ${websiteSlug} not implemented`);
-    }
-
     const website = await this.getWebsite(websiteSlug);
     const websiteId = (website as unknown as { _id: Types.ObjectId })._id;
-
-    let categories = await fetchBooksCategories();
     const limit = 20;
     const skip = ((page ?? 1) - 1) * limit;
+
+    if (websiteSlug !== BIOHERBS_SLUG) {
+      throw new NotFoundException(`Website ${websiteSlug} not supported`);
+    }
 
     if ((page ?? 1) === 1 && forceRefresh) {
       await this.productModel.deleteMany({ websiteId }).exec();
     }
-
     let products = await this.productModel
       .find({ websiteId })
       .sort({ name: 1 })
@@ -106,9 +106,8 @@ export class IntegrationsService implements OnModuleInit {
       .limit(limit)
       .lean()
       .exec();
-
     if (products.length === 0 && (page ?? 1) === 1) {
-      await this.syncBooksToScrapeCatalog(websiteId);
+      await this.syncBioherbsCatalog(websiteId);
       products = await this.productModel
         .find({ websiteId })
         .sort({ name: 1 })
@@ -117,19 +116,9 @@ export class IntegrationsService implements OnModuleInit {
         .lean()
         .exec();
     }
-
-    if (categorySlug) {
-      products = await this.productModel
-        .find({ websiteId, category: new RegExp(categorySlug, 'i') })
-        .sort({ name: 1 })
-        .skip(skip)
-        .limit(limit)
-        .lean()
-        .exec();
-    }
-
+    const categories = [{ name: 'Nos produits', slug: 'nos-produits', url: `${BIOHERBS_BASE}/collections/nos-produits` }];
     return {
-      categories: categories.map((c) => ({ name: c.name, slug: c.slug, url: c.url })),
+      categories,
       products: products.map((p) => ({
         externalId: p.externalId,
         name: p.name,
@@ -142,8 +131,8 @@ export class IntegrationsService implements OnModuleInit {
     };
   }
 
-  private async syncBooksToScrapeCatalog(websiteId: Types.ObjectId): Promise<void> {
-    const list = await fetchAllBooksProducts();
+  private async syncBioherbsCatalog(websiteId: Types.ObjectId): Promise<void> {
+    const list = await fetchAllBioherbsProducts();
     for (const item of list) {
       await this.productModel
         .findOneAndUpdate(
@@ -165,39 +154,41 @@ export class IntegrationsService implements OnModuleInit {
         )
         .exec();
     }
-    this.logger.log(`Synced ${list.length} products for Books to Scrape`);
+    this.logger.log(`Synced ${list.length} products for BioHerbs`);
   }
 
   async getProduct(websiteSlug: string, externalId: string): Promise<ExternalProduct & { lastScrapedAt?: Date }> {
-    if (websiteSlug !== BOOKS_TO_SCRAPE_SLUG) {
-      throw new NotFoundException(`Scraper for ${websiteSlug} not implemented`);
+    if (websiteSlug !== BIOHERBS_SLUG) {
+      throw new NotFoundException(`Website ${websiteSlug} not supported`);
     }
-
     const website = await this.getWebsite(websiteSlug);
     const websiteId = (website as unknown as { _id: Types.ObjectId })._id;
-
-    let product = await this.productModel
-      .findOne({ websiteId, externalId })
+    const product = await this.productModel.findOne({ websiteId, externalId }).lean().exec();
+    if (product) return product as ExternalProduct & { lastScrapedAt?: Date };
+    const list = await fetchBioherbsProducts(1, 100);
+    const found = list.products.find((p) => p.externalId === externalId);
+    if (!found) throw new NotFoundException('Product not found');
+    const created = await this.productModel
+      .findOneAndUpdate(
+        { websiteId, externalId: found.externalId },
+        {
+          $set: {
+            websiteId,
+            externalId: found.externalId,
+            name: found.name,
+            price: found.price,
+            availability: found.availability,
+            category: found.category,
+            productUrl: found.productUrl,
+            imageUrls: found.imageUrls ?? [],
+            lastScrapedAt: new Date(),
+          },
+        },
+        { upsert: true, new: true },
+      )
       .lean()
       .exec();
-
-    if (!product) {
-      const list = await fetchBooksProductList();
-      const found = list.products.find((p) => p.externalId === externalId);
-      if (!found) throw new NotFoundException('Product not found');
-      const full = await fetchBooksProductDetail(found.productUrl);
-      if (!full) throw new NotFoundException('Product detail not found');
-      product = await this.productModel
-        .findOneAndUpdate(
-          { websiteId, externalId: full.externalId },
-          { $set: this.bookProductToDoc(websiteId, full) },
-          { upsert: true, new: true },
-        )
-        .lean()
-        .exec();
-    }
-
-    return product as ExternalProduct & { lastScrapedAt?: Date };
+    return created as ExternalProduct & { lastScrapedAt?: Date };
   }
 
   /**
@@ -207,45 +198,10 @@ export class IntegrationsService implements OnModuleInit {
     websiteSlug: string,
     externalId: string,
   ): Promise<ExternalProduct & { lastScrapedAt?: Date }> {
-    if (websiteSlug !== BOOKS_TO_SCRAPE_SLUG) {
-      throw new NotFoundException(`Scraper for ${websiteSlug} not implemented`);
+    if (websiteSlug !== BIOHERBS_SLUG) {
+      throw new NotFoundException(`Website ${websiteSlug} not supported`);
     }
-
-    const website = await this.getWebsite(websiteSlug);
-    const websiteId = (website as unknown as { _id: Types.ObjectId })._id;
-    const existing = await this.productModel.findOne({ websiteId, externalId }).lean().exec();
-    const productUrl = existing?.productUrl ?? `${BOOKS_BASE}/catalogue/${externalId}/index.html`;
-    const full = await fetchBooksProductDetail(productUrl);
-    if (!full) throw new NotFoundException('Product no longer available');
-
-    const updated = await this.productModel
-      .findOneAndUpdate(
-        { websiteId, externalId },
-        { $set: this.bookProductToDoc(websiteId, full) },
-        { new: true },
-      )
-      .lean()
-      .exec();
-
-    return updated as ExternalProduct & { lastScrapedAt?: Date };
-  }
-
-  private bookProductToDoc(
-    websiteId: Types.ObjectId,
-    p: BookProduct,
-  ): Partial<ExternalProduct> {
-    return {
-      websiteId,
-      externalId: p.externalId,
-      name: p.name,
-      price: p.price,
-      availability: p.availability,
-      description: p.description,
-      imageUrls: p.imageUrls,
-      category: p.category,
-      productUrl: p.productUrl,
-      lastScrapedAt: new Date(),
-    };
+    return this.getProduct(websiteSlug, externalId);
   }
 
   /**
@@ -259,7 +215,7 @@ export class IntegrationsService implements OnModuleInit {
       productName?: string;
       formData: Record<string, string>;
     },
-  ): Promise<{ orderId: string; status: string; sentToSiteAt: Date | null; message: string }> {
+  ): Promise<{ orderId: string; status: string; sentToSiteAt: Date | null; message: string; cartUrl?: string }> {
     const website = await this.getWebsite(websiteSlug);
     const websiteId = (website as unknown as { _id: Types.ObjectId })._id;
 
@@ -274,9 +230,17 @@ export class IntegrationsService implements OnModuleInit {
 
     const websiteDoc = await this.websiteModel.findOne({ slug: websiteSlug }).lean().exec();
     const formActionUrl = websiteDoc?.formActionUrl?.trim();
+    let cartUrl: string | undefined;
 
     try {
-      if (formActionUrl) {
+      if (websiteSlug === BIOHERBS_SLUG) {
+        const product = await fetchBioherbsProductByHandle(payload.externalId);
+        if (!product) throw new Error('Produit introuvable sur BioHerbs');
+        cartUrl = await addBioherbsToCart(product.variantId, payload.quantity ?? order.quantity ?? 1);
+        order.sentToSiteAt = new Date();
+        order.status = 'sent';
+        await order.save();
+      } else if (formActionUrl) {
         await this.sendOrderToExternalSite(
           websiteDoc as ExternalWebsite & { _id: Types.ObjectId },
           order,
@@ -286,7 +250,6 @@ export class IntegrationsService implements OnModuleInit {
         order.status = 'sent';
         await order.save();
       }
-      // Books to Scrape n’a pas de formActionUrl : pas d’envoi réel.
     } catch (e) {
       this.logger.warn(
         `Order ${order._id} saved but send to site failed: ${(e as Error).message}`,
@@ -296,7 +259,9 @@ export class IntegrationsService implements OnModuleInit {
     const sentAt = order.sentToSiteAt ?? null;
     const message =
       order.status === 'sent'
-        ? 'Commande enregistrée et envoyée au site. Le site vous contactera pour la livraison.'
+        ? (websiteSlug === BIOHERBS_SLUG && cartUrl
+            ? 'Produit ajouté au panier BioHerbs. Cliquez pour finaliser la commande sur le site.'
+            : 'Commande enregistrée et envoyée au site. Le site vous contactera pour la livraison.')
         : 'Commande enregistrée. Elle n’a pas encore été transmise au site (en attente ou erreur).';
 
     return {
@@ -304,6 +269,7 @@ export class IntegrationsService implements OnModuleInit {
       status: order.status,
       sentToSiteAt: sentAt,
       message,
+      ...(cartUrl && { cartUrl }),
     };
   }
 

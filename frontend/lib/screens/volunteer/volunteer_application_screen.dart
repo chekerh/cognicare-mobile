@@ -177,30 +177,36 @@ class _VolunteerApplicationScreenState extends State<VolunteerApplicationScreen>
     final file = result.files.single;
     final path = file.path;
     if (path == null || path.isEmpty) {
-      if (mounted) _showErrorDialog(
-        title: 'Fichier non accessible',
-        message: 'Le fichier sélectionné n\'est pas accessible sur cet appareil.',
-        suggestions: ['Vérifiez les permissions', 'Réessayez avec un autre fichier'],
-      );
+      if (mounted) {
+        _showErrorDialog(
+          title: 'Fichier non accessible',
+          message: 'Le fichier sélectionné n\'est pas accessible sur cet appareil.',
+          suggestions: ['Vérifiez les permissions', 'Réessayez avec un autre fichier'],
+        );
+      }
       return;
     }
     final f = File(path);
     if (!await f.exists()) {
-      if (mounted) _showErrorDialog(
-        title: 'Fichier introuvable',
-        message: 'Le fichier n\'existe plus ou a été déplacé.',
-        suggestions: ['Sélectionnez un autre fichier'],
-      );
+      if (mounted) {
+        _showErrorDialog(
+          title: 'Fichier introuvable',
+          message: 'Le fichier n\'existe plus ou a été déplacé.',
+          suggestions: ['Sélectionnez un autre fichier'],
+        );
+      }
       return;
     }
 
     final extension = path.split('.').last.toLowerCase();
     if (!['jpg', 'jpeg', 'png', 'webp', 'pdf'].contains(extension)) {
-      if (mounted) _showErrorDialog(
-        title: 'Type de fichier invalide',
-        message: 'Le format .$extension n\'est pas accepté.',
-        suggestions: ['Formats acceptés : JPG, JPEG, PNG, WebP, PDF'],
-      );
+      if (mounted) {
+        _showErrorDialog(
+          title: 'Type de fichier invalide',
+          message: 'Le format .$extension n\'est pas accepté.',
+          suggestions: ['Formats acceptés : JPG, JPEG, PNG, WebP, PDF'],
+        );
+      }
       return;
     }
 

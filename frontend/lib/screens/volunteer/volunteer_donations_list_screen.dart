@@ -441,7 +441,7 @@ class _VolunteerDonationsListScreenState
               borderRadius: BorderRadius.circular(16),
               child: InkWell(
                 onTap: () {
-                  // TODO: ouvrir filtre avancé si besoin
+                  // Filtre avancé (à implémenter si besoin)
                 },
                 borderRadius: BorderRadius.circular(16),
                 child: const Padding(
