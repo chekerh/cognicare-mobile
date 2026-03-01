@@ -53,6 +53,8 @@ class AppConstants {
       '/api/v1/community/follow-requests/$id/accept';
   static String communityFollowRequestDeclineEndpoint(String id) =>
       '/api/v1/community/follow-requests/$id/decline';
+  static String communityFollowRequestCancelEndpoint(String id) =>
+      '/api/v1/community/follow-requests/$id/cancel';
 
   // Marketplace
   static const String marketplaceProductsEndpoint =

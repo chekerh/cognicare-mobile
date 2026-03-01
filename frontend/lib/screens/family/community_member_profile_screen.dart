@@ -68,6 +68,7 @@ class CommunityMemberProfileScreen extends StatefulWidget {
 class _CommunityMemberProfileScreenState
     extends State<CommunityMemberProfileScreen> {
   String? _followStatus;
+  String? _followRequestId;
   bool _followLoading = false;
 
   @override
@@ -79,11 +80,19 @@ class _CommunityMemberProfileScreenState
   Future<void> _loadFollowStatus() async {
     if (widget.memberId.isEmpty) return;
     try {
-      final status =
+      final result =
           await CommunityService().getFollowStatus(widget.memberId);
-      if (mounted) setState(() => _followStatus = status);
+      if (mounted) {
+        setState(() {
+          _followStatus = result?.status;
+          _followRequestId = result?.requestId;
+        });
+      }
     } catch (_) {
-      if (mounted) setState(() => _followStatus = null);
+      if (mounted) setState(() {
+        _followStatus = null;
+        _followRequestId = null;
+      });
     }
   }
 
@@ -262,9 +271,11 @@ class _CommunityMemberProfileScreenState
                           child: CircularProgressIndicator(strokeWidth: 2))),
                 )
               : ElevatedButton.icon(
-                  onPressed: (isPending || isAccepted)
+                  onPressed: isAccepted
                       ? null
-                      : () => _onFollowTap(context),
+                      : isPending
+                          ? () => _onCancelRequest(context)
+                          : () => _onFollowTap(context),
                   icon: Icon(
                       isAccepted ? Icons.people : Icons.person_add,
                       size: 20),
@@ -294,15 +305,47 @@ class _CommunityMemberProfileScreenState
     if (widget.memberId.isEmpty) return;
     setState(() => _followLoading = true);
     try {
-      await CommunityService().createFollowRequest(widget.memberId);
+      final result = await CommunityService().createFollowRequest(widget.memberId);
       if (!mounted) return;
       setState(() {
         _followLoading = false;
         _followStatus = 'pending';
+        _followRequestId = result.requestId;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.followRequestSent),
+          backgroundColor: _secondary,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _followLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _onCancelRequest(BuildContext context) async {
+    if (_followRequestId == null || _followRequestId!.isEmpty) return;
+    setState(() => _followLoading = true);
+    try {
+      await CommunityService().cancelFollowRequest(_followRequestId!);
+      if (!mounted) return;
+      setState(() {
+        _followLoading = false;
+        _followStatus = null;
+        _followRequestId = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.followRequestCancelled),
           backgroundColor: _secondary,
           behavior: SnackBarBehavior.floating,
         ),

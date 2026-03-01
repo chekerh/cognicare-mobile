@@ -214,4 +214,16 @@ export class CommunityController {
     await this.communityService.declineFollowRequest(requestId, req.user.id);
     return { success: true };
   }
+
+  @Post('follow-requests/:id/cancel')
+  @ApiOperation({ summary: 'Cancel your own follow request (requester withdraws)' })
+  @ApiResponse({ status: 200, description: 'Cancelled' })
+  @ApiResponse({ status: 403, description: 'Not the requester' })
+  async cancelFollowRequest(
+    @Request() req: { user: { id: string } },
+    @Param('id') requestId: string,
+  ) {
+    await this.communityService.cancelFollowRequest(requestId, req.user.id);
+    return { success: true };
+  }
 }

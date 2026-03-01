@@ -228,14 +228,16 @@ class CommunityService {
   }
 
   /// Get follow status from current user toward [targetUserId].
-  /// Returns status: "pending" | "accepted" | "declined" or null if no request.
-  Future<String?> getFollowStatus(String targetUserId) async {
+  /// Returns status and requestId (when pending, for cancel).
+  Future<FollowStatusResult?> getFollowStatus(String targetUserId) async {
     final uri = Uri.parse(
         '${AppConstants.baseUrl}${AppConstants.communityFollowRequestsStatusEndpoint}?targetUserId=${Uri.encodeComponent(targetUserId)}');
     final response = await _client.get(uri, headers: await _headers());
     if (response.statusCode != 200) return null;
     final data = jsonDecode(response.body) as Map<String, dynamic>;
-    return data['status'] as String?;
+    final status = data['status'] as String?;
+    final requestId = data['requestId'] as String?;
+    return FollowStatusResult(status: status, requestId: requestId);
   }
 
   /// Accept a follow request (caller must be the target user).
@@ -251,6 +253,23 @@ class CommunityService {
       } catch (e) {
         if (e is Exception) rethrow;
         throw Exception('Failed to accept: ${response.statusCode}');
+      }
+    }
+  }
+
+  /// Cancel your own follow request (requester withdraws).
+  Future<void> cancelFollowRequest(String requestId) async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.communityFollowRequestCancelEndpoint(requestId)}');
+    final response = await _client.post(uri, headers: await _headers());
+    if (response.statusCode != 200) {
+      final body = response.body;
+      try {
+        final err = jsonDecode(body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Failed to cancel');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Failed to cancel: ${response.statusCode}');
       }
     }
   }
@@ -295,4 +314,10 @@ class FollowRequestResult {
   const FollowRequestResult({required this.requestId, required this.status});
   final String requestId;
   final String status;
+}
+
+class FollowStatusResult {
+  const FollowStatusResult({this.status, this.requestId});
+  final String? status;
+  final String? requestId;
 }

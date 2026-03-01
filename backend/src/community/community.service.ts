@@ -389,7 +389,7 @@ export class CommunityService {
   async getFollowStatus(
     currentUserId: string,
     targetUserId: string,
-  ): Promise<{ status: FollowRequestStatus | null }> {
+  ): Promise<{ status: FollowRequestStatus | null; requestId?: string | null }> {
     const doc = await this.followRequestModel
       .findOne({
         requesterId: new Types.ObjectId(currentUserId),
@@ -397,7 +397,11 @@ export class CommunityService {
       })
       .lean()
       .exec();
-    return { status: doc?.status ?? null };
+    const d = doc as { _id: Types.ObjectId; status: string } | null;
+    return {
+      status: (d?.status as FollowRequestStatus) ?? null,
+      requestId: d?._id?.toString() ?? null,
+    };
   }
 
   async listPendingFollowRequests(
@@ -453,6 +457,24 @@ export class CommunityService {
     doc.status = 'accepted';
     doc.updatedAt = new Date();
     await doc.save();
+  }
+
+  /** Annuler sa propre demande de suivi (le demandeur retire sa demande). */
+  async cancelFollowRequest(
+    requestId: string,
+    userId: string,
+  ): Promise<void> {
+    const doc = await this.followRequestModel.findById(requestId).exec();
+    if (!doc) throw new NotFoundException('Follow request not found');
+    if (!doc.requesterId.equals(new Types.ObjectId(userId))) {
+      throw new ForbiddenException('Only the requester can cancel their request');
+    }
+    if (doc.status !== 'pending') {
+      throw new BadRequestException('Request is no longer pending');
+    }
+    const targetId = doc.targetId.toString();
+    await this.notifications.deleteByFollowRequestId(targetId, requestId);
+    await this.followRequestModel.deleteOne({ _id: doc._id }).exec();
   }
 
   /** Refuser une demande de suivi : suppression totale (demande + notification). Le demandeur (ex. Malek) pourra renvoyer une demande. */
