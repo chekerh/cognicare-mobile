@@ -2473,6 +2473,8 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get tabHealthcare => 'الرعاية الصحية';
   @override
+  String get tabCareProvider => 'مقدم الرعاية';
+  @override
   String get conversationsTitle => 'المحادثات';
   @override
   String get searchFamilyFriends => 'ابحث عن العائلة والأصدقاء';

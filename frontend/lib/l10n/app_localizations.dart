@@ -1234,6 +1234,7 @@ abstract class AppLocalizations {
   String get tabFamilies;
   String get tabVolunteers;
   String get tabHealthcare;
+  String get tabCareProvider;
   String get conversationsTitle;
   String get searchFamilyFriends;
   String get noOtherFamiliesYet;

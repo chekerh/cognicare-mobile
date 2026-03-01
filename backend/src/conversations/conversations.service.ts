@@ -44,6 +44,23 @@ export class ConversationsService {
 
   private _encryptionKey: Buffer | null = null;
 
+  /** True if the role is a care provider (doctor, careProvider, psychologist, etc.). */
+  private isHealthcareRole(roleLower: string): boolean {
+    if (!roleLower) return false;
+    return (
+      roleLower === 'healthcare' ||
+      roleLower.includes('healthcare') ||
+      [
+        'doctor',
+        'careprovider',
+        'psychologist',
+        'speech_therapist',
+        'occupational_therapist',
+        'organization_leader',
+      ].includes(roleLower)
+    );
+  }
+
   /** Derive a 32-byte AES key from env (MESSAGES_ENCRYPTION_KEY) or a fallback string. */
   private getEncryptionKey(): Buffer {
     if (this._encryptionKey) return this._encryptionKey;
@@ -217,7 +234,7 @@ export class ConversationsService {
           ? 'benevole'
           : roleLower === 'family'
             ? 'families'
-            : roleLower === 'healthcare' || roleLower.includes('healthcare')
+            : this.isHealthcareRole(roleLower)
               ? 'healthcare'
               : ((c.segment as ConversationSegment) ?? 'persons');
       const displayName = otherId
@@ -307,25 +324,25 @@ export class ConversationsService {
     // Segment for the user making the request (current user)
     const segmentForCurrentUser: ConversationSegment =
       otherRole === 'volunteer'
-        ? 'benevole' // current user talks to a volunteer
+        ? 'benevole'
         : otherRole === 'family'
-          ? 'families' // current user talks to a family
-          : otherRole === 'healthcare' || otherRole.includes('healthcare')
-            ? 'healthcare' // current user talks to healthcare / care provider
+          ? 'families'
+          : this.isHealthcareRole(otherRole)
+            ? 'healthcare'
             : 'persons';
 
     // Segment for the other side (so that conversations appear correctly in their inbox)
     const segmentForOtherUser: ConversationSegment =
       role === 'volunteer' && otherRole === 'family'
-        ? 'benevole' // family sees volunteer under "Benevole"
+        ? 'benevole'
         : role === 'family' && otherRole === 'volunteer'
-          ? 'families' // volunteer sees family under "Familles"
+          ? 'families'
           : role === 'volunteer'
             ? 'benevole'
             : role === 'family'
               ? 'families'
-              : role === 'healthcare'
-                ? 'healthcare' // other user sees healthcare under "Healthcare"
+              : this.isHealthcareRole(role ?? '')
+                ? 'healthcare'
                 : 'persons';
     const [created] = await this.conversationModel.create([
       {

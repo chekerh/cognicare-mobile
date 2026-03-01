@@ -2075,6 +2075,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tabHealthcare => 'Care provider';
   @override
+  String get tabCareProvider => 'Care provider';
+  @override
   String get conversationsTitle => 'Conversations';
   @override
   String get searchFamilyFriends => 'Search family & friends';
