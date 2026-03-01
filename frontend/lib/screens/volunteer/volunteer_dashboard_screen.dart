@@ -117,8 +117,13 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
     try {
       final list = await HealthcareService().getHealthcareProfessionals();
       if (!mounted) return;
+      final currentUserId =
+          Provider.of<AuthProvider>(context, listen: false).user?.id;
+      final filtered = currentUserId != null
+          ? list.where((u) => u.id != currentUserId).toList()
+          : list;
       setState(() {
-        _healthcareUsers = list;
+        _healthcareUsers = filtered;
         _healthcareLoading = false;
         _healthcareError = null;
       });

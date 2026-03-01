@@ -21,6 +21,15 @@ const Color _bgSoft = Color(0xFFEEF7FB);
 const Color _textPrimary = Color(0xFF1E293B);
 const Color _textMuted = Color(0xFF64748B);
 
+String _fullImageUrl(String path) {
+  if (path.isEmpty) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  final base = AppConstants.baseUrl.endsWith('/')
+      ? AppConstants.baseUrl.substring(0, AppConstants.baseUrl.length - 1)
+      : AppConstants.baseUrl;
+  return path.startsWith('/') ? '$base$path' : '$base/$path';
+}
+
 class _Msg {
   final String text;
   final bool isMe;
@@ -49,6 +58,7 @@ class VolunteerFamilyChatScreen extends StatefulWidget {
     required this.familyName,
     required this.missionType,
     this.conversationId,
+    this.otherUserImageUrl,
   });
 
   final String familyId;
@@ -58,6 +68,9 @@ class VolunteerFamilyChatScreen extends StatefulWidget {
   /// When set, messages are loaded/sent with this conversation (no getOrCreateConversation).
   final String? conversationId;
 
+  /// Profile image URL of the user we're chatting with (family or healthcare).
+  final String? otherUserImageUrl;
+
   static VolunteerFamilyChatScreen fromState(GoRouterState state) {
     final extra = state.extra as Map<String, dynamic>?;
     return VolunteerFamilyChatScreen(
@@ -65,6 +78,7 @@ class VolunteerFamilyChatScreen extends StatefulWidget {
       familyName: extra?['familyName'] as String? ?? 'Famille',
       missionType: extra?['missionType'] as String? ?? 'Mission',
       conversationId: extra?['conversationId'] as String?,
+      otherUserImageUrl: extra?['familyProfilePic'] as String?,
     );
   }
 
@@ -629,7 +643,19 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
                   color: Colors.grey.shade200,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.group, color: _textMuted, size: 22),
+                child: ClipOval(
+                  child: widget.otherUserImageUrl != null &&
+                          widget.otherUserImageUrl!.isNotEmpty
+                      ? Image.network(
+                          _fullImageUrl(widget.otherUserImageUrl!),
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                              Icons.group, color: _textMuted, size: 22),
+                        )
+                      : const Icon(Icons.group, color: _textMuted, size: 22),
+                ),
               ),
               if (_isOnline == true)
                 Positioned(
@@ -735,11 +761,15 @@ class _VolunteerFamilyChatScreenState extends State<VolunteerFamilyChatScreen> {
       isVideo: isVideo,
       callerName: caller.fullName,
     );
+    final remoteImageUrl = widget.otherUserImageUrl != null &&
+            widget.otherUserImageUrl!.isNotEmpty
+        ? _fullImageUrl(widget.otherUserImageUrl!)
+        : null;
     context.push(AppConstants.callRoute, extra: {
       'channelId': channelId,
       'remoteUserId': widget.familyId,
       'remoteUserName': widget.familyName,
-      'remoteImageUrl': null,
+      'remoteImageUrl': remoteImageUrl,
       'isVideo': isVideo,
       'isIncoming': false,
     });
