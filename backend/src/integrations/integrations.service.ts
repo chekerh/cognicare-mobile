@@ -240,7 +240,9 @@ export class IntegrationsService implements OnModuleInit {
     });
 
     const customerEmail = payload.formData?.email?.trim();
-    if (customerEmail) {
+    const isBioherbs = websiteSlug === BIOHERBS_SLUG;
+    // Pour BioHerbs, on n'envoie pas l'email CogniCare "Commande enregistrée" ; on enverra après Puppeteer un email indiquant que la confirmation viendra de BioHerbs.
+    if (customerEmail && !isBioherbs) {
       await this.mailService.sendOrderConfirmationToCustomer(customerEmail, {
         orderId: orderIdStr,
         productName: order.productName,
@@ -277,8 +279,28 @@ export class IntegrationsService implements OnModuleInit {
               `BioHerbs Puppeteer failed for order ${order._id}. No BioHerbs email will be sent. Error: ${result.error}`,
             );
           }
+          // Email client BioHerbs : indique que la confirmation viendra de BioHerbs (pas CogniCare).
+          if (customerEmail) {
+            await this.mailService.sendBioherbsOrderConfirmationToCustomer(
+              customerEmail,
+              {
+                orderId: orderIdStr,
+                productName: order.productName,
+                quantity: order.quantity,
+                sentToBioherbs: result.success,
+              },
+            );
+          }
         } else {
           this.logger.warn(`BioHerbs: product handle "${payload.externalId}" not found, skipping Puppeteer submission`);
+          if (customerEmail) {
+            await this.mailService.sendBioherbsOrderConfirmationToCustomer(customerEmail, {
+              orderId: orderIdStr,
+              productName: order.productName,
+              quantity: order.quantity,
+              sentToBioherbs: false,
+            });
+          }
         }
       } else if (formActionUrl) {
         await this.sendOrderToExternalSite(

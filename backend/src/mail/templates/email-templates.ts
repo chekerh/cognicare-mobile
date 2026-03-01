@@ -498,3 +498,37 @@ export const getOrderConfirmationTemplate = (params: {
     </div>
   `;
 };
+
+/**
+ * Email envoyé au client après une commande BioHerbs : indique que la confirmation viendra de BioHerbs.
+ * On n'envoie pas l'email CogniCare "Commande enregistrée" pour BioHerbs, afin que le client reçoive
+ * l'email de confirmation réel de BioHerbs.
+ */
+export const getBioherbsOrderConfirmationTemplate = (params: {
+  orderId: string;
+  productName: string;
+  quantity: number;
+  sentToBioherbs: boolean;
+}): string => {
+  const mainMessage = params.sentToBioherbs
+    ? 'Votre commande a été transmise à BioHerbs Tunisie. <strong>Vous recevrez sous peu un email de confirmation directement de BioHerbs</strong> à cette adresse (vérifiez vos courriers indésirables si besoin).'
+    : 'Votre commande est enregistrée. Nous la transmettons à BioHerbs ; vous recevrez un email de confirmation de BioHerbs dès que possible.';
+  return `
+    <div style="text-align: center;">
+      <h2 style="color: #5A5A5A; font-size: 24px; margin-bottom: 20px;">
+        Commande transmise à BioHerbs
+      </h2>
+      <p style="color: #5A5A5A; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+        ${mainMessage}
+      </p>
+      <div style="background-color: #f9f9f9; border: 2px dashed #A4D7E1; border-radius: 12px; padding: 24px; margin: 30px 0; text-align: left;">
+        <p style="color: #5A5A5A; font-size: 14px; margin-bottom: 8px;"><strong>Référence :</strong> #${params.orderId}</p>
+        <p style="color: #5A5A5A; font-size: 14px; margin-bottom: 8px;"><strong>Produit :</strong> ${params.productName}</p>
+        <p style="color: #5A5A5A; font-size: 14px; margin: 0;"><strong>Quantité :</strong> ${params.quantity}</p>
+      </div>
+      <p style="color: #5A5A5A; font-size: 14px; line-height: 1.6;">
+        L’email de confirmation officiel viendra de <strong>BioHerbs Tunisie</strong>, pas de CogniCare.
+      </p>
+    </div>
+  `;
+};
