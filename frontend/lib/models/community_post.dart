@@ -3,6 +3,7 @@ class CommunityPost {
   final String id;
   final String authorName;
   final String authorId;
+  final String? authorProfilePic;
   final String text;
   final DateTime createdAt;
   final bool hasImage;
@@ -15,6 +16,7 @@ class CommunityPost {
     required this.id,
     required this.authorName,
     required this.authorId,
+    this.authorProfilePic,
     required this.text,
     required this.createdAt,
     this.hasImage = false,
@@ -26,6 +28,7 @@ class CommunityPost {
         'id': id,
         'authorName': authorName,
         'authorId': authorId,
+        if (authorProfilePic != null) 'authorProfilePic': authorProfilePic,
         'text': text,
         'createdAt': createdAt.toIso8601String(),
         'hasImage': hasImage,
@@ -37,6 +40,7 @@ class CommunityPost {
         id: json['id'] as String,
         authorName: json['authorName'] as String,
         authorId: json['authorId'] as String,
+        authorProfilePic: json['authorProfilePic'] as String?,
         text: json['text'] as String,
         createdAt: DateTime.parse(json['createdAt'] as String),
         hasImage: json['hasImage'] as bool? ?? false,

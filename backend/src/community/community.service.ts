@@ -130,6 +130,7 @@ export class CommunityService {
       id: string;
       authorName: string;
       authorId: string;
+      authorProfilePic?: string | null;
       text: string;
       createdAt: string;
       hasImage: boolean;
@@ -147,6 +148,22 @@ export class CommunityService {
       .exec();
 
     const postIds = (posts as PostLean[]).map((p) => p._id);
+    const authorIds = [
+      ...new Set(
+        (posts as PostLean[]).map((p) => p.authorId.toString()),
+      ),
+    ];
+    const users = await this.userModel
+      .find({ _id: { $in: authorIds.map((id) => new Types.ObjectId(id)) } })
+      .select('profilePic')
+      .lean()
+      .exec();
+    const profilePicByAuthorId = new Map<string, string>();
+    for (const u of users as { _id: Types.ObjectId; profilePic?: string }[]) {
+      const id = u._id.toString();
+      if (u.profilePic) profilePicByAuthorId.set(id, u.profilePic);
+    }
+
     const commentCounts = await this.commentModel
       .aggregate<{ _id: Types.ObjectId; count: number }>([
         { $match: { postId: { $in: postIds } } },
@@ -162,6 +179,7 @@ export class CommunityService {
       id: p._id.toString(),
       authorId: p.authorId.toString(),
       authorName: p.authorName,
+      authorProfilePic: profilePicByAuthorId.get(p.authorId.toString()) ?? null,
       text: p.text,
       createdAt: p.createdAt.toISOString(),
       hasImage: !!p.imageUrl,

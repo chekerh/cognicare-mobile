@@ -1413,6 +1413,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
       return _buildPost(
         postId: post.id,
         name: post.authorName,
+        authorProfilePicUrl: post.authorProfilePic != null && post.authorProfilePic!.isNotEmpty
+            ? _fullImageUrl(post.authorProfilePic!)
+            : null,
         time: post.timeAgo,
         text: post.text,
         tagStyles: tagStyles,
@@ -1722,6 +1725,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   Widget _buildPost({
     required String postId,
     required String name,
+    String? authorProfilePicUrl,
     required String time,
     required String text,
     required List<(Color, String)> tagStyles,
@@ -1768,17 +1772,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     behavior: HitTestBehavior.opaque,
                     child: Row(
                       children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: _feedPrimary.withOpacity(0.4),
-                          child: Text(
-                            name.substring(0, 1).toUpperCase(),
-                            style: const TextStyle(
-                              color: AppTheme.text,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
+                        _buildPostAuthorAvatar(
+                          authorProfilePicUrl: authorProfilePicUrl,
+                          name: name,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -2088,6 +2084,45 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPostAuthorAvatar({String? authorProfilePicUrl, required String name}) {
+    const radius = 20.0;
+    final initial = name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?';
+    if (authorProfilePicUrl != null && authorProfilePicUrl.isNotEmpty) {
+      return ClipOval(
+        child: Image.network(
+          authorProfilePicUrl,
+          width: radius * 2,
+          height: radius * 2,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => CircleAvatar(
+            radius: radius,
+            backgroundColor: _feedPrimary.withOpacity(0.4),
+            child: Text(
+              initial,
+              style: const TextStyle(
+                color: AppTheme.text,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: _feedPrimary.withOpacity(0.4),
+      child: Text(
+        initial,
+        style: const TextStyle(
+          color: AppTheme.text,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
       ),
     );
   }

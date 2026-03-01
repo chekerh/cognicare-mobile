@@ -281,6 +281,7 @@ class CommunityService {
       id: id,
       authorName: e['authorName'] as String,
       authorId: e['authorId'] as String,
+      authorProfilePic: e['authorProfilePic'] as String?,
       text: e['text'] as String,
       createdAt: createdAt,
       hasImage: hasImage,
