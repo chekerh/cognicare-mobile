@@ -237,6 +237,15 @@ export class IntegrationsService implements OnModuleInit {
       formData: payload.formData ?? {},
     });
 
+    const customerEmail = payload.formData?.email?.trim();
+    if (customerEmail) {
+      await this.mailService.sendOrderConfirmationToCustomer(customerEmail, {
+        orderId: orderIdStr,
+        productName: order.productName,
+        quantity: order.quantity,
+      });
+    }
+
     const websiteDoc = await this.websiteModel.findOne({ slug: websiteSlug }).lean().exec();
     const formActionUrl = websiteDoc?.formActionUrl?.trim();
 

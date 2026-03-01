@@ -13,6 +13,7 @@ import {
   getOrganizationRejectedTemplate,
   getVolunteerApprovedTemplate,
   getVolunteerDeniedTemplate,
+  getOrderConfirmationTemplate,
 } from './templates/email-templates';
 
 @Injectable()
@@ -517,6 +518,44 @@ export class MailService {
       return true;
     } catch (err: unknown) {
       console.error('Failed to send order email to CogniCare:', err);
+      return false;
+    }
+  }
+
+  /**
+   * Envoie un email de confirmation à l'utilisateur : "Votre commande sera bientôt traitée".
+   */
+  async sendOrderConfirmationToCustomer(
+    customerEmail: string,
+    params: { orderId: string; productName: string; quantity: number },
+  ): Promise<boolean> {
+    if (!this.apiKey || !this.from) {
+      console.warn(
+        'Skipping order confirmation email: SENDGRID_API_KEY or MAIL_FROM not configured',
+      );
+      return false;
+    }
+    if (!customerEmail?.trim()) {
+      console.warn('Skipping order confirmation: no customer email');
+      return false;
+    }
+
+    const emailContent = getOrderConfirmationTemplate(params);
+    const htmlContent = getEmailBaseTemplate(emailContent);
+
+    const msg = {
+      to: customerEmail.trim(),
+      from: this.from,
+      subject: `CogniCare - Commande #${params.orderId} enregistrée`,
+      html: htmlContent,
+    };
+
+    try {
+      await sgMail.send(msg);
+      console.log(`Order confirmation email sent to ${customerEmail}`);
+      return true;
+    } catch (err: unknown) {
+      console.error('Failed to send order confirmation to customer:', err);
       return false;
     }
   }

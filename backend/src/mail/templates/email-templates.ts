@@ -455,3 +455,46 @@ export const getVolunteerDeniedTemplate = (
     </div>
   `;
 };
+
+/**
+ * Email envoyé à l'utilisateur après une commande : confirmation que la commande sera bientôt traitée.
+ */
+export const getOrderConfirmationTemplate = (params: {
+  orderId: string;
+  productName: string;
+  quantity: number;
+}): string => {
+  return `
+    <div style="text-align: center;">
+      <h2 style="color: #5A5A5A; font-size: 24px; margin-bottom: 20px;">
+        Commande enregistrée
+      </h2>
+      <p style="color: #5A5A5A; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+        Merci pour votre commande ! Nous avons bien reçu votre demande.
+      </p>
+      
+      <div style="background-color: #f9f9f9; border: 2px dashed #A4D7E1; border-radius: 12px; padding: 24px; margin: 30px 0; text-align: left;">
+        <p style="color: #5A5A5A; font-size: 14px; margin-bottom: 8px;">
+          <strong>Référence :</strong> #${params.orderId}
+        </p>
+        <p style="color: #5A5A5A; font-size: 14px; margin-bottom: 8px;">
+          <strong>Produit :</strong> ${params.productName}
+        </p>
+        <p style="color: #5A5A5A; font-size: 14px; margin: 0;">
+          <strong>Quantité :</strong> ${params.quantity}
+        </p>
+      </div>
+
+      <div style="background-color: #E8F7F9; border-left: 4px solid #A4D7E1; padding: 15px; margin: 30px 0; text-align: left;">
+        <p style="color: #5A5A5A; font-size: 15px; margin: 0;">
+          <strong>Votre commande sera bientôt traitée.</strong><br/>
+          Notre équipe vous recontactera pour confirmer la livraison et le paiement.
+        </p>
+      </div>
+
+      <p style="color: #5A5A5A; font-size: 14px; line-height: 1.6; margin-top: 30px;">
+        Une question ? Contactez-nous à <a href="mailto:support@cognicare.com" style="color: #A4D7E1; text-decoration: none;">support@cognicare.com</a>
+      </p>
+    </div>
+  `;
+};
