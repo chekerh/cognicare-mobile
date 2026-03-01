@@ -245,8 +245,17 @@ class CommunityService {
 
   /// List of accepted friends (people I follow or who follow me).
   Future<List<CommunityFriend>> getFriends() async {
-    final uri = Uri.parse(
-        '${AppConstants.baseUrl}${AppConstants.communityFriendsEndpoint}');
+    return getFriendsOfUser('');
+  }
+
+  /// List of friends of [userId]. If [userId] is empty, returns current user's friends.
+  Future<List<CommunityFriend>> getFriendsOfUser(String userId) async {
+    final uri = userId.isEmpty
+        ? Uri.parse(
+            '${AppConstants.baseUrl}${AppConstants.communityFriendsEndpoint}')
+        : Uri.parse(
+                '${AppConstants.baseUrl}${AppConstants.communityFriendsEndpoint}')
+            .replace(queryParameters: {'userId': userId});
     final response = await _client.get(uri, headers: await _headers());
     if (response.statusCode != 200) return [];
     final list = jsonDecode(response.body) as List<dynamic>?;

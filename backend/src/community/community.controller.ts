@@ -197,10 +197,18 @@ export class CommunityController {
   }
 
   @Get('follow-requests/friends')
-  @ApiOperation({ summary: 'List accepted friends (people I follow or who follow me)' })
+  @ApiOperation({
+    summary:
+      'List accepted friends (mine or of another user for profile view)',
+  })
   @ApiResponse({ status: 200, description: 'List of { id, fullName, profilePic }' })
-  async listFriends(@Request() req: { user: { id: string } }) {
-    return this.communityService.listFriends(req.user.id);
+  async listFriends(
+    @Request() req: { user: { id: string } },
+    @Query('userId') userId?: string,
+  ) {
+    const targetUserId =
+      userId && userId.trim() ? userId.trim() : req.user.id;
+    return this.communityService.listFriends(targetUserId);
   }
 
   @Post('follow-requests/:id/accept')
