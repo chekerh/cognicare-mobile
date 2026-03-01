@@ -216,14 +216,23 @@ export class TrainingService {
     });
   }
 
-  /** Mark content as completed (user finished reading) */
+  /** Mark content as completed (user finished reading). Auto-enrolls if not yet enrolled. */
   async markContentCompleted(userId: string, courseId: string) {
-    const enrollment = await this.enrollmentModel
+    let enrollment = await this.enrollmentModel
       .findOne({
         userId: new Types.ObjectId(userId),
         courseId: new Types.ObjectId(courseId),
       })
       .exec();
+    if (!enrollment) {
+      await this.enroll(userId, courseId);
+      enrollment = await this.enrollmentModel
+        .findOne({
+          userId: new Types.ObjectId(userId),
+          courseId: new Types.ObjectId(courseId),
+        })
+        .exec();
+    }
     if (!enrollment) throw new NotFoundException('Enrollment not found');
     enrollment.contentCompleted = true;
     enrollment.progressPercent = Math.max(
@@ -267,12 +276,21 @@ export class TrainingService {
     const scorePercent = Math.round((correct / quiz.length) * 100);
     const passed = scorePercent >= QUIZ_PASS_THRESHOLD_PERCENT;
 
-    const enrollment = await this.enrollmentModel
+    let enrollment = await this.enrollmentModel
       .findOne({
         userId: new Types.ObjectId(userId),
         courseId: new Types.ObjectId(courseId),
       })
       .exec();
+    if (!enrollment) {
+      await this.enroll(userId, courseId);
+      enrollment = await this.enrollmentModel
+        .findOne({
+          userId: new Types.ObjectId(userId),
+          courseId: new Types.ObjectId(courseId),
+        })
+        .exec();
+    }
     if (!enrollment) throw new NotFoundException('Enrollment not found');
 
     enrollment.quizAttempts = (enrollment.quizAttempts ?? 0) + 1;

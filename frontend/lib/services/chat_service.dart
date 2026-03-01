@@ -246,7 +246,7 @@ class ChatService {
 
     final token = await AuthService().getStoredToken();
     final response = await _client.get(
-      Uri.parse('${AppConstants.baseUrl}/users/volunteers'),
+      Uri.parse('${AppConstants.baseUrl}${AppConstants.usersVolunteersEndpoint}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

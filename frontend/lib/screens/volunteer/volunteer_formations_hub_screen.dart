@@ -216,47 +216,7 @@ class _VolunteerFormationsHubScreenState
   Widget _buildCourseInProgress() {
     final enrollment = _courseInProgress;
     if (enrollment == null) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: _cardBg,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: _primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.school_outlined,
-                    color: _primary, size: 26),
-              ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Text(
-                  'Aucune formation en cours. Parcourez le catalogue pour vous inscrire.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: _textSecondary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return const SizedBox.shrink();
     }
 
     final course = enrollment['course'] as Map<String, dynamic>?;
