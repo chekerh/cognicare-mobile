@@ -918,6 +918,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get volunteerTrainingLockedGoToFormations => 'Go to Formations';
 
   @override
+  String get volunteerApprovalPendingTitle => 'Awaiting approval';
+  @override
+  String get volunteerApprovalPendingMessage =>
+      'Your application and supporting documents are under review by the administrator. Access to Agenda, Messages and other features will be available after approval.';
+  @override
+  String get volunteerApprovalPendingGoToApplication => 'View my application';
+
+  @override
   String get schedulePickup => 'Schedule pickup';
   @override
   String get itemReceived => 'Item received';

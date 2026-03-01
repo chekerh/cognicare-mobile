@@ -684,6 +684,11 @@ abstract class AppLocalizations {
   String get volunteerTrainingLockedMessage;
   String get volunteerTrainingLockedGoToFormations;
 
+  /// Volunteer blocked until admin approves documents
+  String get volunteerApprovalPendingTitle;
+  String get volunteerApprovalPendingMessage;
+  String get volunteerApprovalPendingGoToApplication;
+
   /// Donation chat
   String get schedulePickup;
   String get itemReceived;

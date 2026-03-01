@@ -918,6 +918,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get volunteerTrainingLockedGoToFormations => 'الذهاب إلى التكوينات';
 
   @override
+  String get volunteerApprovalPendingTitle => 'في انتظار الموافقة';
+  @override
+  String get volunteerApprovalPendingMessage =>
+      'طلبك والمستندات المرفقة قيد المراجعة من قبل المسؤول. سيتم تفعيل الوصول إلى الأجندة والرسائل والميزات الأخرى بعد الموافقة.';
+  @override
+  String get volunteerApprovalPendingGoToApplication => 'عرض طلبي';
+
+  @override
   String get schedulePickup => 'جدولة الاستلام';
   @override
   String get itemReceived => 'تم استلام العنصر';

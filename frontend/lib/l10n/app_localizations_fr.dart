@@ -918,6 +918,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get volunteerTrainingLockedGoToFormations => 'Aller aux Formations';
 
   @override
+  String get volunteerApprovalPendingTitle => 'En attente de validation';
+  @override
+  String get volunteerApprovalPendingMessage =>
+      'Votre candidature et vos pièces justificatives sont en cours d\'examen par l\'administrateur. L\'accès à l\'Agenda, aux Messages et aux autres fonctionnalités sera disponible après validation.';
+  @override
+  String get volunteerApprovalPendingGoToApplication => 'Voir ma candidature';
+
+  @override
   String get schedulePickup => 'Planifier le retrait';
   @override
   String get itemReceived => 'Objet reçu';

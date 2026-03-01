@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/user.dart' as app_user;
 import '../../providers/auth_provider.dart';
 import '../../services/healthcare_service.dart';
 import '../../services/children_service.dart';
+import '../../services/volunteer_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
 
@@ -55,10 +57,25 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
   String? _childrenError;
 
   bool _showQuickMenu = false;
+  Map<String, dynamic>? _application;
+  bool _applicationLoading = true;
+
+  Future<void> _loadApplication() async {
+    try {
+      final app = await VolunteerService().getMyApplication();
+      if (mounted) setState(() {
+        _application = app;
+        _applicationLoading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _applicationLoading = false);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    _loadApplication();
     _loadHealthcare();
     final user = Provider.of<AuthProvider>(context, listen: false).user;
     if (AppConstants.isSpecialistRole(user?.role)) {
@@ -114,7 +131,63 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
   }
 
   @override
+  Widget _buildApprovalPendingContent(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.hourglass_empty,
+                    size: 64, color: _primary.withOpacity(0.7)),
+                const SizedBox(height: 24),
+                Text(
+                  loc.volunteerApprovalPendingTitle,
+                  style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B)),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  loc.volunteerApprovalPendingMessage,
+                  style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey.shade700,
+                      height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton.icon(
+                  onPressed: () =>
+                      context.push(AppConstants.volunteerApplicationRoute),
+                  icon: const Icon(Icons.description_outlined, size: 20),
+                  label: Text(loc.volunteerApprovalPendingGoToApplication),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: _primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 14)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isApproved = _application?['status'] == 'approved';
+    if (!_applicationLoading && !isApproved) {
+      return _buildApprovalPendingContent(context);
+    }
     final user = Provider.of<AuthProvider>(context).user;
     final userRole = user?.role;
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
