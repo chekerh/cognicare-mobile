@@ -420,22 +420,28 @@ export class CommunityService {
     );
   }
 
+  /** Statut de la relation entre currentUserId et targetUserId (dans les deux sens). */
   async getFollowStatus(
     currentUserId: string,
     targetUserId: string,
   ): Promise<{ status: FollowRequestStatus | null; requestId?: string | null }> {
+    const me = new Types.ObjectId(currentUserId);
+    const them = new Types.ObjectId(targetUserId);
     const doc = await this.followRequestModel
       .findOne({
-        requesterId: new Types.ObjectId(currentUserId),
-        targetId: new Types.ObjectId(targetUserId),
+        $or: [
+          { requesterId: me, targetId: them },
+          { requesterId: them, targetId: me },
+        ],
       })
       .lean()
       .exec();
-    const d = doc as { _id: Types.ObjectId; status: string } | null;
-    return {
-      status: (d?.status as FollowRequestStatus) ?? null,
-      requestId: d?._id?.toString() ?? null,
-    };
+    const d = doc as { _id: Types.ObjectId; status: string; requesterId: Types.ObjectId } | null;
+    if (!d) return { status: null, requestId: null };
+    const status = d.status as FollowRequestStatus;
+    const requestId =
+      d.requesterId.equals(me) ? d._id.toString() : null;
+    return { status, requestId };
   }
 
   async listPendingFollowRequests(

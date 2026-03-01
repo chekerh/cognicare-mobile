@@ -72,12 +72,14 @@ class _CommunityMemberProfileScreenState
   String? _followRequestId;
   bool _followLoading = false;
   bool? _isOnline;
+  bool _isInFriendsList = false;
 
   @override
   void initState() {
     super.initState();
     _loadFollowStatus();
     _loadPresence();
+    _loadFriendsCheck();
   }
 
   Future<void> _loadPresence() async {
@@ -108,6 +110,19 @@ class _CommunityMemberProfileScreenState
         _followStatus = null;
         _followRequestId = null;
       });
+    }
+  }
+
+  Future<void> _loadFriendsCheck() async {
+    if (widget.memberId.isEmpty) return;
+    try {
+      final friends = await CommunityService().getFriends();
+      if (mounted) {
+        setState(() => _isInFriendsList =
+            friends.any((f) => f.id == widget.memberId));
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isInFriendsList = false);
     }
   }
 
@@ -265,7 +280,8 @@ class _CommunityMemberProfileScreenState
   Widget _buildActionButtons(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final isPending = _followStatus == 'pending';
-    final isAccepted = _followStatus == 'accepted';
+    final isAccepted =
+        _followStatus == 'accepted' || _isInFriendsList;
 
     return Row(
       children: [
