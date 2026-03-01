@@ -7,6 +7,7 @@ import {
 } from './schemas/training-enrollment.schema';
 import { TrainingController } from './training.controller';
 import { TrainingService } from './training.service';
+import { TrainingSeedRunner } from './training-seed.runner';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { TrainingService } from './training.service';
     ]),
   ],
   controllers: [TrainingController],
-  providers: [TrainingService],
+  providers: [TrainingService, TrainingSeedRunner],
   exports: [TrainingService],
 })
 export class TrainingModule {}

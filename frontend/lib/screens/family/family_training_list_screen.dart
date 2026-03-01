@@ -7,9 +7,11 @@ import '../../utils/theme.dart';
 const Color _primary = Color(0xFFADD8E6);
 const Color _bg = Color(0xFFF8FAFC);
 
-/// Autism training for caregivers — list of courses with progression.
+/// Autism training for caregivers (and volunteers) — list of courses with progression.
 class FamilyTrainingListScreen extends StatefulWidget {
-  const FamilyTrainingListScreen({super.key});
+  const FamilyTrainingListScreen({super.key, this.fromVolunteer = false});
+
+  final bool fromVolunteer;
 
   @override
   State<FamilyTrainingListScreen> createState() =>
@@ -82,10 +84,7 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
       } catch (_) {}
     }
     if (!mounted) return;
-    context.push(
-      AppConstants.familyTrainingCourseRoute,
-      extra: {'courseId': courseId, 'title': title},
-    );
+    context.push('course', extra: {'courseId': courseId, 'title': title});
   }
 
   @override

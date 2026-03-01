@@ -1,0 +1,227 @@
+[
+  {
+    "title": "Connaissances générales sur l'autisme",
+    "description": "Vue d'ensemble de l'autisme, gestion au quotidien (comportement, routine, besoins sensoriels) et conseils nutritionnels. Contenu basé sur la formation OMS pour aidants, la National Autistic Society et Autism Speaks.",
+    "contentSections": [
+      {
+        "type": "text",
+        "title": "Qu'est-ce que l'autisme ?",
+        "content": "L'autisme (trouble du spectre de l'autisme, TSA) est une condition neurodéveloppementale qui affecte la communication, les interactions sociales et le comportement. Chaque personne autiste est unique : les forces et les difficultés varient d'une personne à l'autre. L'autisme n'est pas une maladie à guérir mais une façon différente de percevoir et d'interagir avec le monde. Les signes peuvent inclure : difficultés dans la communication verbale et non verbale, intérêts restreints ou répétitifs, besoin de routines prévisibles, particularités sensorielles (hypersensibilité ou hyposensibilité).",
+        "order": 0
+      },
+      {
+        "type": "text",
+        "title": "Comportement, routine et besoins sensoriels",
+        "content": "Les enfants autistes s'épanouissent souvent avec des routines claires et prévisibles. Établir des horaires visuels (images, pictogrammes) aide à réduire l'anxiété. Les comportements difficiles (crises, refus) sont souvent une façon de communiquer un inconfort : surcharge sensorielle, changement inattendu, frustration. Repérer les déclencheurs (bruit, foule, transition) permet d'anticiper et d'adapter l'environnement. Offrir des espaces calmes et des moments de régulation sensorielle (pression profonde, mouvement, objet apaisant) peut prévenir les crises.",
+        "order": 1
+      },
+      {
+        "type": "list",
+        "title": "Conseils pratiques au quotidien",
+        "listItems": [
+          "Utiliser des supports visuels pour les étapes (matin, repas, coucher).",
+          "Prévenir des changements à l'avance (minuteur, compte à rebours).",
+          "Réduire les stimuli (lumière, bruit) si l'enfant est en surcharge.",
+          "Rester calme pendant une crise : assurer la sécurité, attendre que la vague passe.",
+          "Célébrer les petites victoires et les efforts."
+        ],
+        "order": 2
+      },
+      {
+        "type": "text",
+        "title": "Nutrition et alimentation",
+        "content": "Beaucoup d'enfants autistes ont des particularités alimentaires : sélectivité, refus de textures, besoin de constance. Il est important de ne pas forcer mais d'offrir progressivement de nouvelles saveurs et textures dans un cadre rassurant. Limiter les aliments ultra-transformés et les sucres ajoutés peut aider à stabiliser l'énergie et l'humeur. Certains enfants bénéficient d'un suivi diététique ou d'une complémentation (vitamines, oméga-3) sur avis médical. Garder les repas à heures régulières et un environnement calme favorise l'acceptation.",
+        "order": 3
+      },
+      {
+        "type": "definition",
+        "title": "Termes clés",
+        "definitions": {
+          "TSA": "Trouble du spectre de l'autisme. Terme qui remplace « autisme » dans les classifications officielles (DSM-5, CIM-11).",
+          "Stimming": "Comportements répétitifs d'auto-stimulation (balancement, battements de mains, etc.) qui aident à réguler les sens et les émotions.",
+          "Surcharge sensorielle": "État où les sens sont submergés (trop de bruit, lumière, toucher), pouvant mener à une crise ou un repli."
+        },
+        "order": 4
+      }
+    ],
+    "sourceUrl": "https://www.who.int/news/item/31-03-2022-who-s-training-for-caregivers-of-children-with-autism-goes-online",
+    "topics": ["autisme général", "compétences aidant", "OMS", "comportement", "nutrition"],
+    "quiz": [
+      {
+        "question": "L'autisme est une condition qui affecte principalement :",
+        "options": ["Uniquement le langage", "La communication, les interactions sociales et le comportement", "Uniquement la motricité", "Uniquement la vision"],
+        "correctIndex": 1,
+        "order": 0
+      },
+      {
+        "question": "Pourquoi les routines sont-elles souvent utiles pour un enfant autiste ?",
+        "options": ["Pour le fatiguer", "Elles réduisent l'anxiété en rendant le monde prévisible", "Pour le punir", "Les routines ne sont pas recommandées"],
+        "correctIndex": 1,
+        "order": 1
+      },
+      {
+        "question": "Que faire en priorité pendant une crise (meltdown) ?",
+        "options": ["Crier pour se faire entendre", "Assurer la sécurité et rester calme en attendant que ça passe", "Forcer l'enfant à s'arrêter", "Ignorer complètement"],
+        "correctIndex": 1,
+        "order": 2
+      },
+      {
+        "question": "Le « stimming » désigne :",
+        "options": ["Une maladie", "Des comportements répétitifs d'auto-stimulation qui aident à réguler", "Un médicament", "Une thérapie"],
+        "correctIndex": 1,
+        "order": 3
+      },
+      {
+        "question": "Concernant l'alimentation des enfants autistes :",
+        "options": ["Il faut toujours forcer à manger de tout", "Beaucoup ont des particularités (sélectivité) ; il faut proposer progressivement sans forcer", "Ils ne doivent pas manger de sucre du tout", "L'alimentation n'a pas d'impact"],
+        "correctIndex": 1,
+        "order": 4
+      }
+    ],
+    "approved": false,
+    "order": 1
+  },
+  {
+    "title": "PECS — Système de communication par échange d'images",
+    "description": "Introduction au PECS, pourquoi il fonctionne pour les enfants non verbaux ou peu verbaux, et étapes pratiques pour le mettre en place avec des supports visuels.",
+    "contentSections": [
+      {
+        "type": "text",
+        "title": "Qu'est-ce que le PECS ?",
+        "content": "Le PECS (Picture Exchange Communication System) est une méthode de communication alternative qui permet à une personne de communiquer en remettant une image à un partenaire en échange de l'objet ou de l'action désirée. Il a été développé pour les personnes avec peu ou pas de langage verbal. Le PECS repose sur la motivation de l'enfant : il apprend à initier la communication pour obtenir quelque chose qu'il veut, ce qui renforce l'utilisation du système. Les images (photos ou pictogrammes) sont d'abord enseignées pour les demandes, puis peuvent être étendues aux commentaires et aux réponses.",
+        "order": 0
+      },
+      {
+        "type": "text",
+        "title": "Pourquoi le PECS fonctionne pour les enfants non verbaux ou peu verbaux",
+        "content": "Les enfants autistes ont souvent une mémoire visuelle forte et comprennent mieux les supports concrets que le langage oral seul. Le PECS ne demande pas d'imitation verbale ni de contact oculaire au départ : l'enfant peut se concentrer sur l'échange. Il réduit la frustration en donnant un moyen clair de faire des demandes. En renforçant l'initiation (l'enfant tend l'image), on construit une base pour la communication sociale. De nombreuses études montrent que le PECS peut augmenter la communication et, pour certains, favoriser l'apparition de la parole.",
+        "order": 1
+      },
+      {
+        "type": "list",
+        "title": "Les 6 phases du PECS (résumé)",
+        "listItems": [
+          "Phase 1 : Échange physique — l'enfant donne une image pour obtenir l'objet désiré.",
+          "Phase 2 : Distance et persistance — l'enfant va chercher le classeur et tend l'image à un partenaire.",
+          "Phase 3 : Discrimination — l'enfant choisit parmi plusieurs images celle qui correspond à ce qu'il veut.",
+          "Phase 4 : Structure de phrase — l'enfant compose « Je veux + [image] » sur une bande phrase.",
+          "Phase 5 : Réponse à « Qu'est-ce que tu veux ? »",
+          "Phase 6 : Commentaires — répondre à des questions et faire des remarques."
+        ],
+        "order": 2
+      },
+      {
+        "type": "text",
+        "title": "Mise en pratique à la maison",
+        "content": "Utilisez un classeur PECS avec des bandes Velcro et des images claires (objets préférés : nourriture, jouets, activités). Placez le classeur à un endroit accessible. Au début, deux adultes peuvent aider : l'un incite l'enfant à tendre l'image, l'autre donne l'objet dès l'échange. Commencez par des objets très motivants. Une fois l'échange maîtrisé, augmentez progressivement la distance entre l'enfant et le classeur. Il est recommandé de se former avec un professionnel (orthophoniste, éducateur formé PECS) pour respecter les phases et éviter les pièges courants.",
+        "order": 3
+      }
+    ],
+    "sourceUrl": "https://www.autismspeaks.org/caregiver-skills-training-program",
+    "topics": ["PECS", "communication", "support visuel"],
+    "quiz": [
+      {
+        "question": "Le PECS est un système de communication basé sur :",
+        "options": ["La parole uniquement", "L'échange d'une image contre un objet ou une action", "Le geste uniquement", "L'écriture"],
+        "correctIndex": 1,
+        "order": 0
+      },
+      {
+        "question": "Pourquoi le PECS convient-il bien aux enfants autistes peu verbaux ?",
+        "options": ["Parce qu'il exige d'abord la parole", "Parce qu'il s'appuie sur le visuel et ne demande pas d'imitation verbale au départ", "Parce qu'il remplace totalement la parole", "Parce qu'il est plus simple que la langue des signes"],
+        "correctIndex": 1,
+        "order": 1
+      },
+      {
+        "question": "Dans la phase 1 du PECS, l'enfant apprend à :",
+        "options": ["Lire des mots", "Donner une image pour obtenir l'objet désiré", "Parler à haute voix", "Écrire une phrase"],
+        "correctIndex": 1,
+        "order": 2
+      },
+      {
+        "question": "Quel type de support est typiquement utilisé pour le PECS ?",
+        "options": ["Un cahier d'écriture", "Un classeur avec images et bandes Velcro", "Une tablette sans images", "Un tableau noir"],
+        "correctIndex": 1,
+        "order": 3
+      }
+    ],
+    "approved": false,
+    "order": 2
+  },
+  {
+    "title": "Méthode TEACCH",
+    "description": "Vue d'ensemble de l'enseignement structuré TEACCH : organisation visuelle, routines prévisibles et mise en œuvre à la maison et en milieu éducatif.",
+    "contentSections": [
+      {
+        "type": "text",
+        "title": "Qu'est-ce que le TEACCH ?",
+        "content": "TEACCH (Treatment and Education of Autistic and related Communication-handicapped Children) est un programme d'intervention et d'enseignement structuré développé à l'université de Caroline du Nord. Il vise à adapter l'environnement et l'enseignement aux particularités des personnes autistes plutôt qu'à les « normaliser ». Les piliers sont : l'organisation physique de l'espace, l'emploi du temps visuel, le système de travail (séquences claires), et l'utilisation de supports visuels pour rendre les attentes explicites. TEACCH est utilisé dans les écoles, les centres et à la maison dans le monde entier.",
+        "order": 0
+      },
+      {
+        "type": "text",
+        "title": "Organisation visuelle et routines prévisibles",
+        "content": "L'espace est organisé en zones clairement identifiables : zone de travail, zone de jeu, zone de repos, etc. Chaque zone a une fonction et des repères visuels (couleurs, pictogrammes, bordures). L'emploi du temps visuel (horizontal ou vertical) montre à l'enfant dans quel ordre vont se dérouler les activités ; il peut retirer ou cocher chaque étape une fois terminée. Les séquences de travail (système « gauche à droite » ou « de haut en bas ») indiquent combien de tâches il reste et ce qu'il faut faire. Cette prévisibilité réduit l'anxiété et augmente l'autonomie.",
+        "order": 1
+      },
+      {
+        "type": "list",
+        "title": "Principes clés TEACCH",
+        "listItems": [
+          "Structure physique : espaces délimités et repérables.",
+          "Emploi du temps visuel : l'enfant voit ce qui va se passer.",
+          "Système de travail : séquence claire (quoi faire, combien, quand c'est fini).",
+          "Routines cohérentes entre la maison et l'école quand c'est possible.",
+          "Utilisation des forces visuelles et de la préférence pour la routine."
+        ],
+        "order": 2
+      },
+      {
+        "type": "text",
+        "title": "Mise en œuvre à la maison et en milieu éducatif",
+        "content": "À la maison : définir des zones (table pour les devoirs, coin jeu, coin repas), utiliser un emploi du temps du matin ou du soir avec des images, et des séquences pour les routines (lavage des mains, habillage). En classe : bureaux bien délimités, paniers ou dossiers pour chaque tâche, signal de « terminé ». Les professionnels formés TEACCH peuvent aider à concevoir les supports. L'objectif est que l'enfant comprenne ce qu'on attend de lui et qu'il puisse anticiper, ce qui favorise la coopération et l'autonomie.",
+        "order": 3
+      },
+      {
+        "type": "definition",
+        "title": "Termes TEACCH",
+        "definitions": {
+          "Emploi du temps visuel": "Support qui montre la séquence des activités à venir (images, pictogrammes) pour rendre le temps prévisible.",
+          "Système de travail": "Organisation des tâches (souvent dans des paniers ou dossiers) avec une séquence claire : quoi faire, dans quel ordre, quand c'est fini.",
+          "Structure physique": "Aménagement de l'espace en zones identifiables pour que l'enfant sache où aller et quoi faire."
+        },
+        "order": 4
+      }
+    ],
+    "sourceUrl": "https://teacch.com/",
+    "topics": ["TEACCH", "enseignement structuré", "organisation visuelle"],
+    "quiz": [
+      {
+        "question": "TEACCH est un programme qui :",
+        "options": ["Se concentre uniquement sur la parole", "Adapte l'environnement et l'enseignement aux particularités des personnes autistes", "Exclut l'usage d'images", "N'est utilisé qu'à l'hôpital"],
+        "correctIndex": 1,
+        "order": 0
+      },
+      {
+        "question": "L'emploi du temps visuel sert à :",
+        "options": ["Remplacer l'école", "Montrer à l'enfant dans quel ordre vont se dérouler les activités pour le rassurer", "Punir l'enfant", "Réduire le temps de jeu"],
+        "correctIndex": 1,
+        "order": 1
+      },
+      {
+        "question": "Le « système de travail » en TEACCH permet à l'enfant de :",
+        "options": ["Jouer librement sans consigne", "Voir combien de tâches restent et ce qu'il faut faire (séquence claire)", "Éviter tout travail", "Travailler sans support visuel"],
+        "correctIndex": 1,
+        "order": 2
+      },
+      {
+        "question": "La structure physique dans TEACCH consiste à :",
+        "options": ["Construire un nouveau bâtiment", "Organiser l'espace en zones clairement identifiables (travail, jeu, repos)", "Supprimer tous les meubles", "Utiliser uniquement des couleurs sombres"],
+        "correctIndex": 1,
+        "order": 3
+      }
+    ],
+    "approved": false,
+    "order": 3
+  }
+]
