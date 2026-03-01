@@ -239,7 +239,9 @@ Réponds UNIQUEMENT en JSON valide avec exactement ces clés (pas de markdown, p
 
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.geminiModel}:generateContent`;
-      const res = await axios.post(
+      const res = await axios.post<{
+        candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+      }>(
         url,
         {
           contents: [{ role: 'user', parts: [{ text: prompt }] }],

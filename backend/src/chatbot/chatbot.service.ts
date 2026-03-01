@@ -236,7 +236,9 @@ Sois chaleureux, bienveillant et encourageant. Réponds dans la langue de l'util
       },
     );
 
-    const messageData = response.data?.choices?.[0]?.message;
+    const messageData = (
+      response.data as { choices?: Array<{ message?: unknown }> }
+    )?.choices?.[0]?.message;
     if (!messageData) throw new Error('Empty response from API');
     return messageData;
   }

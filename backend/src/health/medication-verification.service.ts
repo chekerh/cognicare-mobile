@@ -128,7 +128,11 @@ Ta mission :
         },
       );
 
-      const resultText = groqResponse.data.choices[0].message.content;
+      const resultText = (
+        groqResponse.data as {
+          choices: Array<{ message: { content: string } }>;
+        }
+      ).choices[0].message.content;
       this.logger.log(`Réponse Groq: ${resultText}`);
 
       // 3. Parse the JSON response robustly
@@ -282,14 +286,20 @@ Ta mission :
       : '';
     try {
       const brandUrl = `https://api.fda.gov/drug/label.json?search=openfda.brand_name:"${encodeURIComponent(drugName)}"&limit=1${apiKeySuffix}`;
-      const brandResponse = await axios.get(brandUrl, { timeout: 5000 });
+      const brandResponse = await axios.get<{ results?: unknown[] }>(
+        brandUrl,
+        { timeout: 5000 },
+      );
       if (brandResponse.data.results?.length > 0) {
         return brandResponse.data.results[0];
       }
     } catch (_e) {
       try {
         const genericUrl = `https://api.fda.gov/drug/label.json?search=openfda.generic_name:"${encodeURIComponent(drugName)}"&limit=1${apiKeySuffix}`;
-        const genericResponse = await axios.get(genericUrl, { timeout: 5000 });
+        const genericResponse = await axios.get<{ results?: unknown[] }>(
+          genericUrl,
+          { timeout: 5000 },
+        );
         if (genericResponse.data.results?.length > 0) {
           return genericResponse.data.results[0];
         }
