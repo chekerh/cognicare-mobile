@@ -290,8 +290,9 @@ Ta mission :
         brandUrl,
         { timeout: 5000 },
       );
-      if (brandResponse.data.results?.length > 0) {
-        return brandResponse.data.results[0];
+      const brandResults = brandResponse.data.results;
+      if (brandResults && brandResults.length > 0) {
+        return brandResults[0];
       }
     } catch (_e) {
       try {
@@ -300,8 +301,9 @@ Ta mission :
           genericUrl,
           { timeout: 5000 },
         );
-        if (genericResponse.data.results?.length > 0) {
-          return genericResponse.data.results[0];
+        const genericResults = genericResponse.data.results;
+        if (genericResults && genericResults.length > 0) {
+          return genericResults[0];
         }
       } catch {
         return null;

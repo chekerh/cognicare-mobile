@@ -160,12 +160,16 @@ class _VolunteerNewAvailabilityScreenState
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Sélectionner les dates',
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1E293B))),
+                              Expanded(
+                                child: Text('Sélectionner les dates',
+                                    style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B)),
+                                    overflow: TextOverflow.ellipsis),
+                              ),
                               Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
                                       icon: Icon(Icons.chevron_left,
