@@ -175,7 +175,9 @@ class _FamilyTrainingCourseScreenState extends State<FamilyTrainingCourseScreen>
       final rawListItems = s['listItems'];
       final listItems = rawListItems is List<dynamic> ? rawListItems : null;
       final rawDefs = s['definitions'];
-      final definitions = rawDefs is Map<String, dynamic> ? rawDefs : null;
+      // Backend may send definitions as Map (term -> definition) or List of entries
+      final definitionsMap = rawDefs is Map<String, dynamic> ? rawDefs : null;
+      final definitionsList = rawDefs is List<dynamic> ? rawDefs : null;
       final videoUrl = s['videoUrl'] as String?;
       if (title != null && title.isNotEmpty) {
         list.add(Padding(
@@ -221,8 +223,8 @@ class _FamilyTrainingCourseScreenState extends State<FamilyTrainingCourseScreen>
           ),
         ));
       }
-      if (definitions != null && definitions.isNotEmpty) {
-        for (final entry in definitions.entries) {
+      if (definitionsMap != null && definitionsMap.isNotEmpty) {
+        for (final entry in definitionsMap.entries) {
           list.add(Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: RichText(
@@ -231,6 +233,25 @@ class _FamilyTrainingCourseScreenState extends State<FamilyTrainingCourseScreen>
                 children: [
                   TextSpan(text: '${entry.key}: ', style: const TextStyle(fontWeight: FontWeight.bold)),
                   TextSpan(text: entry.value.toString()),
+                ],
+              ),
+            ),
+          ));
+        }
+      } else if (definitionsList != null && definitionsList.isNotEmpty) {
+        for (final item in definitionsList) {
+          if (item is! Map<String, dynamic>) continue;
+          final term = item['term'] ?? item['key'] ?? '';
+          final def = item['definition'] ?? item['value'] ?? item['def'] ?? '';
+          if (term.toString().isEmpty && def.toString().isEmpty) continue;
+          list.add(Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: RichText(
+              text: TextSpan(
+                style: TextStyle(fontSize: 15, color: AppTheme.text.withOpacity(0.9)),
+                children: [
+                  TextSpan(text: '$term: ', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  TextSpan(text: def.toString()),
                 ],
               ),
             ),
