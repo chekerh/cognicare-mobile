@@ -5,8 +5,6 @@ import axios from 'axios';
 import {
   fetchAllBioherbsProducts,
   fetchBioherbsProducts,
-  addBioherbsToCart,
-  fetchBioherbsProductByHandle,
 } from './scraper/bioherbs.scraper';
 import {
   ExternalWebsite,
@@ -230,17 +228,9 @@ export class IntegrationsService implements OnModuleInit {
 
     const websiteDoc = await this.websiteModel.findOne({ slug: websiteSlug }).lean().exec();
     const formActionUrl = websiteDoc?.formActionUrl?.trim();
-    let cartUrl: string | undefined;
 
     try {
-      if (websiteSlug === BIOHERBS_SLUG) {
-        const product = await fetchBioherbsProductByHandle(payload.externalId);
-        if (!product) throw new Error('Produit introuvable sur BioHerbs');
-        cartUrl = await addBioherbsToCart(product.variantId, payload.quantity ?? order.quantity ?? 1);
-        order.sentToSiteAt = new Date();
-        order.status = 'sent';
-        await order.save();
-      } else if (formActionUrl) {
+      if (formActionUrl) {
         await this.sendOrderToExternalSite(
           websiteDoc as ExternalWebsite & { _id: Types.ObjectId },
           order,
@@ -250,6 +240,7 @@ export class IntegrationsService implements OnModuleInit {
         order.status = 'sent';
         await order.save();
       }
+      // Pas d’ouverture du site : commande uniquement dans l’app, données envoyées vers formActionUrl si configuré (ex. BioHerbs).
     } catch (e) {
       this.logger.warn(
         `Order ${order._id} saved but send to site failed: ${(e as Error).message}`,
@@ -259,17 +250,14 @@ export class IntegrationsService implements OnModuleInit {
     const sentAt = order.sentToSiteAt ?? null;
     const message =
       order.status === 'sent'
-        ? (websiteSlug === BIOHERBS_SLUG && cartUrl
-            ? 'Produit ajouté au panier BioHerbs. Cliquez pour finaliser la commande sur le site.'
-            : 'Commande enregistrée et envoyée au site. Le site vous contactera pour la livraison.')
-        : 'Commande enregistrée. Elle n’a pas encore été transmise au site (en attente ou erreur).';
+        ? 'Commande enregistrée et envoyée. Le marchand vous contactera pour la livraison.'
+        : 'Commande enregistrée. Elle sera traitée sous peu.';
 
     return {
       orderId: (order._id as Types.ObjectId).toString(),
       status: order.status,
       sentToSiteAt: sentAt,
       message,
-      ...(cartUrl && { cartUrl }),
     };
   }
 

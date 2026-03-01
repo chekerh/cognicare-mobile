@@ -3,21 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/constants.dart';
-import '../../utils/theme.dart';
 
-const Color _primary = Color(0xFFADD8E6);
-const Color _accent = Color(0xFF212121);
+// Design premium aligné sur le HTML (CogniCare Premium Checkout)
+const Color _primary = Color(0xFFA3DAE1);
+const Color _brandBlue = Color(0xFF5FB8C4);
+const Color _background = Color(0xFFF8FAFC);
+const Color _textDark = Color(0xFF1E293B);
+const Color _textMuted = Color(0xFF64748B);
 
-/// Formulaire de commande dans l'app (pas de navigation vers le site).
-/// Les données sont envoyées au backend qui les enregistre puis les envoie au site.
+/// Formulaire de commande dans l'app. Les données sont envoyées au backend qui les enregistre
+/// et les transmet au site (formActionUrl) sans ouvrir le site.
 class IntegrationOrderFormScreen extends StatefulWidget {
   final String websiteSlug;
   final String externalId;
   final String productName;
   final String price;
+  final String imageUrl;
 
   const IntegrationOrderFormScreen({
     super.key,
@@ -25,6 +28,7 @@ class IntegrationOrderFormScreen extends StatefulWidget {
     required this.externalId,
     required this.productName,
     required this.price,
+    this.imageUrl = '',
   });
 
   static IntegrationOrderFormScreen fromState(GoRouterState state) {
@@ -34,6 +38,7 @@ class IntegrationOrderFormScreen extends StatefulWidget {
       externalId: e['externalId'] as String? ?? '',
       productName: e['productName'] as String? ?? '',
       price: e['price'] as String? ?? '',
+      imageUrl: e['imageUrl'] as String? ?? '',
     );
   }
 
@@ -106,58 +111,21 @@ class _IntegrationOrderFormScreenState extends State<IntegrationOrderFormScreen>
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final message =
             data['message'] as String? ?? 'Commande enregistrée avec succès.';
-        final status = data['status'] as String? ?? '';
-        final sentToSiteAt = data['sentToSiteAt'] != null
-            ? DateTime.tryParse(data['sentToSiteAt'] as String)
-            : null;
-        final cartUrl = data['cartUrl'] as String?;
-        String detail = message;
-        if (status == 'sent' && sentToSiteAt != null && cartUrl == null) {
-          final dateStr = '${sentToSiteAt.day}/${sentToSiteAt.month}/${sentToSiteAt.year} à ${sentToSiteAt.hour}h${sentToSiteAt.minute.toString().padLeft(2, '0')}';
-          detail = '$message\n\nEnvoyée au site le $dateStr.';
-        } else if (status == 'received') {
-          detail = '$message\n\n(Vérifier plus tard si le site a bien reçu la commande.)';
-        }
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
             title: const Text('Commande enregistrée'),
             content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(detail),
-                  if (cartUrl != null && cartUrl.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Vous pouvez finaliser le paiement sur le site du marchand.',
-                      style: TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                  ],
-                ],
-              ),
+              child: Text(message),
             ),
             actions: [
-              if (cartUrl != null && cartUrl.isNotEmpty)
-                TextButton(
-                  onPressed: () async {
-                    final uri = Uri.parse(cartUrl);
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
-                    }
-                    if (ctx.mounted) Navigator.of(ctx).pop();
-                    if (mounted) context.go(AppConstants.familyMarketRoute);
-                  },
-                  child: const Text('Ouvrir le panier'),
-                ),
               TextButton(
                 onPressed: () {
                   Navigator.of(ctx).pop();
                   context.go(AppConstants.familyMarketRoute);
                 },
-                child: Text(cartUrl != null && cartUrl.isNotEmpty ? 'Fermer' : 'OK'),
+                child: const Text('OK'),
               ),
             ],
           ),
@@ -180,170 +148,409 @@ class _IntegrationOrderFormScreenState extends State<IntegrationOrderFormScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: _primary,
-        foregroundColor: _accent,
-        title: const Text('Commander'),
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+      backgroundColor: _background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 8),
+                      _buildProductCard(),
+                      const SizedBox(height: 24),
+                      _buildDeliverySection(),
+                      if (_error != null) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          _error!,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      _buildConfirmButton(),
+                      const SizedBox(height: 16),
+                      const Center(
+                        child: Text(
+                          'Paiement sécurisé par cryptage SSL',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _textMuted,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      color: _primary,
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 48),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  onPressed: () => context.pop(),
+                  icon: const Icon(Icons.chevron_left_rounded),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withOpacity(0.3),
+                    foregroundColor: _textDark,
+                  ),
+                ),
+                const Text(
+                  'Commander',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: _textDark,
+                  ),
+                ),
+                const SizedBox(width: 48),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: -1,
+            left: 0,
+            right: 0,
+            child: CustomPaint(
+              size: const Size(double.infinity, 24),
+              painter: _WaveClipPainter(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  width: 96,
+                  height: 96,
+                  color: const Color(0xFFF8FAFC),
+                  child: widget.imageUrl.isNotEmpty
+                      ? Image.network(
+                          widget.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.shopping_bag_rounded,
+                            size: 40,
+                            color: _textMuted,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.shopping_bag_rounded,
+                          size: 40,
+                          color: _textMuted,
+                        ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       widget.productName,
                       style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: AppTheme.text,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: _textDark,
+                        height: 1.3,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Prix: ${widget.price}',
+                      widget.price,
                       style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: _accent,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: _brandBlue,
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        const Text('Quantité: ', style: TextStyle(fontSize: 14)),
-                        IconButton(
-                          icon: const Icon(Icons.remove_circle_outline),
-                          onPressed: _quantity > 1
-                              ? () => setState(() => _quantity--)
-                              : null,
-                        ),
-                        Text('$_quantity',
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                        IconButton(
-                          icon: const Icon(Icons.add_circle_outline),
-                          onPressed: () => setState(() => _quantity++),
-                        ),
-                      ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: _fullNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nom complet',
-                  border: OutlineInputBorder(),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Requis' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Requis' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _addressController,
-                decoration: const InputDecoration(
-                  labelText: 'Adresse',
-                  border: OutlineInputBorder(),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Requis' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _cityController,
-                decoration: const InputDecoration(
-                  labelText: 'Ville',
-                  border: OutlineInputBorder(),
-                  filled: true,
-                  fillColor: Colors.white,
-                ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Requis' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(
-                  labelText: 'Téléphone (optionnel)',
-                  border: OutlineInputBorder(),
-                  filled: true,
-                  fillColor: Colors.white,
+            ],
+          ),
+          const SizedBox(height: 20),
+          Container(
+            height: 1,
+            color: const Color(0xFFF1F5F9),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Quantité',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: _textMuted,
                 ),
               ),
-              if (_error != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  _error!,
-                  style: const TextStyle(color: Colors.red, fontSize: 14),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: const Color(0xFFF1F5F9)),
                 ),
-              ],
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _submitting ? null : _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _accent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: _submitting
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: _quantity > 1
+                          ? () => setState(() => _quantity--)
+                          : null,
+                      icon: const Icon(Icons.remove_circle_outline_rounded),
+                      color: _quantity > 1 ? _textMuted : _textMuted.withOpacity(0.5),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    ),
+                    SizedBox(
+                      width: 28,
+                      child: Text(
+                        '$_quantity',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: _textDark,
                         ),
-                      )
-                    : const Text('Confirmer la commande'),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => setState(() => _quantity++),
+                      icon: const Icon(Icons.add_circle_rounded),
+                      color: _primary,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeliverySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.local_shipping_rounded, size: 20, color: _primary),
+            SizedBox(width: 8),
+            Text(
+              'Détails de livraison',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: _textDark,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.7),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(color: const Color(0xFFF1F5F9)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              _buildFloatingField(
+                controller: _fullNameController,
+                label: 'Nom complet',
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requis' : null,
+              ),
+              const SizedBox(height: 16),
+              _buildFloatingField(
+                controller: _emailController,
+                label: 'Email',
+                keyboardType: TextInputType.emailAddress,
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requis' : null,
+              ),
+              const SizedBox(height: 16),
+              _buildFloatingField(
+                controller: _addressController,
+                label: 'Adresse',
+                hint: 'Rue, numéro...',
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requis' : null,
+              ),
+              const SizedBox(height: 16),
+              _buildFloatingField(
+                controller: _cityController,
+                label: 'Ville',
+                hint: 'Paris, Lyon...',
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requis' : null,
+              ),
+              const SizedBox(height: 16),
+              _buildFloatingField(
+                controller: _phoneController,
+                label: 'Téléphone (optionnel)',
+                hint: '+33 6 00 00 00 00',
+                keyboardType: TextInputType.phone,
               ),
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildFloatingField({
+    required TextEditingController controller,
+    required String label,
+    String? hint,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      validator: validator,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        filled: true,
+        fillColor: Colors.transparent,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide(color: _primary.withOpacity(0.2)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: const BorderSide(color: _primary, width: 2),
+        ),
+        labelStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: _textMuted,
+        ),
       ),
     );
   }
+
+  Widget _buildConfirmButton() {
+    return Material(
+      color: _primary,
+      borderRadius: BorderRadius.circular(32),
+      shadowColor: _primary.withOpacity(0.5),
+      elevation: 8,
+      child: InkWell(
+        onTap: _submitting ? null : _submit,
+        borderRadius: BorderRadius.circular(32),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          alignment: Alignment.center,
+          child: _submitting
+              ? const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    color: _textDark,
+                    strokeWidth: 2,
+                  ),
+                )
+              : const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.check_circle_rounded, color: _textDark, size: 22),
+                    SizedBox(width: 8),
+                    Text(
+                      'Confirmer la commande',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: _textDark,
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WaveClipPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()..color = _background;
+    final path = Path()
+      ..moveTo(0, size.height * 0.5)
+      ..quadraticBezierTo(size.width * 0.25, 0, size.width * 0.5, size.height * 0.5)
+      ..quadraticBezierTo(size.width * 0.75, size.height, size.width, size.height * 0.5)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(path, p);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

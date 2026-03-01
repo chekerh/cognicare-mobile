@@ -206,6 +206,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
         'externalId': product.id,
         'productName': product.title,
         'price': product.price,
+        'imageUrl': product.imageUrl,
       });
       return;
     }
