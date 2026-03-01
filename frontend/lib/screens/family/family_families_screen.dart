@@ -6,6 +6,7 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
+import '../../services/community_service.dart';
 import '../../utils/constants.dart';
 
 /// Écran Chats — onglets Families, Benevole, Healthcare (sans Persons).
@@ -128,29 +129,24 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
     }
   }
 
+  /// Charge uniquement les familles avec qui on a une connexion acceptée (amis).
   Future<void> _loadFamiliesToContact() async {
     if (_familiesLoading || _familiesToContact != null) return;
-
-    final chatService = ChatService();
-
-    // Load from cache first
-    try {
-      final cached = await chatService.getCachedFamiliesToContact();
-      if (cached.isNotEmpty && mounted) {
-        setState(() {
-          _familiesToContact = cached;
-        });
-      }
-    } catch (_) {}
 
     setState(() {
       _familiesLoading = true;
       _familiesError = null;
     });
     try {
-      final chatService = ChatService();
-      final list = await chatService.getFamiliesToContact();
+      final friends = await CommunityService().getFriends();
       if (!mounted) return;
+      final list = friends
+          .map((f) => FamilyUser(
+                id: f.id,
+                fullName: f.fullName,
+                profilePic: f.profilePic,
+              ))
+          .toList();
       setState(() {
         _familiesToContact = list;
         _familiesLoading = false;
@@ -520,6 +516,23 @@ class _FamilyFamiliesScreenState extends State<FamilyFamiliesScreen> {
                     AppLocalizations.of(context)!.noOtherFamiliesYet,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Recherchez des familles et envoyez une demande pour pouvoir échanger.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    onPressed: () => context.push(AppConstants.familyFindFamiliesRoute),
+                    icon: const Icon(Icons.person_search, size: 20),
+                    label: const Text('Trouver des familles'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    ),
                   ),
                 ],
               ),

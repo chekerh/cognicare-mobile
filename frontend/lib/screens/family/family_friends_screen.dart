@@ -181,7 +181,7 @@ class _FamilyFriendsScreenState extends State<FamilyFriendsScreen> {
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(20),
                     child: InkWell(
-                      onTap: () => context.push(AppConstants.familyFriendRequestsRoute),
+                      onTap: () => context.push(AppConstants.familyFindFamiliesRoute),
                       borderRadius: BorderRadius.circular(20),
                       child: const SizedBox(
                         width: 40,

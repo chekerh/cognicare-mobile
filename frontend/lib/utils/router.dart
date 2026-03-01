@@ -40,6 +40,7 @@ import '../screens/family/clinical_patient_record_screen.dart';
 import '../screens/family/family_notifications_screen.dart';
 import '../screens/family/family_friends_screen.dart';
 import '../screens/family/family_friend_requests_screen.dart';
+import '../screens/family/family_find_families_screen.dart';
 import '../screens/family/cart_screen.dart';
 import '../screens/family/checkout_screen.dart';
 import '../screens/family/order_confirmation_screen.dart';
@@ -768,6 +769,10 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           GoRoute(
             path: 'friend-requests',
             builder: (context, state) => const FamilyFriendRequestsScreen(),
+          ),
+          GoRoute(
+            path: 'find-families',
+            builder: (context, state) => const FamilyFindFamiliesScreen(),
           ),
           GoRoute(
             path: 'group-chat',
