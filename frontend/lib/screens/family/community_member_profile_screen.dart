@@ -333,10 +333,18 @@ class _CommunityMemberProfileScreenState
   }
 
   Future<void> _onCancelRequest(BuildContext context) async {
-    if (_followRequestId == null || _followRequestId!.isEmpty) return;
+    final requestId = _followRequestId;
+    if (requestId == null || requestId.isEmpty) {
+      // Pas d'id : on met quand même à jour l'UI pour afficher Suivre (demande peut déjà être supprimée).
+      setState(() {
+        _followStatus = null;
+        _followRequestId = null;
+      });
+      return;
+    }
     setState(() => _followLoading = true);
     try {
-      await CommunityService().cancelFollowRequest(_followRequestId!);
+      await CommunityService().cancelFollowRequest(requestId);
       if (!mounted) return;
       setState(() {
         _followLoading = false;
@@ -352,14 +360,30 @@ class _CommunityMemberProfileScreenState
       );
     } catch (e) {
       if (!mounted) return;
+      final msg = e.toString().replaceFirst('Exception: ', '');
       setState(() => _followLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      // Si "not found" ou erreur 404 : la demande n'existe plus, on met à jour l'UI pour pouvoir recliquer Suivre.
+      if (msg.toLowerCase().contains('not found') || msg.contains('404')) {
+        setState(() {
+          _followStatus = null;
+          _followRequestId = null;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.followRequestCancelled),
+            backgroundColor: _secondary,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 

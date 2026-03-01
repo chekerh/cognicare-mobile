@@ -459,19 +459,17 @@ export class CommunityService {
     await doc.save();
   }
 
-  /** Annuler sa propre demande de suivi (le demandeur retire sa demande). */
+  /** Annuler sa propre demande de suivi (le demandeur retire sa demande). Idempotent : si la demande n'existe plus (déjà refusée/supprimée), on ne lance pas d'erreur. */
   async cancelFollowRequest(
     requestId: string,
     userId: string,
   ): Promise<void> {
     const doc = await this.followRequestModel.findById(requestId).exec();
-    if (!doc) throw new NotFoundException('Follow request not found');
+    if (!doc) return; // Déjà supprimée (ex. refusée par la cible) → succès pour l'UI
     if (!doc.requesterId.equals(new Types.ObjectId(userId))) {
       throw new ForbiddenException('Only the requester can cancel their request');
     }
-    if (doc.status !== 'pending') {
-      throw new BadRequestException('Request is no longer pending');
-    }
+    if (doc.status !== 'pending') return;
     const targetId = doc.targetId.toString();
     await this.notifications.deleteByFollowRequestId(targetId, requestId);
     await this.followRequestModel.deleteOne({ _id: doc._id }).exec();
