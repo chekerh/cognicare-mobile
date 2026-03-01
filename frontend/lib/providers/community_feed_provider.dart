@@ -151,6 +151,13 @@ class CommunityFeedProvider with ChangeNotifier {
   }
 
   void toggleLike(String postId) async {
+    final liked = _postLiked[postId] ?? false;
+    final count = _postLikeCount[postId] ?? 0;
+    // Mise à jour optimiste : affichage immédiat sans attendre l'API
+    _postLiked[postId] = !liked;
+    _postLikeCount[postId] = count + (liked ? -1 : 1);
+    notifyListeners();
+
     if (_useBackend && _isBackendPostId(postId)) {
       try {
         final result = await _api.toggleLike(postId);
@@ -158,13 +165,14 @@ class CommunityFeedProvider with ChangeNotifier {
         _postLikeCount[postId] = (result['likeCount'] as num).toInt();
         notifyListeners();
         return;
-      } catch (_) {}
+      } catch (_) {
+        // Revert on error
+        _postLiked[postId] = liked;
+        _postLikeCount[postId] = count;
+        notifyListeners();
+      }
+      return;
     }
-    final liked = _postLiked[postId] ?? false;
-    final count = _postLikeCount[postId] ?? 0;
-    _postLiked[postId] = !liked;
-    _postLikeCount[postId] = count + (liked ? -1 : 1);
-    notifyListeners();
     _saveToStorage();
   }
 
