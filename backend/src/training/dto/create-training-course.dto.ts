@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsArray, IsNumber, Min } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsArray, IsNumber, Min, IsIn } from 'class-validator';
 
 export class ContentSectionDto {
   type?: 'text' | 'image' | 'video' | 'definition' | 'list';
@@ -24,8 +24,16 @@ export class QuizQuestionDto {
   correctIndex: number;
 
   @IsOptional()
+  @IsString()
+  correctAnswer?: string;
+
+  @IsOptional()
   @IsNumber()
   order?: number;
+
+  @IsOptional()
+  @IsIn(['mcq', 'true_false', 'fill_blank'])
+  type?: 'mcq' | 'true_false' | 'fill_blank';
 }
 
 export class CreateTrainingCourseDto {

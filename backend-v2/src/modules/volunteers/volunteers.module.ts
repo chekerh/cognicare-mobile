@@ -16,6 +16,7 @@ import {
   AddDocumentUseCase,
   RemoveDocumentUseCase,
   CompleteCertificationUseCase,
+  SetTrainingCertifiedFromTrainingCoursesUseCase,
   ListApplicationsForAdminUseCase,
   GetApplicationByIdUseCase,
   ReviewApplicationUseCase,
@@ -89,6 +90,7 @@ import { VolunteersController } from "./interface/http/volunteers.controller";
     VOLUNTEER_APPLICATION_REPOSITORY_TOKEN,
     GetOrCreateApplicationUseCase,
     CompleteCertificationUseCase,
+    SetTrainingCertifiedFromTrainingCoursesUseCase,
   ],
 })
 export class VolunteersModule {}

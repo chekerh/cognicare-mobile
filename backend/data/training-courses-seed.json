@@ -907,7 +907,8 @@
           "Uniquement la vision"
         ],
         "correctIndex": 1,
-        "order": 0
+        "order": 0,
+        "type": "mcq"
       },
       {
         "question": "Pourquoi les routines sont-elles souvent utiles pour un enfant autiste ?",
@@ -918,7 +919,8 @@
           "Les routines ne sont pas recommandées"
         ],
         "correctIndex": 1,
-        "order": 1
+        "order": 1,
+        "type": "mcq"
       },
       {
         "question": "Que faire en priorité pendant une crise (meltdown) ?",
@@ -929,7 +931,8 @@
           "Ignorer complètement"
         ],
         "correctIndex": 1,
-        "order": 2
+        "order": 2,
+        "type": "mcq"
       },
       {
         "question": "Le « stimming » désigne :",
@@ -940,7 +943,8 @@
           "Une thérapie"
         ],
         "correctIndex": 1,
-        "order": 3
+        "order": 3,
+        "type": "mcq"
       },
       {
         "question": "Concernant l'alimentation des enfants autistes :",
@@ -951,7 +955,29 @@
           "L'alimentation n'a pas d'impact"
         ],
         "correctIndex": 1,
-        "order": 4
+        "order": 4,
+        "type": "mcq"
+      },
+      {
+        "question": "L'autisme est un trouble du développement qui apparaît typiquement dans l'enfance.",
+        "options": ["Vrai", "Faux"],
+        "correctIndex": 0,
+        "order": 5,
+        "type": "true_false"
+      },
+      {
+        "question": "Les crises sensorielles (surcharge) peuvent être déclenchées par le bruit, les lumières ou les foules.",
+        "options": ["Vrai", "Faux"],
+        "correctIndex": 0,
+        "order": 6,
+        "type": "true_false"
+      },
+      {
+        "question": "Il est préférable de punir un enfant autiste pour ses comportements répétitifs (stimming) afin de les faire disparaître.",
+        "options": ["Vrai", "Faux"],
+        "correctIndex": 1,
+        "order": 7,
+        "type": "true_false"
       }
     ],
     "approved": true,
@@ -984,7 +1010,8 @@
           "L'écriture"
         ],
         "correctIndex": 1,
-        "order": 0
+        "order": 0,
+        "type": "mcq"
       },
       {
         "question": "Pourquoi le PECS convient-il bien aux enfants autistes peu verbaux ?",
@@ -995,7 +1022,8 @@
           "Parce qu'il est plus simple que la langue des signes"
         ],
         "correctIndex": 1,
-        "order": 1
+        "order": 1,
+        "type": "mcq"
       },
       {
         "question": "Dans la phase 1 du PECS, l'enfant apprend à :",
@@ -1006,7 +1034,8 @@
           "Écrire une phrase"
         ],
         "correctIndex": 1,
-        "order": 2
+        "order": 2,
+        "type": "mcq"
       },
       {
         "question": "Quel type de support est typiquement utilisé pour le PECS ?",
@@ -1017,7 +1046,34 @@
           "Un tableau noir"
         ],
         "correctIndex": 1,
-        "order": 3
+        "order": 3,
+        "type": "mcq"
+      },
+      {
+        "question": "PECS signifie Picture Exchange Communication System (Système de communication par échange d'images).",
+        "options": ["Vrai", "Faux"],
+        "correctIndex": 0,
+        "order": 4,
+        "type": "true_false"
+      },
+      {
+        "question": "Avec le PECS, l'enfant doit d'abord apprendre à parler avant d'utiliser les images.",
+        "options": ["Vrai", "Faux"],
+        "correctIndex": 1,
+        "order": 5,
+        "type": "true_false"
+      },
+      {
+        "question": "Comment utiliser le PECS avec un enfant autiste en situation de demande ?",
+        "options": [
+          "Lui demander verbalement de répéter la demande",
+          "L'enfant donne l'image de l'objet désiré à l'adulte en échange de l'objet",
+          "L'enfant écrit le mot sur un papier",
+          "L'enfant pointe du doigt sans image"
+        ],
+        "correctIndex": 1,
+        "order": 6,
+        "type": "mcq"
       }
     ],
     "approved": true,
@@ -1173,7 +1229,8 @@
           "N'est utilisé qu'à l'hôpital"
         ],
         "correctIndex": 1,
-        "order": 0
+        "order": 0,
+        "type": "mcq"
       },
       {
         "question": "L'emploi du temps visuel sert à :",
@@ -1184,7 +1241,8 @@
           "Réduire le temps de jeu"
         ],
         "correctIndex": 1,
-        "order": 1
+        "order": 1,
+        "type": "mcq"
       },
       {
         "question": "Le « système de travail » en TEACCH permet à l'enfant de :",
@@ -1195,7 +1253,8 @@
           "Travailler sans support visuel"
         ],
         "correctIndex": 1,
-        "order": 2
+        "order": 2,
+        "type": "mcq"
       },
       {
         "question": "La structure physique dans TEACCH consiste à :",
@@ -1206,7 +1265,34 @@
           "Utiliser uniquement des couleurs sombres"
         ],
         "correctIndex": 1,
-        "order": 3
+        "order": 3,
+        "type": "mcq"
+      },
+      {
+        "question": "Le principe central de TEACCH est d'adapter l'environnement et les supports à la personne autiste.",
+        "options": ["Vrai", "Faux"],
+        "correctIndex": 0,
+        "order": 4,
+        "type": "true_false"
+      },
+      {
+        "question": "En TEACCH, le support visuel (images, emplois du temps) aide à rendre les attentes et la séquence des activités prévisibles.",
+        "options": ["Vrai", "Faux"],
+        "correctIndex": 0,
+        "order": 5,
+        "type": "true_false"
+      },
+      {
+        "question": "Comment le support visuel fonctionne-t-il dans TEACCH pour réduire l'anxiété ?",
+        "options": [
+          "En cachant les informations pour éviter la surcharge",
+          "En montrant clairement ce qui va se passer et dans quel ordre (prévisibilité)",
+          "En limitant les images au minimum",
+          "En n'utilisant que l'écrit"
+        ],
+        "correctIndex": 1,
+        "order": 6,
+        "type": "mcq"
       }
     ],
     "approved": true,

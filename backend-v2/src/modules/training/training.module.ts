@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import {
   TrainingCourse,
@@ -9,6 +9,7 @@ import {
 import { TrainingController } from "./training.controller";
 import { TrainingService } from "./training.service";
 import { TrainingSeedRunner } from "./training-seed.runner";
+import { VolunteersModule } from "../volunteers/volunteers.module";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { TrainingSeedRunner } from "./training-seed.runner";
       { name: TrainingCourse.name, schema: TrainingCourseSchema },
       { name: TrainingEnrollment.name, schema: TrainingEnrollmentSchema },
     ]),
+    forwardRef(() => VolunteersModule),
   ],
   controllers: [TrainingController],
   providers: [TrainingService, TrainingSeedRunner],

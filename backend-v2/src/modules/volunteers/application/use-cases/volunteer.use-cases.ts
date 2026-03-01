@@ -174,6 +174,24 @@ export class CompleteCertificationUseCase {
   }
 }
 
+/* ─── SetTrainingCertifiedFromTrainingCourses ─── */
+@Injectable()
+export class SetTrainingCertifiedFromTrainingCoursesUseCase {
+  constructor(
+    @Inject(VOLUNTEER_APPLICATION_REPOSITORY_TOKEN)
+    private readonly repo: IVolunteerApplicationRepository,
+  ) {}
+
+  async execute(userId: string): Promise<void> {
+    const app = await this.repo.findByUserId(userId);
+    if (!app || app.status !== "approved") return;
+    if (app.careProviderType !== "caregiver") return;
+    if (app.trainingCertified) return;
+    app.certifyTraining();
+    await this.repo.update(app);
+  }
+}
+
 /* ─── ListForAdmin ─── */
 @Injectable()
 export class ListApplicationsForAdminUseCase {

@@ -92,21 +92,28 @@ class TrainingService {
     return (list ?? []).map((e) => e as Map<String, dynamic>).toList();
   }
 
-  /// Submit quiz answers. Returns score, passed, and updated enrollments.
-  Future<Map<String, dynamic>> submitQuiz(String courseId, List<int> answers) async {
+  /// Submit quiz answers. [textAnswers] optional for fill_blank questions (same-length list).
+  /// Returns score, passed, enrollments, and review (correct answers per question).
+  Future<Map<String, dynamic>> submitQuiz(
+    String courseId,
+    List<int> answers, {
+    List<String>? textAnswers,
+  }) async {
     final token = await _getToken();
     if (token == null) throw Exception('No authentication token');
+    final body = <String, dynamic>{'answers': answers};
+    if (textAnswers != null) body['textAnswers'] = textAnswers;
     final response = await _client.post(
       Uri.parse('$_base${AppConstants.trainingSubmitQuizEndpoint(courseId)}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({'answers': answers}),
+      body: jsonEncode(body),
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
-      final body = jsonDecode(response.body) as Map<String, dynamic>?;
-      throw Exception(body?['message'] ?? 'Quiz submission failed');
+      final respBody = jsonDecode(response.body) as Map<String, dynamic>?;
+      throw Exception(respBody?['message'] ?? 'Quiz submission failed');
     }
     return jsonDecode(response.body) as Map<String, dynamic>;
   }

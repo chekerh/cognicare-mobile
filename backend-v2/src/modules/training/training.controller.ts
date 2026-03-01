@@ -75,13 +75,21 @@ export class TrainingController {
 
   @Post("courses/:id/submit-quiz")
   @ApiBearerAuth("JWT-auth")
-  @ApiOperation({ summary: "Submit quiz answers; returns score and pass/fail" })
+  @ApiOperation({
+    summary:
+      "Submit quiz answers; returns score, pass/fail, and review with correct answers",
+  })
   async submitQuiz(
     @Request() req: { user: { id: string } },
     @Param("id") id: string,
     @Body() dto: SubmitQuizDto,
   ) {
-    return this.trainingService.submitQuiz(req.user.id, id, dto.answers);
+    return this.trainingService.submitQuiz(
+      req.user.id,
+      id,
+      dto.answers,
+      dto.textAnswers,
+    );
   }
 
   @Get("next-course")

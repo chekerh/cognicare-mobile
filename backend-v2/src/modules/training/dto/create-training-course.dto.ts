@@ -5,6 +5,7 @@ import {
   IsArray,
   IsNumber,
   Min,
+  IsIn,
 } from "class-validator";
 
 export class ContentSectionDto {
@@ -22,7 +23,9 @@ export class QuizQuestionDto {
   @IsString() question!: string;
   @IsArray() @IsString({ each: true }) options!: string[];
   @IsNumber() @Min(0) correctIndex!: number;
+  @IsOptional() @IsString() correctAnswer?: string;
   @IsOptional() @IsNumber() order?: number;
+  @IsOptional() @IsIn(["mcq", "true_false", "fill_blank"]) type?: "mcq" | "true_false" | "fill_blank";
 }
 
 export class CreateTrainingCourseDto {

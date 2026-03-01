@@ -295,6 +295,29 @@ export class VolunteersService {
     return this.getOrCreateApplication(userId);
   }
 
+  /**
+   * Set trainingCertified when user has passed all three training courses (Autism, PECs, TEACCH).
+   * Called by TrainingService after a quiz pass. Only applies to caregivers with approved application.
+   */
+  async setTrainingCertifiedFromTrainingCourses(userId: string): Promise<void> {
+    const app = await this.applicationModel
+      .findOne({ userId: new Types.ObjectId(userId) })
+      .exec();
+    if (!app || app.status !== 'approved') return;
+    if (app.careProviderType !== 'caregiver') return;
+    if (app.trainingCertified) return;
+    app.trainingCertified = true;
+    app.trainingCertifiedAt = new Date();
+    await app.save();
+    await this.notifications.createForUser(userId, {
+      type: 'volunteer_certification_granted',
+      title: 'Certification obtenue',
+      description:
+        'Agenda et Messages sont maintenant accessibles. Merci pour votre engagement !',
+      data: { trainingCertifiedAt: app.trainingCertifiedAt?.toISOString() },
+    });
+  }
+
   async removeDocument(userId: string, documentIndex: number) {
     const app = await this.applicationModel
       .findOne({ userId: new Types.ObjectId(userId) })

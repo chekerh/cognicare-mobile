@@ -7,7 +7,7 @@ import '../../utils/theme.dart';
 const Color _primary = Color(0xFFADD8E6);
 const Color _bg = Color(0xFFF8FAFC);
 
-/// Quiz after course: multiple-choice, submit, show score. Pass threshold 70%.
+/// Quiz after course: multiple-choice / true-false, submit, show score and correct answers. Pass threshold 80%.
 class FamilyTrainingQuizScreen extends StatefulWidget {
   const FamilyTrainingQuizScreen({
     super.key,
@@ -27,11 +27,13 @@ class _FamilyTrainingQuizScreenState extends State<FamilyTrainingQuizScreen> {
   final TrainingService _service = TrainingService();
   List<Map<String, dynamic>> _questions = [];
   final List<int> _selected = [];
+  final List<TextEditingController> _textControllers = [];
   bool _loading = true;
   String? _error;
   bool _submitted = false;
   int? _scorePercent;
   bool? _passed;
+  List<Map<String, dynamic>> _review = [];
 
   @override
   void initState() {
@@ -53,11 +55,16 @@ class _FamilyTrainingQuizScreenState extends State<FamilyTrainingQuizScreen> {
         if (e is Map<String, dynamic>) questions.add(e);
       }
       if (mounted) {
+        for (final c in _textControllers) {
+          c.dispose();
+        }
+        _textControllers.clear();
         setState(() {
           _questions = questions;
           _selected.clear();
           for (var i = 0; i < questions.length; i++) {
             _selected.add(-1);
+            _textControllers.add(TextEditingController());
           }
           _loading = false;
         });
@@ -72,20 +79,53 @@ class _FamilyTrainingQuizScreenState extends State<FamilyTrainingQuizScreen> {
     }
   }
 
+  bool get _isFillBlank => (int i) {
+        if (i >= _questions.length) return false;
+        final type = _questions[i]['type'] as String?;
+        return type == 'fill_blank';
+      };
+
   Future<void> _submit() async {
-    if (_selected.any((i) => i < 0)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Répondez à toutes les questions')),
-      );
-      return;
+    for (var i = 0; i < _questions.length; i++) {
+      if (_isFillBlank(i)) {
+        if (i < _textControllers.length &&
+            _textControllers[i].text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Répondez à toutes les questions')),
+          );
+          return;
+        }
+      } else if (_selected[i] < 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Répondez à toutes les questions')),
+        );
+        return;
+      }
     }
     setState(() => _loading = true);
     try {
-      final result = await _service.submitQuiz(widget.courseId, _selected);
+      final textAnswers = _questions.asMap().keys.map((i) {
+        if (_isFillBlank(i) && i < _textControllers.length) {
+          return _textControllers[i].text;
+        }
+        return '';
+      }).toList();
+      final result = await _service.submitQuiz(
+        widget.courseId,
+        _selected,
+        textAnswers: textAnswers,
+      );
       if (mounted) {
+        final rawReview = result['review'];
+        final review = rawReview is List<dynamic>
+            ? rawReview
+                .map((e) => e is Map<String, dynamic> ? e : <String, dynamic>{})
+                .toList()
+            : <Map<String, dynamic>>[];
         setState(() {
           _scorePercent = result['scorePercent'] as int?;
           _passed = result['passed'] as bool?;
+          _review = review;
           _submitted = true;
           _loading = false;
         });
@@ -134,7 +174,9 @@ class _FamilyTrainingQuizScreenState extends State<FamilyTrainingQuizScreen> {
                               ...List.generate(_questions.length, (i) {
                                 final q = _questions[i];
                                 final question = q['question'] as String? ?? '';
+                                final type = q['type'] as String? ?? 'mcq';
                                 final options = (q['options'] as List<dynamic>?)?.cast<String>() ?? [];
+                                final isFillBlank = type == 'fill_blank';
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 24),
                                   child: Column(
@@ -149,40 +191,60 @@ class _FamilyTrainingQuizScreenState extends State<FamilyTrainingQuizScreen> {
                                         ),
                                       ),
                                       const SizedBox(height: 12),
-                                      ...List.generate(options.length, (j) {
-                                        final selected = _selected[i] == j;
-                                        return Padding(
+                                      if (isFillBlank)
+                                        Padding(
                                           padding: const EdgeInsets.only(bottom: 8),
-                                          child: InkWell(
-                                            onTap: () {
-                                              setState(() => _selected[i] = j);
-                                            },
-                                            borderRadius: BorderRadius.circular(12),
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                              decoration: BoxDecoration(
-                                                color: selected ? _primary.withOpacity(0.3) : Colors.white,
+                                          child: TextField(
+                                            controller: i < _textControllers.length
+                                                ? _textControllers[i]
+                                                : null,
+                                            onChanged: (_) => setState(() {}),
+                                            decoration: InputDecoration(
+                                              hintText: 'Votre réponse',
+                                              border: OutlineInputBorder(
                                                 borderRadius: BorderRadius.circular(12),
-                                                border: Border.all(
-                                                  color: selected ? _primary : Colors.grey.shade300,
-                                                  width: selected ? 2 : 1,
+                                              ),
+                                              filled: true,
+                                              fillColor: Colors.white,
+                                            ),
+                                            style: const TextStyle(color: AppTheme.text),
+                                          ),
+                                        )
+                                      else
+                                        ...List.generate(options.length, (j) {
+                                          final selected = _selected[i] == j;
+                                          return Padding(
+                                            padding: const EdgeInsets.only(bottom: 8),
+                                            child: InkWell(
+                                              onTap: () {
+                                                setState(() => _selected[i] = j);
+                                              },
+                                              borderRadius: BorderRadius.circular(12),
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                                decoration: BoxDecoration(
+                                                  color: selected ? _primary.withOpacity(0.3) : Colors.white,
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                    color: selected ? _primary : Colors.grey.shade300,
+                                                    width: selected ? 2 : 1,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Icon(
+                                                      selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                                                      color: selected ? _primary : Colors.grey,
+                                                      size: 22,
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(child: Text(options[j], style: const TextStyle(color: AppTheme.text))),
+                                                  ],
                                                 ),
                                               ),
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    selected ? Icons.radio_button_checked : Icons.radio_button_off,
-                                                    color: selected ? _primary : Colors.grey,
-                                                    size: 22,
-                                                  ),
-                                                  const SizedBox(width: 12),
-                                                  Expanded(child: Text(options[j], style: const TextStyle(color: AppTheme.text))),
-                                                ],
-                                              ),
                                             ),
-                                          ),
-                                        );
-                                      }),
+                                          );
+                                        }),
                                     ],
                                   ),
                                 );
@@ -211,59 +273,147 @@ class _FamilyTrainingQuizScreenState extends State<FamilyTrainingQuizScreen> {
   Widget _buildResult() {
     final passed = _passed ?? false;
     final score = _scorePercent ?? 0;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              passed ? Icons.check_circle : Icons.cancel,
-              size: 80,
-              color: passed ? Colors.green : Colors.orange,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 16),
+          Icon(
+            passed ? Icons.check_circle : Icons.cancel,
+            size: 80,
+            color: passed ? Colors.green : Colors.orange,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            passed ? 'Quiz réussi' : 'Quiz non réussi',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.text,
             ),
-            const SizedBox(height: 24),
-            Text(
-              passed ? 'Quiz réussi' : 'Quiz non réussi',
-              style: const TextStyle(
-                fontSize: 24,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Score: $score%',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18,
+              color: AppTheme.text.withOpacity(0.8),
+            ),
+          ),
+          if (!passed)
+            const Padding(
+              padding: EdgeInsets.only(top: 16),
+              child: Text(
+                'Vous pouvez reprendre le cours et réessayer le quiz.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppTheme.text),
+              ),
+            ),
+          if (_review.isNotEmpty) ...[
+            const SizedBox(height: 28),
+            const Text(
+              'Corrections',
+              style: TextStyle(
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.text,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Score: $score%',
-              style: TextStyle(
-                fontSize: 18,
-                color: AppTheme.text.withOpacity(0.8),
-              ),
-            ),
-            if (!passed)
-              const Padding(
-                padding: EdgeInsets.only(top: 16),
-                child: Text(
-                  'Vous pouvez reprendre le cours et réessayer le quiz.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppTheme.text),
+            const SizedBox(height: 12),
+            ..._review.asMap().entries.map((entry) {
+              final i = entry.key;
+              final r = entry.value;
+              final isCorrect = r['isCorrect'] == true;
+              final questionText = i < _questions.length
+                  ? (_questions[i]['question'] as String? ?? '')
+                  : 'Question ${i + 1}';
+              final correctOptionText = r['correctOptionText'] as String?;
+              final correctAnswer = r['correctAnswer'] as String?;
+              final userAnswer = r['userAnswer'] as String?;
+              final correctLabel = correctOptionText ?? correctAnswer ?? '';
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: isCorrect
+                        ? Colors.green.withOpacity(0.08)
+                        : Colors.orange.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isCorrect ? Colors.green : Colors.orange,
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            isCorrect ? Icons.check_circle : Icons.cancel,
+                            size: 20,
+                            color: isCorrect ? Colors.green : Colors.orange,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              questionText,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: AppTheme.text,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (correctLabel.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Réponse correcte: $correctLabel',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.text.withOpacity(0.9),
+                          ),
+                        ),
+                      ],
+                      if (userAnswer != null && userAnswer.isNotEmpty && !isCorrect)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            'Votre réponse: $userAnswer',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.text.withOpacity(0.7),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => context.go('..'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _primary,
-                  foregroundColor: AppTheme.text,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: const Text('Retour aux formations'),
-              ),
-            ),
+              );
+            }),
           ],
-        ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => context.go('..'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primary,
+                foregroundColor: AppTheme.text,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: const Text('Retour aux formations'),
+            ),
+          ),
+          const SizedBox(height: 48),
+        ],
       ),
     );
   }

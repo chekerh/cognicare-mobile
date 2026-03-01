@@ -2,6 +2,8 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -12,8 +14,28 @@ import { TrainingEnrollment } from './schemas/training-enrollment.schema';
 import { CreateTrainingCourseDto } from './dto/create-training-course.dto';
 import { UpdateTrainingCourseDto } from './dto/update-training-course.dto';
 import { ApproveTrainingCourseDto } from './dto/approve-training-course.dto';
+import { VolunteersService } from '../volunteers/volunteers.service';
 
-const QUIZ_PASS_THRESHOLD_PERCENT = 70;
+const QUIZ_PASS_THRESHOLD_PERCENT = 80;
+
+interface QuizQuestionRecord {
+  question: string;
+  options?: string[];
+  correctIndex?: number;
+  correctAnswer?: string;
+  order?: number;
+  type?: 'mcq' | 'true_false' | 'fill_blank';
+}
+
+export interface QuizReviewItem {
+  questionIndex: number;
+  correctIndex?: number;
+  correctOptionText?: string;
+  correctAnswer?: string;
+  userSelectedIndex?: number;
+  userAnswer?: string;
+  isCorrect: boolean;
+}
 
 @Injectable()
 export class TrainingService {
@@ -22,6 +44,8 @@ export class TrainingService {
     private readonly courseModel: Model<TrainingCourse>,
     @InjectModel(TrainingEnrollment.name)
     private readonly enrollmentModel: Model<TrainingEnrollment>,
+    @Inject(forwardRef(() => VolunteersService))
+    private readonly volunteersService: VolunteersService,
   ) {}
 
   /** List courses approved for app (caregivers) — only approved, ordered; quiz answers stripped */
@@ -243,16 +267,26 @@ export class TrainingService {
     return this.getMyEnrollments(userId);
   }
 
-  /** Submit quiz answers and record score */
-  async submitQuiz(userId: string, courseId: string, answers: number[]) {
+  /** Submit quiz answers and record score. Returns review with correct answers for learning. */
+  async submitQuiz(
+    userId: string,
+    courseId: string,
+    answers: number[],
+    textAnswers?: string[],
+  ): Promise<{
+    scorePercent: number;
+    passed: boolean;
+    correct: number;
+    total: number;
+    enrollments: Awaited<ReturnType<typeof this.getMyEnrollments>>;
+    review: QuizReviewItem[];
+  }> {
     const course = await this.courseModel
       .findOne({ _id: courseId, approved: true })
       .lean()
       .exec();
     if (!course) throw new NotFoundException('Course not found');
-    const quiz = (course as Record<string, unknown>).quiz as
-      | { question: string; options: string[]; correctIndex: number }[]
-      | undefined;
+    const quiz = (course as Record<string, unknown>).quiz as QuizQuestionRecord[] | undefined;
     if (!Array.isArray(quiz) || quiz.length === 0) {
       throw new BadRequestException('Course has no quiz');
     }
@@ -261,17 +295,39 @@ export class TrainingService {
         `Expected ${quiz.length} answers, got ${answers.length}`,
       );
     }
+    const review: QuizReviewItem[] = [];
     let correct = 0;
     for (let i = 0; i < quiz.length; i++) {
       const q = quiz[i];
+      const type = q.type ?? 'mcq';
       const selected = answers[i];
-      if (
-        selected >= 0 &&
-        selected < (q.options?.length ?? 0) &&
-        selected === q.correctIndex
-      ) {
-        correct++;
+      const textAnswer = (textAnswers && textAnswers[i] !== undefined) ? String(textAnswers[i]).trim() : '';
+
+      let isCorrect = false;
+      if (type === 'fill_blank') {
+        const expected = (q.correctAnswer ?? '').trim().toLowerCase();
+        const actual = textAnswer.toLowerCase();
+        isCorrect = !!expected && actual === expected;
+        review.push({
+          questionIndex: i,
+          correctAnswer: q.correctAnswer,
+          userAnswer: textAnswer || undefined,
+          isCorrect,
+        });
+      } else {
+        const options = q.options ?? [];
+        const correctIndex = q.correctIndex ?? 0;
+        const valid = selected >= 0 && selected < options.length;
+        isCorrect = valid && selected === correctIndex;
+        review.push({
+          questionIndex: i,
+          correctIndex,
+          correctOptionText: options[correctIndex],
+          userSelectedIndex: selected >= 0 ? selected : undefined,
+          isCorrect,
+        });
       }
+      if (isCorrect) correct++;
     }
     const scorePercent = Math.round((correct / quiz.length) * 100);
     const passed = scorePercent >= QUIZ_PASS_THRESHOLD_PERCENT;
@@ -302,13 +358,49 @@ export class TrainingService {
     }
     await enrollment.save();
 
+    if (passed) {
+      const allPassed = await this.haveAllApprovedTrainingCoursesPassed(userId);
+      if (allPassed) {
+        await this.volunteersService.setTrainingCertifiedFromTrainingCourses(userId);
+      }
+    }
+
     return {
       scorePercent,
       passed,
       correct,
       total: quiz.length,
       enrollments: await this.getMyEnrollments(userId),
+      review,
     };
+  }
+
+  /** True if user has passed every approved training course (quiz passed, progress 100%). */
+  private async haveAllApprovedTrainingCoursesPassed(userId: string): Promise<boolean> {
+    const courses = await this.courseModel
+      .find({ approved: true })
+      .sort({ order: 1 })
+      .lean()
+      .exec();
+    if (courses.length === 0) return false;
+    const enrollments = await this.enrollmentModel
+      .find({ userId: new Types.ObjectId(userId) })
+      .lean()
+      .exec();
+    const passedByCourse = new Set(
+      (enrollments as Record<string, unknown>[])
+        .filter(
+          (e) =>
+            e.progressPercent === 100 &&
+            e.quizPassed === true,
+        )
+        .map((e) => (e.courseId as Types.ObjectId)?.toString?.()),
+    );
+    for (const c of courses) {
+      const id = (c as { _id: Types.ObjectId })._id.toString();
+      if (!passedByCourse.has(id)) return false;
+    }
+    return true;
   }
 
   /** Check if user can access next course (previous completed + quiz passed) */
@@ -344,9 +436,14 @@ export class TrainingService {
     includeApproval = false,
     stripQuizAnswers = true,
   ) {
-    const quizRaw = (c.quiz ?? []) as { question: string; options: string[]; correctIndex?: number; order?: number }[];
+    const quizRaw = (c.quiz ?? []) as QuizQuestionRecord[];
     const quiz = stripQuizAnswers
-      ? quizRaw.map((q) => ({ question: q.question, options: q.options ?? [], order: q.order ?? 0 }))
+      ? quizRaw.map((q) => ({
+          question: q.question,
+          options: q.options ?? [],
+          order: q.order ?? 0,
+          type: q.type,
+        }))
       : quizRaw;
     const out: Record<string, unknown> = {
       id: (c._id as { toString(): string })?.toString?.(),

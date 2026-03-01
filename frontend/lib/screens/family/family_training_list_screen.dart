@@ -22,6 +22,7 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
   final TrainingService _service = TrainingService();
   List<Map<String, dynamic>> _courses = [];
   List<Map<String, dynamic>> _enrollments = [];
+  String? _nextCourseId;
   bool _loading = true;
   String? _error;
 
@@ -40,11 +41,13 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
       final results = await Future.wait([
         _service.getCourses(),
         _service.myEnrollments(),
+        _service.getNextCourseId(),
       ]);
       if (mounted) {
         setState(() {
           _courses = results[0] as List<Map<String, dynamic>>;
           _enrollments = results[1] as List<Map<String, dynamic>>;
+          _nextCourseId = results[2] as String?;
           _loading = false;
         });
       }
@@ -76,7 +79,22 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
   int? _courseOrder(Map<String, dynamic> c) =>
       c['order'] is int ? c['order'] as int : null;
 
+  bool _isUnlocked(String courseId) {
+    if (_isCompleted(courseId)) return true;
+    return _nextCourseId == courseId;
+  }
+
   Future<void> _openCourse(String courseId, String title, bool alreadyEnrolled) async {
+    if (!_isUnlocked(courseId)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Complétez le cours précédent et son quiz pour débloquer ce cours.'),
+          ),
+        );
+      }
+      return;
+    }
     if (!alreadyEnrolled) {
       try {
         await _service.enroll(courseId);
@@ -147,6 +165,7 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
                         final desc = course['description'] as String? ?? '';
                         final completed = _isCompleted(id);
                         final enrolled = _isEnrolled(id);
+                        final unlocked = _isUnlocked(id);
                         return Card(
                           margin: const EdgeInsets.only(bottom: 16),
                           shape: RoundedRectangleBorder(
@@ -165,14 +184,22 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
                                       Expanded(
                                         child: Text(
                                           title,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
-                                            color: AppTheme.text,
+                                            color: unlocked
+                                                ? AppTheme.text
+                                                : AppTheme.text.withOpacity(0.6),
                                           ),
                                         ),
                                       ),
-                                      if (completed)
+                                      if (!unlocked)
+                                        const Icon(
+                                          Icons.lock_outline,
+                                          color: Colors.grey,
+                                          size: 28,
+                                        )
+                                      else if (completed)
                                         const Icon(
                                           Icons.check_circle,
                                           color: Colors.green,
@@ -198,11 +225,24 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
+                                  if (!unlocked)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: Text(
+                                        'Complétez le cours précédent et son quiz.',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.orange.shade700,
+                                        ),
+                                      ),
+                                    ),
                                   const SizedBox(height: 12),
                                   SizedBox(
                                     width: double.infinity,
                                     child: ElevatedButton(
-                                      onPressed: () => _openCourse(id, title, enrolled),
+                                      onPressed: unlocked
+                                          ? () => _openCourse(id, title, enrolled)
+                                          : null,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: _primary,
                                         foregroundColor: AppTheme.text,
@@ -210,13 +250,15 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(12),
                                         ),
+                                        disabledBackgroundColor: Colors.grey.shade300,
+                                        disabledForegroundColor: Colors.grey.shade600,
                                       ),
                                       child: Text(
                                         completed
                                             ? 'Revoir le cours'
-                                            : enrolled
-                                                ? 'Continuer'
-                                                : 'Commencer',
+                                            : unlocked
+                                                ? (enrolled ? 'Continuer' : 'Commencer')
+                                                : 'Verrouillé',
                                       ),
                                     ),
                                   ),
