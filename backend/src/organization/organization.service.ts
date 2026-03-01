@@ -1122,8 +1122,8 @@ export class OrganizationService {
         this.configService.get<string>('RENDER_EXTERNAL_URL') ||
         'http://localhost:3000';
       backendUrl = backendUrl.replace(/\/$/, '');
-      activationUrl = `${backendUrl}/api/v1/organizations/invitations/${token}/accept`;
-      rejectUrl = `${backendUrl}/api/v1/organizations/invitations/${token}/reject`;
+      activationUrl = `${backendUrl}/api/v1/organization/invitations/${token}/accept`;
+      rejectUrl = `${backendUrl}/api/v1/organization/invitations/${token}/reject`;
       console.log('[INVITE] Existing confirmed user – using direct accept URL');
     } else {
       // New unconfirmed user: link to web dashboard confirm-account page to set password
@@ -1258,10 +1258,16 @@ export class OrganizationService {
       const existingChildren = await this.childModel.find({
         parentId: user._id,
       });
+      console.log(
+        `[ACCEPT] Found ${existingChildren.length} existing children for family member ${user.email}`,
+      );
       if (existingChildren.length > 0) {
-        await this.childModel.updateMany(
+        const updateResult = await this.childModel.updateMany(
           { parentId: user._id },
-          { organizationId: orgId },
+          { $set: { organizationId: orgId } },
+        );
+        console.log(
+          `[ACCEPT] Updated ${updateResult.modifiedCount} children with organizationId`,
         );
 
         // Add children to org's childrenIds

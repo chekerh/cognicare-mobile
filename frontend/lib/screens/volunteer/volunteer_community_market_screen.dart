@@ -23,11 +23,14 @@ String _fullImageUrl(String path) {
   return path.startsWith('/') ? '$base$path' : '$base/$path';
 }
 
-/// Affiche le prix en dinars tunisiens (DT), en remplaçant € par DT.
+/// Affiche le prix en dinars tunisiens (DT), sans doublon (ex: "DT 29.000" → "29.000 DT").
 String _formatPriceDt(String price) {
-  final p = price.trim().replaceAll('€', '').trim();
+  String p = price.trim().replaceAll('€', '').trim();
+  p = p.replaceFirst(RegExp(r'^DT\s*', caseSensitive: false), '');
+  p = p.replaceFirst(RegExp(r'\s*DT\s*$', caseSensitive: false), '');
+  p = p.trim();
   if (p.isEmpty) return '0 DT';
-  return p.toUpperCase().endsWith('DT') ? p : '$p DT';
+  return '$p DT';
 }
 
 /// Labels des catégories (Tout = pas de filtre).

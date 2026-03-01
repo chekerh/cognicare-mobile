@@ -214,6 +214,11 @@ class _VolunteerNewAvailabilityScreenState
                               final isCurrentMonth =
                                   d.month == _displayMonth.month;
                               final selected = _isSelected(d);
+                              final now = DateTime.now();
+                              final isToday = isCurrentMonth &&
+                                  d.year == now.year &&
+                                  d.month == now.month &&
+                                  d.day == now.day;
                               return GestureDetector(
                                 onTap: isCurrentMonth
                                     ? () => _toggleDate(d)
@@ -225,6 +230,12 @@ class _VolunteerNewAvailabilityScreenState
                                     decoration: BoxDecoration(
                                       color: selected ? _primary : null,
                                       borderRadius: BorderRadius.circular(12),
+                                      border: isToday && !selected
+                                          ? Border.all(
+                                              color: _primary,
+                                              width: 2,
+                                            )
+                                          : null,
                                     ),
                                     child: Text(
                                       '${d.day}',

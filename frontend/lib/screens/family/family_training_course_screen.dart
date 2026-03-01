@@ -75,7 +75,7 @@ class _FamilyTrainingCourseScreenState extends State<FamilyTrainingCourseScreen>
       await _service.markContentCompleted(id);
       if (!mounted) return;
       if (!mounted) return;
-      context.push(AppConstants.familyTrainingQuizRoute, extra: {'courseId': id, 'title': _title});
+      context.push('quiz', extra: {'courseId': id, 'title': _title});
     } catch (_) {}
     if (mounted) setState(() => _markingComplete = false);
   }
