@@ -122,6 +122,7 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
         'missionType': c.missionType ?? c.subtitle ?? 'Mission',
         if (c.conversationId != null && c.conversationId!.isNotEmpty)
           'conversationId': c.conversationId!,
+        if (c.imageUrl.isNotEmpty) 'familyProfilePic': c.imageUrl,
       },
     );
   }
