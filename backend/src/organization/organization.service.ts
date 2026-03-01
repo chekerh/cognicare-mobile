@@ -1258,10 +1258,16 @@ export class OrganizationService {
       const existingChildren = await this.childModel.find({
         parentId: user._id,
       });
+      console.log(
+        `[ACCEPT] Found ${existingChildren.length} existing children for family member ${user.email}`,
+      );
       if (existingChildren.length > 0) {
-        await this.childModel.updateMany(
+        const updateResult = await this.childModel.updateMany(
           { parentId: user._id },
-          { organizationId: orgId },
+          { $set: { organizationId: orgId } },
+        );
+        console.log(
+          `[ACCEPT] Updated ${updateResult.modifiedCount} children with organizationId`,
         );
 
         // Add children to org's childrenIds
