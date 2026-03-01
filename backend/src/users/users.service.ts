@@ -34,11 +34,17 @@ export class UsersService {
     const saltRounds = 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
+    const specialistRoles = ['doctor'];
+    const careProviderType = specialistRoles.includes(userData.role as string)
+      ? (userData.role as 'doctor')
+      : undefined;
+
     // Create user (admin-created users don't need email verification)
     const user = new this.userModel({
       ...userData,
       email,
       passwordHash,
+      ...(careProviderType && { careProviderType }),
     });
 
     await user.save();

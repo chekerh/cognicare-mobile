@@ -307,6 +307,17 @@ export class OrganizationService {
     // Hash password
     const passwordHash = await bcrypt.hash(createStaffDto.password, 12);
 
+    const specialistRoles = [
+      'occupational_therapist',
+      'speech_therapist',
+      'psychologist',
+      'doctor',
+    ];
+    const careProviderType =
+      specialistRoles.includes(createStaffDto.role)
+        ? createStaffDto.role
+        : undefined;
+
     // Create staff user
     const staff = new this.userModel({
       fullName: createStaffDto.fullName,
@@ -314,6 +325,7 @@ export class OrganizationService {
       phone: createStaffDto.phone,
       passwordHash,
       role: createStaffDto.role,
+      ...(careProviderType && { careProviderType }),
       organizationId: orgId,
       addedByOrganizationId: orgId,
       lastModifiedBy: requesterId,

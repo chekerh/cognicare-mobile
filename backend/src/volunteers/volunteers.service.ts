@@ -23,6 +23,55 @@ const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
 const ALLOWED_PDF_MIME = 'application/pdf';
 const ALLOWED_MIMES = [...ALLOWED_IMAGE_MIMES, ALLOWED_PDF_MIME];
 
+/** Specialist roles that have a direct careProviderType equivalent. */
+const SPECIALIST_ROLES = [
+  'occupational_therapist',
+  'speech_therapist',
+  'psychologist',
+  'doctor',
+] as const;
+
+/** Map careProviderType to User.role so they stay in sync on approval. */
+function careProviderTypeToRole(
+  careProviderType: string | undefined,
+): string | undefined {
+  if (!careProviderType) return undefined;
+  const map: Record<string, string> = {
+    occupational_therapist: 'occupational_therapist',
+    ergotherapist: 'occupational_therapist',
+    speech_therapist: 'speech_therapist',
+    psychologist: 'psychologist',
+    doctor: 'doctor',
+    caregiver: 'careProvider',
+    organization_leader: 'organization_leader',
+    other: 'other',
+  };
+  return map[careProviderType];
+}
+
+/** Whether User has a care-provider type (role or careProviderType set). */
+function userHasCareProviderType(user: { role?: string; careProviderType?: string } | null): boolean {
+  if (!user) return false;
+  if (SPECIALIST_ROLES.includes(user.role as (typeof SPECIALIST_ROLES)[number]))
+    return true;
+  if (user.role === 'careProvider' || user.role === 'organization_leader' || user.role === 'other')
+    return true;
+  return !!user.careProviderType;
+}
+
+/** Effective careProviderType for API response: prefer User.role when it is a specialist role (single source of truth). */
+function effectiveCareProviderType(
+  appType: string | undefined,
+  user: { role?: string; careProviderType?: string } | null,
+): string | undefined {
+  if (!user) return appType;
+  const role = user.role;
+  if (role && SPECIALIST_ROLES.includes(role as (typeof SPECIALIST_ROLES)[number]))
+    return role;
+  if (user.careProviderType) return user.careProviderType;
+  return appType;
+}
+
 export type DocumentType = 'id' | 'certificate' | 'other';
 
 @Injectable()
@@ -40,19 +89,37 @@ export class VolunteersService {
   ) {}
 
   async getOrCreateApplication(userId: string) {
+    const userDoc = await this.userModel
+      .findById(userId)
+      .select('role careProviderType specialty')
+      .lean()
+      .exec();
+    const user = userDoc
+      ? {
+          role: userDoc.role,
+          careProviderType: userDoc.careProviderType,
+          specialty: userDoc.specialty,
+        }
+      : null;
+
     let app = await this.applicationModel
       .findOne({ userId: new Types.ObjectId(userId) })
       .lean()
       .exec();
     if (!app) {
-      const created = await this.applicationModel.create({
+      const payload: Record<string, unknown> = {
         userId: new Types.ObjectId(userId),
         status: 'pending',
         documents: [],
-      });
+      };
+      if (user?.careProviderType) payload.careProviderType = user.careProviderType;
+      if (user?.role && SPECIALIST_ROLES.includes(user.role as (typeof SPECIALIST_ROLES)[number]))
+        payload.careProviderType = payload.careProviderType ?? user.role;
+      if (user?.specialty) payload.specialty = user.specialty;
+      const created = await this.applicationModel.create(payload);
       app = created.toObject();
     }
-    return this.toResponse(app as Record<string, unknown>);
+    return this.toResponse(app as Record<string, unknown>, false, user);
   }
 
   /**
@@ -87,7 +154,23 @@ export class VolunteersService {
     if (dto.organizationRole !== undefined)
       app.organizationRole = dto.organizationRole;
     await app.save();
-    return this.toResponse(app.toObject() as unknown as Record<string, unknown>);
+    const userDoc = await this.userModel
+      .findById(userId)
+      .select('role careProviderType specialty')
+      .lean()
+      .exec();
+    const user = userDoc
+      ? {
+          role: userDoc.role,
+          careProviderType: userDoc.careProviderType,
+          specialty: userDoc.specialty,
+        }
+      : null;
+    return this.toResponse(
+      app.toObject() as unknown as Record<string, unknown>,
+      false,
+      user,
+    );
   }
 
   async addDocument(
@@ -266,6 +349,8 @@ export class VolunteersService {
         if (app.careProviderType !== undefined)
           userDoc.careProviderType = app.careProviderType;
         if (app.specialty !== undefined) userDoc.specialty = app.specialty;
+        const roleFromType = careProviderTypeToRole(app.careProviderType);
+        if (roleFromType) userDoc.role = roleFromType as User['role'];
         await userDoc.save();
       }
     }
@@ -302,6 +387,7 @@ export class VolunteersService {
   private toResponse(
     app: Record<string, unknown>,
     includeUser = false,
+    user?: { role?: string; careProviderType?: string; specialty?: string } | null,
   ): Record<string, unknown> {
     const id = (app._id as { toString(): string })?.toString?.();
     const userIdRaw = app.userId;
@@ -310,13 +396,23 @@ export class VolunteersService {
         ? (userIdRaw as { _id: { toString(): string } })._id?.toString?.()
         : (userIdRaw as Types.ObjectId)?.toString?.();
     const documents = (app.documents ?? []) as unknown[];
-    const profileComplete = documents.length >= 1;
+    const status = app.status as string | undefined;
+    const hasDocuments = documents.length >= 1;
+    const approvedWithType =
+      status === 'approved' && userHasCareProviderType(user ?? null);
+    const profileComplete = hasDocuments || approvedWithType;
+    const careProviderType = effectiveCareProviderType(
+      app.careProviderType as string | undefined,
+      user ?? null,
+    );
+    const specialty =
+      (app.specialty as string | undefined) ?? (user?.specialty as string | undefined);
     const doc: Record<string, unknown> = {
       id,
       userId: userIdStr,
       status: app.status,
-      careProviderType: app.careProviderType,
-      specialty: app.specialty,
+      careProviderType: careProviderType ?? app.careProviderType,
+      specialty: specialty ?? app.specialty,
       organizationName: app.organizationName,
       organizationRole: app.organizationRole,
       documents: app.documents ?? [],
