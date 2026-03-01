@@ -351,6 +351,33 @@ GoRouter createAppRouter(AuthProvider authProvider) {
             path: 'agenda',
             builder: (context, state) => const VolunteerAgendaScreen(),
           ),
+          GoRoute(
+            path: 'training',
+            builder: (context, state) =>
+                const FamilyTrainingListScreen(fromVolunteer: true),
+            routes: [
+              GoRoute(
+                path: 'course',
+                builder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>? ?? {};
+                  return FamilyTrainingCourseScreen(
+                    courseId: extra['courseId'] as String? ?? '',
+                    title: extra['title'] as String? ?? 'Cours',
+                  );
+                },
+              ),
+              GoRoute(
+                path: 'quiz',
+                builder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>? ?? {};
+                  return FamilyTrainingQuizScreen(
+                    courseId: extra['courseId'] as String? ?? '',
+                    title: extra['title'] as String? ?? 'Quiz',
+                  );
+                },
+              ),
+            ],
+          ),
             StatefulShellRoute.indexedStack(
             builder: (context, state, navigationShell) => VolunteerShellScreen(
               navigationShell: navigationShell,

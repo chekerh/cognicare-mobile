@@ -327,6 +327,9 @@ class AppConstants {
   static const String familyTrainingRoute = '/family/training';
   static const String familyTrainingCourseRoute = '/family/training/course';
   static const String familyTrainingQuizRoute = '/family/training/quiz';
+  static const String volunteerTrainingRoute = '/volunteer/training';
+  static const String volunteerTrainingCourseRoute = '/volunteer/training/course';
+  static const String volunteerTrainingQuizRoute = '/volunteer/training/quiz';
 
   // Volunteer sector routes (JWT-protected, role: volunteer)
   static const String volunteerRoute = '/volunteer';

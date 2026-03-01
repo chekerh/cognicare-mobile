@@ -248,7 +248,7 @@ class _FamilyTrainingQuizScreenState extends State<FamilyTrainingQuizScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => context.go(AppConstants.familyTrainingRoute),
+                onPressed: () => context.go('..'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _primary,
                   foregroundColor: AppTheme.text,

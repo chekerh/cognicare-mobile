@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/courses_service.dart';
+import '../../services/training_service.dart';
 import '../../services/volunteer_service.dart';
 import '../../utils/constants.dart';
 
@@ -25,8 +26,10 @@ class _VolunteerFormationsHubScreenState
     extends State<VolunteerFormationsHubScreen> {
   final CoursesService _coursesService = CoursesService();
   final VolunteerService _volunteerService = VolunteerService();
+  final TrainingService _trainingService = TrainingService();
   List<Map<String, dynamic>> _courses = [];
   List<Map<String, dynamic>> _enrollments = [];
+  List<Map<String, dynamic>> _trainingCourses = [];
   Map<String, dynamic>? _application;
   bool _loading = true;
   String? _error;
@@ -60,11 +63,16 @@ class _VolunteerFormationsHubScreenState
         _coursesService.myEnrollments(),
         _volunteerService.getMyApplication(),
       ]);
+      List<Map<String, dynamic>> trainingList = [];
+      try {
+        trainingList = await _trainingService.getCourses();
+      } catch (_) {}
       if (mounted) {
         setState(() {
           _courses = results[0] as List<Map<String, dynamic>>;
           _enrollments = results[1] as List<Map<String, dynamic>>;
           _application = results[2] as Map<String, dynamic>?;
+          _trainingCourses = trainingList;
         });
       }
     } catch (e) {
@@ -122,6 +130,7 @@ class _VolunteerFormationsHubScreenState
                         SliverToBoxAdapter(child: _buildCourseInProgress()),
                         SliverToBoxAdapter(child: _buildCertificationTestCard()),
                         SliverToBoxAdapter(child: _buildAiInsightsCard()),
+                        SliverToBoxAdapter(child: _buildAutismTrainingSection()),
                         SliverToBoxAdapter(child: _buildCatalogSection()),
                         SliverToBoxAdapter(
                             child: _buildCertificationsSection()),
@@ -608,6 +617,114 @@ class _VolunteerFormationsHubScreenState
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Section "Formation Autisme" — cours issus du module Training (contenu scrapé, approuvé).
+  Widget _buildAutismTrainingSection() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Formation Autisme',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: _textPrimary,
+                ),
+              ),
+              if (_trainingCourses.isNotEmpty)
+                TextButton(
+                  onPressed: () => context.push(AppConstants.volunteerTrainingRoute),
+                  child: const Text('Voir tout', style: TextStyle(color: _primary, fontWeight: FontWeight.w600)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Cours pour aidants (sources officielles : WHO, TEACCH, NAS, etc.)',
+            style: TextStyle(fontSize: 13, color: _textSecondary),
+          ),
+          const SizedBox(height: 12),
+          if (_trainingCourses.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'Aucun cours disponible pour le moment. Les formations seront ajoutées après validation par les professionnels.',
+                style: TextStyle(fontSize: 13, color: _textSecondary),
+              ),
+            )
+          else
+            ..._trainingCourses.take(3).map((c) {
+              final id = c['id'] as String? ?? '';
+              final title = c['title'] as String? ?? 'Cours';
+              final desc = c['description'] as String?;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Material(
+                  color: _cardBg,
+                  borderRadius: BorderRadius.circular(16),
+                  elevation: 1,
+                  shadowColor: Colors.black.withOpacity(0.04),
+                  child: InkWell(
+                    onTap: () => context.push(
+                      AppConstants.volunteerTrainingCourseRoute,
+                      extra: {'courseId': id, 'title': title},
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: _primary.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.school_rounded, color: _primary, size: 24),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: _textPrimary,
+                                  ),
+                                ),
+                                if (desc != null && desc.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    desc.length > 80 ? '${desc.substring(0, 80)}...' : desc,
+                                    style: const TextStyle(fontSize: 12, color: _textSecondary),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios, size: 14, color: _textSecondary),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+        ],
       ),
     );
   }

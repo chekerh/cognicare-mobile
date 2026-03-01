@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import * as fs from 'fs';
+import * as path from 'path';
 import { TrainingCourse } from './schemas/training-course.schema';
 import { TrainingEnrollment } from './schemas/training-enrollment.schema';
 import { CreateTrainingCourseDto } from './dto/create-training-course.dto';
@@ -53,6 +55,22 @@ export class TrainingService {
     const c = course as Record<string, unknown>;
     if (!admin && !c.approved) throw new NotFoundException('Course not found');
     return this.toCourseResponse(c, admin, !admin);
+  }
+
+  /** Seed the 3 generated courses (from scraped/official content) if collection is empty */
+  async seedCoursesIfEmpty(): Promise<void> {
+    const count = await this.courseModel.countDocuments().exec();
+    if (count > 0) return;
+    const seedPath = path.join(process.cwd(), 'data', 'training-courses-seed.json');
+    if (!fs.existsSync(seedPath)) return;
+    try {
+      const raw = fs.readFileSync(seedPath, 'utf-8');
+      const courses = JSON.parse(raw) as CreateTrainingCourseDto[];
+      if (!Array.isArray(courses) || courses.length === 0) return;
+      await this.courseModel.insertMany(courses);
+    } catch {
+      // ignore: seed is optional
+    }
   }
 
   /** Create course (admin or scraper) */

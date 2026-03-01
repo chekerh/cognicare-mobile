@@ -35,7 +35,11 @@ pip install -r requirements.txt
 
 Output JSON matches the backend `POST /api/v1/training/admin/courses` body shape: `title`, `description`, `contentSections`, `sourceUrl`, `topics`, `quiz` (empty; add questions manually or via a separate quiz generator), `approved: false`, `order`.
 
-## Importing into CogniCare
+## Pre-generated courses (backend seed)
+
+The backend can **auto-seed** 3 full courses (content + quiz) at startup if the training collection is empty. The data is in `backend/data/training-courses-seed.json` (Connaissances générales sur l'autisme, PECS, Méthode TEACCH). Start the backend from the `backend/` folder so that `data/training-courses-seed.json` is found. Then approve the courses in CogniWeb (Admin → Training Courses) to make them visible in the app.
+
+## Importing into CogniCare (manual)
 
 1. Get an admin JWT from CogniCare auth.
 2. For each course in `training_courses.json`:
