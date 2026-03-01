@@ -44,6 +44,8 @@ class CommunityFeedProvider with ChangeNotifier {
   }
 
   /// Charge le fil : essaie le backend d'abord, sinon stockage local.
+  /// Les compteurs (likes, commentaires) viennent du backend ; on ne bascule en local
+  /// que si le chargement des posts échoue (pas si getLikeStatus échoue).
   Future<void> loadFromStorage() async {
     if (_loaded) return;
     _useBackend = false;
@@ -64,16 +66,23 @@ class CommunityFeedProvider with ChangeNotifier {
           _postCommentCount[entry.key] = entry.value;
         }
       }
-      final postIds = _posts.map((p) => p.id).toList();
-      final status = await _api.getLikeStatus(postIds);
-      _postLiked.clear();
-      for (final p in _posts) {
-        _postLiked[p.id] = status[p.id] ?? false;
-      }
       _postComments.clear();
       _useBackend = true;
+      final postIds = _posts.map((p) => p.id).toList();
+      try {
+        final status = await _api.getLikeStatus(postIds);
+        _postLiked.clear();
+        for (final p in _posts) {
+          _postLiked[p.id] = status[p.id] ?? false;
+        }
+      } catch (_) {
+        _postLiked.clear();
+        for (final p in _posts) {
+          _postLiked[p.id] = false;
+        }
+      }
     } catch (_) {
-      // Pas de token ou erreur API : charger depuis le stockage local
+      // Échec chargement posts (token, réseau, etc.) : repli stockage local
     }
     if (!_useBackend) await _loadLocal();
     _loaded = true;

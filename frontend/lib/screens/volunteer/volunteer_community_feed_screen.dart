@@ -566,55 +566,74 @@ class _VolunteerCommunityFeedScreenState
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: avatarBg,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                          color: avatarFg.withOpacity(0.2)),
-                    ),
-                    child: Center(
-                      child: Text(
-                        post.authorName.isNotEmpty
-                            ? post.authorName
-                                .substring(0, 1)
-                                .toUpperCase()
-                            : '?',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: avatarFg,
-                          fontSize: 20,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          post.authorName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: _textPrimary,
-                            fontSize: 15,
-                            height: 1.2,
+                    child: InkWell(
+                      onTap: () {
+                        context.push(
+                          AppConstants.volunteerCommunityMemberProfileRoute,
+                          extra: {
+                            'memberId': post.authorId,
+                            'memberName': post.authorName,
+                          },
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: avatarBg,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                  color: avatarFg.withOpacity(0.2)),
+                            ),
+                            child: Center(
+                              child: Text(
+                                post.authorName.isNotEmpty
+                                    ? post.authorName
+                                        .substring(0, 1)
+                                        .toUpperCase()
+                                    : '?',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: avatarFg,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          post.timeAgo.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: _textSlate400,
-                            letterSpacing: 1.2,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  post.authorName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: _textPrimary,
+                                    fontSize: 15,
+                                    height: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  post.timeAgo.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: _textSlate400,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   IconButton(

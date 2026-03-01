@@ -425,6 +425,11 @@ GoRouter createAppRouter(AuthProvider authProvider) {
                           return IntegrationOrderFormScreen.fromState(state);
                         },
                       ),
+                      GoRoute(
+                        path: 'community-member-profile',
+                        builder: (context, state) =>
+                            CommunityMemberProfileScreen.fromState(state),
+                      ),
                     ],
                   ),
                 ],
