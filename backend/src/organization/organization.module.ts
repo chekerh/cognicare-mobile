@@ -17,6 +17,10 @@ import {
   SpecializedPlan,
   SpecializedPlanSchema,
 } from '../specialized-plans/schemas/specialized-plan.schema';
+import {
+  VolunteerApplication,
+  VolunteerApplicationSchema,
+} from '../volunteers/schemas/volunteer-application.schema';
 import { MailModule } from '../mail/mail.module';
 
 @Module({
@@ -28,6 +32,10 @@ import { MailModule } from '../mail/mail.module';
       { name: User.name, schema: UserSchema },
       { name: Child.name, schema: ChildSchema },
       { name: SpecializedPlan.name, schema: SpecializedPlanSchema },
+      {
+        name: VolunteerApplication.name,
+        schema: VolunteerApplicationSchema,
+      },
     ]),
     MailModule,
   ],

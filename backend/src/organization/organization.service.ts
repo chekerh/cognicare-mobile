@@ -33,6 +33,17 @@ import {
   SpecializedPlan,
   SpecializedPlanDocument,
 } from '../specialized-plans/schemas/specialized-plan.schema';
+import {
+  VolunteerApplication,
+  VolunteerApplicationDocument,
+} from '../volunteers/schemas/volunteer-application.schema';
+
+const ORG_SPECIALIST_ROLES = [
+  'occupational_therapist',
+  'speech_therapist',
+  'psychologist',
+  'doctor',
+] as const;
 
 @Injectable()
 export class OrganizationService {
@@ -47,6 +58,8 @@ export class OrganizationService {
     @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     @InjectModel(SpecializedPlan.name)
     private planModel: Model<SpecializedPlanDocument>,
+    @InjectModel(VolunteerApplication.name)
+    private volunteerApplicationModel: Model<VolunteerApplicationDocument>,
     private mailService: MailService,
     private configService: ConfigService,
   ) {}
@@ -348,6 +361,13 @@ export class OrganizationService {
       staffIds: org.staffIds,
     });
 
+    if (careProviderType) {
+      await this.syncVolunteerApplicationApproval(
+        (staff._id as Types.ObjectId).toString(),
+        staff.role,
+      );
+    }
+
     return staff;
   }
 
@@ -409,7 +429,50 @@ export class OrganizationService {
     }
 
     await staff.save();
+
+    if (
+      updateStaffDto.role !== undefined &&
+      ORG_SPECIALIST_ROLES.includes(
+        updateStaffDto.role as (typeof ORG_SPECIALIST_ROLES)[number],
+      )
+    ) {
+      await this.syncVolunteerApplicationApproval(staffId, staff.role);
+    }
+
     return staff;
+  }
+
+  /**
+   * Create or update volunteer application to approved when staff has a specialist role (CogniWeb–mobile sync).
+   */
+  private async syncVolunteerApplicationApproval(
+    staffId: string,
+    role: string,
+  ): Promise<void> {
+    const careProviderType = ORG_SPECIALIST_ROLES.includes(
+      role as (typeof ORG_SPECIALIST_ROLES)[number],
+    )
+      ? role
+      : undefined;
+    if (!careProviderType) return;
+
+    const userId = new Types.ObjectId(staffId);
+    await this.volunteerApplicationModel
+      .findOneAndUpdate(
+        { userId },
+        {
+          $set: {
+            status: 'approved',
+            careProviderType: careProviderType as any,
+          },
+          $setOnInsert: {
+            userId,
+            documents: [],
+          },
+        },
+        { upsert: true, new: true },
+      )
+      .exec();
   }
 
   async createFamilyMember(

@@ -119,6 +119,9 @@ class _VolunteerShellScreenState extends State<VolunteerShellScreen> {
       if (mounted) setState(() => _application = app);
       final profileComplete = app['profileComplete'] == true;
       if (profileComplete) return;
+      // Defensive: role already set by CogniWeb (org staff) — skip dialog to avoid duplicate profile step
+      final user = Provider.of<AuthProvider>(context, listen: false).user;
+      if (AppConstants.isSpecialistRole(user?.role)) return;
       if (!mounted) return;
       final ctx = context;
       final loc = AppLocalizations.of(ctx)!;

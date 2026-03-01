@@ -102,14 +102,16 @@ export class VolunteersService {
         }
       : null;
 
-    let app = await this.applicationModel
+    let appDoc = await this.applicationModel
       .findOne({ userId: new Types.ObjectId(userId) })
-      .lean()
       .exec();
-    if (!app) {
+    const hasCareProviderType = userHasCareProviderType(user);
+
+    if (!appDoc) {
+      const status = hasCareProviderType ? 'approved' : 'pending';
       const payload: Record<string, unknown> = {
         userId: new Types.ObjectId(userId),
-        status: 'pending',
+        status,
         documents: [],
       };
       if (user?.careProviderType) payload.careProviderType = user.careProviderType;
@@ -117,9 +119,20 @@ export class VolunteersService {
         payload.careProviderType = payload.careProviderType ?? user.role;
       if (user?.specialty) payload.specialty = user.specialty;
       const created = await this.applicationModel.create(payload);
-      app = created.toObject();
+      return this.toResponse(created.toObject() as unknown as Record<string, unknown>, false, user);
     }
-    return this.toResponse(app as Record<string, unknown>, false, user);
+
+    const app = appDoc.toObject();
+    if ((app.status as string) === 'pending' && hasCareProviderType) {
+      appDoc.status = 'approved';
+      if (!appDoc.careProviderType && user?.role && SPECIALIST_ROLES.includes(user.role as (typeof SPECIALIST_ROLES)[number]))
+        appDoc.careProviderType = user.role as any;
+      if (!appDoc.careProviderType && user?.careProviderType)
+        appDoc.careProviderType = user.careProviderType as any;
+      await appDoc.save();
+      return this.toResponse(appDoc.toObject() as unknown as Record<string, unknown>, false, user);
+    }
+    return this.toResponse(app as unknown as Record<string, unknown>, false, user);
   }
 
   /**
