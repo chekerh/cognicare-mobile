@@ -200,14 +200,21 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: 36,
+                  height: 36,
+                  child: Image.asset(
+                    'assets/images/app_logo.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.all(6),
+                      child: const Icon(Icons.psychology, color: _feedPrimary, size: 22),
+                    ),
+                  ),
                 ),
-                child:
-                    const Icon(Icons.psychology, color: _feedPrimary, size: 22),
               ),
               const SizedBox(width: 8),
               const Text(

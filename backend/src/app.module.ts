@@ -34,6 +34,7 @@ import { ProgressAiModule } from './progress-ai/progress-ai.module';
 import { ChatbotModule } from './chatbot/chatbot.module';
 import { HealthcareCabinetsModule } from './healthcare-cabinets/healthcare-cabinets.module';
 import { IntegrationsModule } from './integrations/integrations.module';
+import { TrainingModule } from './training/training.module';
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { IntegrationsModule } from './integrations/integrations.module';
     ChatbotModule,
     HealthcareCabinetsModule,
     IntegrationsModule,
+    TrainingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

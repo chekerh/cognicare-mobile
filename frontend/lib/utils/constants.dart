@@ -140,6 +140,21 @@ class AppConstants {
   static const String coursesAdminEnrollmentsEndpoint =
       '/api/v1/courses/admin/enrollments';
 
+  // Autism Training (caregiver courses — content + quiz)
+  static const String trainingCoursesEndpoint = '/api/v1/training/courses';
+  static String trainingCourseByIdEndpoint(String id) =>
+      '/api/v1/training/courses/$id';
+  static String trainingEnrollEndpoint(String id) =>
+      '/api/v1/training/courses/$id/enroll';
+  static const String trainingMyEnrollmentsEndpoint =
+      '/api/v1/training/my-enrollments';
+  static String trainingCompleteContentEndpoint(String id) =>
+      '/api/v1/training/courses/$id/complete-content';
+  static String trainingSubmitQuizEndpoint(String id) =>
+      '/api/v1/training/courses/$id/submit-quiz';
+  static const String trainingNextCourseEndpoint =
+      '/api/v1/training/next-course';
+
   // Nutrition & Reminders
   static const String nutritionPlansEndpoint = '/api/v1/nutrition/plans';
   static String nutritionPlansByChildEndpoint(String childId) =>
@@ -307,6 +322,11 @@ class AppConstants {
   static const String familyReminderNotificationRoute =
       '/family/reminder-notification';
   static const String familySettingsRoute = '/family/settings';
+
+  // Autism Training (caregivers) — courses with content + quiz
+  static const String familyTrainingRoute = '/family/training';
+  static const String familyTrainingCourseRoute = '/family/training/course';
+  static const String familyTrainingQuizRoute = '/family/training/quiz';
 
   // Volunteer sector routes (JWT-protected, role: volunteer)
   static const String volunteerRoute = '/volunteer';
