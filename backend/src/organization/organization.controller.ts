@@ -305,6 +305,14 @@ export class OrganizationController {
     return await this.organizationService.adminRemoveFamilyFromOrg(familyId);
   }
 
+  // Admin: Get all children across all organizations
+  @Get('admin/all-children')
+  @Roles('admin')
+  @ApiOperation({ summary: 'Get all children across all organizations (Admin only)' })
+  async adminGetAllChildren() {
+    return await this.organizationService.adminGetAllChildren();
+  }
+
   // Admin: Get children for a specific family
   @Get('admin/families/:familyId/children')
   @Roles('admin')
