@@ -1983,6 +1983,15 @@ export class OrganizationService {
     });
   }
 
+  // Admin: Get all children across all organizations
+  async adminGetAllChildren(): Promise<Child[]> {
+    return await this.childModel
+      .find({ deletedAt: null })
+      .populate('parentId', 'fullName email')
+      .sort({ fullName: 1 })
+      .exec();
+  }
+
   // Admin: Create a new family member
   async adminCreateFamily(dto: {
     fullName: string;
