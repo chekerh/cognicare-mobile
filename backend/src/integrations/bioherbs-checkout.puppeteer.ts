@@ -164,7 +164,7 @@ export async function submitBioherbsOrderWithPuppeteer(
       for (const el of labels) {
         const t = (el.textContent || '').toLowerCase();
         if (t.includes('livraison') && (t.includes('paiement') || t.includes('payment') || t.includes('cash'))) {
-          el.click();
+          (el as HTMLElement).click();
           break;
         }
       }

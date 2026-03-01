@@ -2,8 +2,10 @@ declare module 'axios' {
   interface AxiosRequestConfig {
     timeout?: number;
     headers?: Record<string, string>;
+    params?: Record<string, unknown>;
     validateStatus?: ((status: number) => boolean) | null;
     maxRedirects?: number;
+    responseType?: 'arraybuffer' | 'json' | 'text' | 'blob';
   }
 
   interface AxiosResponse<T = unknown> {
@@ -12,7 +14,10 @@ declare module 'axios' {
   }
 
   interface AxiosError {
-    response?: { data?: { description?: string }; status?: number };
+    response?: {
+      data?: { description?: string; error?: { message?: string } };
+      status?: number;
+    };
     message: string;
     code?: string;
   }
