@@ -51,11 +51,18 @@ class CommunityFeedProvider with ChangeNotifier {
       final result = await _api.getPostsWithLikeCounts();
       final posts = result['posts'] as List<CommunityPost>;
       final likeCounts = result['likeCounts'] as Map<String, int>;
+      final commentCounts = result['commentCounts'] as Map<String, int>?;
       _posts.clear();
       _posts.addAll(posts);
       _postLikeCount.clear();
       for (final entry in likeCounts.entries) {
         _postLikeCount[entry.key] = entry.value;
+      }
+      _postCommentCount.clear();
+      if (commentCounts != null) {
+        for (final entry in commentCounts.entries) {
+          _postCommentCount[entry.key] = entry.value;
+        }
       }
       final postIds = _posts.map((p) => p.id).toList();
       final status = await _api.getLikeStatus(postIds);
@@ -64,7 +71,6 @@ class CommunityFeedProvider with ChangeNotifier {
         _postLiked[p.id] = status[p.id] ?? false;
       }
       _postComments.clear();
-      _postCommentCount.clear();
       _useBackend = true;
     } catch (_) {
       // Pas de token ou erreur API : charger depuis le stockage local

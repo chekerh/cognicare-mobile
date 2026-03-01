@@ -44,13 +44,19 @@ class CommunityService {
     final list = jsonDecode(response.body) as List<dynamic>;
     final posts = <CommunityPost>[];
     final likeCounts = <String, int>{};
+    final commentCounts = <String, int>{};
     for (final e in list) {
       final map = e as Map<String, dynamic>;
+      final id = map['id'] as String;
       posts.add(_postFromApi(map));
-      likeCounts[map['id'] as String] =
-          (map['likeCount'] as num?)?.toInt() ?? 0;
+      likeCounts[id] = (map['likeCount'] as num?)?.toInt() ?? 0;
+      commentCounts[id] = (map['commentCount'] as num?)?.toInt() ?? 0;
     }
-    return {'posts': posts, 'likeCounts': likeCounts};
+    return {
+      'posts': posts,
+      'likeCounts': likeCounts,
+      'commentCounts': commentCounts,
+    };
   }
 
   /// Crée un post sur le backend.

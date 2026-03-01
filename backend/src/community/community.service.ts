@@ -137,6 +137,7 @@ export class CommunityService {
       imageUrl?: string;
       tags: string[];
       likeCount: number;
+      commentCount: number;
     }[]
   > {
     const posts = await this.postModel
@@ -144,6 +145,18 @@ export class CommunityService {
       .sort({ createdAt: -1 })
       .lean()
       .exec();
+
+    const postIds = (posts as PostLean[]).map((p) => p._id);
+    const commentCounts = await this.commentModel
+      .aggregate<{ _id: Types.ObjectId; count: number }>([
+        { $match: { postId: { $in: postIds } } },
+        { $group: { _id: '$postId', count: { $sum: 1 } } },
+      ])
+      .exec();
+    const countByPostId = new Map<string, number>();
+    for (const row of commentCounts) {
+      countByPostId.set(row._id.toString(), row.count);
+    }
 
     return (posts as PostLean[]).map((p) => ({
       id: p._id.toString(),
@@ -156,6 +169,7 @@ export class CommunityService {
       imageUrl: p.imageUrl,
       tags: p.tags ?? [],
       likeCount: (p.likedBy ?? []).length,
+      commentCount: countByPostId.get(p._id.toString()) ?? 0,
     }));
   }
 
