@@ -437,6 +437,7 @@ export class CommunityService {
     await doc.save();
   }
 
+  /** Refuser une demande de suivi : suppression totale (demande + notification). */
   async declineFollowRequest(
     requestId: string,
     userId: string,
@@ -449,8 +450,7 @@ export class CommunityService {
     if (doc.status !== 'pending') {
       throw new BadRequestException('Request is no longer pending');
     }
-    doc.status = 'declined';
-    doc.updatedAt = new Date();
-    await doc.save();
+    await this.followRequestModel.deleteOne({ _id: doc._id }).exec();
+    await this.notifications.deleteByFollowRequestId(userId, requestId);
   }
 }

@@ -60,6 +60,20 @@ export class NotificationsService {
       .exec();
   }
 
+  /** Supprime la notification de type follow_request liée à ce requestId pour cet utilisateur. */
+  async deleteByFollowRequestId(
+    userId: string,
+    requestId: string,
+  ): Promise<void> {
+    await this.notificationModel
+      .deleteMany({
+        userId: new Types.ObjectId(userId),
+        type: 'follow_request',
+        'data.requestId': requestId,
+      })
+      .exec();
+  }
+
   async createForUser(
     userId: string,
     payload: {
