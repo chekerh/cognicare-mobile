@@ -79,7 +79,10 @@ class _VolunteerShellScreenState extends State<VolunteerShellScreen> {
     }
     const int messagesIndex = 3;
     final trainingCertified = _application?['trainingCertified'] == true;
-    if (index == messagesIndex && !trainingCertified) {
+    final careProviderType = _application?['careProviderType'] as String?;
+    final isCaregiverWithoutCertification =
+        careProviderType == 'caregiver' && !trainingCertified;
+    if (index == messagesIndex && isCaregiverWithoutCertification) {
       final loc = AppLocalizations.of(context)!;
       showDialog<void>(
         context: context,
