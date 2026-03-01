@@ -1,20 +1,29 @@
 /**
  * Get Children by Family Use Case - Application Layer
- * 
+ *
  * Retrieves children for a family with authorization checks.
  */
-import { Inject, Injectable } from '@nestjs/common';
-import { Result } from '@/core/application';
-import { 
-  EntityNotFoundException, 
+import { Inject, Injectable } from "@nestjs/common";
+import { Result } from "@/core/application";
+import {
+  EntityNotFoundException,
   ForbiddenAccessException,
-  BusinessRuleViolationException 
-} from '@/core/domain';
-import { IChildRepository, CHILD_REPOSITORY_TOKEN } from '../../domain/repositories/child.repository.interface';
-import { IUserRepository, USER_REPOSITORY_TOKEN } from '@/modules/users/domain/repositories/user.repository.interface';
-import { IOrganizationRepository, ORGANIZATION_REPOSITORY_TOKEN } from '@/modules/organization/domain/repositories/organization.repository.interface';
-import { ChildOutputDto } from '../dto/child.dto';
-import { ChildMapper } from '../../infrastructure/mappers/child.mapper';
+  BusinessRuleViolationException,
+} from "@/core/domain";
+import {
+  IChildRepository,
+  CHILD_REPOSITORY_TOKEN,
+} from "../../domain/repositories/child.repository.interface";
+import {
+  IUserRepository,
+  USER_REPOSITORY_TOKEN,
+} from "@/modules/users/domain/repositories/user.repository.interface";
+import {
+  IOrganizationRepository,
+  ORGANIZATION_REPOSITORY_TOKEN,
+} from "@/modules/organization/domain/repositories/organization.repository.interface";
+import { ChildOutputDto } from "../dto/child.dto";
+import { ChildMapper } from "../../infrastructure/mappers/child.mapper";
 
 export interface GetChildrenByFamilyInput {
   familyId: string;
@@ -34,33 +43,38 @@ export class GetChildrenByFamilyUseCase {
     private readonly organizationRepository: IOrganizationRepository,
   ) {}
 
-  async execute(input: GetChildrenByFamilyInput): Promise<GetChildrenByFamilyOutput> {
+  async execute(
+    input: GetChildrenByFamilyInput,
+  ): Promise<GetChildrenByFamilyOutput> {
     try {
       const { familyId, requesterId } = input;
 
       // Verify the family user exists
       const family = await this.userRepository.findById(familyId);
       if (!family) {
-        return Result.fail(new EntityNotFoundException('Family', familyId));
+        return Result.fail(new EntityNotFoundException("Family", familyId));
       }
 
-      if (family.role !== 'family') {
+      if (family.role !== "family") {
         return Result.fail(
-          new BusinessRuleViolationException('User is not a family')
+          new BusinessRuleViolationException("User is not a family"),
         );
       }
 
       // Authorization check: requester must be the family OR an org leader of the family's org
       if (familyId !== requesterId) {
-        const org = await this.organizationRepository.findByLeaderId(requesterId);
+        const org =
+          await this.organizationRepository.findByLeaderId(requesterId);
         if (!org) {
           return Result.fail(
-            new ForbiddenAccessException('Not allowed to list this family\'s children')
+            new ForbiddenAccessException(
+              "Not allowed to list this family's children",
+            ),
           );
         }
         if (family.organizationId !== org.id) {
           return Result.fail(
-            new ForbiddenAccessException('Family not in your organization')
+            new ForbiddenAccessException("Family not in your organization"),
           );
         }
       }
@@ -70,7 +84,9 @@ export class GetChildrenByFamilyUseCase {
 
       return Result.ok(children.map(ChildMapper.toOutputDto));
     } catch (error) {
-      return Result.fail(error instanceof Error ? error : new Error(String(error)));
+      return Result.fail(
+        error instanceof Error ? error : new Error(String(error)),
+      );
     }
   }
 }

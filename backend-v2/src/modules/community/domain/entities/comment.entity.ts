@@ -1,4 +1,4 @@
-import { Entity } from '../../../../core/domain/entity.base';
+import { Entity } from "../../../../core/domain/entity.base";
 
 export interface CommentProps {
   postId: string;
@@ -19,7 +19,7 @@ export class CommentEntity extends Entity<string> {
 
   static create(props: CommentProps, id?: string): CommentEntity {
     if (!props.text || props.text.trim().length === 0) {
-      throw new Error('Comment text is required');
+      throw new Error("Comment text is required");
     }
     return new CommentEntity(id ?? Entity.generateId(), {
       ...props,
@@ -33,12 +33,24 @@ export class CommentEntity extends Entity<string> {
     return new CommentEntity(id, props);
   }
 
-  get postId(): string { return this.props.postId; }
-  get authorId(): string { return this.props.authorId; }
-  get authorName(): string { return this.props.authorName; }
-  get text(): string { return this.props.text; }
-  get createdAt(): Date | undefined { return this.props.createdAt; }
-  get updatedAt(): Date | undefined { return this.props.updatedAt; }
+  get postId(): string {
+    return this.props.postId;
+  }
+  get authorId(): string {
+    return this.props.authorId;
+  }
+  get authorName(): string {
+    return this.props.authorName;
+  }
+  get text(): string {
+    return this.props.text;
+  }
+  get createdAt(): Date | undefined {
+    return this.props.createdAt;
+  }
+  get updatedAt(): Date | undefined {
+    return this.props.updatedAt;
+  }
 
   toObject(): CommentProps & { id: string } {
     return { id: this.id, ...this.props };

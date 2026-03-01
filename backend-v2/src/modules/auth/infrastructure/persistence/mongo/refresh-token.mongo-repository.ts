@@ -1,14 +1,16 @@
 /**
  * Refresh Token MongoDB Repository - Infrastructure Layer
  */
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import * as crypto from 'crypto';
-import { RefreshTokenMongoSchema, RefreshTokenDocument } from './refresh-token.schema';
-import { IRefreshTokenRepository } from '../../../domain/repositories/refresh-token.repository.interface';
-import { RefreshTokenEntity } from '../../../domain/entities/refresh-token.entity';
-import { RefreshTokenMapper } from '../../mappers/refresh-token.mapper';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
+import {
+  RefreshTokenMongoSchema,
+  RefreshTokenDocument,
+} from "./refresh-token.schema";
+import { IRefreshTokenRepository } from "../../../domain/repositories/refresh-token.repository.interface";
+import { RefreshTokenEntity } from "../../../domain/entities/refresh-token.entity";
+import { RefreshTokenMapper } from "../../mappers/refresh-token.mapper";
 
 @Injectable()
 export class RefreshTokenMongoRepository implements IRefreshTokenRepository {
@@ -60,7 +62,9 @@ export class RefreshTokenMongoRepository implements IRefreshTokenRepository {
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.model.deleteOne({ _id: new Types.ObjectId(id) }).exec();
+    const result = await this.model
+      .deleteOne({ _id: new Types.ObjectId(id) })
+      .exec();
     return result.deletedCount > 0;
   }
 
@@ -72,12 +76,16 @@ export class RefreshTokenMongoRepository implements IRefreshTokenRepository {
   }
 
   async deleteExpired(): Promise<number> {
-    const result = await this.model.deleteMany({ expiresAt: { $lt: new Date() } }).exec();
+    const result = await this.model
+      .deleteMany({ expiresAt: { $lt: new Date() } })
+      .exec();
     return result.deletedCount;
   }
 
   async exists(id: string): Promise<boolean> {
-    const count = await this.model.countDocuments({ _id: new Types.ObjectId(id) }).exec();
+    const count = await this.model
+      .countDocuments({ _id: new Types.ObjectId(id) })
+      .exec();
     return count > 0;
   }
 }

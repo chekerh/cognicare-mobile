@@ -1,8 +1,8 @@
-import { Schema, Types } from 'mongoose';
+import { Schema, Types } from "mongoose";
 
 export const DonationMongoSchema = new Schema(
   {
-    donorId: { type: Types.ObjectId, ref: 'User', required: true },
+    donorId: { type: Types.ObjectId, ref: "User", required: true },
     donorName: { type: String, required: true },
     title: { type: String, required: true },
     description: { type: String, required: true },
@@ -11,7 +11,7 @@ export const DonationMongoSchema = new Schema(
     location: { type: String, required: true },
     latitude: { type: Number },
     longitude: { type: Number },
-    suitableAge: { type: String, default: '' },
+    suitableAge: { type: String, default: "" },
     isOffer: { type: Boolean, default: true },
     imageUrls: { type: [String], default: [] },
   },

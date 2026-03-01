@@ -1,13 +1,16 @@
 /**
  * Organization MongoDB Repository - Infrastructure Layer
  */
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { OrganizationMongoSchema, OrganizationDocument } from './organization.schema';
-import { IOrganizationRepository } from '../../../domain/repositories/organization.repository.interface';
-import { OrganizationEntity } from '../../../domain/entities/organization.entity';
-import { OrganizationMapper } from '../../mappers/organization.mapper';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
+import {
+  OrganizationMongoSchema,
+  OrganizationDocument,
+} from "./organization.schema";
+import { IOrganizationRepository } from "../../../domain/repositories/organization.repository.interface";
+import { OrganizationEntity } from "../../../domain/entities/organization.entity";
+import { OrganizationMapper } from "../../mappers/organization.mapper";
 
 @Injectable()
 export class OrganizationMongoRepository implements IOrganizationRepository {

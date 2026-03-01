@@ -1,13 +1,13 @@
 /**
  * Child Mapper - Infrastructure Layer
- * 
+ *
  * Converts between domain entities and persistence models.
  * This ensures the domain layer stays pure and independent of the database.
  */
-import { Types } from 'mongoose';
-import { ChildEntity, Gender } from '../../domain/entities/child.entity';
-import { ChildDocument } from '../persistence/mongo/child.schema';
-import { ChildOutputDto } from '../../application/dto/child.dto';
+import { Types } from "mongoose";
+import { ChildEntity, Gender } from "../../domain/entities/child.entity";
+import { ChildDocument } from "../persistence/mongo/child.schema";
+import { ChildOutputDto } from "../../application/dto/child.dto";
 
 export class ChildMapper {
   /**
@@ -48,17 +48,23 @@ export class ChildMapper {
       allergies: entity.allergies,
       medications: entity.medications,
       notes: entity.notes,
-      parentId: entity.parentId ? new Types.ObjectId(entity.parentId) : undefined,
-      organizationId: entity.organizationId ? new Types.ObjectId(entity.organizationId) : undefined,
-      specialistId: entity.specialistId ? new Types.ObjectId(entity.specialistId) : undefined,
-      addedByOrganizationId: entity.addedByOrganizationId 
-        ? new Types.ObjectId(entity.addedByOrganizationId) 
+      parentId: entity.parentId
+        ? new Types.ObjectId(entity.parentId)
         : undefined,
-      addedBySpecialistId: entity.addedBySpecialistId 
-        ? new Types.ObjectId(entity.addedBySpecialistId) 
+      organizationId: entity.organizationId
+        ? new Types.ObjectId(entity.organizationId)
         : undefined,
-      lastModifiedBy: entity.lastModifiedBy 
-        ? new Types.ObjectId(entity.lastModifiedBy) 
+      specialistId: entity.specialistId
+        ? new Types.ObjectId(entity.specialistId)
+        : undefined,
+      addedByOrganizationId: entity.addedByOrganizationId
+        ? new Types.ObjectId(entity.addedByOrganizationId)
+        : undefined,
+      addedBySpecialistId: entity.addedBySpecialistId
+        ? new Types.ObjectId(entity.addedBySpecialistId)
+        : undefined,
+      lastModifiedBy: entity.lastModifiedBy
+        ? new Types.ObjectId(entity.lastModifiedBy)
         : undefined,
       deletedAt: entity.deletedAt,
     };

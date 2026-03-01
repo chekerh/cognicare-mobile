@@ -1,4 +1,8 @@
-import { VolunteerApplicationEntity, VolunteerDocProps, VolunteerTaskEntity } from '../../domain';
+import {
+  VolunteerApplicationEntity,
+  VolunteerDocProps,
+  VolunteerTaskEntity,
+} from "../../domain";
 
 export class VolunteerApplicationMapper {
   static toDomain(raw: any): VolunteerApplicationEntity {
@@ -14,7 +18,7 @@ export class VolunteerApplicationMapper {
     const id = raw._id?.toString() ?? raw.id;
     return VolunteerApplicationEntity.reconstitute(id, {
       userId: raw.userId?.toString(),
-      status: raw.status ?? 'pending',
+      status: raw.status ?? "pending",
       careProviderType: raw.careProviderType,
       specialty: raw.specialty,
       organizationName: raw.organizationName,
@@ -25,13 +29,17 @@ export class VolunteerApplicationMapper {
       reviewedAt: raw.reviewedAt ? new Date(raw.reviewedAt) : undefined,
       denialNotificationSent: raw.denialNotificationSent ?? false,
       trainingCertified: raw.trainingCertified ?? false,
-      trainingCertifiedAt: raw.trainingCertifiedAt ? new Date(raw.trainingCertifiedAt) : undefined,
+      trainingCertifiedAt: raw.trainingCertifiedAt
+        ? new Date(raw.trainingCertifiedAt)
+        : undefined,
       createdAt: raw.createdAt ? new Date(raw.createdAt) : new Date(),
       updatedAt: raw.updatedAt ? new Date(raw.updatedAt) : new Date(),
     });
   }
 
-  static toPersistence(entity: VolunteerApplicationEntity): Record<string, any> {
+  static toPersistence(
+    entity: VolunteerApplicationEntity,
+  ): Record<string, any> {
     return {
       userId: entity.userId,
       status: entity.status,
@@ -64,8 +72,8 @@ export class VolunteerTaskMapper {
       assignedBy: raw.assignedBy?.toString(),
       volunteerId: raw.volunteerId?.toString(),
       title: raw.title,
-      description: raw.description ?? '',
-      status: raw.status ?? 'pending',
+      description: raw.description ?? "",
+      status: raw.status ?? "pending",
       dueDate: raw.dueDate ? new Date(raw.dueDate) : undefined,
       completedAt: raw.completedAt ? new Date(raw.completedAt) : undefined,
       createdAt: raw.createdAt ? new Date(raw.createdAt) : new Date(),

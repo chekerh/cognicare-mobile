@@ -1,6 +1,13 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsNumber, IsInt, Min, Max, IsArray } from 'class-validator';
-import { Type } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsInt,
+  Min,
+  Max,
+} from "class-validator";
+import { Type } from "class-transformer";
 
 export class CreateProductDto {
   @ApiProperty() @IsString() title!: string;
@@ -9,7 +16,12 @@ export class CreateProductDto {
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() badge?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() category?: string;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) @Type(() => Number) order?: number;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  order?: number;
 }
 
 export class CreateReviewDto {

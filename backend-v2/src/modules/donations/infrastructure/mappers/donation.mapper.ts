@@ -1,19 +1,19 @@
-import { Types } from 'mongoose';
-import { DonationEntity } from '../../domain/entities/donation.entity';
+import { Types } from "mongoose";
+import { DonationEntity } from "../../domain/entities/donation.entity";
 
 export class DonationMapper {
   static toDomain(raw: Record<string, any>): DonationEntity {
     return DonationEntity.reconstitute(raw._id.toString(), {
-      donorId: raw.donorId?.toString() ?? '',
-      donorName: raw.donorName ?? '',
-      title: raw.title ?? '',
-      description: raw.description ?? '',
+      donorId: raw.donorId?.toString() ?? "",
+      donorName: raw.donorName ?? "",
+      title: raw.title ?? "",
+      description: raw.description ?? "",
       category: raw.category ?? 0,
       condition: raw.condition ?? 0,
-      location: raw.location ?? '',
+      location: raw.location ?? "",
       latitude: raw.latitude,
       longitude: raw.longitude,
-      suitableAge: raw.suitableAge ?? '',
+      suitableAge: raw.suitableAge ?? "",
       isOffer: raw.isOffer ?? true,
       imageUrls: raw.imageUrls ?? [],
       createdAt: raw.createdAt,

@@ -1,4 +1,4 @@
-import { Entity } from '../../../../core/domain/entity.base';
+import { Entity } from "../../../../core/domain/entity.base";
 
 export interface ProductProps {
   sellerId?: string;
@@ -25,8 +25,8 @@ export class ProductEntity extends Entity<string> {
   static create(props: ProductProps, id?: string): ProductEntity {
     return new ProductEntity(id ?? Entity.generateId(), {
       ...props,
-      description: props.description ?? '',
-      category: props.category ?? 'all',
+      description: props.description ?? "",
+      category: props.category ?? "all",
       order: props.order ?? 0,
       createdAt: props.createdAt ?? new Date(),
       updatedAt: props.updatedAt ?? new Date(),
@@ -37,17 +37,39 @@ export class ProductEntity extends Entity<string> {
     return new ProductEntity(id, props);
   }
 
-  get sellerId(): string | undefined { return this.props.sellerId; }
-  get title(): string { return this.props.title; }
-  get price(): string { return this.props.price; }
-  get imageUrl(): string { return this.props.imageUrl; }
-  get description(): string { return this.props.description; }
-  get badge(): string | undefined { return this.props.badge; }
-  get category(): string { return this.props.category; }
-  get order(): number { return this.props.order; }
-  get externalUrl(): string | undefined { return this.props.externalUrl; }
-  get createdAt(): Date | undefined { return this.props.createdAt; }
-  get updatedAt(): Date | undefined { return this.props.updatedAt; }
+  get sellerId(): string | undefined {
+    return this.props.sellerId;
+  }
+  get title(): string {
+    return this.props.title;
+  }
+  get price(): string {
+    return this.props.price;
+  }
+  get imageUrl(): string {
+    return this.props.imageUrl;
+  }
+  get description(): string {
+    return this.props.description;
+  }
+  get badge(): string | undefined {
+    return this.props.badge;
+  }
+  get category(): string {
+    return this.props.category;
+  }
+  get order(): number {
+    return this.props.order;
+  }
+  get externalUrl(): string | undefined {
+    return this.props.externalUrl;
+  }
+  get createdAt(): Date | undefined {
+    return this.props.createdAt;
+  }
+  get updatedAt(): Date | undefined {
+    return this.props.updatedAt;
+  }
 
   toObject(): ProductProps & { id: string } {
     return { id: this.id, ...this.props };
@@ -74,10 +96,11 @@ export class ReviewEntity extends Entity<string> {
   }
 
   static create(props: ReviewProps, id?: string): ReviewEntity {
-    if (props.rating < 1 || props.rating > 5) throw new Error('Rating must be 1-5');
+    if (props.rating < 1 || props.rating > 5)
+      throw new Error("Rating must be 1-5");
     return new ReviewEntity(id ?? Entity.generateId(), {
       ...props,
-      comment: props.comment ?? '',
+      comment: props.comment ?? "",
       createdAt: props.createdAt ?? new Date(),
       updatedAt: props.updatedAt ?? new Date(),
     });
@@ -87,17 +110,33 @@ export class ReviewEntity extends Entity<string> {
     return new ReviewEntity(id, props);
   }
 
-  get productId(): string { return this.props.productId; }
-  get userId(): string { return this.props.userId; }
-  get userName(): string { return this.props.userName; }
-  get rating(): number { return this.props.rating; }
-  get comment(): string { return this.props.comment; }
-  get userProfileImageUrl(): string | undefined { return this.props.userProfileImageUrl; }
-  get createdAt(): Date | undefined { return this.props.createdAt; }
-  get updatedAt(): Date | undefined { return this.props.updatedAt; }
+  get productId(): string {
+    return this.props.productId;
+  }
+  get userId(): string {
+    return this.props.userId;
+  }
+  get userName(): string {
+    return this.props.userName;
+  }
+  get rating(): number {
+    return this.props.rating;
+  }
+  get comment(): string {
+    return this.props.comment;
+  }
+  get userProfileImageUrl(): string | undefined {
+    return this.props.userProfileImageUrl;
+  }
+  get createdAt(): Date | undefined {
+    return this.props.createdAt;
+  }
+  get updatedAt(): Date | undefined {
+    return this.props.updatedAt;
+  }
 
   updateRating(rating: number, comment?: string): void {
-    if (rating < 1 || rating > 5) throw new Error('Rating must be 1-5');
+    if (rating < 1 || rating > 5) throw new Error("Rating must be 1-5");
     this.props.rating = rating;
     if (comment !== undefined) this.props.comment = comment;
     this.props.updatedAt = new Date();

@@ -1,11 +1,11 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document, Types } from "mongoose";
 
 export type ProductDocument = ProductMongoSchema & Document;
 
-@Schema({ timestamps: true, collection: 'products' })
+@Schema({ timestamps: true, collection: "products" })
 export class ProductMongoSchema {
-  @Prop({ type: Types.ObjectId, ref: 'User', default: null })
+  @Prop({ type: Types.ObjectId, ref: "User", default: null })
   sellerId?: Types.ObjectId;
 
   @Prop({ required: true })
@@ -17,13 +17,13 @@ export class ProductMongoSchema {
   @Prop({ required: true })
   imageUrl!: string;
 
-  @Prop({ default: '' })
+  @Prop({ default: "" })
   description!: string;
 
   @Prop({ default: null })
   badge?: string;
 
-  @Prop({ default: 'all' })
+  @Prop({ default: "all" })
   category!: string;
 
   @Prop({ default: 0 })
@@ -40,12 +40,12 @@ export const ProductSchema = SchemaFactory.createForClass(ProductMongoSchema);
 
 export type ReviewDocument = ReviewMongoSchema & Document;
 
-@Schema({ timestamps: true, collection: 'reviews' })
+@Schema({ timestamps: true, collection: "reviews" })
 export class ReviewMongoSchema {
-  @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
+  @Prop({ type: Types.ObjectId, ref: "Product", required: true })
   productId!: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: "User", required: true })
   userId!: Types.ObjectId;
 
   @Prop({ required: true })
@@ -54,7 +54,7 @@ export class ReviewMongoSchema {
   @Prop({ required: true, min: 1, max: 5 })
   rating!: number;
 
-  @Prop({ default: '' })
+  @Prop({ default: "" })
   comment!: string;
 
   @Prop({ default: null })

@@ -1,8 +1,19 @@
-import { IsEnum, IsOptional, IsString, IsDateString } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEnum, IsOptional, IsString, IsDateString } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 export class UpdateApplicationMeDto {
-  @ApiPropertyOptional({ enum: ['speech_therapist', 'occupational_therapist', 'psychologist', 'doctor', 'ergotherapist', 'caregiver', 'organization_leader', 'other'] })
+  @ApiPropertyOptional({
+    enum: [
+      "speech_therapist",
+      "occupational_therapist",
+      "psychologist",
+      "doctor",
+      "ergotherapist",
+      "caregiver",
+      "organization_leader",
+      "other",
+    ],
+  })
   @IsOptional()
   @IsString()
   careProviderType?: string;
@@ -24,9 +35,9 @@ export class UpdateApplicationMeDto {
 }
 
 export class ReviewApplicationDto {
-  @ApiProperty({ enum: ['approved', 'denied'] })
-  @IsEnum(['approved', 'denied'])
-  decision!: 'approved' | 'denied';
+  @ApiProperty({ enum: ["approved", "denied"] })
+  @IsEnum(["approved", "denied"])
+  decision!: "approved" | "denied";
 
   @ApiPropertyOptional()
   @IsOptional()

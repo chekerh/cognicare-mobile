@@ -1,13 +1,13 @@
 /**
  * Child Entity - Domain Layer
- * 
+ *
  * This is a pure domain entity with NO framework dependencies.
  * It encapsulates business rules and invariants for a Child.
  */
-import { Entity, UniqueEntityId } from '@/core/domain';
-import { InvalidEntityStateException } from '@/core/domain';
+import { Entity, UniqueEntityId } from "@/core/domain";
+import { InvalidEntityStateException } from "@/core/domain";
 
-export type Gender = 'male' | 'female' | 'other';
+export type Gender = "male" | "female" | "other";
 
 export interface ChildProps {
   fullName: string;
@@ -62,19 +62,23 @@ export class ChildEntity extends Entity<string> {
 
   private static validateProps(props: ChildProps): void {
     if (!props.fullName || props.fullName.trim().length === 0) {
-      throw new InvalidEntityStateException('Child full name is required');
+      throw new InvalidEntityStateException("Child full name is required");
     }
     if (props.fullName.trim().length > 200) {
-      throw new InvalidEntityStateException('Child full name must be 200 characters or less');
+      throw new InvalidEntityStateException(
+        "Child full name must be 200 characters or less",
+      );
     }
     if (!props.dateOfBirth) {
-      throw new InvalidEntityStateException('Child date of birth is required');
+      throw new InvalidEntityStateException("Child date of birth is required");
     }
     if (props.dateOfBirth > new Date()) {
-      throw new InvalidEntityStateException('Child date of birth cannot be in the future');
+      throw new InvalidEntityStateException(
+        "Child date of birth cannot be in the future",
+      );
     }
-    if (!['male', 'female', 'other'].includes(props.gender)) {
-      throw new InvalidEntityStateException('Invalid gender value');
+    if (!["male", "female", "other"].includes(props.gender)) {
+      throw new InvalidEntityStateException("Invalid gender value");
     }
     // A child must belong to either a parent OR a specialist (not both, not neither when creating)
     // But for existing records, this rule may be relaxed based on migration logic
@@ -159,7 +163,10 @@ export class ChildEntity extends Entity<string> {
     const birth = this.props.dateOfBirth;
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
     return age;
@@ -173,13 +180,17 @@ export class ChildEntity extends Entity<string> {
   update(props: Partial<ChildProps>, modifiedBy: string): void {
     if (props.fullName !== undefined) {
       if (!props.fullName.trim()) {
-        throw new InvalidEntityStateException('Child full name cannot be empty');
+        throw new InvalidEntityStateException(
+          "Child full name cannot be empty",
+        );
       }
       this.props.fullName = props.fullName.trim();
     }
     if (props.dateOfBirth !== undefined) {
       if (props.dateOfBirth > new Date()) {
-        throw new InvalidEntityStateException('Date of birth cannot be in the future');
+        throw new InvalidEntityStateException(
+          "Date of birth cannot be in the future",
+        );
       }
       this.props.dateOfBirth = props.dateOfBirth;
     }
@@ -201,7 +212,7 @@ export class ChildEntity extends Entity<string> {
     if (props.notes !== undefined) {
       this.props.notes = props.notes?.trim();
     }
-    
+
     this.props.lastModifiedBy = modifiedBy;
     this.props.updatedAt = new Date();
   }
@@ -211,7 +222,7 @@ export class ChildEntity extends Entity<string> {
    */
   softDelete(): void {
     if (this.props.deletedAt) {
-      throw new InvalidEntityStateException('Child is already deleted');
+      throw new InvalidEntityStateException("Child is already deleted");
     }
     this.props.deletedAt = new Date();
     this.props.updatedAt = new Date();
@@ -222,7 +233,7 @@ export class ChildEntity extends Entity<string> {
    */
   restore(): void {
     if (!this.props.deletedAt) {
-      throw new InvalidEntityStateException('Child is not deleted');
+      throw new InvalidEntityStateException("Child is not deleted");
     }
     this.props.deletedAt = undefined;
     this.props.updatedAt = new Date();

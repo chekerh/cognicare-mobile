@@ -3,7 +3,7 @@ export {
   TaskReminderEntity,
   ReminderType,
   ReminderFrequency,
-} from './entities/nutrition.entity';
+} from "./entities/nutrition.entity";
 export type {
   NutritionPlanProps,
   TaskReminderProps,
@@ -12,4 +12,4 @@ export type {
   SnackItem,
   INutritionPlanRepository,
   ITaskReminderRepository,
-} from './entities/nutrition.entity';
+} from "./entities/nutrition.entity";

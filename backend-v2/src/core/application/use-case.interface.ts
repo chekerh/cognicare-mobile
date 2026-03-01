@@ -10,7 +10,10 @@ export interface IUseCase<TInput, TOutput> {
 /**
  * Base abstract class for use cases with common functionality.
  */
-export abstract class UseCase<TInput, TOutput> implements IUseCase<TInput, TOutput> {
+export abstract class UseCase<TInput, TOutput> implements IUseCase<
+  TInput,
+  TOutput
+> {
   abstract execute(input: TInput): Promise<TOutput>;
 }
 

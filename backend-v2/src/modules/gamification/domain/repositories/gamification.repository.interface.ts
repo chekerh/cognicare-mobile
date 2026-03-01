@@ -1,4 +1,9 @@
-import { BadgeEntity, ChildBadgeEntity, PointsEntity, GameSessionEntity } from '../entities/gamification.entity';
+import {
+  BadgeEntity,
+  ChildBadgeEntity,
+  PointsEntity,
+  GameSessionEntity,
+} from "../entities/gamification.entity";
 
 export interface IBadgeRepository {
   findAll(activeOnly?: boolean): Promise<BadgeEntity[]>;
@@ -8,7 +13,10 @@ export interface IBadgeRepository {
 
 export interface IChildBadgeRepository {
   findByChildId(childId: string): Promise<ChildBadgeEntity[]>;
-  findOne(childId: string, badgeIdString: string): Promise<ChildBadgeEntity | null>;
+  findOne(
+    childId: string,
+    badgeIdString: string,
+  ): Promise<ChildBadgeEntity | null>;
   save(entity: ChildBadgeEntity): Promise<ChildBadgeEntity>;
 }
 

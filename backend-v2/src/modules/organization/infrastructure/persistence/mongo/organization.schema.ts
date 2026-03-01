@@ -1,23 +1,23 @@
 /**
  * Organization Mongoose Schema - Infrastructure Layer
  */
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document, Types } from "mongoose";
 
 export type OrganizationDocument = OrganizationMongoSchema & Document;
 
-@Schema({ timestamps: true, collection: 'organizations' })
+@Schema({ timestamps: true, collection: "organizations" })
 export class OrganizationMongoSchema {
   @Prop({ required: true, trim: true })
   name!: string;
 
-  @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
+  @Prop({ required: true, type: Types.ObjectId, ref: "User" })
   leaderId!: Types.ObjectId;
 
-  @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
+  @Prop({ type: [Types.ObjectId], ref: "User", default: [] })
   staffIds!: Types.ObjectId[];
 
-  @Prop({ type: [Types.ObjectId], ref: 'Child', default: [] })
+  @Prop({ type: [Types.ObjectId], ref: "Child", default: [] })
   childIds!: Types.ObjectId[];
 
   @Prop()
@@ -57,7 +57,9 @@ export class OrganizationMongoSchema {
   updatedAt?: Date;
 }
 
-export const OrganizationSchema = SchemaFactory.createForClass(OrganizationMongoSchema);
+export const OrganizationSchema = SchemaFactory.createForClass(
+  OrganizationMongoSchema,
+);
 
 // Indexes
 OrganizationSchema.index({ leaderId: 1 }, { unique: true });

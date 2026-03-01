@@ -1,11 +1,11 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document, Types } from "mongoose";
 
 export type PostDocument = PostMongoSchema & Document;
 
-@Schema({ timestamps: true, collection: 'posts' })
+@Schema({ timestamps: true, collection: "posts" })
 export class PostMongoSchema {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: "User", required: true })
   authorId!: Types.ObjectId;
 
   @Prop({ required: true })
@@ -20,7 +20,7 @@ export class PostMongoSchema {
   @Prop({ type: [String], default: [] })
   tags!: string[];
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: "User" }], default: [] })
   likedBy!: Types.ObjectId[];
 
   createdAt?: Date;

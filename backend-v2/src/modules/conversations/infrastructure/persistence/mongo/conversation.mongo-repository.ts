@@ -1,22 +1,40 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { IConversationRepository, IMessageRepository, IConversationSettingRepository } from '../../../domain/repositories/conversation.repository.interface';
-import { ConversationEntity, MessageEntity, ConversationSettingEntity } from '../../../domain/entities/conversation.entity';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
 import {
-  ConversationMongoSchema, ConversationDocument,
-  MessageMongoSchema, MessageDocument,
-  ConversationSettingMongoSchema, ConversationSettingDocument,
-} from './conversation.schema';
-import { ConversationMapper, MessageMapper, ConversationSettingMapper } from '../../mappers/conversation.mapper';
+  IConversationRepository,
+  IMessageRepository,
+  IConversationSettingRepository,
+} from "../../../domain/repositories/conversation.repository.interface";
+import {
+  ConversationEntity,
+  MessageEntity,
+  ConversationSettingEntity,
+} from "../../../domain/entities/conversation.entity";
+import {
+  ConversationDocument,
+  MessageDocument,
+  ConversationSettingDocument,
+} from "./conversation.schema";
+import {
+  ConversationMapper,
+  MessageMapper,
+  ConversationSettingMapper,
+} from "../../mappers/conversation.mapper";
 
 @Injectable()
 export class ConversationMongoRepository implements IConversationRepository {
-  constructor(@InjectModel(ConversationMongoSchema.name) private readonly model: Model<ConversationDocument>) {}
+  constructor(
+    @InjectModel("Conversation")
+    private readonly model: Model<ConversationDocument>,
+  ) {}
 
   async findByUserId(userId: string): Promise<ConversationEntity[]> {
     const uid = new Types.ObjectId(userId);
-    const docs = await this.model.find({ $or: [{ user: uid }, { participants: uid }] }).sort({ updatedAt: -1 }).exec();
+    const docs = await this.model
+      .find({ $or: [{ user: uid }, { participants: uid }] })
+      .sort({ updatedAt: -1 })
+      .exec();
     return docs.map(ConversationMapper.toDomain);
   }
 
@@ -25,11 +43,16 @@ export class ConversationMongoRepository implements IConversationRepository {
     return doc ? ConversationMapper.toDomain(doc) : null;
   }
 
-  async findByUserAndOther(userId: string, otherUserId: string): Promise<ConversationEntity | null> {
-    const doc = await this.model.findOne({
-      user: new Types.ObjectId(userId),
-      otherUserId: new Types.ObjectId(otherUserId),
-    }).exec();
+  async findByUserAndOther(
+    userId: string,
+    otherUserId: string,
+  ): Promise<ConversationEntity | null> {
+    const doc = await this.model
+      .findOne({
+        user: new Types.ObjectId(userId),
+        otherUserId: new Types.ObjectId(otherUserId),
+      })
+      .exec();
     return doc ? ConversationMapper.toDomain(doc) : null;
   }
 
@@ -41,7 +64,11 @@ export class ConversationMongoRepository implements IConversationRepository {
   }
 
   async update(entity: ConversationEntity): Promise<void> {
-    await this.model.findByIdAndUpdate(entity.id, { $set: ConversationMapper.toPersistence(entity) }).exec();
+    await this.model
+      .findByIdAndUpdate(entity.id, {
+        $set: ConversationMapper.toPersistence(entity),
+      })
+      .exec();
   }
 
   async delete(id: string): Promise<void> {
@@ -51,10 +78,16 @@ export class ConversationMongoRepository implements IConversationRepository {
 
 @Injectable()
 export class MessageMongoRepository implements IMessageRepository {
-  constructor(@InjectModel(MessageMongoSchema.name) private readonly model: Model<MessageDocument>) {}
+  constructor(
+    @InjectModel("Message")
+    private readonly model: Model<MessageDocument>,
+  ) {}
 
   async findByThreadId(threadId: string): Promise<MessageEntity[]> {
-    const docs = await this.model.find({ threadId: new Types.ObjectId(threadId) }).sort({ createdAt: 1 }).exec();
+    const docs = await this.model
+      .find({ threadId: new Types.ObjectId(threadId) })
+      .sort({ createdAt: 1 })
+      .exec();
     return docs.map(MessageMapper.toDomain);
   }
 
@@ -65,36 +98,56 @@ export class MessageMongoRepository implements IMessageRepository {
     return MessageMapper.toDomain(saved);
   }
 
-  async searchByText(threadId: string, query: string): Promise<MessageEntity[]> {
-    const docs = await this.model.find({
-      threadId: new Types.ObjectId(threadId),
-      text: { $regex: query, $options: 'i' },
-    }).sort({ createdAt: -1 }).limit(50).exec();
+  async searchByText(
+    threadId: string,
+    query: string,
+  ): Promise<MessageEntity[]> {
+    const docs = await this.model
+      .find({
+        threadId: new Types.ObjectId(threadId),
+        text: { $regex: query, $options: "i" },
+      })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .exec();
     return docs.map(MessageMapper.toDomain);
   }
 
   async findMediaByThread(threadId: string): Promise<MessageEntity[]> {
-    const docs = await this.model.find({
-      threadId: new Types.ObjectId(threadId),
-      attachmentUrl: { $exists: true, $ne: null },
-    }).sort({ createdAt: -1 }).exec();
+    const docs = await this.model
+      .find({
+        threadId: new Types.ObjectId(threadId),
+        attachmentUrl: { $exists: true, $ne: null },
+      })
+      .sort({ createdAt: -1 })
+      .exec();
     return docs.map(MessageMapper.toDomain);
   }
 }
 
 @Injectable()
 export class ConversationSettingMongoRepository implements IConversationSettingRepository {
-  constructor(@InjectModel(ConversationSettingMongoSchema.name) private readonly model: Model<ConversationSettingDocument>) {}
+  constructor(
+    @InjectModel("ConversationSetting")
+    private readonly model: Model<ConversationSettingDocument>,
+  ) {}
 
-  async findByUserAndConversation(userId: string, conversationId: string): Promise<ConversationSettingEntity | null> {
-    const doc = await this.model.findOne({
-      userId: new Types.ObjectId(userId),
-      conversationId: new Types.ObjectId(conversationId),
-    }).exec();
+  async findByUserAndConversation(
+    userId: string,
+    conversationId: string,
+  ): Promise<ConversationSettingEntity | null> {
+    const doc = await this.model
+      .findOne({
+        userId: new Types.ObjectId(userId),
+        conversationId: new Types.ObjectId(conversationId),
+      })
+      .exec();
     return doc ? ConversationSettingMapper.toDomain(doc) : null;
   }
 
-  async save(entity: ConversationSettingEntity): Promise<ConversationSettingEntity> {
+  async save(
+    entity: ConversationSettingEntity,
+  ): Promise<ConversationSettingEntity> {
     const data = ConversationSettingMapper.toPersistence(entity);
     const doc = new this.model({ _id: new Types.ObjectId(entity.id), ...data });
     const saved = await doc.save();
@@ -102,6 +155,10 @@ export class ConversationSettingMongoRepository implements IConversationSettingR
   }
 
   async update(entity: ConversationSettingEntity): Promise<void> {
-    await this.model.findByIdAndUpdate(entity.id, { $set: ConversationSettingMapper.toPersistence(entity) }).exec();
+    await this.model
+      .findByIdAndUpdate(entity.id, {
+        $set: ConversationSettingMapper.toPersistence(entity),
+      })
+      .exec();
   }
 }

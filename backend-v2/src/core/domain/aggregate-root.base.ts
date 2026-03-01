@@ -4,7 +4,7 @@
  * for a cluster of domain objects (aggregate).
  * All changes to the aggregate must go through the root.
  */
-import { Entity, UniqueEntityId } from './entity.base';
+import { Entity } from "./entity.base";
 
 export interface DomainEvent {
   readonly occurredOn: Date;

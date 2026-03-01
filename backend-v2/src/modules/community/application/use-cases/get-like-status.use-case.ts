@@ -1,7 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { IUseCase } from '../../../../core/application/use-case.interface';
-import { Result, ok } from '../../../../core/application/result';
-import { POST_REPOSITORY_TOKEN, IPostRepository } from '../../domain/repositories/post.repository.interface';
+import { Inject, Injectable } from "@nestjs/common";
+import { IUseCase } from "../../../../core/application/use-case.interface";
+import { Result, ok } from "../../../../core/application/result";
+import {
+  POST_REPOSITORY_TOKEN,
+  IPostRepository,
+} from "../../domain/repositories/post.repository.interface";
 
 interface GetLikeStatusInput {
   postIds: string[];
@@ -9,12 +12,17 @@ interface GetLikeStatusInput {
 }
 
 @Injectable()
-export class GetLikeStatusUseCase implements IUseCase<GetLikeStatusInput, Result<Record<string, boolean>, string>> {
+export class GetLikeStatusUseCase implements IUseCase<
+  GetLikeStatusInput,
+  Result<Record<string, boolean>, string>
+> {
   constructor(
     @Inject(POST_REPOSITORY_TOKEN) private readonly postRepo: IPostRepository,
   ) {}
 
-  async execute(input: GetLikeStatusInput): Promise<Result<Record<string, boolean>, string>> {
+  async execute(
+    input: GetLikeStatusInput,
+  ): Promise<Result<Record<string, boolean>, string>> {
     if (input.postIds.length === 0) return ok({});
 
     const posts = await this.postRepo.findByIds(input.postIds);

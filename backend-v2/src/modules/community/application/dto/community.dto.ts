@@ -1,18 +1,18 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsArray, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsString, IsOptional, IsArray, MaxLength } from "class-validator";
 
 export class CreatePostDto {
-  @ApiProperty({ description: 'Post text content' })
+  @ApiProperty({ description: "Post text content" })
   @IsString()
   @MaxLength(2000)
   text!: string;
 
-  @ApiPropertyOptional({ description: 'URL of attached image' })
+  @ApiPropertyOptional({ description: "URL of attached image" })
   @IsOptional()
   @IsString()
   imageUrl?: string;
 
-  @ApiPropertyOptional({ description: 'Tags for the post', type: [String] })
+  @ApiPropertyOptional({ description: "Tags for the post", type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
@@ -20,18 +20,18 @@ export class CreatePostDto {
 }
 
 export class UpdatePostDto {
-  @ApiPropertyOptional({ description: 'Updated post text' })
+  @ApiPropertyOptional({ description: "Updated post text" })
   @IsOptional()
   @IsString()
   @MaxLength(2000)
   text?: string;
 
-  @ApiPropertyOptional({ description: 'Updated image URL' })
+  @ApiPropertyOptional({ description: "Updated image URL" })
   @IsOptional()
   @IsString()
   imageUrl?: string;
 
-  @ApiPropertyOptional({ description: 'Updated tags', type: [String] })
+  @ApiPropertyOptional({ description: "Updated tags", type: [String] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
@@ -39,7 +39,7 @@ export class UpdatePostDto {
 }
 
 export class CreateCommentDto {
-  @ApiProperty({ description: 'Comment text' })
+  @ApiProperty({ description: "Comment text" })
   @IsString()
   @MaxLength(500)
   text!: string;

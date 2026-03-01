@@ -1,9 +1,9 @@
 /**
  * Refresh Token Mapper - Infrastructure Layer
  */
-import { Types } from 'mongoose';
-import { RefreshTokenEntity } from '../../domain/entities/refresh-token.entity';
-import { RefreshTokenDocument } from '../persistence/mongo/refresh-token.schema';
+import { Types } from "mongoose";
+import { RefreshTokenEntity } from "../../domain/entities/refresh-token.entity";
+import { RefreshTokenDocument } from "../persistence/mongo/refresh-token.schema";
 
 export class RefreshTokenMapper {
   static toDomain(doc: RefreshTokenDocument): RefreshTokenEntity {

@@ -1,25 +1,39 @@
-import { Types } from 'mongoose';
+import { Types } from "mongoose";
 import {
-  BadgeEntity, ChildBadgeEntity, PointsEntity, GameSessionEntity,
-  BadgeType, GameType,
-} from '../../domain/entities/gamification.entity';
+  BadgeEntity,
+  ChildBadgeEntity,
+  PointsEntity,
+  GameSessionEntity,
+  BadgeType,
+  GameType,
+} from "../../domain/entities/gamification.entity";
 
 export class BadgeMapper {
   static toDomain(raw: Record<string, any>): BadgeEntity {
-    const req = raw.requirements instanceof Map
-      ? Object.fromEntries(raw.requirements)
-      : (raw.requirements ?? {});
+    const req =
+      raw.requirements instanceof Map
+        ? Object.fromEntries(raw.requirements)
+        : (raw.requirements ?? {});
     return BadgeEntity.reconstitute(raw._id.toString(), {
-      badgeId: raw.badgeId, name: raw.name, description: raw.description,
-      type: raw.type as BadgeType, iconUrl: raw.iconUrl,
-      requirements: req, isActive: raw.isActive ?? true,
+      badgeId: raw.badgeId,
+      name: raw.name,
+      description: raw.description,
+      type: raw.type as BadgeType,
+      iconUrl: raw.iconUrl,
+      requirements: req,
+      isActive: raw.isActive ?? true,
     });
   }
   static toPersistence(e: BadgeEntity): Record<string, any> {
     return {
-      _id: new Types.ObjectId(e.id), badgeId: e.badgeId, name: e.name,
-      description: e.description, type: e.type, iconUrl: e.iconUrl,
-      requirements: new Map(Object.entries(e.requirements)), isActive: e.isActive,
+      _id: new Types.ObjectId(e.id),
+      badgeId: e.badgeId,
+      name: e.name,
+      description: e.description,
+      type: e.type,
+      iconUrl: e.iconUrl,
+      requirements: new Map(Object.entries(e.requirements)),
+      isActive: e.isActive,
     };
   }
 }
@@ -27,9 +41,9 @@ export class BadgeMapper {
 export class ChildBadgeMapper {
   static toDomain(raw: Record<string, any>): ChildBadgeEntity {
     return ChildBadgeEntity.reconstitute(raw._id.toString(), {
-      childId: raw.childId?.toString() ?? '',
-      badgeId: raw.badgeId?.toString() ?? '',
-      badgeIdString: raw.badgeIdString ?? '',
+      childId: raw.childId?.toString() ?? "",
+      badgeId: raw.badgeId?.toString() ?? "",
+      badgeIdString: raw.badgeIdString ?? "",
       earnedAt: raw.earnedAt ?? new Date(),
       gameType: raw.gameType,
     });
@@ -48,11 +62,12 @@ export class ChildBadgeMapper {
 
 export class PointsMapper {
   static toDomain(raw: Record<string, any>): PointsEntity {
-    const byGame = raw.pointsByGame instanceof Map
-      ? Object.fromEntries(raw.pointsByGame)
-      : (raw.pointsByGame ?? {});
+    const byGame =
+      raw.pointsByGame instanceof Map
+        ? Object.fromEntries(raw.pointsByGame)
+        : (raw.pointsByGame ?? {});
     return PointsEntity.reconstitute(raw._id.toString(), {
-      childId: raw.childId?.toString() ?? '',
+      childId: raw.childId?.toString() ?? "",
       totalPoints: raw.totalPoints ?? 0,
       pointsByGame: byGame,
       gamesPlayed: raw.gamesPlayed ?? [],
@@ -77,11 +92,12 @@ export class PointsMapper {
 
 export class GameSessionMapper {
   static toDomain(raw: Record<string, any>): GameSessionEntity {
-    const metrics = raw.metrics instanceof Map
-      ? Object.fromEntries(raw.metrics)
-      : (raw.metrics ?? {});
+    const metrics =
+      raw.metrics instanceof Map
+        ? Object.fromEntries(raw.metrics)
+        : (raw.metrics ?? {});
     return GameSessionEntity.reconstitute(raw._id.toString(), {
-      childId: raw.childId?.toString() ?? '',
+      childId: raw.childId?.toString() ?? "",
       gameType: raw.gameType as GameType,
       level: raw.level,
       completed: raw.completed ?? false,

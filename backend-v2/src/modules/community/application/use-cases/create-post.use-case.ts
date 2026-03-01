@@ -1,9 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { IUseCase } from '../../../../core/application/use-case.interface';
-import { Result, ok, err } from '../../../../core/application/result';
-import { POST_REPOSITORY_TOKEN, IPostRepository } from '../../domain/repositories/post.repository.interface';
-import { PostEntity } from '../../domain/entities/post.entity';
-import { CreatePostDto, PostOutputDto } from '../dto/community.dto';
+import { Inject, Injectable } from "@nestjs/common";
+import { IUseCase } from "../../../../core/application/use-case.interface";
+import { Result, ok, err } from "../../../../core/application/result";
+import {
+  POST_REPOSITORY_TOKEN,
+  IPostRepository,
+} from "../../domain/repositories/post.repository.interface";
+import { PostEntity } from "../../domain/entities/post.entity";
+import { CreatePostDto, PostOutputDto } from "../dto/community.dto";
 
 interface CreatePostInput {
   userId: string;
@@ -12,12 +15,17 @@ interface CreatePostInput {
 }
 
 @Injectable()
-export class CreatePostUseCase implements IUseCase<CreatePostInput, Result<PostOutputDto, string>> {
+export class CreatePostUseCase implements IUseCase<
+  CreatePostInput,
+  Result<PostOutputDto, string>
+> {
   constructor(
     @Inject(POST_REPOSITORY_TOKEN) private readonly postRepo: IPostRepository,
   ) {}
 
-  async execute(input: CreatePostInput): Promise<Result<PostOutputDto, string>> {
+  async execute(
+    input: CreatePostInput,
+  ): Promise<Result<PostOutputDto, string>> {
     try {
       const entity = PostEntity.create({
         authorId: input.userId,
@@ -44,7 +52,9 @@ export class CreatePostUseCase implements IUseCase<CreatePostInput, Result<PostO
         likeCount: 0,
       });
     } catch (error) {
-      return err(error instanceof Error ? error.message : 'Failed to create post');
+      return err(
+        error instanceof Error ? error.message : "Failed to create post",
+      );
     }
   }
 }

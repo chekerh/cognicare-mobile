@@ -1,4 +1,4 @@
-import { Entity } from '../../../../core/domain/entity.base';
+import { Entity } from "../../../../core/domain/entity.base";
 
 export interface PostProps {
   authorId: string;
@@ -21,7 +21,7 @@ export class PostEntity extends Entity<string> {
 
   static create(props: PostProps, id?: string): PostEntity {
     if (!props.text || props.text.trim().length === 0) {
-      throw new Error('Post text is required');
+      throw new Error("Post text is required");
     }
     return new PostEntity(id ?? Entity.generateId(), {
       ...props,
@@ -36,15 +36,33 @@ export class PostEntity extends Entity<string> {
     return new PostEntity(id, props);
   }
 
-  get authorId(): string { return this.props.authorId; }
-  get authorName(): string { return this.props.authorName; }
-  get text(): string { return this.props.text; }
-  get imageUrl(): string | undefined { return this.props.imageUrl; }
-  get tags(): string[] { return this.props.tags; }
-  get likedBy(): string[] { return this.props.likedBy; }
-  get likeCount(): number { return this.props.likedBy.length; }
-  get createdAt(): Date | undefined { return this.props.createdAt; }
-  get updatedAt(): Date | undefined { return this.props.updatedAt; }
+  get authorId(): string {
+    return this.props.authorId;
+  }
+  get authorName(): string {
+    return this.props.authorName;
+  }
+  get text(): string {
+    return this.props.text;
+  }
+  get imageUrl(): string | undefined {
+    return this.props.imageUrl;
+  }
+  get tags(): string[] {
+    return this.props.tags;
+  }
+  get likedBy(): string[] {
+    return this.props.likedBy;
+  }
+  get likeCount(): number {
+    return this.props.likedBy.length;
+  }
+  get createdAt(): Date | undefined {
+    return this.props.createdAt;
+  }
+  get updatedAt(): Date | undefined {
+    return this.props.updatedAt;
+  }
 
   update(data: { text?: string; imageUrl?: string; tags?: string[] }): void {
     if (data.text !== undefined) this.props.text = data.text;

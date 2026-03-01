@@ -28,7 +28,10 @@ export interface IRepository<T, ID = string> {
 /**
  * Extended repository interface with common query methods.
  */
-export interface IExtendedRepository<T, ID = string> extends IRepository<T, ID> {
+export interface IExtendedRepository<T, ID = string> extends IRepository<
+  T,
+  ID
+> {
   /**
    * Find all entities.
    */

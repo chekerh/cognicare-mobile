@@ -1,4 +1,8 @@
-import { NutritionPlanEntity, TaskReminderEntity, CompletionEntry } from '../../domain';
+import {
+  NutritionPlanEntity,
+  TaskReminderEntity,
+  CompletionEntry,
+} from "../../domain";
 
 export class NutritionPlanMapper {
   static toDomain(raw: any): NutritionPlanEntity {
@@ -50,15 +54,17 @@ export class NutritionPlanMapper {
 
 export class TaskReminderMapper {
   static toDomain(raw: any): TaskReminderEntity {
-    const history: CompletionEntry[] = (raw.completionHistory ?? []).map((h: any) => ({
-      date: new Date(h.date),
-      completed: h.completed,
-      completedAt: h.completedAt ? new Date(h.completedAt) : undefined,
-      feedback: h.feedback,
-      proofImageUrl: h.proofImageUrl,
-      verificationStatus: h.verificationStatus,
-      verificationMetadata: h.verificationMetadata,
-    }));
+    const history: CompletionEntry[] = (raw.completionHistory ?? []).map(
+      (h: any) => ({
+        date: new Date(h.date),
+        completed: h.completed,
+        completedAt: h.completedAt ? new Date(h.completedAt) : undefined,
+        feedback: h.feedback,
+        proofImageUrl: h.proofImageUrl,
+        verificationStatus: h.verificationStatus,
+        verificationMetadata: h.verificationMetadata,
+      }),
+    );
 
     return TaskReminderEntity.reconstitute(raw._id?.toString() ?? raw.id, {
       childId: raw.childId?.toString(),

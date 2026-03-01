@@ -1,6 +1,6 @@
-import { Types } from 'mongoose';
-import { PostEntity } from '../../domain/entities/post.entity';
-import { PostDocument } from '../persistence/mongo/post.schema';
+import { Types } from "mongoose";
+import { PostEntity } from "../../domain/entities/post.entity";
+import { PostDocument } from "../persistence/mongo/post.schema";
 
 export class PostMapper {
   static toDomain(doc: PostDocument): PostEntity {

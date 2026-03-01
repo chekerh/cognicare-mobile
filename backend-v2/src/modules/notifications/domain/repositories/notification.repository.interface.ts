@@ -1,4 +1,4 @@
-import { NotificationEntity } from '../entities/notification.entity';
+import { NotificationEntity } from "../entities/notification.entity";
 
 export interface INotificationRepository {
   findByUserId(userId: string, limit?: number): Promise<NotificationEntity[]>;
@@ -7,5 +7,8 @@ export interface INotificationRepository {
   save(entity: NotificationEntity): Promise<NotificationEntity>;
   markRead(userId: string, id: string): Promise<boolean>;
   markAllRead(userId: string): Promise<void>;
-  findByUserAndData(userId: string, filter: Record<string, unknown>): Promise<NotificationEntity | null>;
+  findByUserAndData(
+    userId: string,
+    filter: Record<string, unknown>,
+  ): Promise<NotificationEntity | null>;
 }

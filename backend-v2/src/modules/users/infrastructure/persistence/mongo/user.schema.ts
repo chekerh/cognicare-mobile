@@ -1,12 +1,12 @@
 /**
  * User Mongoose Schema - Infrastructure Layer
  */
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document, Types } from "mongoose";
 
 export type UserDocument = UserMongoSchema & Document;
 
-@Schema({ timestamps: true, collection: 'users' })
+@Schema({ timestamps: true, collection: "users" })
 export class UserMongoSchema {
   @Prop({ required: true, unique: true, lowercase: true, trim: true })
   email!: string;
@@ -17,8 +17,15 @@ export class UserMongoSchema {
   @Prop({
     required: true,
     enum: [
-      'family', 'doctor', 'volunteer', 'admin', 'organization_leader',
-      'psychologist', 'speech_therapist', 'occupational_therapist', 'other'
+      "family",
+      "doctor",
+      "volunteer",
+      "admin",
+      "organization_leader",
+      "psychologist",
+      "speech_therapist",
+      "occupational_therapist",
+      "other",
     ],
   })
   role!: string;
@@ -35,13 +42,13 @@ export class UserMongoSchema {
   @Prop()
   profileImageUrl?: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Organization' })
+  @Prop({ type: Types.ObjectId, ref: "Organization" })
   organizationId?: Types.ObjectId;
 
   @Prop({ default: false })
   isEmailVerified!: boolean;
 
-  @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
+  @Prop({ type: [Types.ObjectId], ref: "User", default: [] })
   blockedUserIds?: Types.ObjectId[];
 
   @Prop()

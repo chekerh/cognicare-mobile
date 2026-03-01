@@ -1,12 +1,12 @@
 /**
  * Email Verification Mongoose Schema - Infrastructure Layer
  */
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document } from "mongoose";
 
 export type EmailVerificationDocument = EmailVerificationMongoSchema & Document;
 
-@Schema({ timestamps: true, collection: 'email_verifications' })
+@Schema({ timestamps: true, collection: "email_verifications" })
 export class EmailVerificationMongoSchema {
   @Prop({ required: true, lowercase: true, trim: true })
   email!: string;
@@ -20,7 +20,9 @@ export class EmailVerificationMongoSchema {
   createdAt?: Date;
 }
 
-export const EmailVerificationSchema = SchemaFactory.createForClass(EmailVerificationMongoSchema);
+export const EmailVerificationSchema = SchemaFactory.createForClass(
+  EmailVerificationMongoSchema,
+);
 
 // TTL index - auto-delete after expiration
 EmailVerificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });

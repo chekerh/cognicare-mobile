@@ -1,13 +1,13 @@
 /**
  * User MongoDB Repository - Infrastructure Layer
  */
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { UserMongoSchema, UserDocument } from './user.schema';
-import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
-import { UserEntity, UserRole } from '../../../domain/entities/user.entity';
-import { UserMapper } from '../../mappers/user.mapper';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
+import { UserMongoSchema, UserDocument } from "./user.schema";
+import { IUserRepository } from "../../../domain/repositories/user.repository.interface";
+import { UserEntity, UserRole } from "../../../domain/entities/user.entity";
+import { UserMapper } from "../../mappers/user.mapper";
 
 @Injectable()
 export class UserMongoRepository implements IUserRepository {
@@ -40,7 +40,10 @@ export class UserMongoRepository implements IUserRepository {
 
   async findByOrganizationId(organizationId: string): Promise<UserEntity[]> {
     const docs = await this.userModel
-      .find({ organizationId: new Types.ObjectId(organizationId), deletedAt: null })
+      .find({
+        organizationId: new Types.ObjectId(organizationId),
+        deletedAt: null,
+      })
       .sort({ createdAt: -1 })
       .exec();
     return docs.map(UserMapper.toDomain);
@@ -48,9 +51,9 @@ export class UserMongoRepository implements IUserRepository {
 
   async findByIds(ids: string[]): Promise<UserEntity[]> {
     const docs = await this.userModel
-      .find({ 
-        _id: { $in: ids.map(id => new Types.ObjectId(id)) }, 
-        deletedAt: null 
+      .find({
+        _id: { $in: ids.map((id) => new Types.ObjectId(id)) },
+        deletedAt: null,
       })
       .exec();
     return docs.map(UserMapper.toDomain);
@@ -103,7 +106,10 @@ export class UserMongoRepository implements IUserRepository {
 
   async countByOrganizationId(organizationId: string): Promise<number> {
     return this.userModel
-      .countDocuments({ organizationId: new Types.ObjectId(organizationId), deletedAt: null })
+      .countDocuments({
+        organizationId: new Types.ObjectId(organizationId),
+        deletedAt: null,
+      })
       .exec();
   }
 
@@ -111,12 +117,18 @@ export class UserMongoRepository implements IUserRepository {
     page: number,
     limit: number,
     filter?: Partial<UserEntity>,
-  ): Promise<{ data: UserEntity[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: UserEntity[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const query: Record<string, unknown> = { deletedAt: null };
-    
+
     if (filter) {
       if (filter.role) query.role = filter.role;
-      if (filter.organizationId) query.organizationId = new Types.ObjectId(filter.organizationId);
+      if (filter.organizationId)
+        query.organizationId = new Types.ObjectId(filter.organizationId);
     }
 
     const [docs, total] = await Promise.all([
@@ -139,10 +151,11 @@ export class UserMongoRepository implements IUserRepository {
 
   async count(filter?: Partial<UserEntity>): Promise<number> {
     const query: Record<string, unknown> = { deletedAt: null };
-    
+
     if (filter) {
       if (filter.role) query.role = filter.role;
-      if (filter.organizationId) query.organizationId = new Types.ObjectId(filter.organizationId);
+      if (filter.organizationId)
+        query.organizationId = new Types.ObjectId(filter.organizationId);
     }
 
     return this.userModel.countDocuments(query).exec();

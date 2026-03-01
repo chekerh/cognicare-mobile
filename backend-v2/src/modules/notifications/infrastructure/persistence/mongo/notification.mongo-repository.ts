@@ -1,15 +1,20 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { INotificationRepository } from '../../../domain/repositories/notification.repository.interface';
-import { NotificationEntity } from '../../../domain/entities/notification.entity';
-import { NotificationMapper } from '../../mappers/notification.mapper';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
+import { INotificationRepository } from "../../../domain/repositories/notification.repository.interface";
+import { NotificationEntity } from "../../../domain/entities/notification.entity";
+import { NotificationMapper } from "../../mappers/notification.mapper";
 
 @Injectable()
 export class NotificationMongoRepository implements INotificationRepository {
-  constructor(@InjectModel('Notification') private readonly model: Model<any>) {}
+  constructor(
+    @InjectModel("Notification") private readonly model: Model<any>,
+  ) {}
 
-  async findByUserId(userId: string, limit = 50): Promise<NotificationEntity[]> {
+  async findByUserId(
+    userId: string,
+    limit = 50,
+  ): Promise<NotificationEntity[]> {
     const docs = await this.model
       .find({ userId: new Types.ObjectId(userId) })
       .sort({ createdAt: -1 })
@@ -20,7 +25,9 @@ export class NotificationMongoRepository implements INotificationRepository {
   }
 
   async countUnread(userId: string): Promise<number> {
-    return this.model.countDocuments({ userId: new Types.ObjectId(userId), read: false }).exec();
+    return this.model
+      .countDocuments({ userId: new Types.ObjectId(userId), read: false })
+      .exec();
   }
 
   async findById(id: string): Promise<NotificationEntity | null> {
@@ -46,12 +53,20 @@ export class NotificationMongoRepository implements INotificationRepository {
 
   async markAllRead(userId: string): Promise<void> {
     await this.model
-      .updateMany({ userId: new Types.ObjectId(userId) }, { $set: { read: true } })
+      .updateMany(
+        { userId: new Types.ObjectId(userId) },
+        { $set: { read: true } },
+      )
       .exec();
   }
 
-  async findByUserAndData(userId: string, filter: Record<string, unknown>): Promise<NotificationEntity | null> {
-    const query: Record<string, unknown> = { userId: new Types.ObjectId(userId) };
+  async findByUserAndData(
+    userId: string,
+    filter: Record<string, unknown>,
+  ): Promise<NotificationEntity | null> {
+    const query: Record<string, unknown> = {
+      userId: new Types.ObjectId(userId),
+    };
     for (const [key, val] of Object.entries(filter)) {
       query[`data.${key}`] = val;
     }

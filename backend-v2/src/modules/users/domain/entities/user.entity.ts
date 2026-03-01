@@ -1,19 +1,19 @@
 /**
  * User Entity - Domain Layer
  */
-import { Entity, UniqueEntityId } from '@/core/domain';
-import { InvalidEntityStateException } from '@/core/domain';
+import { Entity, UniqueEntityId } from "@/core/domain";
+import { InvalidEntityStateException } from "@/core/domain";
 
-export type UserRole = 
-  | 'family' 
-  | 'doctor' 
-  | 'volunteer' 
-  | 'admin' 
-  | 'organization_leader'
-  | 'psychologist'
-  | 'speech_therapist'
-  | 'occupational_therapist'
-  | 'other';
+export type UserRole =
+  | "family"
+  | "doctor"
+  | "volunteer"
+  | "admin"
+  | "organization_leader"
+  | "psychologist"
+  | "speech_therapist"
+  | "occupational_therapist"
+  | "other";
 
 export interface UserProps {
   email: string;
@@ -59,61 +59,109 @@ export class UserEntity extends Entity<string> {
   // ── Validation ──
 
   private static validateProps(props: UserProps): void {
-    if (!props.email || !props.email.includes('@')) {
-      throw new InvalidEntityStateException('Valid email is required');
+    if (!props.email || !props.email.includes("@")) {
+      throw new InvalidEntityStateException("Valid email is required");
     }
     if (!props.passwordHash) {
-      throw new InvalidEntityStateException('Password hash is required');
+      throw new InvalidEntityStateException("Password hash is required");
     }
     const validRoles: UserRole[] = [
-      'family', 'doctor', 'volunteer', 'admin', 'organization_leader',
-      'psychologist', 'speech_therapist', 'occupational_therapist', 'other'
+      "family",
+      "doctor",
+      "volunteer",
+      "admin",
+      "organization_leader",
+      "psychologist",
+      "speech_therapist",
+      "occupational_therapist",
+      "other",
     ];
     if (!validRoles.includes(props.role)) {
-      throw new InvalidEntityStateException('Invalid role');
+      throw new InvalidEntityStateException("Invalid role");
     }
   }
 
   // ── Getters ──
 
-  get email(): string { return this.props.email; }
-  get passwordHash(): string { return this.props.passwordHash; }
-  get role(): UserRole { return this.props.role; }
-  get firstName(): string | undefined { return this.props.firstName; }
-  get lastName(): string | undefined { return this.props.lastName; }
+  get email(): string {
+    return this.props.email;
+  }
+  get passwordHash(): string {
+    return this.props.passwordHash;
+  }
+  get role(): UserRole {
+    return this.props.role;
+  }
+  get firstName(): string | undefined {
+    return this.props.firstName;
+  }
+  get lastName(): string | undefined {
+    return this.props.lastName;
+  }
   get fullName(): string {
     const parts = [this.props.firstName, this.props.lastName].filter(Boolean);
-    return parts.join(' ') || this.props.email;
+    return parts.join(" ") || this.props.email;
   }
-  get phone(): string | undefined { return this.props.phone; }
-  get profileImageUrl(): string | undefined { return this.props.profileImageUrl; }
-  get organizationId(): string | undefined { return this.props.organizationId; }
-  get isEmailVerified(): boolean { return this.props.isEmailVerified; }
-  get blockedUserIds(): string[] { return this.props.blockedUserIds ?? []; }
-  get deletedAt(): Date | undefined { return this.props.deletedAt; }
-  get createdAt(): Date | undefined { return this.props.createdAt; }
-  get updatedAt(): Date | undefined { return this.props.updatedAt; }
-  get isDeleted(): boolean { return !!this.props.deletedAt; }
+  get phone(): string | undefined {
+    return this.props.phone;
+  }
+  get profileImageUrl(): string | undefined {
+    return this.props.profileImageUrl;
+  }
+  get organizationId(): string | undefined {
+    return this.props.organizationId;
+  }
+  get isEmailVerified(): boolean {
+    return this.props.isEmailVerified;
+  }
+  get blockedUserIds(): string[] {
+    return this.props.blockedUserIds ?? [];
+  }
+  get deletedAt(): Date | undefined {
+    return this.props.deletedAt;
+  }
+  get createdAt(): Date | undefined {
+    return this.props.createdAt;
+  }
+  get updatedAt(): Date | undefined {
+    return this.props.updatedAt;
+  }
+  get isDeleted(): boolean {
+    return !!this.props.deletedAt;
+  }
 
   get isSpecialist(): boolean {
-    return ['psychologist', 'speech_therapist', 'occupational_therapist', 'doctor', 'volunteer', 'other'].includes(this.role);
+    return [
+      "psychologist",
+      "speech_therapist",
+      "occupational_therapist",
+      "doctor",
+      "volunteer",
+      "other",
+    ].includes(this.role);
   }
 
   get isAdmin(): boolean {
-    return this.role === 'admin';
+    return this.role === "admin";
   }
 
   get isOrganizationLeader(): boolean {
-    return this.role === 'organization_leader';
+    return this.role === "organization_leader";
   }
 
   // ── Business Methods ──
 
-  updateProfile(data: Partial<Pick<UserProps, 'firstName' | 'lastName' | 'phone' | 'profileImageUrl'>>): void {
-    if (data.firstName !== undefined) this.props.firstName = data.firstName.trim();
+  updateProfile(
+    data: Partial<
+      Pick<UserProps, "firstName" | "lastName" | "phone" | "profileImageUrl">
+    >,
+  ): void {
+    if (data.firstName !== undefined)
+      this.props.firstName = data.firstName.trim();
     if (data.lastName !== undefined) this.props.lastName = data.lastName.trim();
     if (data.phone !== undefined) this.props.phone = data.phone.trim();
-    if (data.profileImageUrl !== undefined) this.props.profileImageUrl = data.profileImageUrl;
+    if (data.profileImageUrl !== undefined)
+      this.props.profileImageUrl = data.profileImageUrl;
     this.props.updatedAt = new Date();
   }
 
@@ -139,7 +187,7 @@ export class UserEntity extends Entity<string> {
 
   blockUser(userId: string): void {
     if (userId === this.id) {
-      throw new InvalidEntityStateException('Cannot block yourself');
+      throw new InvalidEntityStateException("Cannot block yourself");
     }
     if (!this.props.blockedUserIds) {
       this.props.blockedUserIds = [];
@@ -152,7 +200,9 @@ export class UserEntity extends Entity<string> {
 
   unblockUser(userId: string): void {
     if (this.props.blockedUserIds) {
-      this.props.blockedUserIds = this.props.blockedUserIds.filter(id => id !== userId);
+      this.props.blockedUserIds = this.props.blockedUserIds.filter(
+        (id) => id !== userId,
+      );
       this.props.updatedAt = new Date();
     }
   }

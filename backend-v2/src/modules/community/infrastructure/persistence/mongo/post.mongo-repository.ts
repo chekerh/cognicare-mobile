@@ -1,15 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { IPostRepository } from '../../../domain/repositories/post.repository.interface';
-import { PostEntity } from '../../../domain/entities/post.entity';
-import { PostMongoSchema, PostDocument } from './post.schema';
-import { PostMapper } from '../../mappers/post.mapper';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
+import { IPostRepository } from "../../../domain/repositories/post.repository.interface";
+import { PostEntity } from "../../../domain/entities/post.entity";
+import { PostMongoSchema, PostDocument } from "./post.schema";
+import { PostMapper } from "../../mappers/post.mapper";
 
 @Injectable()
 export class PostMongoRepository implements IPostRepository {
   constructor(
-    @InjectModel(PostMongoSchema.name) private readonly model: Model<PostDocument>,
+    @InjectModel(PostMongoSchema.name)
+    private readonly model: Model<PostDocument>,
   ) {}
 
   async findById(id: string): Promise<PostEntity | null> {
@@ -23,7 +24,10 @@ export class PostMongoRepository implements IPostRepository {
   }
 
   async findByAuthorId(authorId: string): Promise<PostEntity[]> {
-    const docs = await this.model.find({ authorId: new Types.ObjectId(authorId) }).sort({ createdAt: -1 }).exec();
+    const docs = await this.model
+      .find({ authorId: new Types.ObjectId(authorId) })
+      .sort({ createdAt: -1 })
+      .exec();
     return docs.map(PostMapper.toDomain);
   }
 
@@ -44,7 +48,9 @@ export class PostMongoRepository implements IPostRepository {
   }
 
   async findByIds(ids: string[]): Promise<PostEntity[]> {
-    const docs = await this.model.find({ _id: { $in: ids.map((id) => new Types.ObjectId(id)) } }).exec();
+    const docs = await this.model
+      .find({ _id: { $in: ids.map((id) => new Types.ObjectId(id)) } })
+      .exec();
     return docs.map(PostMapper.toDomain);
   }
 }

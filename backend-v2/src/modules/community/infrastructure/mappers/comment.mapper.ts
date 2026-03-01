@@ -1,6 +1,6 @@
-import { Types } from 'mongoose';
-import { CommentEntity } from '../../domain/entities/comment.entity';
-import { CommentDocument } from '../persistence/mongo/comment.schema';
+import { Types } from "mongoose";
+import { CommentEntity } from "../../domain/entities/comment.entity";
+import { CommentDocument } from "../persistence/mongo/comment.schema";
 
 export class CommentMapper {
   static toDomain(doc: CommentDocument): CommentEntity {

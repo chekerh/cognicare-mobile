@@ -32,7 +32,12 @@ export const getWelcomeTemplate = (userName: string): string => `
   </div>
 `;
 
-export const getOrganizationInvitationTemplate = (orgName: string, invitationType: 'staff' | 'family', acceptUrl: string, rejectUrl: string): string => `
+export const getOrganizationInvitationTemplate = (
+  orgName: string,
+  invitationType: "staff" | "family",
+  acceptUrl: string,
+  rejectUrl: string,
+): string => `
   <div style="text-align: center;">
     <h2 style="color: #5A5A5A;">You're Invited to Join ${orgName}!</h2>
     <p style="color: #5A5A5A;">${orgName} has invited you as a ${invitationType} member on CogniCare.</p>
@@ -43,14 +48,20 @@ export const getOrganizationInvitationTemplate = (orgName: string, invitationTyp
   </div>
 `;
 
-export const getOrganizationPendingTemplate = (orgName: string, leaderName: string): string => `
+export const getOrganizationPendingTemplate = (
+  orgName: string,
+  leaderName: string,
+): string => `
   <div style="text-align: center;">
     <h2 style="color: #5A5A5A;">Organization Application Submitted</h2>
     <p>Dear ${leaderName}, your organization <strong>${orgName}</strong> is under review.</p>
   </div>
 `;
 
-export const getOrganizationApprovedTemplate = (orgName: string, leaderName: string): string => `
+export const getOrganizationApprovedTemplate = (
+  orgName: string,
+  leaderName: string,
+): string => `
   <div style="text-align: center;">
     <div style="background: linear-gradient(135deg, #4ade80, #22c55e); padding: 30px; border-radius: 12px; margin-bottom: 30px;">
       <h1 style="color: white;">🎉 Congratulations!</h1>
@@ -59,11 +70,15 @@ export const getOrganizationApprovedTemplate = (orgName: string, leaderName: str
   </div>
 `;
 
-export const getOrganizationRejectedTemplate = (orgName: string, leaderName: string, reason?: string): string => `
+export const getOrganizationRejectedTemplate = (
+  orgName: string,
+  leaderName: string,
+  reason?: string,
+): string => `
   <div style="text-align: center;">
     <h2 style="color: #5A5A5A;">Organization Application Status</h2>
     <p>Dear ${leaderName}, your organization <strong>${orgName}</strong> was not approved.</p>
-    ${reason ? `<div style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 20px; margin: 30px 0; text-align: left;"><p style="color: #991b1b;">${reason}</p></div>` : ''}
+    ${reason ? `<div style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 20px; margin: 30px 0; text-align: left;"><p style="color: #991b1b;">${reason}</p></div>` : ""}
   </div>
 `;
 
@@ -74,16 +89,24 @@ export const getVolunteerApprovedTemplate = (userName: string): string => `
   </div>
 `;
 
-export const getVolunteerDeniedTemplate = (userName: string, reason?: string, courseUrl?: string): string => `
+export const getVolunteerDeniedTemplate = (
+  userName: string,
+  reason?: string,
+  courseUrl?: string,
+): string => `
   <div style="text-align: center;">
     <h2 style="color: #5A5A5A;">Dear ${userName},</h2>
     <p>We are unable to approve your application at this time.</p>
-    ${reason ? `<div style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 20px; margin: 30px 0;"><p style="color: #991b1b;">${reason}</p></div>` : ''}
-    ${courseUrl ? `<p><a href="${courseUrl}" style="background-color: #6366f1; color: white; padding: 12px 24px; border-radius: 8px;">View qualification courses →</a></p>` : ''}
+    ${reason ? `<div style="background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 20px; margin: 30px 0;"><p style="color: #991b1b;">${reason}</p></div>` : ""}
+    ${courseUrl ? `<p><a href="${courseUrl}" style="background-color: #6366f1; color: white; padding: 12px 24px; border-radius: 8px;">View qualification courses →</a></p>` : ""}
   </div>
 `;
 
-export const getOrderConfirmationTemplate = (params: { orderId: string; productName: string; quantity: number }): string => `
+export const getOrderConfirmationTemplate = (params: {
+  orderId: string;
+  productName: string;
+  quantity: number;
+}): string => `
   <div style="text-align: center;">
     <h2 style="color: #5A5A5A;">Commande enregistrée</h2>
     <div style="background-color: #f9f9f9; border: 2px dashed #A4D7E1; border-radius: 12px; padding: 24px; margin: 30px 0; text-align: left;">
@@ -94,10 +117,15 @@ export const getOrderConfirmationTemplate = (params: { orderId: string; productN
   </div>
 `;
 
-export const getBioherbsOrderConfirmationTemplate = (params: { orderId: string; productName: string; quantity: number; sentToBioherbs: boolean }): string => {
+export const getBioherbsOrderConfirmationTemplate = (params: {
+  orderId: string;
+  productName: string;
+  quantity: number;
+  sentToBioherbs: boolean;
+}): string => {
   const msg = params.sentToBioherbs
-    ? 'Votre commande a été transmise à BioHerbs Tunisie.'
-    : 'Votre commande est enregistrée. Nous la transmettons à BioHerbs.';
+    ? "Votre commande a été transmise à BioHerbs Tunisie."
+    : "Votre commande est enregistrée. Nous la transmettons à BioHerbs.";
   return `
     <div style="text-align: center;">
       <h2 style="color: #5A5A5A;">Commande transmise à BioHerbs</h2>

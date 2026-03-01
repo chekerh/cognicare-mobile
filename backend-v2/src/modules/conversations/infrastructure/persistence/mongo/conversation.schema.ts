@@ -1,11 +1,11 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document, Types } from "mongoose";
 
 export type ConversationDocument = ConversationMongoSchema & Document;
 
-@Schema({ timestamps: true, collection: 'conversations' })
+@Schema({ timestamps: true, collection: "conversations" })
 export class ConversationMongoSchema {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
+  @Prop({ type: Types.ObjectId, ref: "User", required: true, index: true })
   user!: Types.ObjectId;
 
   @Prop({ required: true })
@@ -26,33 +26,38 @@ export class ConversationMongoSchema {
   @Prop({ default: false })
   unread!: boolean;
 
-  @Prop({ enum: ['persons', 'families', 'benevole', 'healthcare'], default: 'persons' })
+  @Prop({
+    enum: ["persons", "families", "benevole", "healthcare"],
+    default: "persons",
+  })
   segment!: string;
 
   @Prop({ type: Types.ObjectId, index: true })
   threadId?: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', index: true })
+  @Prop({ type: Types.ObjectId, ref: "User", index: true })
   otherUserId?: Types.ObjectId;
 
-  @Prop({ type: [Types.ObjectId], ref: 'User', index: true })
+  @Prop({ type: [Types.ObjectId], ref: "User", index: true })
   participants?: Types.ObjectId[];
 
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-export const ConversationSchema = SchemaFactory.createForClass(ConversationMongoSchema);
+export const ConversationSchema = SchemaFactory.createForClass(
+  ConversationMongoSchema,
+);
 ConversationSchema.index({ user: 1, updatedAt: -1 });
 
 export type MessageDocument = MessageMongoSchema & Document;
 
-@Schema({ timestamps: true, collection: 'messages' })
+@Schema({ timestamps: true, collection: "messages" })
 export class MessageMongoSchema {
   @Prop({ type: Types.ObjectId, required: true, index: true })
   threadId!: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: "User", required: true })
   senderId!: Types.ObjectId;
 
   @Prop({ required: true })
@@ -61,7 +66,7 @@ export class MessageMongoSchema {
   @Prop()
   attachmentUrl?: string;
 
-  @Prop({ enum: ['image', 'voice', 'call_missed', 'call_summary'] })
+  @Prop({ enum: ["image", "voice", "call_missed", "call_summary"] })
   attachmentType?: string;
 
   @Prop()
@@ -73,11 +78,12 @@ export class MessageMongoSchema {
 
 export const MessageSchema = SchemaFactory.createForClass(MessageMongoSchema);
 
-export type ConversationSettingDocument = ConversationSettingMongoSchema & Document;
+export type ConversationSettingDocument = ConversationSettingMongoSchema &
+  Document;
 
-@Schema({ timestamps: true, collection: 'conversationsettings' })
+@Schema({ timestamps: true, collection: "conversationsettings" })
 export class ConversationSettingMongoSchema {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: Types.ObjectId, ref: "User", required: true })
   userId!: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, required: true })
@@ -90,5 +96,10 @@ export class ConversationSettingMongoSchema {
   muted!: boolean;
 }
 
-export const ConversationSettingSchema = SchemaFactory.createForClass(ConversationSettingMongoSchema);
-ConversationSettingSchema.index({ userId: 1, conversationId: 1 }, { unique: true });
+export const ConversationSettingSchema = SchemaFactory.createForClass(
+  ConversationSettingMongoSchema,
+);
+ConversationSettingSchema.index(
+  { userId: 1, conversationId: 1 },
+  { unique: true },
+);

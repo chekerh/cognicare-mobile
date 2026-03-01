@@ -1,14 +1,17 @@
 /**
  * Login Use Case - Application Layer
  */
-import { Inject, Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
-import { JwtService } from '@nestjs/jwt';
-import { IUseCase } from '../../../../core/application/use-case.interface';
-import { Result, ok, err } from '../../../../core/application/result';
-import { IUserRepository, USER_REPOSITORY_TOKEN } from '../../../users/domain/repositories/user.repository.interface';
-import { UserEntity } from '../../../users/domain/entities/user.entity';
-import { AuthResponseDto, UserResponseDto } from '../dto/auth.dto';
+import { Inject, Injectable } from "@nestjs/common";
+import * as bcrypt from "bcryptjs";
+import { JwtService } from "@nestjs/jwt";
+import { IUseCase } from "../../../../core/application/use-case.interface";
+import { Result, ok, err } from "../../../../core/application/result";
+import {
+  IUserRepository,
+  USER_REPOSITORY_TOKEN,
+} from "../../../users/domain/repositories/user.repository.interface";
+import { UserEntity } from "../../../users/domain/entities/user.entity";
+import { AuthResponseDto, UserResponseDto } from "../dto/auth.dto";
 
 export interface LoginInput {
   email: string;
@@ -16,7 +19,10 @@ export interface LoginInput {
 }
 
 @Injectable()
-export class LoginUseCase implements IUseCase<LoginInput, Result<AuthResponseDto, string>> {
+export class LoginUseCase implements IUseCase<
+  LoginInput,
+  Result<AuthResponseDto, string>
+> {
   constructor(
     @Inject(USER_REPOSITORY_TOKEN)
     private readonly userRepo: IUserRepository,
@@ -29,18 +35,18 @@ export class LoginUseCase implements IUseCase<LoginInput, Result<AuthResponseDto
     // 1. Find user
     const user = await this.userRepo.findByEmail(email);
     if (!user) {
-      return err('Invalid email or password');
+      return err("Invalid email or password");
     }
 
     // 2. Verify password
     const isValid = await bcrypt.compare(input.password, user.passwordHash);
     if (!isValid) {
-      return err('Invalid email or password');
+      return err("Invalid email or password");
     }
 
     // 3. Check email verification
     if (!user.isEmailVerified) {
-      return err('Please verify your email before logging in');
+      return err("Please verify your email before logging in");
     }
 
     // 4. Generate tokens
@@ -52,7 +58,10 @@ export class LoginUseCase implements IUseCase<LoginInput, Result<AuthResponseDto
     });
   }
 
-  private generateTokens(user: UserEntity): { accessToken: string; refreshToken: string } {
+  private generateTokens(user: UserEntity): {
+    accessToken: string;
+    refreshToken: string;
+  } {
     const payload = {
       sub: user.id,
       email: user.email,
@@ -60,7 +69,7 @@ export class LoginUseCase implements IUseCase<LoginInput, Result<AuthResponseDto
     };
 
     const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: "7d" });
 
     return { accessToken, refreshToken };
   }

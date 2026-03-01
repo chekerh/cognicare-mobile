@@ -1,6 +1,6 @@
-import { CommentEntity } from '../entities/comment.entity';
+import { CommentEntity } from "../entities/comment.entity";
 
-export const COMMENT_REPOSITORY_TOKEN = Symbol('ICommentRepository');
+export const COMMENT_REPOSITORY_TOKEN = Symbol("ICommentRepository");
 
 export interface ICommentRepository {
   findByPostId(postId: string): Promise<CommentEntity[]>;

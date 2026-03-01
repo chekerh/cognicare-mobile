@@ -1,14 +1,17 @@
 /**
  * Create Child for Specialist Use Case - Application Layer
- * 
+ *
  * Handles creating a private child profile for a specialist.
  */
-import { Inject, Injectable } from '@nestjs/common';
-import { Result } from '@/core/application';
-import { ChildEntity, Gender } from '../../domain/entities/child.entity';
-import { IChildRepository, CHILD_REPOSITORY_TOKEN } from '../../domain/repositories/child.repository.interface';
-import { AddChildInputDto, ChildOutputDto } from '../dto/child.dto';
-import { ChildMapper } from '../../infrastructure/mappers/child.mapper';
+import { Inject, Injectable } from "@nestjs/common";
+import { Result } from "@/core/application";
+import { ChildEntity, Gender } from "../../domain/entities/child.entity";
+import {
+  IChildRepository,
+  CHILD_REPOSITORY_TOKEN,
+} from "../../domain/repositories/child.repository.interface";
+import { AddChildInputDto, ChildOutputDto } from "../dto/child.dto";
+import { ChildMapper } from "../../infrastructure/mappers/child.mapper";
 
 export interface CreateChildForSpecialistInput {
   specialistId: string;
@@ -24,7 +27,9 @@ export class CreateChildForSpecialistUseCase {
     private readonly childRepository: IChildRepository,
   ) {}
 
-  async execute(input: CreateChildForSpecialistInput): Promise<CreateChildForSpecialistOutput> {
+  async execute(
+    input: CreateChildForSpecialistInput,
+  ): Promise<CreateChildForSpecialistOutput> {
     try {
       const { specialistId, childData } = input;
 
@@ -48,7 +53,9 @@ export class CreateChildForSpecialistUseCase {
 
       return Result.ok(ChildMapper.toOutputDto(savedChild));
     } catch (error) {
-      return Result.fail(error instanceof Error ? error : new Error(String(error)));
+      return Result.fail(
+        error instanceof Error ? error : new Error(String(error)),
+      );
     }
   }
 }

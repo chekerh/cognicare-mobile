@@ -1,6 +1,6 @@
-import { PostEntity } from '../entities/post.entity';
+import { PostEntity } from "../entities/post.entity";
 
-export const POST_REPOSITORY_TOKEN = Symbol('IPostRepository');
+export const POST_REPOSITORY_TOKEN = Symbol("IPostRepository");
 
 export interface IPostRepository {
   findById(id: string): Promise<PostEntity | null>;

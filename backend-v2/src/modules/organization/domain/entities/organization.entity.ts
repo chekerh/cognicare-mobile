@@ -1,8 +1,8 @@
 /**
  * Organization Entity - Domain Layer
  */
-import { Entity } from '../../../../core/domain/entity.base';
-import { ValidationException } from '../../../../core/domain/exceptions';
+import { Entity } from "../../../../core/domain/entity.base";
+import { ValidationException } from "../../../../core/domain/exceptions";
 
 export interface OrganizationProps {
   name: string;
@@ -69,12 +69,17 @@ export class OrganizationEntity extends Entity<string> {
   }
 
   // Factory method for creating new organization
-  static create(props: Omit<OrganizationProps, 'staffIds' | 'childIds' | 'isApproved' | 'createdAt' | 'updatedAt'>): OrganizationEntity {
+  static create(
+    props: Omit<
+      OrganizationProps,
+      "staffIds" | "childIds" | "isApproved" | "createdAt" | "updatedAt"
+    >,
+  ): OrganizationEntity {
     if (!props.name?.trim()) {
-      throw new ValidationException('Organization name is required');
+      throw new ValidationException("Organization name is required");
     }
     if (!props.leaderId) {
-      throw new ValidationException('Organization leader ID is required');
+      throw new ValidationException("Organization leader ID is required");
     }
 
     return new OrganizationEntity(Entity.generateId(), {
@@ -89,28 +94,65 @@ export class OrganizationEntity extends Entity<string> {
   }
 
   // Factory method for reconstituting from persistence
-  static reconstitute(id: string, props: OrganizationProps): OrganizationEntity {
+  static reconstitute(
+    id: string,
+    props: OrganizationProps,
+  ): OrganizationEntity {
     return new OrganizationEntity(id, props);
   }
 
   // Getters
-  get name(): string { return this._name; }
-  get leaderId(): string { return this._leaderId; }
-  get staffIds(): readonly string[] { return this._staffIds; }
-  get childIds(): readonly string[] { return this._childIds; }
-  get certificateUrl(): string | undefined { return this._certificateUrl; }
-  get description(): string | undefined { return this._description; }
-  get address(): string | undefined { return this._address; }
-  get phone(): string | undefined { return this._phone; }
-  get email(): string | undefined { return this._email; }
-  get website(): string | undefined { return this._website; }
-  get isApproved(): boolean { return this._isApproved; }
-  get approvedAt(): Date | undefined { return this._approvedAt; }
-  get rejectedAt(): Date | undefined { return this._rejectedAt; }
-  get rejectionReason(): string | undefined { return this._rejectionReason; }
-  get deletedAt(): Date | undefined { return this._deletedAt; }
-  get createdAt(): Date | undefined { return this._createdAt; }
-  get updatedAt(): Date | undefined { return this._updatedAt; }
+  get name(): string {
+    return this._name;
+  }
+  get leaderId(): string {
+    return this._leaderId;
+  }
+  get staffIds(): readonly string[] {
+    return this._staffIds;
+  }
+  get childIds(): readonly string[] {
+    return this._childIds;
+  }
+  get certificateUrl(): string | undefined {
+    return this._certificateUrl;
+  }
+  get description(): string | undefined {
+    return this._description;
+  }
+  get address(): string | undefined {
+    return this._address;
+  }
+  get phone(): string | undefined {
+    return this._phone;
+  }
+  get email(): string | undefined {
+    return this._email;
+  }
+  get website(): string | undefined {
+    return this._website;
+  }
+  get isApproved(): boolean {
+    return this._isApproved;
+  }
+  get approvedAt(): Date | undefined {
+    return this._approvedAt;
+  }
+  get rejectedAt(): Date | undefined {
+    return this._rejectedAt;
+  }
+  get rejectionReason(): string | undefined {
+    return this._rejectionReason;
+  }
+  get deletedAt(): Date | undefined {
+    return this._deletedAt;
+  }
+  get createdAt(): Date | undefined {
+    return this._createdAt;
+  }
+  get updatedAt(): Date | undefined {
+    return this._updatedAt;
+  }
 
   // Business methods
   approve(): void {
@@ -123,7 +165,7 @@ export class OrganizationEntity extends Entity<string> {
 
   reject(reason: string): void {
     if (!reason?.trim()) {
-      throw new ValidationException('Rejection reason is required');
+      throw new ValidationException("Rejection reason is required");
     }
     this._isApproved = false;
     this._rejectedAt = new Date();
@@ -133,7 +175,7 @@ export class OrganizationEntity extends Entity<string> {
 
   addStaff(userId: string): void {
     if (!userId) {
-      throw new ValidationException('User ID is required');
+      throw new ValidationException("User ID is required");
     }
     if (!this._staffIds.includes(userId)) {
       this._staffIds.push(userId);
@@ -151,7 +193,7 @@ export class OrganizationEntity extends Entity<string> {
 
   addChild(childId: string): void {
     if (!childId) {
-      throw new ValidationException('Child ID is required');
+      throw new ValidationException("Child ID is required");
     }
     if (!this._childIds.includes(childId)) {
       this._childIds.push(childId);

@@ -1,16 +1,16 @@
 /**
  * Child MongoDB Repository - Infrastructure Layer
- * 
+ *
  * Concrete implementation of IChildRepository using Mongoose.
  * This is the only place where database operations happen.
  */
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { ChildMongoSchema, ChildDocument } from './child.schema';
-import { IChildRepository } from '../../../domain/repositories/child.repository.interface';
-import { ChildEntity } from '../../../domain/entities/child.entity';
-import { ChildMapper } from '../../mappers/child.mapper';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
+import { ChildMongoSchema, ChildDocument } from "./child.schema";
+import { IChildRepository } from "../../../domain/repositories/child.repository.interface";
+import { ChildEntity } from "../../../domain/entities/child.entity";
+import { ChildMapper } from "../../mappers/child.mapper";
 
 @Injectable()
 export class ChildMongoRepository implements IChildRepository {
@@ -27,9 +27,7 @@ export class ChildMongoRepository implements IChildRepository {
   }
 
   async findByIdIncludingDeleted(id: string): Promise<ChildEntity | null> {
-    const doc = await this.childModel
-      .findById(new Types.ObjectId(id))
-      .exec();
+    const doc = await this.childModel.findById(new Types.ObjectId(id)).exec();
     return doc ? ChildMapper.toDomain(doc) : null;
   }
 
@@ -43,9 +41,9 @@ export class ChildMongoRepository implements IChildRepository {
 
   async findByParentId(parentId: string): Promise<ChildEntity[]> {
     const docs = await this.childModel
-      .find({ 
-        parentId: new Types.ObjectId(parentId), 
-        deletedAt: null 
+      .find({
+        parentId: new Types.ObjectId(parentId),
+        deletedAt: null,
       })
       .sort({ createdAt: -1 })
       .exec();
@@ -54,9 +52,9 @@ export class ChildMongoRepository implements IChildRepository {
 
   async findBySpecialistId(specialistId: string): Promise<ChildEntity[]> {
     const docs = await this.childModel
-      .find({ 
-        specialistId: new Types.ObjectId(specialistId), 
-        deletedAt: null 
+      .find({
+        specialistId: new Types.ObjectId(specialistId),
+        deletedAt: null,
       })
       .sort({ createdAt: -1 })
       .exec();
@@ -65,9 +63,9 @@ export class ChildMongoRepository implements IChildRepository {
 
   async findByOrganizationId(organizationId: string): Promise<ChildEntity[]> {
     const docs = await this.childModel
-      .find({ 
-        organizationId: new Types.ObjectId(organizationId), 
-        deletedAt: null 
+      .find({
+        organizationId: new Types.ObjectId(organizationId),
+        deletedAt: null,
       })
       .sort({ createdAt: -1 })
       .exec();
@@ -123,18 +121,18 @@ export class ChildMongoRepository implements IChildRepository {
 
   async countByOrganizationId(organizationId: string): Promise<number> {
     return this.childModel
-      .countDocuments({ 
-        organizationId: new Types.ObjectId(organizationId), 
-        deletedAt: null 
+      .countDocuments({
+        organizationId: new Types.ObjectId(organizationId),
+        deletedAt: null,
       })
       .exec();
   }
 
   async countBySpecialistId(specialistId: string): Promise<number> {
     return this.childModel
-      .countDocuments({ 
-        specialistId: new Types.ObjectId(specialistId), 
-        deletedAt: null 
+      .countDocuments({
+        specialistId: new Types.ObjectId(specialistId),
+        deletedAt: null,
       })
       .exec();
   }
@@ -143,14 +141,21 @@ export class ChildMongoRepository implements IChildRepository {
     page: number,
     limit: number,
     filter?: Partial<ChildEntity>,
-  ): Promise<{ data: ChildEntity[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: ChildEntity[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const query: Record<string, unknown> = { deletedAt: null };
-    
+
     // Build filter query
     if (filter) {
       if (filter.parentId) query.parentId = new Types.ObjectId(filter.parentId);
-      if (filter.organizationId) query.organizationId = new Types.ObjectId(filter.organizationId);
-      if (filter.specialistId) query.specialistId = new Types.ObjectId(filter.specialistId);
+      if (filter.organizationId)
+        query.organizationId = new Types.ObjectId(filter.organizationId);
+      if (filter.specialistId)
+        query.specialistId = new Types.ObjectId(filter.specialistId);
     }
 
     const [docs, total] = await Promise.all([
@@ -173,11 +178,13 @@ export class ChildMongoRepository implements IChildRepository {
 
   async count(filter?: Partial<ChildEntity>): Promise<number> {
     const query: Record<string, unknown> = { deletedAt: null };
-    
+
     if (filter) {
       if (filter.parentId) query.parentId = new Types.ObjectId(filter.parentId);
-      if (filter.organizationId) query.organizationId = new Types.ObjectId(filter.organizationId);
-      if (filter.specialistId) query.specialistId = new Types.ObjectId(filter.specialistId);
+      if (filter.organizationId)
+        query.organizationId = new Types.ObjectId(filter.organizationId);
+      if (filter.specialistId)
+        query.specialistId = new Types.ObjectId(filter.specialistId);
     }
 
     return this.childModel.countDocuments(query).exec();

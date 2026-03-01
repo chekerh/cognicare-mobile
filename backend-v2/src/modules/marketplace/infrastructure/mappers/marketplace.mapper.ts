@@ -1,6 +1,12 @@
-import { Types } from 'mongoose';
-import { ProductEntity, ReviewEntity } from '../../domain/entities/marketplace.entity';
-import { ProductDocument, ReviewDocument } from '../persistence/mongo/marketplace.schema';
+import { Types } from "mongoose";
+import {
+  ProductEntity,
+  ReviewEntity,
+} from "../../domain/entities/marketplace.entity";
+import {
+  ProductDocument,
+  ReviewDocument,
+} from "../persistence/mongo/marketplace.schema";
 
 export class ProductMapper {
   static toDomain(doc: ProductDocument): ProductEntity {
@@ -9,9 +15,9 @@ export class ProductMapper {
       title: doc.title,
       price: doc.price,
       imageUrl: doc.imageUrl,
-      description: doc.description ?? '',
+      description: doc.description ?? "",
       badge: doc.badge,
-      category: doc.category ?? 'all',
+      category: doc.category ?? "all",
       order: doc.order ?? 0,
       externalUrl: doc.externalUrl,
       createdAt: doc.createdAt,
@@ -41,7 +47,7 @@ export class ReviewMapper {
       userId: doc.userId.toString(),
       userName: doc.userName,
       rating: doc.rating,
-      comment: doc.comment ?? '',
+      comment: doc.comment ?? "",
       userProfileImageUrl: doc.userProfileImageUrl,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,

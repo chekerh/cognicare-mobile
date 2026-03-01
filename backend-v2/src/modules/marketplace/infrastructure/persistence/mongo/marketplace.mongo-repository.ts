@@ -1,15 +1,27 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { IProductRepository, IReviewRepository } from '../../../domain/repositories/marketplace.repository.interface';
-import { ProductEntity, ReviewEntity } from '../../../domain/entities/marketplace.entity';
-import { ProductMongoSchema, ProductDocument, ReviewMongoSchema, ReviewDocument } from './marketplace.schema';
-import { ProductMapper, ReviewMapper } from '../../mappers/marketplace.mapper';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
+import {
+  IProductRepository,
+  IReviewRepository,
+} from "../../../domain/repositories/marketplace.repository.interface";
+import {
+  ProductEntity,
+  ReviewEntity,
+} from "../../../domain/entities/marketplace.entity";
+import {
+  ProductMongoSchema,
+  ProductDocument,
+  ReviewMongoSchema,
+  ReviewDocument,
+} from "./marketplace.schema";
+import { ProductMapper, ReviewMapper } from "../../mappers/marketplace.mapper";
 
 @Injectable()
 export class ProductMongoRepository implements IProductRepository {
   constructor(
-    @InjectModel(ProductMongoSchema.name) private readonly model: Model<ProductDocument>,
+    @InjectModel(ProductMongoSchema.name)
+    private readonly model: Model<ProductDocument>,
   ) {}
 
   async findById(id: string): Promise<ProductEntity | null> {
@@ -19,13 +31,20 @@ export class ProductMongoRepository implements IProductRepository {
 
   async findAll(limit = 20, category?: string): Promise<ProductEntity[]> {
     const filter: Record<string, unknown> = {};
-    if (category && category !== 'all') filter.category = category;
-    const docs = await this.model.find(filter).sort({ order: 1, createdAt: -1 }).limit(limit).exec();
+    if (category && category !== "all") filter.category = category;
+    const docs = await this.model
+      .find(filter)
+      .sort({ order: 1, createdAt: -1 })
+      .limit(limit)
+      .exec();
     return docs.map(ProductMapper.toDomain);
   }
 
   async findBySellerId(sellerId: string): Promise<ProductEntity[]> {
-    const docs = await this.model.find({ sellerId: new Types.ObjectId(sellerId) }).sort({ createdAt: -1 }).exec();
+    const docs = await this.model
+      .find({ sellerId: new Types.ObjectId(sellerId) })
+      .sort({ createdAt: -1 })
+      .exec();
     return docs.map(ProductMapper.toDomain);
   }
 
@@ -52,19 +71,28 @@ export class ProductMongoRepository implements IProductRepository {
 @Injectable()
 export class ReviewMongoRepository implements IReviewRepository {
   constructor(
-    @InjectModel(ReviewMongoSchema.name) private readonly model: Model<ReviewDocument>,
+    @InjectModel(ReviewMongoSchema.name)
+    private readonly model: Model<ReviewDocument>,
   ) {}
 
   async findByProductId(productId: string): Promise<ReviewEntity[]> {
-    const docs = await this.model.find({ productId: new Types.ObjectId(productId) }).sort({ createdAt: -1 }).exec();
+    const docs = await this.model
+      .find({ productId: new Types.ObjectId(productId) })
+      .sort({ createdAt: -1 })
+      .exec();
     return docs.map(ReviewMapper.toDomain);
   }
 
-  async findByProductAndUser(productId: string, userId: string): Promise<ReviewEntity | null> {
-    const doc = await this.model.findOne({
-      productId: new Types.ObjectId(productId),
-      userId: new Types.ObjectId(userId),
-    }).exec();
+  async findByProductAndUser(
+    productId: string,
+    userId: string,
+  ): Promise<ReviewEntity | null> {
+    const doc = await this.model
+      .findOne({
+        productId: new Types.ObjectId(productId),
+        userId: new Types.ObjectId(userId),
+      })
+      .exec();
     return doc ? ReviewMapper.toDomain(doc) : null;
   }
 

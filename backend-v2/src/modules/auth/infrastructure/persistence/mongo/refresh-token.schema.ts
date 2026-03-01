@@ -1,14 +1,14 @@
 /**
  * Refresh Token Mongoose Schema - Infrastructure Layer
  */
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document, Types } from "mongoose";
 
 export type RefreshTokenDocument = RefreshTokenMongoSchema & Document;
 
-@Schema({ timestamps: true, collection: 'refresh_tokens' })
+@Schema({ timestamps: true, collection: "refresh_tokens" })
 export class RefreshTokenMongoSchema {
-  @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
+  @Prop({ required: true, type: Types.ObjectId, ref: "User" })
   userId!: Types.ObjectId;
 
   @Prop({ required: true })
@@ -23,7 +23,9 @@ export class RefreshTokenMongoSchema {
   createdAt?: Date;
 }
 
-export const RefreshTokenSchema = SchemaFactory.createForClass(RefreshTokenMongoSchema);
+export const RefreshTokenSchema = SchemaFactory.createForClass(
+  RefreshTokenMongoSchema,
+);
 
 // TTL index
 RefreshTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });

@@ -1,17 +1,29 @@
 /**
  * Signup Use Case - Application Layer
  */
-import { Inject, Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
-import { IUseCase } from '../../../../core/application/use-case.interface';
-import { Result, ok, err } from '../../../../core/application/result';
-import { IEmailVerificationRepository, EMAIL_VERIFICATION_REPOSITORY_TOKEN } from '../../domain/repositories/email-verification.repository.interface';
-import { IUserRepository, USER_REPOSITORY_TOKEN } from '../../../users/domain/repositories/user.repository.interface';
-import { IOrganizationRepository, ORGANIZATION_REPOSITORY_TOKEN } from '../../../organization/domain/repositories/organization.repository.interface';
-import { UserEntity, UserRole } from '../../../users/domain/entities/user.entity';
-import { OrganizationEntity } from '../../../organization/domain/entities/organization.entity';
-import { SignupDto, AuthResponseDto, UserResponseDto } from '../dto/auth.dto';
-import { JwtService } from '@nestjs/jwt';
+import { Inject, Injectable } from "@nestjs/common";
+import * as bcrypt from "bcryptjs";
+import { IUseCase } from "../../../../core/application/use-case.interface";
+import { Result, ok, err } from "../../../../core/application/result";
+import {
+  IEmailVerificationRepository,
+  EMAIL_VERIFICATION_REPOSITORY_TOKEN,
+} from "../../domain/repositories/email-verification.repository.interface";
+import {
+  IUserRepository,
+  USER_REPOSITORY_TOKEN,
+} from "../../../users/domain/repositories/user.repository.interface";
+import {
+  IOrganizationRepository,
+  ORGANIZATION_REPOSITORY_TOKEN,
+} from "../../../organization/domain/repositories/organization.repository.interface";
+import {
+  UserEntity,
+  UserRole,
+} from "../../../users/domain/entities/user.entity";
+import { OrganizationEntity } from "../../../organization/domain/entities/organization.entity";
+import { SignupDto, AuthResponseDto, UserResponseDto } from "../dto/auth.dto";
+import { JwtService } from "@nestjs/jwt";
 
 export interface SignupInput extends SignupDto {
   certificateBuffer?: Buffer;
@@ -25,7 +37,10 @@ export interface SignupOutput {
 }
 
 @Injectable()
-export class SignupUseCase implements IUseCase<SignupInput, Result<SignupOutput, string>> {
+export class SignupUseCase implements IUseCase<
+  SignupInput,
+  Result<SignupOutput, string>
+> {
   constructor(
     @Inject(EMAIL_VERIFICATION_REPOSITORY_TOKEN)
     private readonly verificationRepo: IEmailVerificationRepository,
@@ -42,35 +57,35 @@ export class SignupUseCase implements IUseCase<SignupInput, Result<SignupOutput,
     // 1. Verify the code
     const verification = await this.verificationRepo.findByEmail(email);
     if (!verification) {
-      return err('Verification code not found. Please request a new code.');
+      return err("Verification code not found. Please request a new code.");
     }
 
     if (!verification.verifyCode(input.verificationCode)) {
-      return err('Invalid or expired verification code');
+      return err("Invalid or expired verification code");
     }
 
     // 2. Check if email already exists
     const existingUser = await this.userRepo.findByEmail(email);
     if (existingUser) {
-      return err('Email already registered');
+      return err("Email already registered");
     }
 
     // 3. Validate organization leader requirements
-    if (input.role === 'organization_leader') {
+    if (input.role === "organization_leader") {
       if (!input.organizationName) {
-        return err('Organization name is required for organization leader');
+        return err("Organization name is required for organization leader");
       }
       if (!input.certificateBuffer) {
-        return err('Certificate PDF is required for organization leader');
+        return err("Certificate PDF is required for organization leader");
       }
-      if (input.certificateMimetype !== 'application/pdf') {
-        return err('Certificate must be a PDF file');
+      if (input.certificateMimetype !== "application/pdf") {
+        return err("Certificate must be a PDF file");
       }
       // TODO: Validate PDF magic bytes
     }
 
     // 4. Hash password
-    const bcryptRounds = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
+    const bcryptRounds = parseInt(process.env.BCRYPT_ROUNDS || "12", 10);
     const passwordHash = await bcrypt.hash(input.password, bcryptRounds);
 
     // 5. Create user entity
@@ -91,9 +106,9 @@ export class SignupUseCase implements IUseCase<SignupInput, Result<SignupOutput,
     await this.verificationRepo.deleteByEmail(email);
 
     // 8. Handle organization leader
-    if (input.role === 'organization_leader') {
+    if (input.role === "organization_leader") {
       // TODO: Upload certificate to Cloudinary
-      const certificateUrl = 'pending-upload';
+      const certificateUrl = "pending-upload";
 
       // Create organization
       const org = OrganizationEntity.create({
@@ -111,7 +126,7 @@ export class SignupUseCase implements IUseCase<SignupInput, Result<SignupOutput,
 
       return ok({
         pendingApproval: true,
-        message: 'Account created. Your organization is pending approval.',
+        message: "Account created. Your organization is pending approval.",
       });
     }
 
@@ -123,11 +138,14 @@ export class SignupUseCase implements IUseCase<SignupInput, Result<SignupOutput,
         ...tokens,
         user: this.mapUserToResponse(savedUser),
       },
-      message: 'Account created successfully',
+      message: "Account created successfully",
     });
   }
 
-  private generateTokens(user: UserEntity): { accessToken: string; refreshToken: string } {
+  private generateTokens(user: UserEntity): {
+    accessToken: string;
+    refreshToken: string;
+  } {
     const payload = {
       sub: user.id,
       email: user.email,
@@ -135,7 +153,7 @@ export class SignupUseCase implements IUseCase<SignupInput, Result<SignupOutput,
     };
 
     const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: "7d" });
 
     return { accessToken, refreshToken };
   }

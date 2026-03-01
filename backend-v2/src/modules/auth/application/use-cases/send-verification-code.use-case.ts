@@ -1,12 +1,18 @@
 /**
  * Send Verification Code Use Case - Application Layer
  */
-import { Inject, Injectable } from '@nestjs/common';
-import { IUseCase } from '../../../../core/application/use-case.interface';
-import { Result, ok, err } from '../../../../core/application/result';
-import { IEmailVerificationRepository, EMAIL_VERIFICATION_REPOSITORY_TOKEN } from '../../domain/repositories/email-verification.repository.interface';
-import { IUserRepository, USER_REPOSITORY_TOKEN } from '../../../users/domain/repositories/user.repository.interface';
-import { EmailVerificationEntity } from '../../domain/entities/email-verification.entity';
+import { Inject, Injectable } from "@nestjs/common";
+import { IUseCase } from "../../../../core/application/use-case.interface";
+import { Result, ok, err } from "../../../../core/application/result";
+import {
+  IEmailVerificationRepository,
+  EMAIL_VERIFICATION_REPOSITORY_TOKEN,
+} from "../../domain/repositories/email-verification.repository.interface";
+import {
+  IUserRepository,
+  USER_REPOSITORY_TOKEN,
+} from "../../../users/domain/repositories/user.repository.interface";
+import { EmailVerificationEntity } from "../../domain/entities/email-verification.entity";
 
 export interface SendVerificationCodeInput {
   email: string;
@@ -19,7 +25,10 @@ export interface SendVerificationCodeOutput {
 }
 
 @Injectable()
-export class SendVerificationCodeUseCase implements IUseCase<SendVerificationCodeInput, Result<SendVerificationCodeOutput, string>> {
+export class SendVerificationCodeUseCase implements IUseCase<
+  SendVerificationCodeInput,
+  Result<SendVerificationCodeOutput, string>
+> {
   constructor(
     @Inject(EMAIL_VERIFICATION_REPOSITORY_TOKEN)
     private readonly verificationRepo: IEmailVerificationRepository,
@@ -27,13 +36,15 @@ export class SendVerificationCodeUseCase implements IUseCase<SendVerificationCod
     private readonly userRepo: IUserRepository,
   ) {}
 
-  async execute(input: SendVerificationCodeInput): Promise<Result<SendVerificationCodeOutput, string>> {
+  async execute(
+    input: SendVerificationCodeInput,
+  ): Promise<Result<SendVerificationCodeOutput, string>> {
     const email = input.email.toLowerCase().trim();
 
     // Check if email already exists
     const existingUser = await this.userRepo.findByEmail(email);
     if (existingUser) {
-      return err('Email already registered');
+      return err("Email already registered");
     }
 
     // Generate code and create verification entity
@@ -45,10 +56,10 @@ export class SendVerificationCodeUseCase implements IUseCase<SendVerificationCod
 
     // TODO: Send email via mail service
     // For now, return code in development
-    const isDev = process.env.NODE_ENV !== 'production';
+    const isDev = process.env.NODE_ENV !== "production";
 
     return ok({
-      message: 'Verification code sent to email',
+      message: "Verification code sent to email",
       code: isDev ? code : undefined,
     });
   }

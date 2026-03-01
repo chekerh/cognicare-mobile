@@ -1,14 +1,17 @@
 /**
  * Child Repository Interface - Domain Layer
- * 
+ *
  * This interface defines the contract for child persistence.
  * The domain layer knows nothing about Mongoose, MongoDB, or any database.
  * Infrastructure layer provides the concrete implementation.
  */
-import { IExtendedRepository } from '@/core/domain';
-import { ChildEntity } from '../entities/child.entity';
+import { IExtendedRepository } from "@/core/domain";
+import { ChildEntity } from "../entities/child.entity";
 
-export interface IChildRepository extends IExtendedRepository<ChildEntity, string> {
+export interface IChildRepository extends IExtendedRepository<
+  ChildEntity,
+  string
+> {
   /**
    * Find children by parent ID.
    */
@@ -49,4 +52,4 @@ export interface IChildRepository extends IExtendedRepository<ChildEntity, strin
  * Injection token for the repository.
  * Used for dependency injection binding.
  */
-export const CHILD_REPOSITORY_TOKEN = Symbol('IChildRepository');
+export const CHILD_REPOSITORY_TOKEN = Symbol("IChildRepository");

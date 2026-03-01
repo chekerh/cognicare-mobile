@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { Readable } from 'stream';
-import { v2 as cloudinary } from 'cloudinary';
+import { Injectable } from "@nestjs/common";
+import { Readable } from "stream";
+import { v2 as cloudinary } from "cloudinary";
 
 @Injectable()
 export class CloudinaryService {
@@ -11,7 +11,11 @@ export class CloudinaryService {
     const apiKey = process.env.CLOUDINARY_API_KEY;
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
     if (cloudName && apiKey && apiSecret) {
-      cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret });
+      cloudinary.config({
+        cloud_name: cloudName,
+        api_key: apiKey,
+        api_secret: apiSecret,
+      });
       this.configured = true;
     }
   }
@@ -20,19 +24,39 @@ export class CloudinaryService {
     return this.configured;
   }
 
-  async uploadBuffer(buffer: Buffer, options: { folder: string; publicId?: string }): Promise<string> {
+  async uploadBuffer(
+    buffer: Buffer,
+    options: { folder: string; publicId?: string },
+  ): Promise<string> {
     if (!this.configured) {
-      throw new Error('Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET.');
+      throw new Error(
+        "Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET.",
+      );
     }
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: options.folder, public_id: options.publicId, resource_type: 'image' },
+        {
+          folder: options.folder,
+          public_id: options.publicId,
+          resource_type: "image",
+        },
         (err, result) => {
           if (err) {
-            reject(err instanceof Error ? err : new Error(typeof (err as any)?.message === 'string' ? (err as any).message : 'Cloudinary upload failed'));
+            reject(
+              err instanceof Error
+                ? err
+                : new Error(
+                    typeof (err as any)?.message === "string"
+                      ? (err as any).message
+                      : "Cloudinary upload failed",
+                  ),
+            );
             return;
           }
-          if (!result?.secure_url) { reject(new Error('Cloudinary did not return a URL')); return; }
+          if (!result?.secure_url) {
+            reject(new Error("Cloudinary did not return a URL"));
+            return;
+          }
           resolve(result.secure_url);
         },
       );
@@ -40,20 +64,44 @@ export class CloudinaryService {
     });
   }
 
-  async uploadRawBuffer(buffer: Buffer, options: { folder: string; publicId?: string; resourceType?: 'raw' | 'auto' }): Promise<string> {
+  async uploadRawBuffer(
+    buffer: Buffer,
+    options: {
+      folder: string;
+      publicId?: string;
+      resourceType?: "raw" | "auto";
+    },
+  ): Promise<string> {
     if (!this.configured) {
-      throw new Error('Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET.');
+      throw new Error(
+        "Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET.",
+      );
     }
-    const resourceType = options.resourceType ?? 'raw';
+    const resourceType = options.resourceType ?? "raw";
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: options.folder, public_id: options.publicId, resource_type: resourceType },
+        {
+          folder: options.folder,
+          public_id: options.publicId,
+          resource_type: resourceType,
+        },
         (err, result) => {
           if (err) {
-            reject(err instanceof Error ? err : new Error(typeof (err as any)?.message === 'string' ? (err as any).message : 'Cloudinary upload failed'));
+            reject(
+              err instanceof Error
+                ? err
+                : new Error(
+                    typeof (err as any)?.message === "string"
+                      ? (err as any).message
+                      : "Cloudinary upload failed",
+                  ),
+            );
             return;
           }
-          if (!result?.secure_url) { reject(new Error('Cloudinary did not return a URL')); return; }
+          if (!result?.secure_url) {
+            reject(new Error("Cloudinary did not return a URL"));
+            return;
+          }
           resolve(result.secure_url);
         },
       );

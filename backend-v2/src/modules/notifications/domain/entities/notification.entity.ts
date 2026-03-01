@@ -1,4 +1,4 @@
-import { Entity } from '../../../../core/entity.base';
+import { Entity } from "../../../../core/entity.base";
 
 export interface NotificationProps {
   userId: string;
@@ -11,21 +11,48 @@ export interface NotificationProps {
   updatedAt?: Date;
 }
 
-export class NotificationEntity extends Entity<NotificationProps> {
-  static create(props: Omit<NotificationProps, 'read'>): NotificationEntity {
-    return new NotificationEntity({ ...props, read: false }, Entity.generateId());
+export class NotificationEntity extends Entity {
+  private props: NotificationProps;
+  private constructor(props: NotificationProps, id: string) {
+    super(id);
+    this.props = props;
   }
-  static reconstitute(id: string, props: NotificationProps): NotificationEntity {
+  static create(props: Omit<NotificationProps, "read">): NotificationEntity {
+    return new NotificationEntity(
+      { ...props, read: false },
+      Entity.generateId(),
+    );
+  }
+  static reconstitute(
+    id: string,
+    props: NotificationProps,
+  ): NotificationEntity {
     return new NotificationEntity(props, id);
   }
 
-  get userId() { return this.props.userId; }
-  get type() { return this.props.type; }
-  get title() { return this.props.title; }
-  get description() { return this.props.description; }
-  get read() { return this.props.read; }
-  get data() { return this.props.data; }
-  get createdAt() { return this.props.createdAt; }
+  get userId() {
+    return this.props.userId;
+  }
+  get type() {
+    return this.props.type;
+  }
+  get title() {
+    return this.props.title;
+  }
+  get description() {
+    return this.props.description;
+  }
+  get read() {
+    return this.props.read;
+  }
+  get data() {
+    return this.props.data;
+  }
+  get createdAt() {
+    return this.props.createdAt;
+  }
 
-  markRead(): void { this.props.read = true; }
+  markRead(): void {
+    this.props.read = true;
+  }
 }

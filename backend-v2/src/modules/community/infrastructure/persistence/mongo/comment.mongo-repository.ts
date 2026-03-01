@@ -1,19 +1,23 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { ICommentRepository } from '../../../domain/repositories/comment.repository.interface';
-import { CommentEntity } from '../../../domain/entities/comment.entity';
-import { CommentMongoSchema, CommentDocument } from './comment.schema';
-import { CommentMapper } from '../../mappers/comment.mapper';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
+import { ICommentRepository } from "../../../domain/repositories/comment.repository.interface";
+import { CommentEntity } from "../../../domain/entities/comment.entity";
+import { CommentMongoSchema, CommentDocument } from "./comment.schema";
+import { CommentMapper } from "../../mappers/comment.mapper";
 
 @Injectable()
 export class CommentMongoRepository implements ICommentRepository {
   constructor(
-    @InjectModel(CommentMongoSchema.name) private readonly model: Model<CommentDocument>,
+    @InjectModel(CommentMongoSchema.name)
+    private readonly model: Model<CommentDocument>,
   ) {}
 
   async findByPostId(postId: string): Promise<CommentEntity[]> {
-    const docs = await this.model.find({ postId: new Types.ObjectId(postId) }).sort({ createdAt: 1 }).exec();
+    const docs = await this.model
+      .find({ postId: new Types.ObjectId(postId) })
+      .sort({ createdAt: 1 })
+      .exec();
     return docs.map(CommentMapper.toDomain);
   }
 
