@@ -23,17 +23,27 @@ pip install -r requirements.txt
 
 ## Usage
 
-- **Templates only** (no network; outputs 3 course stubs):
+- **Generate 3 courses from official scraped sites** (recommended for "cours générés depuis les sites scrapés"):
+  ```bash
+  python scraper.py --scrape-courses --out training_courses.json
+  ```
+  This fetches WHO, NAS, Autism Speaks, and TEACCH URLs from `config.py`, extracts sections, builds the 3 courses (General Autism, PECs, TEACCH) with our titles/descriptions/quizzes, and writes JSON ready for the backend. To feed the backend seed file directly:
+  ```bash
+  python scraper.py --scrape-courses --out ../../backend/data/training-courses-seed.json
+  ```
+  Then restart the backend (or clear the training collection and restart) so the seed loads the scraped content.
+
+- **Templates only** (no network; outputs 3 course stubs with empty sections):
   ```bash
   python scraper.py --templates-only --out training_courses.json
   ```
 
-- **Scrape one or more URLs**:
+- **Scrape one or more custom URLs**:
   ```bash
   python scraper.py --url "https://teacch.com/" "TEACCH Overview" --url "https://www.autismspeaks.org/teacch" "" --out training_courses.json
   ```
 
-Output JSON matches the backend `POST /api/v1/training/admin/courses` body shape: `title`, `description`, `contentSections`, `sourceUrl`, `topics`, `quiz` (empty; add questions manually or via a separate quiz generator), `approved: false`, `order`.
+Output JSON matches the backend `POST /api/v1/training/admin/courses` body shape: `title`, `description`, `contentSections`, `sourceUrl`, `topics`, `quiz`, `approved`, `order`.
 
 ## Pre-generated courses (backend seed)
 
