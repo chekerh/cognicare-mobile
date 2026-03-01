@@ -1122,8 +1122,8 @@ export class OrganizationService {
         this.configService.get<string>('RENDER_EXTERNAL_URL') ||
         'http://localhost:3000';
       backendUrl = backendUrl.replace(/\/$/, '');
-      activationUrl = `${backendUrl}/api/v1/organizations/invitations/${token}/accept`;
-      rejectUrl = `${backendUrl}/api/v1/organizations/invitations/${token}/reject`;
+      activationUrl = `${backendUrl}/api/v1/organization/invitations/${token}/accept`;
+      rejectUrl = `${backendUrl}/api/v1/organization/invitations/${token}/reject`;
       console.log('[INVITE] Existing confirmed user – using direct accept URL');
     } else {
       // New unconfirmed user: link to web dashboard confirm-account page to set password
