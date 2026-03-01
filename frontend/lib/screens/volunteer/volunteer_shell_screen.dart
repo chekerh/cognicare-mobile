@@ -26,9 +26,55 @@ class VolunteerShellScreen extends StatefulWidget {
 class _VolunteerShellScreenState extends State<VolunteerShellScreen> {
   Map<String, dynamic>? _application;
 
-  void _onTap(int index) {
+  /// Refresh application from backend so we always use latest status (e.g. after admin approval).
+  Future<void> _refreshApplication() async {
+    try {
+      final app = await VolunteerService().getMyApplication();
+      if (mounted) setState(() => _application = app);
+    } catch (_) {
+      // Keep previous _application on error
+    }
+  }
+
+  Future<void> _onTap(int index) async {
     if (index == 0) {
       context.go(AppConstants.volunteerCommunityRoute);
+      return;
+    }
+    // Always refetch before checking approval so we see admin approval immediately
+    if (index == 1 || index == 2 || index == 3) {
+      await _refreshApplication();
+      if (!mounted) return;
+    }
+    final status = _application?['status'] as String?;
+    final isApproved = status == 'approved';
+    // Block Dashboard (1), Formations (2), Messages (3) until admin approves documents
+    if (!isApproved && (index == 1 || index == 2 || index == 3)) {
+      final loc = AppLocalizations.of(context)!;
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(loc.volunteerApprovalPendingTitle),
+          content: Text(loc.volunteerApprovalPendingMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(loc.volunteerProfileAlertLaterButton),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                context.push(AppConstants.volunteerApplicationRoute);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _navPrimary,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(loc.volunteerApprovalPendingGoToApplication),
+            ),
+          ],
+        ),
+      );
       return;
     }
     const int messagesIndex = 3;

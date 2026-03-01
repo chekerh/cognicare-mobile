@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/marketplace_product.dart';
-import '../../services/marketplace_service.dart';
+import '../../services/integrations_service.dart';
 import '../../utils/constants.dart';
 
 // Design aligné sur le HTML Stitch - Community Marketplace Hub
 const Color _primary = Color(0xFFa3dae1);
+const Color _accentColor = Color(0xFF212121);
 const Color _background = Color(0xFFF5F9FA);
 const Color _cardBg = Color(0xFFFFFFFF);
 const Color _textPrimary = Color(0xFF1E293B);
@@ -31,7 +32,8 @@ const List<String> _categoryLabels = [
   'Nouveautés',
 ];
 
-/// Marketplace bénévole — design Stitch: header wave, search, filters, single-column product cards.
+/// Marketplace bénévole — même logique que family: catalogue intégré (IntegrationsService),
+/// grille/liste de produits, ouverture vers formulaire de commande intégré ou détail produit.
 /// Si [showHeader] est false, seul le contenu est affiché (pour intégration dans la section Communauté).
 class VolunteerCommunityMarketScreen extends StatefulWidget {
   const VolunteerCommunityMarketScreen({super.key, this.showHeader = true});
@@ -45,9 +47,11 @@ class VolunteerCommunityMarketScreen extends StatefulWidget {
 
 class _VolunteerCommunityMarketScreenState
     extends State<VolunteerCommunityMarketScreen> {
-  final MarketplaceService _service = MarketplaceService();
-  List<MarketplaceProduct> _products = [];
-  bool _loading = true;
+  /// Produits du catalogue intégré (ex. Books to Scrape), comme dans family.
+  List<MarketplaceProduct> _integrationProducts = [];
+  String _integrationSectionTitle = '';
+  String _integrationWebsiteSlug = '';
+  bool _integrationLoading = false;
   String? _error;
   final TextEditingController _searchController = TextEditingController();
   int _selectedCategoryIndex = 0;
@@ -55,7 +59,7 @@ class _VolunteerCommunityMarketScreenState
   @override
   void initState() {
     super.initState();
-    _load();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadIntegrationCatalog());
   }
 
   @override
@@ -64,30 +68,59 @@ class _VolunteerCommunityMarketScreenState
     super.dispose();
   }
 
-  Future<void> _load() async {
+  /// Même logique que FamilyMarketScreen: charger le catalogue intégré.
+  Future<void> _loadIntegrationCatalog({bool refresh = false}) async {
     setState(() {
-      _loading = true;
+      _integrationLoading = true;
       _error = null;
+      if (!refresh) {
+        _integrationSectionTitle = '';
+        _integrationProducts = [];
+      }
     });
     try {
-      final list = await _service.getProducts(limit: 50);
-      if (mounted) {
-        setState(() => _products = list
-          ..sort((a, b) => a.title.compareTo(b.title)));
+      final websites = await IntegrationsService().getWebsites();
+      if (websites.isEmpty || !mounted) {
+        if (mounted) setState(() => _integrationLoading = false);
+        return;
       }
+      final slug = websites.first.slug;
+      final catalog = await IntegrationsService().getCatalog(slug, page: 1, refresh: refresh);
+      if (!mounted) return;
+      final website = websites.first;
+      final list = catalog.products.map((p) {
+        final imageUrl = p.imageUrls.isNotEmpty ? p.imageUrls.first : '';
+        return MarketplaceProduct(
+          id: p.externalId,
+          title: p.name,
+          price: p.price,
+          imageUrl: imageUrl,
+          description: p.availability ? 'En stock' : 'Rupture de stock',
+          category: p.category,
+          externalUrl: p.productUrl,
+        );
+      }).toList();
+      setState(() {
+        _integrationSectionTitle = website.name;
+        _integrationWebsiteSlug = slug;
+        _integrationProducts = list;
+        _integrationLoading = false;
+      });
     } catch (e) {
       if (mounted) {
-        setState(
-            () => _error = e.toString().replaceFirst('Exception: ', ''));
+        setState(() {
+          _integrationSectionTitle = '';
+          _integrationProducts = [];
+          _integrationLoading = false;
+          _error = e.toString().replaceFirst('Exception: ', '');
+        });
       }
-    } finally {
-      if (mounted) setState(() => _loading = false);
     }
   }
 
   List<MarketplaceProduct> get _filteredProducts {
-    if (_products.isEmpty) return [];
-    var list = List<MarketplaceProduct>.from(_products);
+    if (_integrationProducts.isEmpty) return [];
+    var list = List<MarketplaceProduct>.from(_integrationProducts);
     if (_selectedCategoryIndex > 0) {
       final label = _categoryLabels[_selectedCategoryIndex];
       final labelLower = label.toLowerCase();
@@ -114,7 +147,28 @@ class _VolunteerCommunityMarketScreenState
     return list;
   }
 
+  static Color _badgeToColor(String? badge) {
+    if (badge == null || badge.isEmpty) return _primary;
+    final b = badge.toUpperCase();
+    if (b.contains('TOP')) return _accentColor;
+    if (b.contains('SKILL') || b.contains('BUILDER')) return Colors.green;
+    if (b.contains('POPULAR')) return Colors.orange;
+    return _primary;
+  }
+
+  /// Même logique que family: si produit intégré → formulaire de commande; sinon détail produit.
   void _openProduct(MarketplaceProduct product) {
+    if (_integrationWebsiteSlug.isNotEmpty && product.externalUrl != null && product.externalUrl!.isNotEmpty) {
+      context.push(AppConstants.volunteerIntegrationOrderRoute, extra: {
+        'websiteSlug': _integrationWebsiteSlug,
+        'externalId': product.id,
+        'productName': product.title,
+        'price': product.price,
+        'imageUrl': product.imageUrl,
+      });
+      return;
+    }
+    final badgeColor = _badgeToColor(product.badge);
     context.push(AppConstants.volunteerProductDetailRoute, extra: {
       'productId': product.id,
       'title': product.title,
@@ -122,13 +176,13 @@ class _VolunteerCommunityMarketScreenState
       'imageUrl': product.imageUrl,
       'description': product.description,
       'badge': product.badge,
-      'badgeColorValue': _primary.value,
+      'badgeColorValue': badgeColor.value,
       'externalUrl': product.externalUrl,
     });
   }
 
   Widget _buildBodyContent() {
-    if (_loading) {
+    if (_integrationLoading) {
       return const Center(child: CircularProgressIndicator(color: _primary));
     }
     if (_error != null) {
@@ -141,7 +195,7 @@ class _VolunteerCommunityMarketScreenState
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: _load,
+                onPressed: () => _loadIntegrationCatalog(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _primary,
                   foregroundColor: Colors.white,
@@ -153,16 +207,20 @@ class _VolunteerCommunityMarketScreenState
         ),
       );
     }
-    if (_products.isEmpty) {
+    if (_integrationProducts.isEmpty) {
       return Center(
-        child: Text(
-          'Aucun produit pour le moment.',
-          style: TextStyle(fontSize: 15, color: _textMuted),
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Text(
+            'Aucun produit pour le moment.\nVérifiez que le backend et le catalogue intégré sont disponibles.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 15, color: _textMuted),
+          ),
         ),
       );
     }
     return RefreshIndicator(
-      onRefresh: _load,
+      onRefresh: () => _loadIntegrationCatalog(refresh: true),
       color: _primary,
       child: CustomScrollView(
         slivers: [

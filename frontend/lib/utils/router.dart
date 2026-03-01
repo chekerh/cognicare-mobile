@@ -389,6 +389,12 @@ GoRouter createAppRouter(AuthProvider authProvider) {
                           );
                         },
                       ),
+                      GoRoute(
+                        path: 'integration-order',
+                        builder: (context, state) {
+                          return IntegrationOrderFormScreen.fromState(state);
+                        },
+                      ),
                     ],
                   ),
                 ],

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../services/auth_service.dart';
 import '../../services/chat_service.dart';
+import '../../services/volunteer_service.dart';
 import '../../utils/constants.dart';
 
 const Color _primary = Color(0xFF77B5D1);
@@ -51,6 +53,20 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
   List<_Conversation>? _inboxConversations;
   bool _loading = false;
   String? _loadError;
+  Map<String, dynamic>? _application;
+  bool _applicationLoading = true;
+
+  Future<void> _loadApplication() async {
+    try {
+      final app = await VolunteerService().getMyApplication();
+      if (mounted) setState(() {
+        _application = app;
+        _applicationLoading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _applicationLoading = false);
+    }
+  }
 
   Future<void> _loadInbox() async {
     setState(() {
@@ -91,6 +107,7 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
   @override
   void initState() {
     super.initState();
+    _loadApplication();
     _loadInbox();
   }
 
@@ -107,8 +124,63 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
     );
   }
 
+  Widget _buildApprovalPendingContent(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    return Scaffold(
+      backgroundColor: _bgLight,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.hourglass_empty,
+                    size: 64, color: _primary.withOpacity(0.7)),
+                const SizedBox(height: 24),
+                Text(
+                  loc.volunteerApprovalPendingTitle,
+                  style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: _textPrimary),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  loc.volunteerApprovalPendingMessage,
+                  style: TextStyle(
+                      fontSize: 15,
+                      color: _textMuted,
+                      height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton.icon(
+                  onPressed: () =>
+                      context.push(AppConstants.volunteerApplicationRoute),
+                  icon: const Icon(Icons.description_outlined, size: 20),
+                  label: Text(loc.volunteerApprovalPendingGoToApplication),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: _primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 14)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isApproved = _application?['status'] == 'approved';
+    if (!_applicationLoading && !isApproved) {
+      return _buildApprovalPendingContent(context);
+    }
     return Scaffold(
       backgroundColor: _bgLight,
       body: SafeArea(

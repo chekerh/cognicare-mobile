@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
+import '../../services/volunteer_service.dart';
 import '../../utils/constants.dart';
 
 const Color _bgLight = Color(0xFFF0F9FF);
@@ -21,6 +23,26 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
   bool _showQuickMenu = false;
   DateTime _displayDate = DateTime(2024, 3, 13);
   DateTime _selectedDay = DateTime(2024, 3, 13);
+  Map<String, dynamic>? _application;
+  bool _applicationLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadApplication();
+  }
+
+  Future<void> _loadApplication() async {
+    try {
+      final app = await VolunteerService().getMyApplication();
+      if (mounted) setState(() {
+        _application = app;
+        _applicationLoading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _applicationLoading = false);
+    }
+  }
 
   static const _monthsFr = [
     'Janvier',
@@ -74,8 +96,89 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
     return d.subtract(Duration(days: diff));
   }
 
+  Widget _buildApprovalPendingContent(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    return Scaffold(
+      backgroundColor: _bgLight,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 24, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new,
+                        size: 22, color: Color(0xFF1E293B)),
+                    onPressed: () => context.pop(),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                        minWidth: 40, minHeight: 40),
+                  ),
+                  const Text('Mon Agenda',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B))),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.hourglass_empty,
+                          size: 64, color: _brandBlue.withOpacity(0.7)),
+                      const SizedBox(height: 24),
+                      Text(
+                        loc.volunteerApprovalPendingTitle,
+                        style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B)),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        loc.volunteerApprovalPendingMessage,
+                        style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey.shade700,
+                            height: 1.4),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 32),
+                      ElevatedButton.icon(
+                        onPressed: () =>
+                            context.push(AppConstants.volunteerApplicationRoute),
+                        icon: const Icon(Icons.description_outlined, size: 20),
+                        label: Text(loc.volunteerApprovalPendingGoToApplication),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: _brandBlue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 14)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isApproved = _application?['status'] == 'approved';
+    if (!_applicationLoading && !isApproved) {
+      return _buildApprovalPendingContent(context);
+    }
     return Scaffold(
       backgroundColor: _bgLight,
       body: Stack(
@@ -85,17 +188,30 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
+                  // Header with back button
                   Padding(
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Mon Agenda',
-                            style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B))),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back_ios_new,
+                                  size: 22, color: Color(0xFF1E293B)),
+                              onPressed: () => context.pop(),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                  minWidth: 40, minHeight: 40),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('Mon Agenda',
+                                style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1E293B))),
+                          ],
+                        ),
                         Container(
                           width: 40,
                           height: 40,

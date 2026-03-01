@@ -323,6 +323,8 @@ class AppConstants {
       '/volunteer/community/create-post';
   static const String volunteerProductDetailRoute =
       '/volunteer/community/product-detail';
+  static const String volunteerIntegrationOrderRoute =
+      '/volunteer/community/integration-order';
   static const String volunteerDashboardRoute = '/volunteer/dashboard';
   static const String volunteerAgendaRoute = '/volunteer/agenda';
   static const String volunteerMissionsRoute = '/volunteer/missions';
