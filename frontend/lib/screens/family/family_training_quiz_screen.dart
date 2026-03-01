@@ -79,11 +79,11 @@ class _FamilyTrainingQuizScreenState extends State<FamilyTrainingQuizScreen> {
     }
   }
 
-  bool get _isFillBlank => (int i) {
-        if (i >= _questions.length) return false;
-        final type = _questions[i]['type'] as String?;
-        return type == 'fill_blank';
-      };
+  bool _isFillBlank(int i) {
+    if (i >= _questions.length) return false;
+    final type = _questions[i]['type'] as String?;
+    return type == 'fill_blank';
+  }
 
   Future<void> _submit() async {
     for (var i = 0; i < _questions.length; i++) {
