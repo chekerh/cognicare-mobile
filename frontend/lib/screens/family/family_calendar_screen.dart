@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/task_reminder.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/children_service.dart';
@@ -237,9 +238,9 @@ class _FamilyCalendarScreenState extends State<FamilyCalendarScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text(
-          'Planning',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context)!.dashboardPlanning,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: _slate800,

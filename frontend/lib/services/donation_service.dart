@@ -175,6 +175,26 @@ class DonationService {
 
     return parsed;
   }
+
+  /// Supprime un don (uniquement si l'utilisateur connecté est le donateur).
+  Future<void> deleteDonation(String donationId) async {
+    final response = await _client.delete(
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.donationsEndpoint}/$donationId'),
+      headers: await _headers(),
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      String message = 'Échec de la suppression: ${response.statusCode}';
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        final m = err['message'];
+        if (m != null) message = m.toString();
+      } catch (_) {}
+      throw Exception(message);
+    }
+    // Invalider le cache pour forcer un rechargement au prochain getDonations.
+    _memoryCache.clear();
+  }
 }
 
 class _DonationCacheEntry {

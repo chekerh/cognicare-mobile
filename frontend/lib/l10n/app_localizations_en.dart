@@ -2024,7 +2024,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   // Family feed & shell specific
   @override
-  String get navFeed => 'Feed';
+  String get navFeed => 'Share';
   @override
   String get navChats => 'Chats';
   @override
@@ -2098,6 +2098,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failedToOpenConversation => 'Failed to open conversation.';
   @override
   String get noProductsForCategory => 'No products for this category.';
+  @override
+  String get dashboardFamilyChat => 'Family Chat';
+  @override
+  String get dashboardMessages => 'Messages';
+  @override
+  String get dashboardPlanning => 'Planning';
+  @override
+  String get dashboardAppointmentsRoutine => 'Appointments & routine';
 
   // Cart & Checkout
   @override
@@ -2170,6 +2178,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cannotDeleteConversation => 'This conversation cannot be deleted.';
   @override
   String get conversationDeleted => 'Conversation deleted';
+  @override
+  String get deleteDonationConfirm => 'Delete this donation? This cannot be undone.';
+  @override
+  String get donationDeletedSuccess => 'Donation deleted.';
   @override
   String get pleaseAddChildProfileFirst => 'Please add a child profile first';
   @override

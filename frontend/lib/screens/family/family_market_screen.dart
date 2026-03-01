@@ -235,7 +235,7 @@ class _FamilyMarketScreenState extends State<FamilyMarketScreen> {
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Text(
-            'Aucun produit pour le moment.\nVérifiez que le backend et le catalogue intégré sont disponibles.',
+            AppLocalizations.of(context)!.noProductsYet,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,

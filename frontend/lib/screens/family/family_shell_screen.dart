@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../l10n/app_localizations.dart';
 import 'chatbot_sheet.dart';
 
 // Barre comme la 2e photo : teal #A3D9E2, fond blanc, + central et grand
@@ -46,17 +47,17 @@ class FamilyShellScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _navItem(context, 1, Icons.article_outlined, Icons.article,
-                    'Feed', currentIndex),
-                _navItem(context, 2, Icons.chat_bubble_outline,
-                    Icons.chat_bubble, 'Chats', currentIndex),
-                _centerPlusButton(context, currentIndex),
-                _navItem(context, 3, Icons.shopping_bag_outlined,
-                    Icons.shopping_bag, 'Market', currentIndex),
-                _navItem(context, 4, Icons.person_outline, Icons.person,
-                    'Profile', currentIndex),
+                Expanded(child: _navItem(context, 1, Icons.share_outlined, Icons.share,
+                    AppLocalizations.of(context)!.navFeed, currentIndex)),
+                Expanded(child: _navItem(context, 2, Icons.chat_bubble_outline,
+                    Icons.chat_bubble, AppLocalizations.of(context)!.navChats, currentIndex)),
+                Expanded(child: _centerPlusButton(context, currentIndex)),
+                Expanded(child: _navItem(context, 3, Icons.shopping_bag_outlined,
+                    Icons.shopping_bag, AppLocalizations.of(context)!.navMarket, currentIndex)),
+                Expanded(child: _navItem(context, 4, Icons.person_outline, Icons.person,
+                    AppLocalizations.of(context)!.navProfile, currentIndex)),
               ],
             ),
           ),
@@ -77,6 +78,7 @@ class FamilyShellScreen extends StatelessWidget {
   }
 
   /// Bouton central Accueil : tap = dashboard, appui long = chatbot Cogni.
+  /// Aligné avec les autres onglets : même hauteur de zone (icon + label).
   Widget _centerPlusButton(BuildContext context, int currentIndex) {
     return GestureDetector(
       onTap: () => _onTap(0),
@@ -88,25 +90,45 @@ class FamilyShellScreen extends StatelessWidget {
           builder: (_) => const ChatbotSheet(),
         );
       },
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: _navPrimary,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: _navPrimary.withOpacity(0.45),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            height: 30,
+            child: Center(
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: _navPrimary,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: _navPrimary.withOpacity(0.4),
+                      blurRadius: 6,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.home_rounded,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
             ),
-          ],
-        ),
-        child: const Icon(
-          Icons.home_rounded,
-          color: Colors.white,
-          size: 30,
-        ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            AppLocalizations.of(context)!.home,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: _navPrimary,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -124,9 +146,11 @@ class FamilyShellScreen extends StatelessWidget {
       onTap: () => _onTap(index),
       borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Icon(
               isSelected ? activeIcon : icon,

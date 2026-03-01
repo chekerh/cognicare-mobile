@@ -591,9 +591,9 @@ class _FamilyMemberDashboardScreenState
                             color: _green600, size: 20),
                       ),
                       const SizedBox(height: 6),
-                      const Text(
-                        'Chat Famille',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context)!.dashboardFamilyChat,
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: _slate800,
@@ -604,7 +604,7 @@ class _FamilyMemberDashboardScreenState
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Messages',
+                        AppLocalizations.of(context)!.dashboardMessages,
                         style: TextStyle(fontSize: 10, color: _slate500),
                         textAlign: TextAlign.center,
                         maxLines: 1,
@@ -640,9 +640,9 @@ class _FamilyMemberDashboardScreenState
                             color: _slate800, size: 20),
                       ),
                       const SizedBox(height: 6),
-                      const Text(
-                        'Planning',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context)!.dashboardPlanning,
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: _slate800,
@@ -653,7 +653,7 @@ class _FamilyMemberDashboardScreenState
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Rendez-vous & routine',
+                        AppLocalizations.of(context)!.dashboardAppointmentsRoutine,
                         style: TextStyle(fontSize: 10, color: _slate500),
                         textAlign: TextAlign.center,
                         maxLines: 1,

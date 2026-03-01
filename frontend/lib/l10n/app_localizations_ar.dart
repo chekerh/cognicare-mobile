@@ -1215,6 +1215,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get conversationDeleted => 'تم حذف المحادثة';
   @override
+  String get deleteDonationConfirm => 'حذف هذا التبرع؟ لا يمكن التراجع.';
+  @override
+  String get donationDeletedSuccess => 'تم حذف التبرع.';
+  @override
   String get pleaseAddChildProfileFirst => 'يرجى إضافة ملف تعريف للطفل أولاً';
   @override
   String get noOtherFamilyToAdd => 'لا توجد عائلة أخرى للإضافة حالياً.';
@@ -2422,7 +2426,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   // Family feed & shell specific
   @override
-  String get navFeed => 'المنشورات';
+  String get navFeed => 'مشاركة';
   @override
   String get navChats => 'المحادثات';
   @override
@@ -2494,6 +2498,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get failedToOpenConversation => 'فشل فتح المحادثة.';
   @override
   String get noProductsForCategory => 'لا توجد منتجات لهذه الفئة.';
+  @override
+  String get dashboardFamilyChat => 'دردشة العائلة';
+  @override
+  String get dashboardMessages => 'الرسائل';
+  @override
+  String get dashboardPlanning => 'التخطيط';
+  @override
+  String get dashboardAppointmentsRoutine => 'المواعيد والروتين';
 
   // Cart & Checkout
   @override

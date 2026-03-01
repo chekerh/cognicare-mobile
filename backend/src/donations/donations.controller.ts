@@ -2,8 +2,10 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Query,
+  Param,
   UseGuards,
   Request,
   UseInterceptors,
@@ -87,5 +89,14 @@ export class DonationsController {
       filters.search = search.trim();
     }
     return this.donationsService.findAll(filters);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete own donation' })
+  async remove(
+    @Request() req: { user: { id: string } },
+    @Param('id') id: string,
+  ) {
+    await this.donationsService.remove(id, req.user.id);
   }
 }

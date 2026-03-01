@@ -13,6 +13,7 @@ import '../../models/donation.dart';
 import '../../models/marketplace_product.dart';
 import '../../models/user.dart' as app_user;
 import '../../services/donation_service.dart';
+import '../../services/geocoding_service.dart';
 import '../../services/healthcare_service.dart';
 import '../../services/integrations_service.dart';
 import '../../utils/constants.dart';
@@ -406,13 +407,19 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
   /// Contenu onglet Donations — Le Cercle du Don.
   Widget _buildDonationsContent(double bottomPadding) {
     final loc = AppLocalizations.of(context)!;
+    final padding = MediaQuery.paddingOf(context);
     return Stack(
       children: [
         RefreshIndicator(
           onRefresh: _loadDonations,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
+            padding: EdgeInsets.fromLTRB(
+              16 + padding.left,
+              16,
+              16 + padding.right,
+              bottomPadding + 72,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -459,10 +466,10 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
             ),
           ),
         ),
-        // FAB "Proposer un don" — bouton rond à droite
+        // FAB "Proposer un don" — respecte la safe area
         Positioned(
-          right: 24,
-          bottom: 100,
+          right: 16 + padding.right,
+          bottom: padding.bottom + 100,
           child: Tooltip(
             message: loc.proposeDonation,
             child: Material(
@@ -608,7 +615,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               TextButton.icon(
                 onPressed: _loadDonations,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Réessayer'),
+                label: Text(AppLocalizations.of(context)!.retry),
               ),
             ],
           ),
@@ -637,9 +644,16 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
       ];
     }
     const conditionMap = {0: 2, 1: 0, 2: 1};
+    final isFrench = loc.localeName.startsWith('fr');
+    final currentUserId =
+        Provider.of<AuthProvider>(context, listen: false).user?.id ?? '';
+    final isMyDonation = (String id) =>
+        currentUserId.isNotEmpty && id.trim() == currentUserId.trim();
     return list.map((d) {
       final conditionDisplayIndex = conditionMap[d.condition] ?? d.condition;
       final imageUrl = _fullImageUrl(d.imageUrl);
+      final displayLocation = isFrench ? locationToFrench(d.location) : d.location;
+      final myDonation = isMyDonation(d.donorId);
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: _donationCard(
@@ -648,11 +662,65 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           fullDescription: d.fullDescription ?? d.description,
           conditionIndex: conditionDisplayIndex,
           categoryIndex: d.category,
-          location: d.location,
+          location: displayLocation,
           distanceText: null,
           imageUrl: imageUrl,
           isOffer: d.isOffer,
           loc: loc,
+          isMyDonation: myDonation,
+          donationId: d.id,
+          onDeleteTap: myDonation
+              ? () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: Text(loc.deleteLabel),
+                      content: Text(
+                        AppLocalizations.of(context)!.deleteDonationConfirm,
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(false),
+                          child: Text(loc.cancel),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(true),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.red,
+                          ),
+                          child: Text(loc.deleteLabel),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm == true && mounted) {
+                    try {
+                      await DonationService().deleteDonation(d.id);
+                      if (mounted) {
+                        _loadDonations();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                AppLocalizations.of(context)!
+                                    .donationDeletedSuccess),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(e is Exception
+                                ? e.toString().replaceFirst('Exception: ', '')
+                                : 'Erreur'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  }
+                }
+              : null,
           onDetailsTap: () {
             context.push(AppConstants.familyDonationDetailRoute, extra: {
               'title': d.title,
@@ -661,7 +729,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
               'conditionIndex': conditionDisplayIndex,
               'categoryIndex': d.category,
               'imageUrl': imageUrl,
-              'location': d.location,
+              'location': displayLocation,
               'distanceText': null,
               'donorName': d.donorName,
               'donorAvatarUrl': d.donorProfilePic != null
@@ -691,6 +759,9 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
     required bool isOffer,
     required AppLocalizations loc,
     VoidCallback? onDetailsTap,
+    bool isMyDonation = false,
+    String? donationId,
+    VoidCallback? onDeleteTap,
   }) {
     final conditionLabels = [
       loc.veryGoodCondition,
@@ -756,23 +827,45 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                       ),
                     ),
                   ),
-                  // Favorite
+                  // Bouton supprimer (mes dons uniquement) + favori
                   Positioned(
                     top: 12,
                     right: 12,
-                    child: Material(
-                      color: Colors.white.withOpacity(0.9),
-                      shape: const CircleBorder(),
-                      elevation: 1,
-                      child: InkWell(
-                        onTap: () {},
-                        customBorder: const CircleBorder(),
-                        child: const Padding(
-                          padding: EdgeInsets.all(8),
-                          child: Icon(Icons.favorite,
-                              color: _donationPrimary, size: 20),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (onDeleteTap != null) ...[
+                          Material(
+                            color: Colors.white.withOpacity(0.9),
+                            shape: const CircleBorder(),
+                            elevation: 1,
+                            child: InkWell(
+                              onTap: onDeleteTap,
+                              customBorder: const CircleBorder(),
+                              child: const Padding(
+                                padding: EdgeInsets.all(8),
+                                child: Icon(Icons.delete_outline,
+                                    color: Colors.red, size: 20),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                        ],
+                        Material(
+                          color: Colors.white.withOpacity(0.9),
+                          shape: const CircleBorder(),
+                          elevation: 1,
+                          child: InkWell(
+                            onTap: () {},
+                            customBorder: const CircleBorder(),
+                            child: const Padding(
+                              padding: EdgeInsets.all(8),
+                              child: Icon(Icons.favorite,
+                                  color: _donationPrimary, size: 20),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ],
@@ -823,20 +916,32 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Icon(Icons.location_on,
-                            size: 14, color: Colors.grey.shade600),
-                        const SizedBox(width: 4),
-                        Text(
-                          location,
-                          style: TextStyle(
-                              fontSize: 12, color: Colors.grey.shade600),
-                        ),
-                      ],
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Icon(Icons.location_on,
+                              size: 14, color: Colors.grey.shade600),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              location,
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey.shade600),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     TextButton(
                       onPressed: onDetailsTap,
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -896,7 +1001,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
                     const SizedBox(height: 12),
                     TextButton(
                       onPressed: _loadHealthcareUsers,
-                      child: const Text('Réessayer'),
+                      child: Text(AppLocalizations.of(context)!.retry),
                     ),
                   ],
                 ),
@@ -927,7 +1032,7 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         onChanged: (value) =>
             setState(() => _healthcareSearchQuery = value.trim()),
         decoration: InputDecoration(
-          hintText: 'Rechercher un professionnel...',
+          hintText: AppLocalizations.of(context)!.searchProfessionalHint,
           hintStyle: TextStyle(
             color: AppTheme.text.withOpacity(0.5),
             fontSize: 14,

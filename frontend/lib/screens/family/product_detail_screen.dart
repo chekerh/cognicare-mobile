@@ -234,7 +234,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  loc.stockAvailable,
+                  widget.description.toLowerCase().contains('rupture') ||
+                          widget.description == 'Out of stock'
+                      ? loc.outOfStock
+                      : loc.stockAvailable,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -257,7 +260,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           Text(
             widget.title == 'Couverture Lestée'
                 ? 'Conçue pour offrir une thérapie par pression profonde, cette couverture aide à apaiser l\'anxiété et favorise un sommeil réparateur, particulièrement bénéfique pour les enfants autistes ou souffrant de troubles sensoriels.'
-                : widget.description,
+                : (widget.description == 'En stock' ||
+                        widget.description == 'Rupture de stock' ||
+                        widget.description == 'In stock' ||
+                        widget.description == 'Out of stock'
+                    ? (widget.description.toLowerCase().contains('rupture') ||
+                            widget.description == 'Out of stock'
+                        ? loc.outOfStock
+                        : loc.stockAvailable)
+                    : widget.description),
             style: TextStyle(
               fontSize: 15,
               height: 1.6,

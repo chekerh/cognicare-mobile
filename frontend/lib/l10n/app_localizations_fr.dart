@@ -295,7 +295,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get codeInvalid => 'Le code doit comporter exactement 6 chiffres';
 
   @override
-  String get marketplaceTitle => 'Marketplace';
+  String get marketplaceTitle => 'Marché';
 
   @override
   String get marketplaceSubtitle => 'Outils pour grandir et jouer';
@@ -436,7 +436,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get conversationsWillAppear => 'Les conversations avec les patients apparaîtront ici.';
 
   @override
-  String get community => 'Community';
+  String get community => 'Communauté';
 
   @override
   String get donations => 'Dons';
@@ -2029,7 +2029,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   // Family feed & shell specific
   @override
-  String get navFeed => 'Fil d\'actu';
+  String get navFeed => 'Partage';
   @override
   String get navChats => 'Discussions';
   @override
@@ -2076,11 +2076,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get tabFamilies => 'Familles';
   @override
-  String get tabVolunteers => 'Care provider';
+  String get tabVolunteers => 'Prestataire de soins';
   @override
-  String get tabHealthcare => 'Care provider';
+  String get tabHealthcare => 'Prestataire de soins';
   @override
-  String get tabCareProvider => 'Care provider';
+  String get tabCareProvider => 'Prestataire de soins';
   @override
   String get conversationsTitle => 'Conversations';
   @override
@@ -2092,7 +2092,7 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get volunteersToContact => 'Bénévoles avec qui communiquer';
   @override
-  String get noHealthcareConversations => 'Aucune conversation avec un Care provider.';
+  String get noHealthcareConversations => 'Aucune conversation avec un prestataire de soins.';
   @override
   String get tabDons => 'Dons';
   @override
@@ -2101,6 +2101,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get failedToOpenConversation => 'Impossible d\'ouvrir la conversation.';
   @override
   String get noProductsForCategory => 'Aucun produit pour cette catégorie.';
+  @override
+  String get dashboardFamilyChat => 'Discuter en famille';
+  @override
+  String get dashboardMessages => 'Messages';
+  @override
+  String get dashboardPlanning => 'Planification';
+  @override
+  String get dashboardAppointmentsRoutine => 'Rendez-vous & routine';
 
   // Cart & Checkout
   @override
@@ -2175,6 +2183,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cannotDeleteConversation => 'Cette conversation ne peut pas être supprimée.';
   @override
   String get conversationDeleted => 'Discussion supprimée';
+  @override
+  String get deleteDonationConfirm => 'Supprimer ce don ? Vous ne pourrez pas annuler.';
+  @override
+  String get donationDeletedSuccess => 'Don supprimé.';
   @override
   String get pleaseAddChildProfileFirst => 'Veuillez d\'abord ajouter un profil d\'enfant';
   @override

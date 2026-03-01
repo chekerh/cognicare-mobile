@@ -168,6 +168,74 @@ class GeocodingService {
       return null;
     }
   }
+
+  /// Reverse geocode (lat, lng) → adresse dans la langue demandée.
+  /// Utilise Nominatim avec accept-language (ex: fr pour français).
+  Future<GeocodingResult?> reverseGeocode(
+    double latitude,
+    double longitude, {
+    String languageCode = 'fr',
+  }) async {
+    try {
+      final uri = Uri.parse('https://nominatim.openstreetmap.org/reverse')
+          .replace(queryParameters: {
+        'lat': latitude.toString(),
+        'lon': longitude.toString(),
+        'format': 'json',
+        'accept-language': languageCode,
+      });
+      final response = await _client.get(
+        uri,
+        headers: {'User-Agent': _userAgent},
+      ).timeout(const Duration(seconds: 6));
+      if (response.statusCode != 200) return null;
+      final map = jsonDecode(response.body) as Map<String, dynamic>?;
+      if (map == null) return null;
+      final lat = (map['lat'] as num?)?.toDouble();
+      final lon = (map['lon'] as num?)?.toDouble();
+      final displayName = map['display_name'] as String?;
+      if (lat == null || lon == null) return null;
+      return GeocodingResult(
+        latitude: lat,
+        longitude: lon,
+        displayName: displayName ?? '$latitude, $longitude',
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+/// Convertit une localisation en arabe (ex. tunisienne) en français pour l'affichage.
+String locationToFrench(String location) {
+  if (location.trim().isEmpty) return location;
+  // Contient des caractères arabes ?
+  final hasArabic = location.contains(RegExp(r'[\u0600-\u06FF]'));
+  if (!hasArabic) return location;
+  String r = location;
+  // Tunisie
+  r = r.replaceAll('تونس', 'Tunisie');
+  // Gouvernorats / villes courants (arabe → français)
+  r = r.replaceAll('ولاية قابس', 'Gouvernorat de Gabès');
+  r = r.replaceAll('قابس', 'Gabès');
+  r = r.replaceAll('ولاية أريانة', 'Gouvernorat de l\'Ariana');
+  r = r.replaceAll('أريانة', 'Ariana');
+  r = r.replaceAll('ولاية تونس', 'Gouvernorat de Tunis');
+  r = r.replaceAll('ولاية بن عروس', 'Gouvernorat de Ben Arous');
+  r = r.replaceAll('بن عروس', 'Ben Arous');
+  r = r.replaceAll('ولاية نابل', 'Gouvernorat de Nabeul');
+  r = r.replaceAll('نابل', 'Nabeul');
+  r = r.replaceAll('ولاية سوسة', 'Gouvernorat de Sousse');
+  r = r.replaceAll('سوسة', 'Sousse');
+  r = r.replaceAll('ولاية صفاقس', 'Gouvernorat de Sfax');
+  r = r.replaceAll('صفاقس', 'Sfax');
+  r = r.replaceAll('ولاية القيروان', 'Gouvernorat de Kairouan');
+  r = r.replaceAll('القيروان', 'Kairouan');
+  r = r.replaceAll('ولاية المهدية', 'Gouvernorat de Mahdia');
+  r = r.replaceAll('المهدية', 'Mahdia');
+  r = r.replaceAll('الشابة', 'Ech Chabba');
+  r = r.replaceAll('ولاية', 'Gouvernorat de');
+  return r.trim();
 }
 
 class GeocodingResult {

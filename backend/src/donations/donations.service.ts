@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Donation, DonationDocument } from './schemas/donation.schema';
@@ -190,5 +194,15 @@ export class DonationsService {
       imageUrl: (d.imageUrls && d.imageUrls[0]) || '',
       createdAt: d.createdAt?.toISOString?.() ?? new Date().toISOString(),
     }));
+  }
+
+  /** Supprime un don uniquement si l'appelant est le donateur. */
+  async remove(donationId: string, userId: string): Promise<void> {
+    const doc = await this.donationModel.findById(donationId).exec();
+    if (!doc) throw new NotFoundException('Donation not found');
+    const donorStr = (doc as { donorId?: Types.ObjectId }).donorId?.toString();
+    if (donorStr !== userId)
+      throw new ForbiddenException('You can only delete your own donation');
+    await this.donationModel.findByIdAndDelete(donationId).exec();
   }
 }

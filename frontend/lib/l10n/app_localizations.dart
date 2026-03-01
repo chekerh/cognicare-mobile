@@ -183,6 +183,8 @@ abstract class AppLocalizations {
   String get deleteConversationDesc;
   String get deleteLabel;
   String get conversationDeleted;
+  String get deleteDonationConfirm;
+  String get donationDeletedSuccess;
   String get pleaseAddChildProfileFirst;
   String get noOtherFamilyToAdd;
   String get voiceMessageReadError;
@@ -1245,6 +1247,10 @@ abstract class AppLocalizations {
   String get noDonationConversations;
   String get failedToOpenConversation;
   String get noProductsForCategory;
+  String get dashboardFamilyChat;
+  String get dashboardMessages;
+  String get dashboardPlanning;
+  String get dashboardAppointmentsRoutine;
 
   // Cart & Checkout
   String get cartEmptyTitle;
