@@ -371,6 +371,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
                   return FamilyTrainingCourseScreen(
                     courseId: extra['courseId'] as String? ?? '',
                     title: extra['title'] as String? ?? 'Cours',
+                    moduleLabel: extra['moduleLabel'] as String?,
                   );
                 },
               ),
@@ -718,6 +719,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
                   return FamilyTrainingCourseScreen(
                     courseId: extra['courseId'] as String? ?? '',
                     title: extra['title'] as String? ?? 'Cours',
+                    moduleLabel: extra['moduleLabel'] as String?,
                   );
                 },
               ),

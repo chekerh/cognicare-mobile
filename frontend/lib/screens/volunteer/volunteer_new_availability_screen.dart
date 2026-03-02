@@ -23,8 +23,8 @@ class _VolunteerNewAvailabilityScreenState
   final Set<DateTime> _selectedDates = {};
   bool _recurrenceOn = true;
   int _recurrenceType = 0; // 0 Hebdomadaire, 1 Toutes les 2 semaines
-  final TimeOfDay _startTime = const TimeOfDay(hour: 14, minute: 0);
-  final TimeOfDay _endTime = const TimeOfDay(hour: 18, minute: 0);
+  TimeOfDay _startTime = const TimeOfDay(hour: 14, minute: 0);
+  TimeOfDay _endTime = const TimeOfDay(hour: 18, minute: 0);
   bool _saving = false;
 
   static const _daysShort = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'];
@@ -289,26 +289,37 @@ class _VolunteerNewAvailabilityScreenState
                                             fontWeight: FontWeight.bold,
                                             color: Colors.grey.shade500)),
                                     const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 12),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                            color: Colors.grey.shade200),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(_formatTime(_startTime),
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                          Icon(Icons.schedule,
-                                              color: Colors.grey.shade500,
-                                              size: 20),
-                                        ],
+                                    GestureDetector(
+                                      onTap: () async {
+                                        final picked = await showTimePicker(
+                                          context: context,
+                                          initialTime: _startTime,
+                                        );
+                                        if (picked != null && mounted) {
+                                          setState(() => _startTime = picked);
+                                        }
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade50,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                              color: Colors.grey.shade200),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(_formatTime(_startTime),
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.bold)),
+                                            Icon(Icons.schedule,
+                                                color: Colors.grey.shade500,
+                                                size: 20),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -330,26 +341,37 @@ class _VolunteerNewAvailabilityScreenState
                                             fontWeight: FontWeight.bold,
                                             color: Colors.grey.shade500)),
                                     const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 12),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                            color: Colors.grey.shade200),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(_formatTime(_endTime),
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.bold)),
-                                          Icon(Icons.schedule,
-                                              color: Colors.grey.shade500,
-                                              size: 20),
-                                        ],
+                                    GestureDetector(
+                                      onTap: () async {
+                                        final picked = await showTimePicker(
+                                          context: context,
+                                          initialTime: _endTime,
+                                        );
+                                        if (picked != null && mounted) {
+                                          setState(() => _endTime = picked);
+                                        }
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade50,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                              color: Colors.grey.shade200),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(_formatTime(_endTime),
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.bold)),
+                                            Icon(Icons.schedule,
+                                                color: Colors.grey.shade500,
+                                                size: 20),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ],

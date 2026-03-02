@@ -24,8 +24,8 @@ export class AvailabilitiesController {
   async create(@Request() req: any, @Body() body: any) {
     const userId = req.user.id as string;
     const role = (req.user.role as string)?.toLowerCase?.();
-    if (role !== 'volunteer') {
-      throw new ForbiddenException('Only volunteers can publish availability');
+    if (role !== 'volunteer' && role !== 'careprovider') {
+      throw new ForbiddenException('Only volunteers and care providers can publish availability');
     }
     const dates = Array.isArray(body.dates) ? body.dates : [];
     if (dates.length === 0) {
@@ -38,6 +38,19 @@ export class AvailabilitiesController {
       recurrence: body.recurrence,
       recurrenceOn: body.recurrenceOn,
     });
+  }
+
+  @Get()
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'List my availabilities (volunteer/careprovider)' })
+  async listMine(@Request() req: any) {
+    const userId = req.user.id as string;
+    const role = (req.user.role as string)?.toLowerCase?.();
+    if (role !== 'volunteer' && role !== 'careprovider') {
+      throw new ForbiddenException('Only volunteers and care providers can list their availabilities');
+    }
+    return this.availabilitiesService.listByVolunteerId(userId);
   }
 
   @Get('for-families')

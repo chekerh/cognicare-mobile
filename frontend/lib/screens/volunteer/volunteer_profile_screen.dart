@@ -60,6 +60,30 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
   String? _localProfilePicPath;
   int _profilePicVersion = 0;
   bool _availabilityActive = true;
+  final ScrollController _scrollController = ScrollController();
+  static const double _expandedHeight = 268.0;
+  static const double _collapseThreshold = 95.0;
+  double _lastFlexibleHeight = 268.0;
+
+  bool get _headerCollapsed => _lastFlexibleHeight <= _collapseThreshold;
+  bool get _showExpandedHeader => _lastFlexibleHeight > _collapseThreshold;
+
+  void _onFlexibleHeightChanged(double height) {
+    if ((height - _lastFlexibleHeight).abs() < 2) return;
+    if (mounted) setState(() => _lastFlexibleHeight = height);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    // Trigger rebuild so LayoutBuilder gets new height
+    if (mounted) setState(() {});
+  }
 
   static const List<Widget> _aboutSkills = [
     Chip(
@@ -76,6 +100,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     _refreshProfile();
     _loadLocalProfilePic();
   }
@@ -491,6 +516,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
     }
 
     final topPadding = MediaQuery.of(context).padding.top;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Color(0xFFA4D9E5),
       statusBarIconBrightness: Brightness.dark,
@@ -502,144 +528,64 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
       body: SafeArea(
         top: false,
         bottom: true,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Partie fixe en haut : header + Modifier + Missions (ne scrolle pas)
-            Container(
-              color: _background,
-              child: Column(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.only(
-                        top: topPadding + 20, bottom: 48, left: 24, right: 24),
-                    decoration: BoxDecoration(
-                      color: _primary,
-                      borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(40),
-                          bottomRight: Radius.circular(40)),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4))
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _headerButton(Icons.chevron_left,
-                                onTap: () => context
-                                    .go(AppConstants.volunteerDashboardRoute)),
-                            const Text('Mon Profil',
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white)),
-                            _headerButton(Icons.settings_outlined,
-                                onTap: _showAccountSettingsSheet),
-                          ],
+        child: CustomScrollView(
+          controller: _scrollController,
+          slivers: [
+            SliverAppBar(
+              expandedHeight: _expandedHeight,
+              pinned: true,
+              backgroundColor: _primary,
+              leading: _headerButton(Icons.chevron_left,
+                  onTap: () => context.go(AppConstants.volunteerDashboardRoute)),
+              title: AnimatedOpacity(
+                opacity: _headerCollapsed ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 150),
+                child: _headerCollapsed
+                    ? _buildCollapsedTitle(user)
+                    : Text(
+                        user?.fullName ?? 'Bénévole',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E293B),
                         ),
-                        const SizedBox(height: 24),
-                        GestureDetector(
-                          onTap: _pickProfilePicture,
-                          child: Stack(
-                            alignment: Alignment.bottomRight,
-                            children: [
-                              Container(
-                                width: 112,
-                                height: 112,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(24),
-                                  border:
-                                      Border.all(color: Colors.white, width: 4),
-                                  boxShadow: [
-                                    BoxShadow(
-                                        color: Colors.black.withOpacity(0.15),
-                                        blurRadius: 12,
-                                        offset: const Offset(0, 4))
-                                  ],
-                                ),
-                                child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: _buildProfileImage(user)),
-                              ),
-                              Positioned(
-                                bottom: -4,
-                                right: -4,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green,
-                                    shape: BoxShape.circle,
-                                    border:
-                                        Border.all(color: _primary, width: 3),
-                                  ),
-                                  child: const Icon(Icons.verified,
-                                      color: Colors.white, size: 12),
-                                ),
-                              ),
-                            ],
-                          ),
+                      ),
+              ),
+              actions: [
+                _headerButton(Icons.settings_outlined,
+                    onTap: _showAccountSettingsSheet),
+              ],
+              flexibleSpace: LayoutBuilder(
+                builder: (context, constraints) {
+                  final height = constraints.biggest.height;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _onFlexibleHeightChanged(height);
+                  });
+                  final showExpanded = height > _collapseThreshold;
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (showExpanded)
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          top: 0,
+                          bottom: 0,
+                          child: _buildProfileHeader(user, topPadding, height),
                         ),
-                        const SizedBox(height: 16),
-                        Text(user?.fullName ?? 'Bénévole',
-                            style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B))),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.verified_user,
-                                  size: 14, color: Color(0xFF1E293B)),
-                              SizedBox(width: 6),
-                              Text('Compte vérifié',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFF1E293B))),
-                            ],
-                          ),
-                        ),
-                        if (user?.role != null && user!.role.isNotEmpty) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            _roleDisplayLabel(user?.role),
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF1E293B),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
+                    ],
+                  );
+                },
               ),
             ),
-            // Contenu scrollable (Modifier, Missions + tout le reste)
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Disponibilités
-                      Container(
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(24, 20, 24, 100 + bottomPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Disponibilités
+                    Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 12),
                         decoration: BoxDecoration(
@@ -708,6 +654,13 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                         label: 'Candidature bénévole',
                         onTap: () => context
                             .push(AppConstants.volunteerApplicationRoute),
+                      ),
+
+                      const SizedBox(height: 12),
+                      _buildActionTile(
+                        icon: Icons.people_outline,
+                        label: loc.profileFriendsSection,
+                        onTap: () => context.push(AppConstants.familyFriendsRoute),
                       ),
 
                       const SizedBox(height: 24),
@@ -887,15 +840,184 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                         ),
                       ),
 
-                      SizedBox(
-                          height: MediaQuery.of(context).padding.bottom + 24),
+                      SizedBox(height: 24),
                     ],
                   ),
                 ),
               ),
-            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader(dynamic user, double topPadding, double availableHeight) {
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(height: kToolbarHeight + 8),
+        GestureDetector(
+          onTap: _pickProfilePicture,
+          child: Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.12),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(17),
+                  child: _buildProfileImage(user),
+                ),
+              ),
+              Positioned(
+                bottom: -2,
+                right: -2,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _primary, width: 2),
+                  ),
+                  child: const Icon(Icons.verified, color: Colors.white, size: 10),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          user?.fullName ?? 'Bénévole',
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1E293B),
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.3),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.verified_user, size: 12, color: Color(0xFF1E293B)),
+              SizedBox(width: 4),
+              Text('Compte vérifié',
+                  style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B))),
+            ],
+          ),
+        ),
+        if (user?.role != null && (user!.role as String).isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(
+            _roleDisplayLabel(user?.role),
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF1E293B),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+      ],
+    );
+
+    return Container(
+      width: double.infinity,
+      height: availableHeight,
+      padding: EdgeInsets.only(left: 24, right: 24, top: topPadding + 8),
+      decoration: BoxDecoration(
+        color: _primary,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(40),
+          bottomRight: Radius.circular(40),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.topCenter,
+        child: content,
+      ),
+    );
+  }
+
+  Widget _buildCollapsedTitle(dynamic user) {
+    final role = user?.role;
+    final roleLabel = role != null && (role as String).isNotEmpty
+        ? _roleDisplayLabel(role)
+        : 'Bénévole';
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, right: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+              borderRadius: BorderRadius.circular(23),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(21),
+              child: _buildProfileImage(user),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  user?.fullName ?? 'Bénévole',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1E293B),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  roleLabel,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: const Color(0xFF1E293B).withOpacity(0.8),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

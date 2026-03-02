@@ -574,11 +574,16 @@ class _VolunteerCommunityFeedScreenState
                   Expanded(
                     child: InkWell(
                       onTap: () {
+                        final imageUrl = post.authorProfilePic != null &&
+                                post.authorProfilePic!.isNotEmpty
+                            ? _fullImageUrl(post.authorProfilePic!)
+                            : null;
                         context.push(
                           AppConstants.volunteerCommunityMemberProfileRoute,
                           extra: {
                             'memberId': post.authorId,
                             'memberName': post.authorName,
+                            'memberImageUrl': imageUrl,
                           },
                         );
                       },
@@ -733,8 +738,16 @@ class _VolunteerCommunityFeedScreenState
                       label: null,
                       color: _textSlate400,
                       onTap: () {
+                        final base = AppConstants.baseUrl.endsWith('/')
+                            ? AppConstants.baseUrl.substring(
+                                0, AppConstants.baseUrl.length - 1)
+                            : AppConstants.baseUrl;
+                        final profileLink =
+                            '$base${AppConstants.familyCommunityMemberProfileRoute}?memberId=${Uri.encodeComponent(post.authorId)}&memberName=${Uri.encodeComponent(post.authorName)}';
                         Share.share(
-                          '${post.authorName}: ${post.text}\n\n— CogniCare Communauté',
+                          '${post.authorName}: ${post.text}\n\n'
+                          'Voir le profil de ${post.authorName} sur CogniCare : $profileLink\n\n'
+                          '— CogniCare Communauté',
                           subject: 'Publication CogniCare',
                         );
                       },

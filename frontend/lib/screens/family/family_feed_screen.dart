@@ -1457,9 +1457,14 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
         imagePath: post.imagePath,
         lastComment: lastComment,
         onAuthorTap: () {
+          final imageUrl = post.authorProfilePic != null &&
+                  post.authorProfilePic!.isNotEmpty
+              ? _fullImageUrl(post.authorProfilePic!)
+              : null;
           context.push(AppConstants.familyCommunityMemberProfileRoute, extra: {
             'memberId': post.authorId,
             'memberName': post.authorName,
+            'memberImageUrl': imageUrl,
           });
         },
         onLikeTap: () => feedProvider.toggleLike(post.id),
@@ -1470,8 +1475,16 @@ class _FamilyFeedScreenState extends State<FamilyFeedScreen> {
           }
         },
         onShareTap: () {
+          final base = AppConstants.baseUrl.endsWith('/')
+              ? AppConstants.baseUrl.substring(
+                  0, AppConstants.baseUrl.length - 1)
+              : AppConstants.baseUrl;
+          final profileLink =
+              '$base${AppConstants.familyCommunityMemberProfileRoute}?memberId=${Uri.encodeComponent(post.authorId)}&memberName=${Uri.encodeComponent(post.authorName)}';
           final shareText =
-              '${post.authorName}: ${post.text}\n\n— CogniCare Community';
+              '${post.authorName}: ${post.text}\n\n'
+              'Voir le profil de ${post.authorName} sur CogniCare : $profileLink\n\n'
+              '— CogniCare Communauté';
           Share.share(shareText, subject: 'Publication CogniCare');
         },
         canDelete: canDelete,

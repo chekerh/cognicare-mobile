@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../services/availability_service.dart';
 
 const Color _primary = Color(0xFFA7DBE6);
 const Color _primaryDark = Color(0xFF8FC9D6);
@@ -65,6 +66,34 @@ class _FamilyVolunteerProfileScreenState
     extends State<FamilyVolunteerProfileScreen> {
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 2));
   int _selectedTimeIndex = 1; // 0 or 1
+  List<VolunteerAvailability> _volunteerAvailabilities = [];
+  bool _loadingAvailabilities = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVolunteerAvailabilities();
+  }
+
+  Future<void> _loadVolunteerAvailabilities() async {
+    try {
+      final list = await AvailabilityService().listForFamilies();
+      if (!mounted) return;
+      setState(() {
+        _volunteerAvailabilities = list
+            .where((a) => a.volunteerId == widget.volunteerId)
+            .toList();
+        _loadingAvailabilities = false;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _volunteerAvailabilities = [];
+          _loadingAvailabilities = false;
+        });
+      }
+    }
+  }
 
   static const List<String> _defaultTimeSlots = [
     '09:00 - 11:00',
@@ -224,6 +253,35 @@ class _FamilyVolunteerProfileScreenState
                   spacing: 8,
                   runSpacing: 8,
                   children: _skills.map((s) => _skillChip(s)).toList(),
+                ),
+                const SizedBox(height: 24),
+                _sectionCard(
+                  icon: Icons.event_available,
+                  title: 'Disponibilités',
+                  child: _loadingAvailabilities
+                      ? const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                              child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2))),
+                        )
+                      : _volunteerAvailabilities.isEmpty
+                          ? Text(
+                              'Aucune disponibilité renseignée pour l\'instant.',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: _slate600,
+                                  height: 1.4),
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: _volunteerAvailabilities
+                                  .map((a) => _availabilityTile(a))
+                                  .toList(),
+                            ),
                 ),
                 const SizedBox(height: 24),
                 _sectionCard(
@@ -468,6 +526,78 @@ class _FamilyVolunteerProfileScreenState
         ],
       ),
     );
+  }
+
+  Widget _availabilityTile(VolunteerAvailability a) {
+    String dateLabel;
+    if (a.dates.isEmpty) {
+      dateLabel = '—';
+    } else if (a.dates.length == 1) {
+      dateLabel = _formatAvailabilityDate(a.dates.first);
+    } else {
+      dateLabel =
+          '${_formatAvailabilityDate(a.dates.first)} – ${_formatAvailabilityDate(a.dates.last)} (${a.dates.length} dates)';
+    }
+    final recur = a.recurrenceOn
+        ? (a.recurrence == 'biweekly'
+            ? 'Toutes les 2 semaines'
+            : 'Hebdomadaire')
+        : 'Ponctuelle';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: _primary.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: _primary.withOpacity(0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              dateLabel,
+              style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: _slate800),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${a.startTime} – ${a.endTime}',
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: _slate600),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              recur,
+              style: TextStyle(
+                  fontSize: 12,
+                  color: _slate500,
+                  fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatAvailabilityDate(String yyyyMmDd) {
+    final parts = yyyyMmDd.split('-');
+    if (parts.length != 3) return yyyyMmDd;
+    final day = int.tryParse(parts[2]) ?? 0;
+    final month = int.tryParse(parts[1]) ?? 0;
+    final year = int.tryParse(parts[0]) ?? 0;
+    const months = [
+      'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
+      'juill.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'
+    ];
+    if (month >= 1 && month <= 12) {
+      return '$day ${months[month - 1]} $year';
+    }
+    return yyyyMmDd;
   }
 
   Widget _skillChip(String label) {

@@ -55,6 +55,7 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
   List<ChildModel>? _children;
   bool _childrenLoading = false;
   String? _childrenError;
+  bool _hidePatientsSection = false;
 
   bool _showQuickMenu = false;
   Map<String, dynamic>? _application;
@@ -68,6 +69,12 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
           _application = app;
           _applicationLoading = false;
         });
+        final user = Provider.of<AuthProvider>(context, listen: false).user;
+        final careProviderType = app?['careProviderType'] as String?;
+        final isCaregiver = careProviderType == 'caregiver';
+        if (AppConstants.isSpecialistRole(user?.role) && !isCaregiver) {
+          _loadChildren();
+        }
       }
     } catch (_) {
       if (mounted) setState(() => _applicationLoading = false);
@@ -79,10 +86,6 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
     super.initState();
     _loadApplication();
     _loadHealthcare();
-    final user = Provider.of<AuthProvider>(context, listen: false).user;
-    if (AppConstants.isSpecialistRole(user?.role)) {
-      _loadChildren();
-    }
   }
 
   Future<void> _loadChildren() async {
@@ -102,9 +105,17 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
       });
     } catch (e) {
       if (!mounted) return;
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      final isNotLinked = msg.toLowerCase().contains('not linked');
       setState(() {
-        _childrenError = e.toString().replaceFirst('Exception: ', '');
         _childrenLoading = false;
+        if (isNotLinked) {
+          _hidePatientsSection = true;
+          _childrenError = null;
+          _children = [];
+        } else {
+          _childrenError = msg;
+        }
       });
     }
   }
@@ -218,7 +229,9 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                       SliverToBoxAdapter(child: _buildPlanningSection(context)),
                       SliverToBoxAdapter(child: _buildStatsCards()),
                       SliverToBoxAdapter(child: _buildSkillsSection(context)),
-                      if (AppConstants.isSpecialistRole(userRole))
+                      if (AppConstants.isSpecialistRole(userRole) &&
+                          _application?['careProviderType'] != 'caregiver' &&
+                          !_hidePatientsSection)
                         SliverToBoxAdapter(child: _buildPatientsSection(context)),
                       SliverToBoxAdapter(child: _buildHealthcareSection(context)),
                       const SliverToBoxAdapter(child: SizedBox(height: 100)),

@@ -31,6 +31,24 @@ export class AvailabilitiesService {
     return doc.toObject();
   }
 
+  /** List availabilities for a given volunteer (e.g. current user). */
+  async listByVolunteerId(volunteerId: string) {
+    const docs = await this.availabilityModel
+      .find({ volunteerId })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+    return docs.map((d: any) => ({
+      id: d._id.toString(),
+      volunteerId: d.volunteerId?.toString?.() ?? volunteerId,
+      dates: d.dates ?? [],
+      startTime: d.startTime ?? '14:00',
+      endTime: d.endTime ?? '18:00',
+      recurrence: d.recurrence ?? 'weekly',
+      recurrenceOn: d.recurrenceOn ?? true,
+    }));
+  }
+
   /** List availabilities for families (with volunteer info). */
   async listForFamilies(): Promise<
     {

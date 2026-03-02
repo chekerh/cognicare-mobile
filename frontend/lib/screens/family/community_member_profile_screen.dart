@@ -50,10 +50,14 @@ class CommunityMemberProfileScreen extends StatefulWidget {
 
   static CommunityMemberProfileScreen fromState(GoRouterState state) {
     final e = (state.extra as Map<String, dynamic>?) ?? {};
+    final q = state.uri.queryParameters;
+    // Permet d'ouvrir le profil depuis un lien partagé (query params)
+    final memberId = e['memberId'] as String? ?? q['memberId'] ?? '';
+    final memberName = e['memberName'] as String? ?? q['memberName'] ?? 'Membre';
     final tags = e['memberTags'] as List<dynamic>?;
     return CommunityMemberProfileScreen(
-      memberId: e['memberId'] as String? ?? '',
-      memberName: e['memberName'] as String? ?? 'Membre',
+      memberId: memberId,
+      memberName: memberName,
       memberRole: e['memberRole'] as String? ?? 'Parent de Iline',
       memberImageUrl: e['memberImageUrl'] as String?,
       memberDiagnosis:

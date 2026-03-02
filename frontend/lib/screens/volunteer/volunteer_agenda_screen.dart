@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/availability_service.dart';
 import '../../services/volunteer_service.dart';
 import '../../utils/constants.dart';
 
@@ -21,15 +22,40 @@ class VolunteerAgendaScreen extends StatefulWidget {
 class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
   bool _isMonthView = true;
   bool _showQuickMenu = false;
-  DateTime _displayDate = DateTime(2024, 3, 13);
-  DateTime _selectedDay = DateTime(2024, 3, 13);
+  late DateTime _displayDate;
+  late DateTime _selectedDay;
   Map<String, dynamic>? _application;
   bool _applicationLoading = true;
+  List<VolunteerAvailabilityMine> _myAvailabilities = [];
+  bool _availabilitiesLoading = true;
 
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    _displayDate = DateTime(now.year, now.month);
+    _selectedDay = now;
     _loadApplication();
+    _loadMyAvailabilities();
+  }
+
+  Future<void> _loadMyAvailabilities() async {
+    try {
+      final list = await AvailabilityService().listMine();
+      if (mounted) {
+        setState(() {
+          _myAvailabilities = list;
+          _availabilitiesLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _myAvailabilities = [];
+          _availabilitiesLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _loadApplication() async {
@@ -96,6 +122,17 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
   DateTime _weekStart(DateTime d) {
     final diff = d.weekday - 1;
     return d.subtract(Duration(days: diff));
+  }
+
+  String get _selectedDayDateStr {
+    final d = _selectedDay;
+    return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  }
+
+  List<VolunteerAvailabilityMine> get _selectedDayAvailabilities {
+    return _myAvailabilities
+        .where((a) => a.dates.contains(_selectedDayDateStr))
+        .toList();
   }
 
   Widget _buildApprovalPendingContent(BuildContext context) {
@@ -383,9 +420,9 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
                                     color: Colors.grey.shade600,
                                     letterSpacing: 1.2)),
                             Text(
-                                _isMonthView
-                                    ? '2 missions'
-                                    : '2 missions prévues',
+                                _selectedDayAvailabilities.isEmpty
+                                    ? (_availabilitiesLoading ? 'Chargement...' : 'Aucune dispo.')
+                                    : '${_selectedDayAvailabilities.length} disponibilité${_selectedDayAvailabilities.length > 1 ? 's' : ''}',
                                 style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
@@ -431,9 +468,10 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
                   }),
                   const SizedBox(height: 24),
                   _quickActionRow(
-                      'Nouvelle Disponibilité', Icons.event_available, () {
+                      'Nouvelle Disponibilité', Icons.event_available, () async {
                     setState(() => _showQuickMenu = false);
-                    context.push(AppConstants.volunteerNewAvailabilityRoute);
+                    await context.push(AppConstants.volunteerNewAvailabilityRoute);
+                    if (mounted) _loadMyAvailabilities();
                   }),
                 ],
               ),
@@ -547,8 +585,9 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
             final isToday = cellDate.day == now.day &&
                 cellDate.month == now.month &&
                 cellDate.year == now.year;
+            final dateStr = '${cellDate.year}-${cellDate.month.toString().padLeft(2, '0')}-${cellDate.day.toString().padLeft(2, '0')}';
             final hasDot = isCurrentMonth &&
-                (cellDate.day == 1 || cellDate.day == 6 || cellDate.day == 14);
+                _myAvailabilities.any((a) => a.dates.contains(dateStr));
             return GestureDetector(
               onTap: () => setState(() => _selectedDay = cellDate),
               child: Center(
@@ -681,6 +720,7 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
   }
 
   Widget _buildEventTimeline({bool isWeekView = false}) {
+    final list = _selectedDayAvailabilities;
     return Stack(
       children: [
         Positioned(
@@ -689,53 +729,92 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
             bottom: 20,
             child: Container(width: 2, color: Colors.grey.shade200)),
         Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _eventCard(
-              isActive: true,
-              icon: Icons.menu_book,
-              iconColor: _brandBlue,
-              title: 'Session de lecture',
-              time: '14:30 - 16:00',
-              subtitle: 'Lucas Martin • Lyon 03',
-              initials: 'LM',
-            ),
-            const SizedBox(height: 16),
-            _eventCard(
-              isActive: false,
-              icon: Icons.park,
-              iconColor: Colors.green.shade600,
-              title: 'Sortie au Parc',
-              time: '17:00 - 18:30',
-              subtitle: 'Sophie Dubois • Villeurbanne',
-              initials: 'SD',
-            ),
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  margin: const EdgeInsets.only(top: 16),
-                  decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: _bgLight, width: 4)),
-                ),
-                const SizedBox(width: 16),
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Text(
-                      isWeekView
-                          ? 'Fin de journée'
-                          : 'Aucun autre événement aujourd\'hui',
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey.shade500)),
-                ),
-              ],
-            ),
+            if (_availabilitiesLoading)
+              Padding(
+                padding: const EdgeInsets.only(left: 40),
+                child: Text('Chargement des disponibilités...',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade500)),
+              )
+            else if (list.isEmpty)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    margin: const EdgeInsets.only(top: 16),
+                    decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: _bgLight, width: 4)),
+                  ),
+                  const SizedBox(width: 16),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Text(
+                        isWeekView
+                            ? 'Fin de journée'
+                            : 'Aucune disponibilité ce jour',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey.shade500)),
+                  ),
+                ],
+              )
+            else ...[
+              ...list.asMap().entries.map((e) {
+                final a = e.value;
+                return Padding(
+                  padding: EdgeInsets.only(bottom: e.key < list.length - 1 ? 16 : 0),
+                  child: _eventCard(
+                    isActive: e.key == 0,
+                    icon: Icons.event_available,
+                    iconColor: _brandBlue,
+                    title: 'Disponibilité',
+                    time: '${a.startTime} - ${a.endTime}',
+                    subtitle: a.recurrenceOn
+                        ? (a.recurrence == 'biweekly'
+                            ? 'Toutes les 2 semaines'
+                            : 'Hebdomadaire')
+                        : 'Ponctuelle',
+                    initials: 'D',
+                  ),
+                );
+              }),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    margin: const EdgeInsets.only(top: 16),
+                    decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: _bgLight, width: 4)),
+                  ),
+                  const SizedBox(width: 16),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Text(
+                        isWeekView
+                            ? 'Fin de journée'
+                            : 'Aucun autre événement ce jour',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey.shade500)),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ],
