@@ -13,10 +13,13 @@ class FamilyTrainingQuizScreen extends StatefulWidget {
     super.key,
     required this.courseId,
     this.title = 'Quiz',
+    this.initialQuiz,
   });
 
   final String courseId;
   final String title;
+  /// When provided, questions are taken from here and no API getCourse call is made.
+  final List<dynamic>? initialQuiz;
 
   @override
   State<FamilyTrainingQuizScreen> createState() =>
@@ -47,12 +50,18 @@ class _FamilyTrainingQuizScreenState extends State<FamilyTrainingQuizScreen> {
       _error = null;
     });
     try {
-      final course = await _service.getCourse(widget.courseId);
-      final rawQuiz = course['quiz'];
-      final quiz = rawQuiz is List<dynamic> ? rawQuiz : <dynamic>[];
-      final questions = <Map<String, dynamic>>[];
-      for (final e in quiz) {
-        if (e is Map<String, dynamic>) questions.add(e);
+      List<Map<String, dynamic>> questions = [];
+      final rawQuiz = widget.initialQuiz;
+      if (rawQuiz is List<dynamic> && rawQuiz.isNotEmpty) {
+        for (final e in rawQuiz) {
+          if (e is Map<String, dynamic>) questions.add(e);
+        }
+      } else {
+        final course = await _service.getCourse(widget.courseId);
+        final quiz = course['quiz'] is List<dynamic> ? course['quiz'] as List<dynamic> : <dynamic>[];
+        for (final e in quiz) {
+          if (e is Map<String, dynamic>) questions.add(e);
+        }
       }
       if (mounted) {
         for (final c in _textControllers) {
@@ -402,7 +411,11 @@ class _FamilyTrainingQuizScreenState extends State<FamilyTrainingQuizScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => context.go('..'),
+              onPressed: () {
+                final path = GoRouterState.of(context).uri.path;
+                final trainingListPath = path.replaceFirst(RegExp(r'/quiz$'), '');
+                context.go(trainingListPath.isNotEmpty ? trainingListPath : '/family/training');
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: _primary,
                 foregroundColor: AppTheme.text,

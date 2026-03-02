@@ -79,7 +79,17 @@ class _FamilyTrainingCourseScreenState extends State<FamilyTrainingCourseScreen>
     try {
       await _service.markContentCompleted(id);
       if (!mounted) return;
-      context.push('quiz', extra: {'courseId': id, 'title': _title});
+      final path = GoRouterState.of(context).uri.path;
+      final quizPath = path.replaceFirst(RegExp(r'/course$'), '/quiz');
+      final extra = <String, dynamic>{
+        'courseId': id,
+        'title': _title,
+      };
+      final quiz = _course?['quiz'];
+      if (quiz is List<dynamic> && quiz.isNotEmpty) {
+        extra['quiz'] = quiz;
+      }
+      context.push(quizPath, extra: extra);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

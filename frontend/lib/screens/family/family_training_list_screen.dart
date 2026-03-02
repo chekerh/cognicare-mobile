@@ -79,9 +79,37 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
   int? _courseOrder(Map<String, dynamic> c) =>
       c['order'] is int ? c['order'] as int : null;
 
+  /// A course is unlocked if:
+  /// - it is already completed, or
+  /// - it is the "next" course returned by the backend, or
+  /// - all previous courses (by order) are completed (fallback if backend
+  ///   progression endpoint fails or returns null).
   bool _isUnlocked(String courseId) {
     if (_isCompleted(courseId)) return true;
-    return _nextCourseId == courseId;
+    if (_nextCourseId == courseId) return true;
+
+    // Fallback: purely sequential unlocking based on course order and
+    // completion status, so that if the progression endpoint fails the user
+    // can still advance after validating quizzes.
+    final course = _courses.firstWhere(
+      (c) => c['id'] == courseId,
+      orElse: () => <String, dynamic>{},
+    );
+    if (course.isEmpty) return false;
+
+    final currentOrder = _courseOrder(course);
+    if (currentOrder == null) return false;
+
+    for (final c in _courses) {
+      final order = _courseOrder(c);
+      if (order != null && order < currentOrder) {
+        final prevId = c['id'] as String? ?? '';
+        if (!_isCompleted(prevId)) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   Future<void> _openCourse(String courseId, String title, bool alreadyEnrolled) async {

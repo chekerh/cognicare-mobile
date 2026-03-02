@@ -366,7 +366,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               GoRoute(
                 path: 'course',
                 builder: (context, state) {
-                  final extra = state.extra is Map<String, dynamic> ? state.extra : <String, dynamic>{};
+                  final Map<String, dynamic> extra = state.extra is Map<String, dynamic> ? state.extra as Map<String, dynamic> : <String, dynamic>{};
                   return FamilyTrainingCourseScreen(
                     courseId: extra['courseId'] as String? ?? '',
                     title: extra['title'] as String? ?? 'Cours',
@@ -376,10 +376,11 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               GoRoute(
                 path: 'quiz',
                 builder: (context, state) {
-                  final extra = state.extra is Map<String, dynamic> ? state.extra : <String, dynamic>{};
+                  final Map<String, dynamic> extra = state.extra is Map<String, dynamic> ? state.extra as Map<String, dynamic> : <String, dynamic>{};
                   return FamilyTrainingQuizScreen(
                     courseId: extra['courseId'] as String? ?? '',
                     title: extra['title'] as String? ?? 'Quiz',
+                    initialQuiz: extra['quiz'] is List<dynamic> ? extra['quiz'] as List<dynamic> : null,
                   );
                 },
               ),
@@ -712,7 +713,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               GoRoute(
                 path: 'course',
                 builder: (context, state) {
-                  final extra = state.extra is Map<String, dynamic> ? state.extra : <String, dynamic>{};
+                  final Map<String, dynamic> extra = state.extra is Map<String, dynamic> ? state.extra as Map<String, dynamic> : <String, dynamic>{};
                   return FamilyTrainingCourseScreen(
                     courseId: extra['courseId'] as String? ?? '',
                     title: extra['title'] as String? ?? 'Cours',
@@ -722,10 +723,11 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               GoRoute(
                 path: 'quiz',
                 builder: (context, state) {
-                  final extra = state.extra is Map<String, dynamic> ? state.extra : <String, dynamic>{};
+                  final Map<String, dynamic> extra = state.extra is Map<String, dynamic> ? state.extra as Map<String, dynamic> : <String, dynamic>{};
                   return FamilyTrainingQuizScreen(
                     courseId: extra['courseId'] as String? ?? '',
                     title: extra['title'] as String? ?? 'Quiz',
+                    initialQuiz: extra['quiz'] is List<dynamic> ? extra['quiz'] as List<dynamic> : null,
                   );
                 },
               ),

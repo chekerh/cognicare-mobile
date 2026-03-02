@@ -24,8 +24,9 @@ class TrainingService {
     if (response.statusCode != 200) {
       throw Exception('Failed to load training courses');
     }
-    final list = jsonDecode(response.body) as List<dynamic>?;
-    return (list ?? []).map((e) => e as Map<String, dynamic>).toList();
+    final raw = jsonDecode(response.body);
+    final list = raw is List<dynamic> ? raw : <dynamic>[];
+    return list.whereType<Map<String, dynamic>>().toList();
   }
 
   /// Get one course by id.
@@ -33,14 +34,15 @@ class TrainingService {
     final response = await _client.get(
       Uri.parse('$_base${AppConstants.trainingCourseByIdEndpoint(courseId)}'),
     );
+    final decoded = jsonDecode(response.body);
     if (response.statusCode != 200) {
-      final body = jsonDecode(response.body) as Map<String, dynamic>?;
+      final body = decoded is Map<String, dynamic> ? decoded : null;
       throw Exception(body?['message'] ?? 'Course not found');
     }
-    final decoded = jsonDecode(response.body);
     if (decoded is Map<String, dynamic>) return decoded;
-    if (decoded is List<dynamic> && decoded.isNotEmpty && decoded.first is Map<String, dynamic>) {
-      return decoded.first as Map<String, dynamic>;
+    if (decoded is List<dynamic> && decoded.isNotEmpty) {
+      final first = decoded.first;
+      if (first is Map<String, dynamic>) return first;
     }
     throw Exception('Invalid course response');
   }
@@ -53,12 +55,13 @@ class TrainingService {
       Uri.parse('$_base${AppConstants.trainingEnrollEndpoint(courseId)}'),
       headers: {'Authorization': 'Bearer $token'},
     );
+    final decoded = jsonDecode(response.body);
     if (response.statusCode != 200 && response.statusCode != 201) {
-      final body = jsonDecode(response.body) as Map<String, dynamic>?;
+      final body = decoded is Map<String, dynamic> ? decoded : null;
       throw Exception(body?['message'] ?? 'Enrollment failed');
     }
-    final list = jsonDecode(response.body) as List<dynamic>?;
-    return (list ?? []).map((e) => e as Map<String, dynamic>).toList();
+    final list = decoded is List<dynamic> ? decoded : <dynamic>[];
+    return list.whereType<Map<String, dynamic>>().toList();
   }
 
   /// My training enrollments with progress.
@@ -72,8 +75,9 @@ class TrainingService {
     if (response.statusCode != 200) {
       throw Exception('Failed to load enrollments');
     }
-    final list = jsonDecode(response.body) as List<dynamic>?;
-    return (list ?? []).map((e) => e as Map<String, dynamic>).toList();
+    final raw = jsonDecode(response.body);
+    final list = raw is List<dynamic> ? raw : <dynamic>[];
+    return list.whereType<Map<String, dynamic>>().toList();
   }
 
   /// Mark course content as completed (before taking quiz).
@@ -84,12 +88,23 @@ class TrainingService {
       Uri.parse('$_base${AppConstants.trainingCompleteContentEndpoint(courseId)}'),
       headers: {'Authorization': 'Bearer $token'},
     );
-    if (response.statusCode != 200) {
-      final body = jsonDecode(response.body) as Map<String, dynamic>?;
-      throw Exception(body?['message'] ?? 'Failed to mark complete');
+    final ok = response.statusCode == 200 || response.statusCode == 201;
+    dynamic decoded;
+    try {
+      decoded = response.body.isEmpty ? null : jsonDecode(response.body);
+    } catch (_) {
+      decoded = null;
     }
-    final list = jsonDecode(response.body) as List<dynamic>?;
-    return (list ?? []).map((e) => e as Map<String, dynamic>).toList();
+    if (!ok) {
+      final body = decoded is Map<String, dynamic> ? decoded : null;
+      final message = body?['message'] ?? body?['error'] ?? '';
+      if (response.statusCode == 401) {
+        throw Exception(message.toString().isEmpty ? 'Session expirée. Reconnectez-vous.' : message);
+      }
+      throw Exception(message.toString().isNotEmpty ? message.toString() : 'Failed to mark complete');
+    }
+    final list = decoded is List<dynamic> ? decoded : <dynamic>[];
+    return list.whereType<Map<String, dynamic>>().toList();
   }
 
   /// Submit quiz answers. [textAnswers] optional for fill_blank questions (same-length list).
@@ -111,11 +126,13 @@ class TrainingService {
       },
       body: jsonEncode(body),
     );
+    final respDecoded = jsonDecode(response.body);
     if (response.statusCode != 200 && response.statusCode != 201) {
-      final respBody = jsonDecode(response.body) as Map<String, dynamic>?;
+      final respBody = respDecoded is Map<String, dynamic> ? respDecoded : null;
       throw Exception(respBody?['message'] ?? 'Quiz submission failed');
     }
-    return jsonDecode(response.body) as Map<String, dynamic>;
+    if (respDecoded is Map<String, dynamic>) return respDecoded;
+    throw Exception('Invalid quiz response');
   }
 
   /// Get next unlocked course id (for progression).
@@ -127,7 +144,8 @@ class TrainingService {
       headers: {'Authorization': 'Bearer $token'},
     );
     if (response.statusCode != 200) return null;
-    final data = jsonDecode(response.body) as Map<String, dynamic>?;
+    final raw = jsonDecode(response.body);
+    final data = raw is Map<String, dynamic> ? raw : null;
     final id = data?['courseId'];
     return id is String ? id : null;
   }
