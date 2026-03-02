@@ -43,6 +43,22 @@ interface InvidiousSearchItem {
   lengthSeconds?: number;
 }
 
+/** Réponse API Dailymotion (gratuite, sans clé). */
+interface DailymotionVideo {
+  id?: string;
+  title?: string;
+  description?: string;
+  thumbnail_240_url?: string;
+  created_time?: number;
+  duration?: number;
+}
+
+/** Liste de secours : IDs YouTube (autisme / cognitif). Remplir avec des IDs valides si besoin. */
+const SEED_YOUTUBE_IDS = [
+  'kffacxfA7G4', // exemple éducatif
+  '5R-KWZ4b-2E',
+];
+
 @Injectable()
 export class ReelsService {
   private readonly logger = new Logger(ReelsService.name);
@@ -217,7 +233,84 @@ export class ReelsService {
       }
     }
 
-    this.logger.log(`Reels refresh (Invidious): added=${added}, skipped=${skipped}`);
+    // Sources alternatives : Dailymotion (API gratuite) + liste de secours YouTube
+    try {
+      const fromDm = await this.refreshFromDailymotion();
+      added += fromDm;
+    } catch (e) {
+      this.logger.warn(`Reels Dailymotion failed: ${e}`);
+    }
+    try {
+      const fromSeed = await this.refreshFromSeedList();
+      added += fromSeed;
+    } catch (e) {
+      this.logger.warn(`Reels seed list failed: ${e}`);
+    }
+
+    this.logger.log(`Reels refresh: added=${added}, skipped=${skipped}`);
     return { added, skipped };
+  }
+
+  /** Récupère des vidéos depuis l’API Dailymotion (gratuite, sans clé). */
+  private async refreshFromDailymotion(): Promise<number> {
+    const base = 'https://api.dailymotion.com';
+    const queries = ['autisme', 'troubles cognitifs', 'sensoriel'];
+    let added = 0;
+    for (const q of queries) {
+      try {
+        const url = `${base}/videos?search=${encodeURIComponent(q)}&limit=8&fields=id,title,description,thumbnail_240_url,created_time,duration`;
+        const { data } = await axios.get<{ list?: DailymotionVideo[] }>(url, { timeout: 15000 });
+        const list = data?.list ?? [];
+        for (const v of list) {
+          if (!v?.id || !v.title) continue;
+          const existing = await this.reelModel.findOne({ source: 'dailymotion', sourceId: v.id }).exec();
+          if (existing) continue;
+          const thumbnail = v.thumbnail_240_url ?? '';
+          const videoUrl = `https://www.dailymotion.com/video/${v.id}`;
+          await this.reelModel.create({
+            sourceId: v.id,
+            source: 'dailymotion',
+            title: String(v.title).slice(0, 200),
+            description: String(v.description ?? '').slice(0, 500),
+            videoUrl,
+            thumbnailUrl: thumbnail,
+            publishedAt: v.created_time ? new Date(v.created_time * 1000) : new Date(),
+          });
+          added += 1;
+        }
+      } catch (e) {
+        this.logger.warn(`Dailymotion search "${q}" failed: ${e}`);
+      }
+    }
+    return added;
+  }
+
+  /** Remplit avec une liste de secours d’IDs YouTube (oEmbed). */
+  private async refreshFromSeedList(): Promise<number> {
+    let added = 0;
+    for (const videoId of SEED_YOUTUBE_IDS) {
+      try {
+        const existing = await this.reelModel.findOne({ source: 'youtube', sourceId: videoId }).exec();
+        if (existing) continue;
+        const url = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
+        const { data } = await axios.get<{ title?: string; thumbnail_url?: string }>(url, { timeout: 8000 });
+        const title = data?.title ?? `Vidéo ${videoId}`;
+        const thumbnailUrl = data?.thumbnail_url ?? `https://img.youtube.com/vi/${videoId}/default.jpg`;
+        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        await this.reelModel.create({
+          sourceId: videoId,
+          source: 'youtube',
+          title: title.slice(0, 200),
+          description: '',
+          videoUrl,
+          thumbnailUrl: thumbnailUrl.replace('hqdefault', 'mqdefault'),
+          publishedAt: new Date(),
+        });
+        added += 1;
+      } catch {
+        // skip invalid or unavailable
+      }
+    }
+    return added;
   }
 }

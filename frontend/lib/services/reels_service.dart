@@ -51,11 +51,25 @@ class ReelsService {
       'page': page.toString(),
       'limit': limit.toString(),
     });
-    final response = await _client.get(uri).timeout(const Duration(seconds: 15));
+    // Render peut mettre 30–50 s à se réveiller (cold start) au premier appel.
+    final response = await _client
+        .get(uri)
+        .timeout(const Duration(seconds: 45), onTimeout: () {
+      throw Exception(
+        'Délai dépassé. Le serveur (Render) met peut-être du temps à démarrer. Réessayez.',
+      );
+    });
     if (response.statusCode != 200) {
-      throw Exception('Failed to load reels: ${response.statusCode}');
+      throw Exception(
+        'Serveur indisponible (${response.statusCode}). Vérifiez que le backend tourne.',
+      );
     }
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    Map<String, dynamic> data;
+    try {
+      data = jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (_) {
+      throw Exception('Réponse serveur invalide.');
+    }
     final list = (data['reels'] as List<dynamic>?)
         ?.map((e) => Reel.fromJson(e as Map<String, dynamic>))
         .toList() ?? [];

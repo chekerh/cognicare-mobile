@@ -8,8 +8,8 @@ export class Reel {
   @Prop({ required: true })
   sourceId!: string;
 
-  @Prop({ required: true, enum: ['youtube', 'scraped'] })
-  source!: 'youtube' | 'scraped';
+  @Prop({ required: true, enum: ['youtube', 'scraped', 'dailymotion'] })
+  source!: 'youtube' | 'scraped' | 'dailymotion';
 
   @Prop({ required: true })
   title!: string;

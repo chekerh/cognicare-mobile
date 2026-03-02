@@ -129,8 +129,29 @@ class _FamilyReelsScreenState extends State<FamilyReelsScreen> {
         ),
       ),
       body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: Colors.white),
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(color: Colors.white),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Chargement des vidéos...',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Sur Render, le 1er chargement peut prendre 30–60 s.',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.5),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
             )
           : _error != null
               ? Center(
@@ -147,11 +168,24 @@ class _FamilyReelsScreenState extends State<FamilyReelsScreen> {
                             fontSize: 14,
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Assurez-vous que le backend est démarré et que l\'app peut le joindre (même réseau ou URL de prod).',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.6),
+                            fontSize: 12,
+                          ),
+                        ),
                         const SizedBox(height: 16),
-                        TextButton(
+                        FilledButton.icon(
                           onPressed: _load,
-                          child: const Text('Réessayer',
-                              style: TextStyle(color: Colors.white70)),
+                          icon: const Icon(Icons.refresh_rounded, size: 20),
+                          label: const Text('Réessayer'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF475569),
+                            foregroundColor: Colors.white,
+                          ),
                         ),
                       ],
                     ),
