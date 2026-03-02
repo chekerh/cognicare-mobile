@@ -21,6 +21,8 @@ class _FamilyReelsScreenState extends State<FamilyReelsScreen> {
   int _page = 1;
   bool _hasMore = true;
   bool _loadingMore = false;
+  bool _refreshing = false;
+  String? _refreshMessage;
 
   @override
   void initState() {
@@ -68,6 +70,30 @@ class _FamilyReelsScreenState extends State<FamilyReelsScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _loadingMore = false);
+    }
+  }
+
+  Future<void> _onRefreshReels() async {
+    setState(() {
+      _refreshing = true;
+      _refreshMessage = null;
+    });
+    try {
+      final result = await _reelsService.refreshReels();
+      if (!mounted) return;
+      setState(() {
+        _refreshing = false;
+        _refreshMessage =
+            '${result.added} vidéo(s) ajoutée(s).';
+      });
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _refreshing = false;
+        _refreshMessage =
+            e.toString().replaceFirst('Exception: ', '');
+      });
     }
   }
 
@@ -159,6 +185,46 @@ class _FamilyReelsScreenState extends State<FamilyReelsScreen> {
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.6),
                                 fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            if (_refreshMessage != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Text(
+                                  _refreshMessage!,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            SizedBox(
+                              width: double.infinity,
+                              child: FilledButton.icon(
+                                onPressed: _refreshing ? null : _onRefreshReels,
+                                icon: _refreshing
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.refresh_rounded, size: 22),
+                                label: Text(
+                                  _refreshing
+                                      ? 'Chargement...'
+                                      : 'Charger les vidéos',
+                                ),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: const Color(0xFF475569),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 14),
+                                ),
                               ),
                             ),
                           ],

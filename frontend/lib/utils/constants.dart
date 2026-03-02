@@ -353,6 +353,7 @@ class AppConstants {
   static const String familyTrainingQuizRoute = '/family/training/quiz';
   static const String familyReelsRoute = '/family/reels';
   static const String reelsEndpoint = '/api/v1/reels';
+  static const String reelsRefreshEndpoint = '/api/v1/reels/refresh';
   static const String volunteerTrainingRoute = '/volunteer/training';
   static const String volunteerTrainingCourseRoute = '/volunteer/training/course';
   static const String volunteerTrainingQuizRoute = '/volunteer/training/quiz';

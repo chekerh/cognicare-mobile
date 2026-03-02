@@ -5,8 +5,13 @@ import { Model } from 'mongoose';
 import axios from 'axios';
 import { Reel, ReelDocument } from './reel.schema';
 
-/** Instance Invidious par défaut (gratuit, sans clé API). Tu peux changer via INVIDIOUS_BASE_URL. */
-const DEFAULT_INVIDIOUS = 'https://vid.puffyan.us';
+/** Instances Invidious (gratuit, sans clé). On essaie la première puis les suivantes si échec. */
+const INVIDIOUS_INSTANCES = [
+  'https://vid.puffyan.us',
+  'https://invidious.flokinet.to',
+  'https://inv.riverside.rocks',
+  'https://invidious.nerdvpn.de',
+];
 
 /** Mots-clés pour filtrer le contenu lié aux troubles cognitifs / autisme / aidants. */
 const COGNITIVE_KEYWORDS = [
@@ -90,76 +95,125 @@ export class ReelsService {
   }
 
   /**
-   * Récupère des shorts via Invidious (gratuit, sans clé API).
-   * Recherche par mots-clés, filtre par pertinence troubles cognitifs / autisme, enregistre en base.
+   * Récupère des shorts via Invidious (scrape, gratuit).
+   * Recherche par mots-clés troubles cognitifs / autisme, enregistre en base.
    */
   async refreshFromYoutube(): Promise<{ added: number; skipped: number }> {
-    const base = this.config.get<string>('INVIDIOUS_BASE_URL') || DEFAULT_INVIDIOUS;
-    const searchUrl = `${base.replace(/\/$/, '')}/api/v1/search`;
+    const customBase = this.config.get<string>('INVIDIOUS_BASE_URL');
+    const bases = customBase
+      ? [customBase.replace(/\/$/, '')]
+      : INVIDIOUS_INSTANCES;
 
     let added = 0;
     let skipped = 0;
 
     const queries = [
-      'autisme conseils',
-      'sensory activities autism',
-      'troubles cognitifs enfant',
-      'caregiver autism tips',
+      'autisme',
+      'autism sensory',
+      'troubles cognitifs',
+      'caregiver autism',
       'orthophonie enfant',
+      'TDAH enfant',
+      'inclusion scolaire',
     ];
 
     for (const q of queries) {
-      try {
-        const { data } = await axios.get<InvidiousSearchItem[]>(searchUrl, {
-          params: {
-            q,
-            type: 'video',
-            duration: 'short',
-            sort: 'relevance',
-          },
-          timeout: 15000,
-        });
-
-        const items = Array.isArray(data) ? data : [];
-        for (const v of items) {
-          if (v.type !== 'video' || !v.videoId) continue;
-          const videoId = v.videoId;
-          const title = v.title || '';
-          const description = v.description || '';
-          const score = this.keywordRelevanceScore(title, description);
-          if (score < 0.3) {
-            skipped++;
-            continue;
-          }
-
-          const existing = await this.reelModel.findOne({ source: 'youtube', sourceId: videoId }).exec();
-          if (existing) {
-            skipped++;
-            continue;
-          }
-
-          const thumb =
-            v.videoThumbnails?.find((t) => t.quality === 'medium')?.url
-            || v.videoThumbnails?.[0]?.url
-            || '';
-          const videoUrl = `https://www.youtube.com/shorts/${videoId}`;
-          const publishedAt = v.published ? new Date(v.published * 1000) : new Date();
-
-          await this.reelModel.create({
-            sourceId: videoId,
-            source: 'youtube',
-            title,
-            description: description.slice(0, 500),
-            videoUrl,
-            thumbnailUrl: thumb,
-            publishedAt,
-            relevanceScore: score,
-            language: 'fr',
+      let items: InvidiousSearchItem[] = [];
+      for (const base of bases) {
+        const searchUrl = `${base}/api/v1/search`;
+        try {
+          const { data } = await axios.get<InvidiousSearchItem[]>(searchUrl, {
+            params: {
+              q,
+              type: 'video',
+              duration: 'short',
+              sort: 'relevance',
+            },
+            timeout: 12000,
+            validateStatus: () => true,
+            headers: {
+              'User-Agent': 'CogniCare-Reels/1.0 (Family app)',
+              Accept: 'application/json',
+            },
           });
-          added++;
+          if (typeof data === 'object' && Array.isArray(data)) {
+            items = data;
+            break;
+          }
+        } catch (err) {
+          this.logger.warn(`Invidious ${base} search "${q}" failed: ${err}`);
+          continue;
         }
-      } catch (err) {
-        this.logger.warn(`Invidious search "${q}" failed: ${err}`);
+      }
+      // Si aucune instance ne renvoie de shorts, essayer sans filtre durée et garder les courtes (< 90 s).
+      if (items.length === 0) {
+        for (const base of bases) {
+          const searchUrl = `${base}/api/v1/search`;
+          try {
+            const { data } = await axios.get<InvidiousSearchItem[]>(searchUrl, {
+              params: { q, type: 'video', sort: 'relevance' },
+              timeout: 12000,
+              validateStatus: () => true,
+              headers: {
+                'User-Agent': 'CogniCare-Reels/1.0 (Family app)',
+                Accept: 'application/json',
+              },
+            });
+            if (typeof data === 'object' && Array.isArray(data)) {
+              items = data.filter(
+                (x) => (x.lengthSeconds ?? 999) <= 90,
+              );
+              break;
+            }
+          } catch (err) {
+            continue;
+          }
+        }
+      }
+
+      for (const v of items) {
+        if (v.type !== 'video' || !v.videoId) continue;
+        if ((v.lengthSeconds ?? 0) > 120) continue;
+        const videoId = v.videoId;
+        const title = v.title || '';
+        const description = v.description || '';
+        const score = this.keywordRelevanceScore(title, description);
+        // Accepter toutes les vidéos des recherches ciblées (la requête filtre déjà le thème).
+        const minScore = 0.05;
+        if (score < minScore) {
+          skipped++;
+          continue;
+        }
+
+        const existing = await this.reelModel
+          .findOne({ source: 'youtube', sourceId: videoId })
+          .exec();
+        if (existing) {
+          skipped++;
+          continue;
+        }
+
+        const thumb =
+          v.videoThumbnails?.find((t) => t.quality === 'medium')?.url ||
+          v.videoThumbnails?.[0]?.url ||
+          '';
+        const videoUrl = `https://www.youtube.com/shorts/${videoId}`;
+        const publishedAt = v.published
+          ? new Date(v.published * 1000)
+          : new Date();
+
+        await this.reelModel.create({
+          sourceId: videoId,
+          source: 'youtube',
+          title,
+          description: (description || '').slice(0, 500),
+          videoUrl,
+          thumbnailUrl: thumb || `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+          publishedAt,
+          relevanceScore: score,
+          language: 'fr',
+        });
+        added++;
       }
     }
 

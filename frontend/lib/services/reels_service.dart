@@ -1,10 +1,47 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import '../models/reel.dart';
 import '../utils/constants.dart';
 
 class ReelsService {
   final http.Client _client = http.Client();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+
+  Future<Map<String, String>> _authHeaders() async {
+    final token = await _storage.read(key: AppConstants.jwtTokenKey);
+    return {
+      'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  /// Lance le chargement des reels depuis Invidious (nécessite d'être connecté).
+  Future<ReelsRefreshResult> refreshReels() async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.reelsRefreshEndpoint}');
+    final response = await _client
+        .post(uri, headers: await _authHeaders())
+        .timeout(const Duration(seconds: 60));
+    if (response.statusCode == 401) {
+      throw Exception('Connectez-vous pour charger les vidéos.');
+    }
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      final body = response.body;
+      try {
+        final err = jsonDecode(body) as Map<String, dynamic>;
+        throw Exception(err['message'] ?? 'Échec du chargement');
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception('Échec: ${response.statusCode}');
+      }
+    }
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return ReelsRefreshResult(
+      added: (data['added'] as num?)?.toInt() ?? 0,
+      skipped: (data['skipped'] as num?)?.toInt() ?? 0,
+    );
+  }
 
   /// Liste des reels (vidéos courtes troubles cognitifs / autisme).
   Future<ReelsListResult> getReels({int page = 1, int limit = 20}) async {
@@ -42,4 +79,10 @@ class ReelsListResult {
   final int total;
   final int page;
   final int totalPages;
+}
+
+class ReelsRefreshResult {
+  const ReelsRefreshResult({required this.added, required this.skipped});
+  final int added;
+  final int skipped;
 }
