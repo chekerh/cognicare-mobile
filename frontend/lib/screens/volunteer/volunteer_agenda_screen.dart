@@ -97,6 +97,7 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
     for (final a in _myAvailabilities) {
       for (final dateStr in a.dates) {
         if (dateStr.compareTo(todayStr) >= 0) {
+          // Jour J : rappel à l'heure du créneau
           notificationService
               .scheduleAvailabilityReminder(
             dateIso: dateStr,
@@ -104,6 +105,16 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
             label: 'Disponibilité',
           )
               .ignore();
+          // J-1 : rappel la veille à 9h (uniquement si l'event n'est pas aujourd'hui)
+          if (dateStr.compareTo(todayStr) > 0) {
+            notificationService
+                .scheduleAvailabilityReminderDayBefore(
+              dateIso: dateStr,
+              startTime: a.startTime,
+              label: 'Disponibilité',
+            )
+                .ignore();
+          }
         }
       }
     }

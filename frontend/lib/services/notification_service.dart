@@ -193,10 +193,70 @@ class NotificationService {
     await _notificationsPlugin.cancelAll();
   }
 
-  /// Notifications de disponibilité bénévole : à l'heure de début du créneau.
+  /// Notifications de disponibilité bénévole : J-1 (veille) et jour J (à l'heure du créneau).
   static const int _availabilityIdBase = 600;
+  static const int _availabilityDayBeforeIdBase = 61000;
+  /// Heure d'envoi du rappel J-1 (veille) : 9h.
+  static const int _dayBeforeReminderHour = 9;
+  static const int _dayBeforeReminderMinute = 0;
 
-  /// Planifie une notification au début d'un créneau de disponibilité.
+  /// Planifie le rappel "1 jour avant" (J-1) : notif la veille à 9h.
+  Future<void> scheduleAvailabilityReminderDayBefore({
+    required String dateIso,
+    required String startTime,
+    String label = 'Disponibilité',
+  }) async {
+    DateTime? eventDate;
+    try {
+      final parts = dateIso.split('-');
+      if (parts.length == 3) {
+        final y = int.parse(parts[0]);
+        final m = int.parse(parts[1]);
+        final d = int.parse(parts[2]);
+        eventDate = DateTime(y, m, d);
+      }
+    } catch (_) {
+      return;
+    }
+    if (eventDate == null) return;
+    final dayBefore = eventDate.subtract(const Duration(days: 1));
+    final scheduledAt = DateTime(
+      dayBefore.year,
+      dayBefore.month,
+      dayBefore.day,
+      _dayBeforeReminderHour,
+      _dayBeforeReminderMinute,
+    );
+    if (scheduledAt.isBefore(DateTime.now())) return;
+
+    final id = _availabilityDayBeforeIdBase +
+        (dateIso.hashCode + startTime.hashCode).abs() % 50000;
+    await _notificationsPlugin.zonedSchedule(
+      id,
+      'Rappel : $label demain',
+      'Demain à $startTime',
+      tz.TZDateTime.from(scheduledAt, tz.local),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'availability_reminder_channel',
+          'Rappels de disponibilité',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      payload: 'volunteer_agenda',
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+  }
+
+  /// Planifie une notification au début d'un créneau (jour J).
   Future<void> scheduleAvailabilityReminder({
     required String dateIso,
     required String startTime,
