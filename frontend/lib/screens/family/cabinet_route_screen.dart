@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/healthcare_cabinet.dart';
 import '../../services/osrm_service.dart';
 
@@ -34,6 +35,7 @@ class _CabinetRouteScreenState extends State<CabinetRouteScreen> {
   String? _error;
   TravelMode _travelMode = TravelMode.car;
   bool _navigationActive = false;
+  bool _isApproximateRoute = false; // true si trajet ligne directe (OSRM a échoué)
   final MapController _mapController = MapController();
   StreamSubscription<Position>? _positionSubscription;
 
@@ -78,6 +80,26 @@ class _CabinetRouteScreenState extends State<CabinetRouteScreen> {
     });
   }
 
+  bool get _cabinetHasValidCoords =>
+      widget.cabinet.latitude != 0 || widget.cabinet.longitude != 0;
+
+  Future<void> _openInGoogleMaps() async {
+    final dest = _cabinetHasValidCoords
+        ? '${widget.cabinet.latitude},${widget.cabinet.longitude}'
+        : Uri.encodeComponent(
+            '${widget.cabinet.address}, ${widget.cabinet.city}'.trim());
+    final origin = _userPosition != null
+        ? '&origin=${_userPosition!.latitude},${_userPosition!.longitude}'
+        : '';
+    final url = _cabinetHasValidCoords
+        ? 'https://www.google.com/maps/dir/?api=1${origin}&destination=$dest'
+        : 'https://www.google.com/maps/search/?api=1&query=$dest';
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   Future<void> _loadRoute() async {
     setState(() {
       _loading = true;
@@ -91,6 +113,17 @@ class _CabinetRouteScreenState extends State<CabinetRouteScreen> {
     });
 
     try {
+      _isApproximateRoute = false;
+      if (!_cabinetHasValidCoords) {
+        if (!mounted) return;
+        setState(() {
+          _loading = false;
+          _error =
+              'Coordonnées du cabinet non renseignées. Utilisez « Ouvrir dans Google Maps » pour obtenir un itinéraire.';
+        });
+        return;
+      }
+
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         if (!mounted) return;
@@ -130,41 +163,56 @@ class _CabinetRouteScreenState extends State<CabinetRouteScreen> {
       );
 
       if (!mounted) return;
+
+      OSRMRouteResult routeResult;
       if (result == null || result.points.isEmpty) {
-        setState(() {
-          _routePoints = null;
-          _loading = false;
-          _error = 'Impossible de calculer l\'itinéraire.';
-        });
-        return;
+        routeResult = getStraightLineRoute(
+          startLat: position.latitude,
+          startLng: position.longitude,
+          endLat: widget.cabinet.latitude,
+          endLng: widget.cabinet.longitude,
+          travelMode: _travelMode,
+        );
+      } else {
+        routeResult = result;
       }
 
       final remaining = remainingFromPosition(
-          result.points, LatLng(position.latitude, position.longitude));
+          routeResult.points, LatLng(position.latitude, position.longitude));
       setState(() {
-        _routePoints = result.points;
-        _totalDistanceMeters = result.distanceMeters;
-        _totalDurationSeconds = result.durationSeconds;
+        _routePoints = routeResult.points;
+        _totalDistanceMeters = routeResult.distanceMeters;
+        _totalDurationSeconds = routeResult.durationSeconds;
         _remainingMeters = remaining.remainingMeters;
-        _remainingMinutes = (remaining.remainingMeters / result.distanceMeters) *
-            (result.durationSeconds / 60);
+        _remainingMinutes = routeResult.distanceMeters > 0
+            ? (remaining.remainingMeters / routeResult.distanceMeters) *
+                (routeResult.durationSeconds / 60)
+            : 0;
         _loading = false;
+        _isApproximateRoute = (result == null || result.points.isEmpty);
       });
 
       _startPositionStream();
 
-      final allPoints = result.points +
-          [
-            LatLng(position.latitude, position.longitude),
-            LatLng(widget.cabinet.latitude, widget.cabinet.longitude),
-          ];
-      final bounds = LatLngBounds.fromPoints(allPoints);
+      final destPoint = LatLng(widget.cabinet.latitude, widget.cabinet.longitude);
+      final distanceKm = routeResult.distanceMeters / 1000;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        _mapController.fitCamera(CameraFit.bounds(
-          bounds: bounds,
-          padding: const EdgeInsets.all(48),
-        ));
+        if (distanceKm > 300) {
+          // Trajet très long (ex. utilisateur à l'étranger) : centrer sur la Tunisie / l'emplacement exact du cabinet
+          _mapController.move(destPoint, 12);
+        } else {
+          final allPoints = routeResult.points +
+              [
+                LatLng(position.latitude, position.longitude),
+                destPoint,
+              ];
+          final bounds = LatLngBounds.fromPoints(allPoints);
+          _mapController.fitCamera(CameraFit.bounds(
+            bounds: bounds,
+            padding: const EdgeInsets.all(48),
+          ));
+        }
       });
     } catch (e) {
       if (!mounted) return;
@@ -242,14 +290,28 @@ class _CabinetRouteScreenState extends State<CabinetRouteScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(_error!, textAlign: TextAlign.center),
-                        const SizedBox(height: 16),
+                        Text(
+                          _error!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                        const SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: _loadRoute,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _mapPrimary,
                           ),
                           child: const Text('Réessayer'),
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: _openInGoogleMaps,
+                          icon: const Icon(Icons.map, size: 20),
+                          label: const Text('Ouvrir dans Google Maps'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: _slate800,
+                            side: const BorderSide(color: _mapPrimary),
+                          ),
                         ),
                       ],
                     ),
@@ -326,7 +388,19 @@ class _CabinetRouteScreenState extends State<CabinetRouteScreen> {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (_totalDistanceMeters > 0 && _totalDurationSeconds > 0) ...[
+                              if (_isApproximateRoute)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              'Itinéraire approximatif (ligne directe)',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: _slate500,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ),
+                        if (_totalDistanceMeters > 0 && _totalDurationSeconds > 0) ...[
                                 Row(
                                   children: [
                                     const Icon(Icons.schedule, size: 18, color: _slate500),
