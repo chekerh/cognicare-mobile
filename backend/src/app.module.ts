@@ -35,6 +35,7 @@ import { ChatbotModule } from './chatbot/chatbot.module';
 import { HealthcareCabinetsModule } from './healthcare-cabinets/healthcare-cabinets.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { TrainingModule } from './training/training.module';
+import { ReelsModule } from './reels/reels.module';
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { TrainingModule } from './training/training.module';
     HealthcareCabinetsModule,
     IntegrationsModule,
     TrainingModule,
+    ReelsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

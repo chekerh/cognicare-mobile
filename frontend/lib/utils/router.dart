@@ -59,6 +59,7 @@ import '../screens/family/medicine_verification_screen.dart';
 import '../screens/family/family_training_list_screen.dart';
 import '../screens/family/family_training_course_screen.dart';
 import '../screens/family/family_training_quiz_screen.dart';
+import '../screens/family/family_reels_screen.dart';
 import '../screens/volunteer/volunteer_dashboard_screen.dart';
 import '../screens/volunteer/volunteer_shell_screen.dart';
 import '../screens/volunteer/volunteer_agenda_screen.dart';
@@ -732,6 +733,10 @@ GoRouter createAppRouter(AuthProvider authProvider) {
                 },
               ),
             ],
+          ),
+          GoRoute(
+            path: 'reels',
+            builder: (context, state) => const FamilyReelsScreen(),
           ),
           GoRoute(
             path: 'product-detail',

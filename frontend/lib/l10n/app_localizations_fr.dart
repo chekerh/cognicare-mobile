@@ -1245,6 +1245,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get autismTrainingSubtitle => 'Cours et quiz pour aidants';
   @override
+  String get reelsCardTitle => 'Reels';
+  @override
+  String get reelsCardSubtitle => 'Vidéos courtes comme sur Instagram';
+  @override
   String get dailyProgress => 'Progrès du jour';
 
   @override

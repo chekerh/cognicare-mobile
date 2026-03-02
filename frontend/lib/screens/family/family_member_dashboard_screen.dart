@@ -257,6 +257,8 @@ class _FamilyMemberDashboardScreenState
                       _buildTwoColumnCards(context),
                       const SizedBox(height: 16),
                       _buildTrainingCard(context),
+                      const SizedBox(height: 16),
+                      _buildReelsCard(context),
                       const SizedBox(height: 24),
                       _buildVolunteersSection(context),
                       const SizedBox(height: 24),
@@ -278,22 +280,9 @@ class _FamilyMemberDashboardScreenState
     return Padding(
       padding: EdgeInsets.fromLTRB(24, topPadding + 16, 24, 0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-              Text(
-                AppLocalizations.of(context)!.familyMemberRole,
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: _slate800,
-                ),
-              ),
-            ],
-          ),
+          const Spacer(),
           Material(
             color: Colors.white.withOpacity(0.5),
             borderRadius: BorderRadius.circular(24),
@@ -710,6 +699,56 @@ class _FamilyMemberDashboardScreenState
                     const SizedBox(height: 2),
                     Text(
                       AppLocalizations.of(context)!.autismTrainingSubtitle,
+                      style: TextStyle(fontSize: 12, color: _slate500),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded, color: _accentColor, size: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReelsCard(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    return _Card(
+      child: InkWell(
+        onTap: () => context.push(AppConstants.familyReelsRoute),
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: _primary.withOpacity(0.3),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.video_library_rounded, color: _slate800, size: 24),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      loc.reelsCardTitle,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: _slate800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      loc.reelsCardSubtitle,
                       style: TextStyle(fontSize: 12, color: _slate500),
                     ),
                   ],

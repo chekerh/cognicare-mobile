@@ -836,6 +836,8 @@ abstract class AppLocalizations {
   String get viewChildDailyTasks;
   String get autismTrainingTitle;
   String get autismTrainingSubtitle;
+  String get reelsCardTitle;
+  String get reelsCardSubtitle;
   String get dailyProgress;
   String childAgeLabel(Object name, Object age);
   String starsNeededForChallenge(Object count);

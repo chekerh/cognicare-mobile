@@ -1659,6 +1659,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get autismTrainingSubtitle => 'دورات واختبارات للمقدمي الرعاية';
   @override
+  String get reelsCardTitle => 'ريلز';
+  @override
+  String get reelsCardSubtitle => 'فيديوهات قصيرة مثل إنستغرام ريلز';
+  @override
   String get dailyProgress => 'تقدم اليوم';
 
   @override
