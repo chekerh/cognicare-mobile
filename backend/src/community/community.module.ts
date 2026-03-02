@@ -9,6 +9,7 @@ import {
 import { CommunityService } from './community.service';
 import { CommunityController } from './community.controller';
 import { User, UserSchema } from '../users/schemas/user.schema';
+import { Child, ChildSchema } from '../children/schemas/child.schema';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
@@ -18,6 +19,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
       { name: Comment.name, schema: CommentSchema },
       { name: FollowRequest.name, schema: FollowRequestSchema },
       { name: User.name, schema: UserSchema },
+      { name: Child.name, schema: ChildSchema },
     ]),
     NotificationsModule,
   ],

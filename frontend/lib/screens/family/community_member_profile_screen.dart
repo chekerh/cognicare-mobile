@@ -59,7 +59,7 @@ class CommunityMemberProfileScreen extends StatefulWidget {
     return CommunityMemberProfileScreen(
       memberId: memberId,
       memberName: memberName,
-      memberRole: e['memberRole'] as String? ?? 'Parent de Iline',
+      memberRole: e['memberRole'] as String?,
       memberImageUrl: e['memberImageUrl'] as String?,
       memberDiagnosis:
           e['memberDiagnosis'] as String? ?? 'Diagnostic : Autisme léger',
@@ -283,7 +283,7 @@ class _CommunityMemberProfileScreenState
     return path.startsWith('/volunteer');
   }
 
-  static const String _defaultRole = 'Parent de Iline';
+  static const String _defaultRole = 'Parent';
   static const String _defaultDiagnosis = 'Diagnostic : Autisme léger';
   static const String _defaultJourney =
       'Nous naviguons dans ce parcours depuis 3 ans. Toujours ouvert à partager nos découvertes sur les outils sensoriels.';
@@ -292,9 +292,18 @@ class _CommunityMemberProfileScreenState
     'Soutien Émotionnel',
   ];
 
+  /// "Parent de [prénom enfant]" si l'API a renvoyé firstChildName, sinon rôle passé en param ou "Parent".
+  String get _displayRole {
+    final childName = _loadedPublicInfo?.firstChildName?.trim();
+    if (childName != null && childName.isNotEmpty) {
+      return 'Parent de $childName';
+    }
+    return widget.memberRole ?? _defaultRole;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final role = widget.memberRole ?? _defaultRole;
+    final role = _displayRole;
 
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 

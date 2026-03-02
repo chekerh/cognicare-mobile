@@ -309,6 +309,7 @@ class CommunityService {
       email: m['email'] as String?,
       phone: m['phone'] as String?,
       location: m['location'] as String?,
+      firstChildName: m['firstChildName'] as String?,
     );
   }
 
@@ -432,12 +433,15 @@ class MemberPublicInfo {
     this.email,
     this.phone,
     this.location,
+    this.firstChildName,
   });
   final String fullName;
   final String? profilePic;
   final String? email;
   final String? phone;
   final String? location;
+  /// Nom du premier enfant (pour afficher "Parent de X").
+  final String? firstChildName;
 }
 
 class MemberContactInfo {

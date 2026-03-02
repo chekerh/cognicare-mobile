@@ -15,6 +15,7 @@ import {
   FollowRequestStatus,
 } from './schemas/follow-request.schema';
 import { User, UserDocument } from '../users/schemas/user.schema';
+import { Child, ChildDocument } from '../children/schemas/child.schema';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -49,6 +50,7 @@ export class CommunityService {
     @InjectModel(FollowRequest.name)
     private followRequestModel: Model<FollowRequestDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Child.name) private childModel: Model<ChildDocument>,
     private cloudinary: CloudinaryService,
     private notifications: NotificationsService,
   ) {}
@@ -481,23 +483,34 @@ export class CommunityService {
     );
   }
 
-  /** Infos publiques d'un membre (nom, photo, email, phone, location) pour afficher le profil. */
+  /** Infos publiques d'un membre (nom, photo, email, phone, location, firstChildName) pour afficher le profil. */
   async getMemberPublicInfo(
     userId: string,
-  ): Promise<{ fullName: string; profilePic?: string; email?: string; phone?: string; location?: string } | null> {
+  ): Promise<{ fullName: string; profilePic?: string; email?: string; phone?: string; location?: string; firstChildName?: string } | null> {
     const user = await this.userModel
       .findById(userId)
-      .select('fullName profilePic email phone location')
+      .select('fullName profilePic email phone location role')
       .lean()
       .exec();
     if (!user) return null;
-    const u = user as { fullName?: string; profilePic?: string; email?: string; phone?: string; location?: string };
+    const u = user as { fullName?: string; profilePic?: string; email?: string; phone?: string; location?: string; role?: string };
+    let firstChildName: string | undefined;
+    if (u.role === 'family') {
+      const firstChild = await this.childModel
+        .findOne({ parentId: new Types.ObjectId(userId), deletedAt: null })
+        .select('fullName')
+        .sort({ createdAt: 1 })
+        .lean()
+        .exec();
+      firstChildName = (firstChild as { fullName?: string } | null)?.fullName;
+    }
     return {
       fullName: u.fullName ?? 'Membre',
       profilePic: u.profilePic,
       email: u.email,
       phone: u.phone,
       location: u.location,
+      firstChildName,
     };
   }
 
