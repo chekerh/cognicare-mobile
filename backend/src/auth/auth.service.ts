@@ -619,6 +619,9 @@ export class AuthService {
     phone?: string;
     role: string;
     profilePic?: string;
+    location?: string;
+    locationLat?: number;
+    locationLng?: number;
     createdAt: Date;
   }> {
     const user = await this.userModel.findById(userId);
@@ -650,6 +653,9 @@ export class AuthService {
     phone?: string;
     role: string;
     profilePic?: string;
+    location?: string;
+    locationLat?: number;
+    locationLng?: number;
     createdAt: Date;
   }> {
     const user = await this.userModel.findById(userId);
@@ -676,6 +682,9 @@ export class AuthService {
     phone?: string;
     role: string;
     profilePic?: string;
+    location?: string;
+    locationLat?: number;
+    locationLng?: number;
     createdAt: Date;
   }> {
     const user = await this.userModel.findById(userId);
