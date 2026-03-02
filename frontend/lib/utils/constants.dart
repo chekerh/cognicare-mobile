@@ -49,6 +49,10 @@ class AppConstants {
       '/api/v1/community/follow-requests/pending';
   static const String communityFriendsEndpoint =
       '/api/v1/community/follow-requests/friends';
+  static String communityMemberContactEndpoint(String userId) =>
+      '/api/v1/community/members/$userId/contact-info';
+  static String communityMemberPublicInfoEndpoint(String userId) =>
+      '/api/v1/community/members/$userId/public-info';
   static const String communityFollowRequestsStatusEndpoint =
       '/api/v1/community/follow-requests/status';
   static String communityFollowRequestAcceptEndpoint(String id) =>

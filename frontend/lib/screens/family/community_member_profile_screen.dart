@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/community_post.dart';
@@ -7,8 +8,14 @@ import '../../services/auth_service.dart';
 import '../../services/community_service.dart';
 import '../../utils/constants.dart';
 
-const Color _primary = Color(0xFFA3D9E2);
+/// Couleurs alignées sur le HTML Premium (primary #a3dae1, gradient).
+const Color _primary = Color(0xFFA3DAE1);
 const Color _secondary = Color(0xFF7FBAC4);
+const Color _bgLight = Color(0xFFF8FAFC);
+const Color _cardLight = Color(0xFFFFFFFF);
+const Color _slate800 = Color(0xFF334155);
+const Color _slate500 = Color(0xFF64748B);
+const Color _slate400 = Color(0xFF94A3B8);
 
 /// Profil d'un membre de la communauté — avatar, nom, rôle, Message, Suivre, Parcours, Principaux, stats.
 class CommunityMemberProfileScreen extends StatefulWidget {
@@ -47,7 +54,7 @@ class CommunityMemberProfileScreen extends StatefulWidget {
     return CommunityMemberProfileScreen(
       memberId: e['memberId'] as String? ?? '',
       memberName: e['memberName'] as String? ?? 'Membre',
-      memberRole: e['memberRole'] as String? ?? 'Parent de Léo',
+      memberRole: e['memberRole'] as String? ?? 'Parent de Iline',
       memberImageUrl: e['memberImageUrl'] as String?,
       memberDiagnosis:
           e['memberDiagnosis'] as String? ?? 'Diagnostic : Autisme léger',
@@ -79,6 +86,15 @@ class _CommunityMemberProfileScreenState
   bool _loadingPosts = false;
   String? _postsError;
 
+  List<CommunityFriend>? _memberFriends;
+  bool _loadingFriends = false;
+
+  MemberContactInfo? _memberContactInfo;
+  bool _loadingContact = false;
+
+  /// Quand on ouvre le profil via un lien (ex. chat), on n'a que memberId — on charge nom et photo ici.
+  MemberPublicInfo? _loadedPublicInfo;
+
   @override
   void initState() {
     super.initState();
@@ -86,6 +102,64 @@ class _CommunityMemberProfileScreenState
     _loadPresence();
     _loadFriendsCheck();
     _loadMemberPosts();
+    _loadMemberFriends();
+    _loadMemberContactInfo();
+    if (widget.memberId.isNotEmpty &&
+        (widget.memberImageUrl == null || widget.memberImageUrl!.isEmpty ||
+            widget.memberName.isEmpty)) {
+      _loadMemberPublicInfo();
+    }
+  }
+
+  Future<void> _loadMemberPublicInfo() async {
+    if (widget.memberId.isEmpty) return;
+    try {
+      final info = await CommunityService().getMemberPublicInfo(widget.memberId);
+      if (!mounted) return;
+      setState(() => _loadedPublicInfo = info);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadedPublicInfo = null);
+    }
+  }
+
+  Future<void> _loadMemberContactInfo() async {
+    if (widget.memberId.isEmpty) return;
+    setState(() => _loadingContact = true);
+    try {
+      final info = await CommunityService().getMemberContactInfo(widget.memberId);
+      if (!mounted) return;
+      setState(() {
+        _memberContactInfo = info;
+        _loadingContact = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _memberContactInfo = null;
+        _loadingContact = false;
+      });
+    }
+  }
+
+  Future<void> _loadMemberFriends() async {
+    if (widget.memberId.isEmpty) return;
+    setState(() => _loadingFriends = true);
+    try {
+      final list =
+          await CommunityService().getFriendsOfUser(widget.memberId);
+      if (!mounted) return;
+      setState(() {
+        _memberFriends = list;
+        _loadingFriends = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _memberFriends = [];
+        _loadingFriends = false;
+      });
+    }
   }
 
   Future<void> _loadMemberPosts() async {
@@ -157,49 +231,41 @@ class _CommunityMemberProfileScreenState
     }
   }
 
-  static const String _defaultRole = 'Parent de Léo';
+  static const String _defaultRole = 'Parent de Iline';
   static const String _defaultDiagnosis = 'Diagnostic : Autisme léger';
   static const String _defaultJourney =
       'Nous naviguons dans ce parcours depuis 3 ans. Toujours ouvert à partager nos découvertes sur les outils sensoriels.';
   static const List<String> _defaultTags = [
-    'Conseils en orthophonie',
-    'Soutien émotionnel',
-    'Activités sensorielles',
-    'Inclusion scolaire',
+    'Orthophonie',
+    'Soutien Émotionnel',
   ];
 
   @override
   Widget build(BuildContext context) {
     final role = widget.memberRole ?? _defaultRole;
-    final diagnosis = widget.memberDiagnosis ?? _defaultDiagnosis;
-    final journey = widget.memberJourney ?? _defaultJourney;
-    final tags = widget.memberTags ?? _defaultTags;
-    final posts = _memberPosts != null ? _memberPosts!.length : (widget.postsCount ?? 124);
-    final followers = widget.followersCount ?? 1200;
-    final helps = widget.helpsCount ?? 450;
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
-      backgroundColor: _primary,
+      backgroundColor: _bgLight,
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(context),
+            _buildGradientHeader(context),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
+                padding: EdgeInsets.fromLTRB(24, 16, 24, 32 + bottomPadding),
                 child: Column(
                   children: [
-                    _buildProfileSection(widget.memberName, role),
+                    _buildProfileSection(_displayName, role),
                     const SizedBox(height: 24),
                     _buildActionButtons(context),
                     const SizedBox(height: 32),
-                    _buildParcoursCard(diagnosis, journey),
-                    const SizedBox(height: 16),
-                    _buildPrincipauxCard(tags),
+                    _buildMesAmisSection(),
+                    const SizedBox(height: 24),
+                    _buildInformationsPersonnellesCard(),
                     const SizedBox(height: 24),
                     _buildPublicationsSection(),
-                    const SizedBox(height: 24),
-                    _buildStatsCard(posts, followers, helps),
                   ],
                 ),
               ),
@@ -210,104 +276,168 @@ class _CommunityMemberProfileScreenState
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildGradientHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(
-            onPressed: () => context.pop(),
-            icon: const Icon(Icons.close, color: Color(0xFF334155)),
-            style: IconButton.styleFrom(
-                backgroundColor: Colors.white.withOpacity(0.3)),
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => context.pop(),
+              borderRadius: BorderRadius.circular(999),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Icon(Icons.arrow_back_ios_new, color: _slate800, size: 20),
+              ),
+            ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.more_horiz, color: Colors.grey.shade700),
-            style: IconButton.styleFrom(
-                backgroundColor: Colors.white.withOpacity(0.3)),
-          ),
+          const SizedBox(width: 40),
         ],
       ),
     );
   }
 
+  String get _displayName =>
+      _loadedPublicInfo?.fullName ?? widget.memberName;
+
+  String? get _displayImageUrl =>
+      _loadedPublicInfo?.profilePic ?? widget.memberImageUrl;
+
   Widget _buildProfileSection(String name, String role) {
+    final imageUrl = _displayImageUrl != null && _displayImageUrl!.isNotEmpty
+        ? AppConstants.fullImageUrl(_displayImageUrl!)
+        : null;
     return Column(
       children: [
         Stack(
           clipBehavior: Clip.none,
           children: [
-            CircleAvatar(
-              radius: 64,
-              backgroundColor: Colors.white,
-              child: CircleAvatar(
-                radius: 60,
-                backgroundColor: Colors.grey.shade200,
-                backgroundImage:
-                    widget.memberImageUrl != null &&
-                            widget.memberImageUrl!.isNotEmpty
-                        ? NetworkImage(widget.memberImageUrl!)
-                        : null,
-                child: widget.memberImageUrl == null ||
-                        widget.memberImageUrl!.isEmpty
-                    ? Text(
-                        name.substring(0, 1).toUpperCase(),
-                        style: const TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            color: _secondary),
-                      )
-                    : null,
-              ),
-            ),
-            if (_isOnline == true)
-              Positioned(
-                bottom: 4,
-                right: 4,
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4)),
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: _cardLight, width: 6),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _primary.withOpacity(0.15),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: SizedBox(
+                    width: 128,
+                    height: 128,
+                    child: imageUrl != null
+                        ? Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (_, child, progress) {
+                              if (progress == null) return child;
+                              return Container(
+                                color: _cardLight,
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    value: progress.expectedTotalBytes != null
+                                        ? progress.cumulativeBytesLoaded /
+                                            progress.expectedTotalBytes!
+                                        : null,
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              );
+                            },
+                            errorBuilder: (_, __, ___) => Container(
+                              color: _primary.withOpacity(0.2),
+                              child: Center(
+                                child: Text(
+                                  name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?',
+                                  style: const TextStyle(
+                                    fontSize: 48,
+                                    fontWeight: FontWeight.bold,
+                                    color: _secondary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        : Container(
+                            color: _primary.withOpacity(0.2),
+                            child: Center(
+                              child: Text(
+                                name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?',
+                                style: const TextStyle(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                  color: _secondary,
+                                ),
+                              ),
+                            ),
+                          ),
+                  ),
                 ),
               ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Text(
-          name,
-          style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF334155)),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          _isOnline == true ? 'En ligne' : 'Hors ligne',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: _isOnline == true
-                ? Colors.green.shade700
-                : Colors.grey.shade600,
+              if (_isOnline == true)
+                Positioned(
+                  bottom: 2,
+                  right: 2,
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: _cardLight, width: 4),
+                    ),
+                  ),
+                ),
+            ],
           ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          role,
-          style: TextStyle(
-              fontSize: 16,
+          const SizedBox(height: 16),
+          Text(
+            name,
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: _slate800,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            role.toUpperCase(),
+            style: TextStyle(
+              fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Colors.grey.shade600),
-        ),
-      ],
-    );
+              color: _slate500,
+              letterSpacing: 1.2,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _isOnline == true ? 'En ligne' : 'Hors ligne',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: _isOnline == true ? _primary : _slate400,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      );
   }
 
   Widget _buildActionButtons(BuildContext context) {
@@ -316,67 +446,389 @@ class _CommunityMemberProfileScreenState
     final isAccepted =
         _followStatus == 'accepted' || _isInFriendsList;
 
-    return Row(
-      children: [
-        if (!isAccepted) ...[
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Row(
+        children: [
           Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () {
-                context.push(
-                  '${AppConstants.familyPrivateChatRoute}?id=${Uri.encodeComponent(widget.memberId)}&name=${Uri.encodeComponent(widget.memberName)}${widget.memberImageUrl != null && widget.memberImageUrl!.isNotEmpty ? '&imageUrl=${Uri.encodeComponent(widget.memberImageUrl!)}' : ''}',
-                );
-              },
-              icon: const Icon(Icons.mail_outline, size: 20),
-              label: Text(loc.privateMessageAction),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: _secondary,
-                side: const BorderSide(color: _secondary),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-        ],
-        Expanded(
-          child: _followLoading
-              ? const SizedBox(
-                  height: 48,
-                  child: Center(
-                      child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2))),
-                )
-              : ElevatedButton.icon(
-                  onPressed: isAccepted
-                      ? null
-                      : isPending
-                          ? () => _onCancelRequest(context)
-                          : () => _onFollowTap(context),
-                  icon: Icon(
-                      isAccepted ? Icons.people : Icons.person_add,
-                      size: 20),
-                  label: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      isAccepted
-                          ? loc.followStatusFriends
-                          : isPending
-                              ? loc.cancelFollowRequestLabel
-                              : loc.followAction,
-                      maxLines: 1,
+            child: Material(
+                color: _primary,
+                borderRadius: BorderRadius.circular(20),
+                shadowColor: _primary.withOpacity(0.3),
+                elevation: 4,
+                child: InkWell(
+                  onTap: () {
+                    context.push(
+                      '${AppConstants.familyPrivateChatRoute}?id=${Uri.encodeComponent(widget.memberId)}&name=${Uri.encodeComponent(_displayName)}${_displayImageUrl != null && _displayImageUrl!.isNotEmpty ? '&imageUrl=${Uri.encodeComponent(AppConstants.fullImageUrl(_displayImageUrl!))}' : ''}',
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.chat_bubble_outline, color: _slate800, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          loc.privateMessageAction,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: _slate800,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isPending || isAccepted
-                        ? _secondary.withOpacity(0.6)
-                        : _secondary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    disabledBackgroundColor: _secondary.withOpacity(0.5),
-                    disabledForegroundColor: Colors.white70,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _followLoading
+                  ? const SizedBox(
+                      height: 52,
+                      child: Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    )
+                  : Material(
+                      color: isAccepted ? _slate800.withOpacity(0.6) : _slate800,
+                      borderRadius: BorderRadius.circular(20),
+                      child: InkWell(
+                        onTap: isAccepted
+                            ? null
+                            : isPending
+                                ? () => _onCancelRequest(context)
+                                : () => _onFollowTap(context),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                isAccepted ? Icons.people : Icons.person_add,
+                                size: 20,
+                                color: isAccepted ? Colors.white70 : Colors.white,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                isAccepted
+                                    ? loc.followStatusFriends
+                                    : isPending
+                                        ? loc.cancelFollowRequestLabel
+                                        : loc.followAction,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: isAccepted ? Colors.white70 : Colors.white,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+            ),
+            const SizedBox(width: 12),
+            Material(
+              color: _slate800.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(20),
+              child: InkWell(
+                onTap: () {
+                  final base = AppConstants.baseUrl.endsWith('/')
+                      ? AppConstants.baseUrl.substring(0, AppConstants.baseUrl.length - 1)
+                      : AppConstants.baseUrl;
+                  final profileLink = '$base/profile/member/${widget.memberId}';
+                  final shareText = 'Découvre le profil de $_displayName sur CogniCare : $profileLink';
+                  Share.share(
+                    shareText,
+                    subject: 'Profil de $_displayName',
+                  );
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: const SizedBox(
+                  width: 56,
+                  height: 52,
+                  child: Icon(Icons.share, color: _slate500, size: 22),
+                ),
+              ),
+            ),
+          ],
+        ),
+    );
+  }
+
+  Widget _buildMesAmisSection() {
+    final count = _memberFriends?.length ?? 0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text.rich(
+                TextSpan(
+                  text: 'Mes Amis ',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: _slate800,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: '($count)',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.normal,
+                        color: _slate400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: () => context.push(
+                  AppConstants.familyFriendsRoute,
+                  extra: {
+                    'userId': widget.memberId,
+                    'memberName': _displayName,
+                  },
+                ),
+                child: const Text(
+                  'Tout voir',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: _primary,
                   ),
                 ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        _loadingFriends
+            ? const SizedBox(
+                height: 88,
+                child: Center(
+                  child: SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              )
+            : count == 0
+                ? const SizedBox(
+                    height: 88,
+                    child: Center(
+                      child: Text(
+                        'Aucun ami',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: _slate400,
+                        ),
+                      ),
+                    ),
+                  )
+                : SizedBox(
+                    height: 88,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: (_memberFriends ?? []).map((f) {
+                        final imageUrl = f.profilePic != null && f.profilePic!.isNotEmpty
+                            ? AppConstants.fullImageUrl(f.profilePic!)
+                            : null;
+                        return _friendChip(f.fullName, imageUrl, highlighted: false);
+                      }).toList(),
+                    ),
+                  ),
+      ],
+    );
+  }
+
+  Widget _friendChip(String name, String? imageUrl, {bool highlighted = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: highlighted ? Border.all(color: _primary, width: 2) : null,
+              boxShadow: highlighted
+                  ? [
+                      BoxShadow(
+                        color: _primary.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: CircleAvatar(
+              radius: 32,
+              backgroundColor: _primary.withOpacity(0.2),
+              backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
+              child: imageUrl == null
+                  ? Text(
+                      name.isNotEmpty ? name.substring(0, 1) : '?',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: _primary,
+                          fontSize: 20),
+                    )
+                  : null,
+            ),
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            width: 64,
+            child: Text(
+              name,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: _slate500,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInformationsPersonnellesCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _cardLight,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Informations personnelles',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: _slate800,
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (_loadingContact)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            )
+          else if (_memberContactInfo == null)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Devenez ami pour voir les informations de contact.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _slate400,
+                ),
+              ),
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if ((_memberContactInfo!.email ?? '').isNotEmpty)
+                  _buildContactRow(
+                    Icons.email_outlined,
+                    'Email',
+                    _memberContactInfo!.email!,
+                  ),
+                if ((_memberContactInfo!.email ?? '').isNotEmpty &&
+                    (_memberContactInfo!.phone ?? '').isNotEmpty)
+                  const SizedBox(height: 12),
+                if ((_memberContactInfo!.phone ?? '').isNotEmpty)
+                  _buildContactRow(
+                    Icons.phone_outlined,
+                    'Téléphone',
+                    _memberContactInfo!.phone!,
+                  ),
+                if ((_memberContactInfo!.email ?? '').isEmpty &&
+                    (_memberContactInfo!.phone ?? '').isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'Aucune information de contact partagée.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: _slate400,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContactRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: _primary),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _slate400,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              SelectableText(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: _slate800,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -469,113 +921,19 @@ class _CommunityMemberProfileScreenState
     }
   }
 
-  Widget _buildParcoursCard(String diagnosis, String journey) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 12,
-              offset: const Offset(0, 4))
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.medical_services, color: _secondary, size: 24),
-              const SizedBox(width: 12),
-              Text('Parcours',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade500)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(diagnosis,
-              style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF334155))),
-          const SizedBox(height: 8),
-          Text(journey,
-              style: TextStyle(
-                  fontSize: 14, color: Colors.grey.shade600, height: 1.5)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPrincipauxCard(List<String> tags) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 12,
-              offset: const Offset(0, 4))
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.auto_awesome, color: _secondary, size: 24),
-              const SizedBox(width: 12),
-              Text('Principaux',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade500)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: tags
-                .map((t) => Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: _primary.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: _primary.withOpacity(0.3)),
-                      ),
-                      child: Text(t,
-                          style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFF334155))),
-                    ))
-                .toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildPublicationsSection() {
     if (_loadingPosts) {
       return Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _cardLight,
           borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.grey.shade100),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withOpacity(0.04),
               blurRadius: 12,
-              offset: const Offset(0, 4),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -595,30 +953,31 @@ class _CommunityMemberProfileScreenState
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _cardLight,
           borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.grey.shade100),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withOpacity(0.04),
               blurRadius: 12,
-              offset: const Offset(0, 4),
+              offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Column(
           children: [
-            Text(
-              'Publications',
+            const Text(
+              'Publications récentes',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey.shade700,
+                color: _slate800,
               ),
             ),
             const SizedBox(height: 12),
             Text(
               _postsError!,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              style: TextStyle(fontSize: 14, color: _slate500),
               textAlign: TextAlign.center,
             ),
           ],
@@ -630,13 +989,13 @@ class _CommunityMemberProfileScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          padding: const EdgeInsets.only(left: 8, bottom: 12),
           child: Text(
-            'Publications',
-            style: TextStyle(
-              fontSize: 16,
+            'Publications récentes',
+            style: const TextStyle(
+              fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
+              color: _slate800,
             ),
           ),
         ),
@@ -644,13 +1003,14 @@ class _CommunityMemberProfileScreenState
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: _cardLight,
               borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.grey.shade100),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Colors.black.withOpacity(0.04),
                   blurRadius: 12,
-                  offset: const Offset(0, 4),
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
@@ -664,7 +1024,7 @@ class _CommunityMemberProfileScreenState
                     'Aucune publication',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey.shade600,
+                      color: _slate500,
                     ),
                   ),
                 ],
@@ -692,14 +1052,16 @@ class _CommunityMemberProfileScreenState
         : null;
     return Container(
       padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _cardLight,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 12,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -710,12 +1072,12 @@ class _CommunityMemberProfileScreenState
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor: _primary.withOpacity(0.3),
+                backgroundColor: _primary.withOpacity(0.2),
                 backgroundImage: imageUrl != null
                     ? NetworkImage(imageUrl)
                     : null,
                 child: imageUrl == null
-                    ? const Icon(Icons.person, color: _secondary, size: 22)
+                    ? const Icon(Icons.person, color: _primary, size: 22)
                     : null,
               ),
               const SizedBox(width: 12),
@@ -727,15 +1089,15 @@ class _CommunityMemberProfileScreenState
                       post.authorName,
                       style: const TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF334155),
+                        fontWeight: FontWeight.bold,
+                        color: _slate800,
                       ),
                     ),
                     Text(
                       post.timeAgo,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: _slate400,
                       ),
                     ),
                   ],
@@ -743,44 +1105,19 @@ class _CommunityMemberProfileScreenState
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
             post.text,
             style: const TextStyle(
               fontSize: 14,
-              color: Color(0xFF334155),
-              height: 1.45,
+              color: _slate800,
+              height: 1.5,
             ),
           ),
-          if (post.tags.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: post.tags
-                  .map((t) => Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: _primary.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          t,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: _secondary,
-                          ),
-                        ),
-                      ))
-                  .toList(),
-            ),
-          ],
           if (postImageUrl != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               child: Image.network(
                 postImageUrl,
                 width: double.infinity,
@@ -788,82 +1125,46 @@ class _CommunityMemberProfileScreenState
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   height: 200,
-                  color: _primary.withOpacity(0.2),
+                  color: Colors.grey.shade100,
                   child: const Icon(Icons.broken_image, size: 48),
                 ),
               ),
             ),
           ],
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+          Divider(height: 1, color: Colors.grey.shade100),
+          const SizedBox(height: 16),
           Row(
             children: [
-              Icon(Icons.favorite_border, size: 18, color: Colors.grey.shade600),
-              const SizedBox(width: 4),
+              Icon(
+                post.likeCount > 0 ? Icons.favorite : Icons.favorite_border,
+                size: 20,
+                color: post.likeCount > 0 ? _primary : _slate500,
+              ),
+              const SizedBox(width: 6),
               Text(
                 '${post.likeCount}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade600,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: _slate500,
                 ),
               ),
               const SizedBox(width: 16),
-              Icon(Icons.chat_bubble_outline,
-                  size: 18, color: Colors.grey.shade600),
-              const SizedBox(width: 4),
+              Icon(Icons.chat_bubble_outline, size: 20, color: _slate500),
+              const SizedBox(width: 6),
               Text(
                 '${post.commentCount}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade600,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: _slate500,
                 ),
               ),
+              const Spacer(),
+              Icon(Icons.bookmark_border, size: 22, color: _slate400),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatsCard(int posts, int followers, int helps) {
-    return Row(
-      children: [
-        Expanded(
-          child: _statBox('$posts', 'Posts'),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _statBox(
-              '${followers >= 1000 ? '${(followers / 1000).toStringAsFixed(1)}k' : followers}',
-              'Abonnés'),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _statBox('$helps', 'Aides'),
-        ),
-      ],
-    );
-  }
-
-  Widget _statBox(String value, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.4),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        children: [
-          Text(value,
-              style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF334155))),
-          const SizedBox(height: 4),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade600)),
         ],
       ),
     );

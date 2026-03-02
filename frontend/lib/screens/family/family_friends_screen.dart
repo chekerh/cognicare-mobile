@@ -20,7 +20,15 @@ String _imageUrl(String? path) {
 }
 
 class FamilyFriendsScreen extends StatefulWidget {
-  const FamilyFriendsScreen({super.key});
+  const FamilyFriendsScreen({
+    super.key,
+    this.userId,
+    this.memberName,
+  });
+
+  /// Si défini, affiche les amis de cet utilisateur (ex. profil de Malek → amis de Malek).
+  final String? userId;
+  final String? memberName;
 
   @override
   State<FamilyFriendsScreen> createState() => _FamilyFriendsScreenState();
@@ -40,13 +48,17 @@ class _FamilyFriendsScreenState extends State<FamilyFriendsScreen> {
     _load();
   }
 
+  bool get _isViewingOtherProfile => widget.userId != null && widget.userId!.isNotEmpty;
+
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final friendsFut = _community.getFriends();
-      final pendingFut = _community.getPendingFollowRequests();
-      final friends = await friendsFut;
-      final pending = await pendingFut;
+      final friends = _isViewingOtherProfile
+          ? await _community.getFriendsOfUser(widget.userId!)
+          : await _community.getFriends();
+      final pending = _isViewingOtherProfile
+          ? <PendingFollowRequest>[]
+          : await _community.getPendingFollowRequests();
       if (!mounted) return;
       setState(() {
         _friends = friends;
@@ -100,8 +112,10 @@ class _FamilyFriendsScreenState extends State<FamilyFriendsScreen> {
                   : ListView(
                       padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
                       children: [
-                        _buildPendingCard(loc),
-                        const SizedBox(height: 32),
+                        if (!_isViewingOtherProfile) ...[
+                          _buildPendingCard(loc),
+                          const SizedBox(height: 32),
+                        ],
                         Text(
                           _friendsSectionTitle(loc),
                           style: const TextStyle(
@@ -166,35 +180,45 @@ class _FamilyFriendsScreenState extends State<FamilyFriendsScreen> {
                   ),
                 ),
               ),
-              Text(
-                _myFriendsTitle(loc),
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              Expanded(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    _myFriendsTitle(loc),
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  Material(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                    child: InkWell(
-                      onTap: () => context.push(AppConstants.familyFindFamiliesRoute),
+                  if (!_isViewingOtherProfile)
+                    Material(
+                      color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20),
-                      child: const SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: Icon(
-                          Icons.person_add,
-                          color: Colors.white,
-                          size: 24,
+                      child: InkWell(
+                        onTap: () => context.push(AppConstants.familyFindFamiliesRoute),
+                        borderRadius: BorderRadius.circular(20),
+                        child: const SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: Icon(
+                            Icons.person_add,
+                            color: Colors.white,
+                            size: 24,
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  if (_pending.isNotEmpty)
+                    )
+                  else
+                    const SizedBox(width: 40, height: 40),
+                  if (!_isViewingOtherProfile && _pending.isNotEmpty)
                     Positioned(
                       top: -2,
                       right: -2,
@@ -220,33 +244,34 @@ class _FamilyFriendsScreenState extends State<FamilyFriendsScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.25),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
-            ),
-            child: TextField(
-              onChanged: (v) => setState(() => _searchQuery = v),
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-              decoration: InputDecoration(
-                hintText: _searchFriendHint(loc),
-                hintStyle: TextStyle(
-                  color: Colors.white.withOpacity(0.85),
-                  fontSize: 16,
+          if (!_isViewingOtherProfile)
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.25),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+              ),
+              child: TextField(
+                onChanged: (v) => setState(() => _searchQuery = v),
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+                decoration: InputDecoration(
+                  hintText: _searchFriendHint(loc),
+                  hintStyle: TextStyle(
+                    color: Colors.white.withOpacity(0.85),
+                    fontSize: 16,
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Colors.white.withOpacity(0.85),
+                    size: 22,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  filled: true,
+                  fillColor: Colors.transparent,
                 ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: Colors.white.withOpacity(0.85),
-                  size: 22,
-                ),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                filled: true,
-                fillColor: Colors.transparent,
               ),
             ),
-          ),
         ],
       ),
     );
@@ -417,12 +442,20 @@ class _FamilyFriendsScreenState extends State<FamilyFriendsScreen> {
     );
   }
 
-  String _myFriendsTitle(AppLocalizations loc) => 'Mes Amis';
+  String _myFriendsTitle(AppLocalizations loc) {
+    if (_isViewingOtherProfile && widget.memberName != null && widget.memberName!.isNotEmpty) {
+      return 'Amis de ${widget.memberName}';
+    }
+    return 'Mes Amis';
+  }
+
   String _searchFriendHint(AppLocalizations loc) => 'Rechercher un ami...';
   String _friendRequestsTitle(AppLocalizations loc) => 'Demandes d\'amis';
   String _noNewRequests(AppLocalizations loc) => 'Aucune nouvelle demande';
   String _newRequestsCount(AppLocalizations loc, int n) =>
       n == 1 ? '1 nouvelle demande' : '$n nouvelles demandes';
   String _friendsSectionTitle(AppLocalizations loc) =>
-      'Tous les amis (${_filteredFriends.length})';
+      _isViewingOtherProfile
+          ? 'Tous les amis (${_filteredFriends.length})'
+          : 'Tous les amis (${_filteredFriends.length})';
 }

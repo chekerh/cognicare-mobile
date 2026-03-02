@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/foundation.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
@@ -1101,16 +1102,7 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
                                     ),
                                   ],
                                 )
-                          : Text(
-                              msg.text,
-                              style: TextStyle(
-                                fontSize: 15,
-                                        color: msg.isMe
-                                            ? Colors.white
-                                            : _textPrimary,
-                                height: 1.4,
-                              ),
-                            ),
+                          : _buildMessageText(context, msg),
                 ),
                 const SizedBox(height: 6),
                 Row(
@@ -1133,6 +1125,72 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
             ),
           ),
           if (msg.isMe) const SizedBox(width: 10),
+        ],
+      ),
+    );
+  }
+
+  /// Détecte une URL de profil membre (ex. https://.../profile/member/69a4996dd2b3d475e455184a).
+  static final RegExp _profileLinkRegex = RegExp(
+    r'https?://[^\s]+/profile/member/([a-fA-F0-9]{24})',
+  );
+
+  Widget _buildMessageText(BuildContext context, _Msg msg) {
+    final text = msg.text;
+    final color = msg.isMe ? Colors.white : _textPrimary;
+    const fontSize = 15.0;
+    const height = 1.4;
+
+    final match = _profileLinkRegex.firstMatch(text);
+    if (match == null) {
+      return Text(
+        text,
+        style: TextStyle(
+          fontSize: fontSize,
+          color: color,
+          height: height,
+        ),
+      );
+    }
+
+    final memberId = match.group(1)!;
+    final before = text.substring(0, match.start);
+    final link = match.group(0)!;
+    final after = text.substring(match.end);
+
+    return RichText(
+      textHeightBehavior: const TextHeightBehavior(
+        applyHeightToFirstAscent: false,
+        applyHeightToLastDescent: false,
+      ),
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: fontSize,
+          color: color,
+          height: height,
+        ),
+        children: [
+          TextSpan(text: before),
+          TextSpan(
+            text: link,
+            style: TextStyle(
+              color: msg.isMe ? Colors.white : _primary,
+              decoration: TextDecoration.underline,
+              fontWeight: FontWeight.w600,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                context.push(
+                  AppConstants.familyCommunityMemberProfileRoute,
+                  extra: {
+                    'memberId': memberId,
+                    'memberName': '',
+                    'memberImageUrl': null,
+                  },
+                );
+              },
+          ),
+          TextSpan(text: after),
         ],
       ),
     );

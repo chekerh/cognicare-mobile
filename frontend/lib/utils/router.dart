@@ -766,7 +766,15 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           ),
           GoRoute(
             path: 'friends',
-            builder: (context, state) => const FamilyFriendsScreen(),
+            builder: (context, state) {
+              final extra = (state.extra as Map<String, dynamic>?) ?? {};
+              final userId = extra['userId'] as String?;
+              final memberName = extra['memberName'] as String?;
+              return FamilyFriendsScreen(
+                userId: userId,
+                memberName: memberName,
+              );
+            },
           ),
           GoRoute(
             path: 'friend-requests',

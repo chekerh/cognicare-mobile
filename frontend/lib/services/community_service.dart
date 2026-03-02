@@ -245,8 +245,17 @@ class CommunityService {
 
   /// List of accepted friends (people I follow or who follow me).
   Future<List<CommunityFriend>> getFriends() async {
-    final uri = Uri.parse(
-        '${AppConstants.baseUrl}${AppConstants.communityFriendsEndpoint}');
+    return getFriendsOfUser('');
+  }
+
+  /// List of friends of [userId]. If [userId] is empty, returns current user's friends.
+  Future<List<CommunityFriend>> getFriendsOfUser(String userId) async {
+    final uri = userId.isEmpty
+        ? Uri.parse(
+            '${AppConstants.baseUrl}${AppConstants.communityFriendsEndpoint}')
+        : Uri.parse(
+                '${AppConstants.baseUrl}${AppConstants.communityFriendsEndpoint}')
+            .replace(queryParameters: {'userId': userId});
     final response = await _client.get(uri, headers: await _headers());
     if (response.statusCode != 200) return [];
     final list = jsonDecode(response.body) as List<dynamic>?;
@@ -282,6 +291,37 @@ class CommunityService {
           );
         })
         .toList();
+  }
+
+  /// Get member public info (fullName, profilePic) for profile display (e.g. when opening from shared link).
+  Future<MemberPublicInfo?> getMemberPublicInfo(String userId) async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.communityMemberPublicInfoEndpoint(userId)}');
+    final response = await _client.get(uri, headers: await _headers());
+    if (response.statusCode != 200) return null;
+    final data = jsonDecode(response.body);
+    if (data == null) return null;
+    final m = data as Map<String, dynamic>;
+    return MemberPublicInfo(
+      fullName: m['fullName'] as String? ?? 'Membre',
+      profilePic: m['profilePic'] as String?,
+    );
+  }
+
+  /// Get member contact info (email, phone) — only if current user is friends with [userId].
+  Future<MemberContactInfo?> getMemberContactInfo(String userId) async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.communityMemberContactEndpoint(userId)}');
+    final response = await _client.get(uri, headers: await _headers());
+    if (response.statusCode != 200) return null;
+    final data = jsonDecode(response.body);
+    if (data == null) return null;
+    final m = data as Map<String, dynamic>;
+    return MemberContactInfo(
+      fullName: m['fullName'] as String? ?? 'Membre',
+      email: m['email'] as String?,
+      phone: m['phone'] as String?,
+    );
   }
 
   /// Get follow status from current user toward [targetUserId].
@@ -377,6 +417,26 @@ class FollowRequestResult {
   const FollowRequestResult({required this.requestId, required this.status});
   final String requestId;
   final String status;
+}
+
+class MemberPublicInfo {
+  const MemberPublicInfo({
+    required this.fullName,
+    this.profilePic,
+  });
+  final String fullName;
+  final String? profilePic;
+}
+
+class MemberContactInfo {
+  const MemberContactInfo({
+    required this.fullName,
+    this.email,
+    this.phone,
+  });
+  final String fullName;
+  final String? email;
+  final String? phone;
 }
 
 class FollowStatusResult {

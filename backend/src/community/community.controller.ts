@@ -196,11 +196,46 @@ export class CommunityController {
     return this.communityService.listPendingFollowRequests(req.user.id);
   }
 
+  @Get('members/:userId/public-info')
+  @ApiOperation({
+    summary: 'Get member public info (fullName, profilePic) for profile display',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '{ fullName, profilePic? } or null if not found',
+  })
+  async getMemberPublicInfo(@Param('userId') userId: string) {
+    return this.communityService.getMemberPublicInfo(userId);
+  }
+
+  @Get('members/:userId/contact-info')
+  @ApiOperation({
+    summary: 'Get member contact info (email, phone) — only if friends',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '{ fullName, email?, phone? } or null if not friends',
+  })
+  async getMemberContactInfo(
+    @Request() req: { user: { id: string } },
+    @Param('userId') userId: string,
+  ) {
+    return this.communityService.getMemberContactInfo(req.user.id, userId);
+  }
+
   @Get('follow-requests/friends')
-  @ApiOperation({ summary: 'List accepted friends (people I follow or who follow me)' })
+  @ApiOperation({
+    summary:
+      'List accepted friends (mine or of another user for profile view)',
+  })
   @ApiResponse({ status: 200, description: 'List of { id, fullName, profilePic }' })
-  async listFriends(@Request() req: { user: { id: string } }) {
-    return this.communityService.listFriends(req.user.id);
+  async listFriends(
+    @Request() req: { user: { id: string } },
+    @Query('userId') userId?: string,
+  ) {
+    const targetUserId =
+      userId && userId.trim() ? userId.trim() : req.user.id;
+    return this.communityService.listFriends(targetUserId);
   }
 
   @Post('follow-requests/:id/accept')

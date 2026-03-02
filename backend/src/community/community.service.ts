@@ -481,6 +481,44 @@ export class CommunityService {
     );
   }
 
+  /** Infos publiques d'un membre (nom, photo) — pour afficher le profil quand on n'a que l'id (ex. lien partagé). */
+  async getMemberPublicInfo(
+    userId: string,
+  ): Promise<{ fullName: string; profilePic?: string } | null> {
+    const user = await this.userModel
+      .findById(userId)
+      .select('fullName profilePic')
+      .lean()
+      .exec();
+    if (!user) return null;
+    const u = user as { fullName?: string; profilePic?: string };
+    return {
+      fullName: u.fullName ?? 'Membre',
+      profilePic: u.profilePic,
+    };
+  }
+
+  /** Infos de contact d'un membre (email, phone) — uniquement si amis. */
+  async getMemberContactInfo(
+    currentUserId: string,
+    targetUserId: string,
+  ): Promise<{ fullName: string; email?: string; phone?: string } | null> {
+    const status = await this.getFollowStatus(currentUserId, targetUserId);
+    if (status.status !== 'accepted') return null;
+    const user = await this.userModel
+      .findById(targetUserId)
+      .select('fullName email phone')
+      .lean()
+      .exec();
+    if (!user) return null;
+    const u = user as { fullName?: string; email?: string; phone?: string };
+    return {
+      fullName: u.fullName ?? 'Membre',
+      email: u.email,
+      phone: u.phone,
+    };
+  }
+
   /** Statut de la relation entre currentUserId et targetUserId (dans les deux sens). */
   async getFollowStatus(
     currentUserId: string,
