@@ -298,6 +298,7 @@ class CommunityService {
     final uri = Uri.parse(
         '${AppConstants.baseUrl}${AppConstants.communityMemberPublicInfoEndpoint(userId)}');
     final response = await _client.get(uri, headers: await _headers());
+    if (response.statusCode == 401) throw Exception('Unauthorized');
     if (response.statusCode != 200) return null;
     final data = jsonDecode(response.body);
     if (data == null) return null;
@@ -316,6 +317,7 @@ class CommunityService {
     final uri = Uri.parse(
         '${AppConstants.baseUrl}${AppConstants.communityMemberContactEndpoint(userId)}');
     final response = await _client.get(uri, headers: await _headers());
+    if (response.statusCode == 401) throw Exception('Unauthorized');
     if (response.statusCode != 200) return null;
     final data = jsonDecode(response.body);
     if (data == null) return null;

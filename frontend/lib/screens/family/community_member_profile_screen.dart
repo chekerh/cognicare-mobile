@@ -104,6 +104,9 @@ class _CommunityMemberProfileScreenState
   List<VolunteerAvailability> _memberAvailabilities = [];
   bool _loadingAvailabilities = false;
 
+  /// True si une requête a renvoyé 401 (session expirée ou non connecté).
+  bool _authError = false;
+
   @override
   void initState() {
     super.initState();
@@ -149,11 +152,14 @@ class _CommunityMemberProfileScreenState
         _loadedPublicInfo = info;
         _loadingPublicInfo = false;
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       setState(() {
         _loadedPublicInfo = null;
         _loadingPublicInfo = false;
+        if (e.toString().contains('Unauthorized') || e.toString().contains('401')) {
+          _authError = true;
+        }
       });
     }
   }
@@ -168,11 +174,14 @@ class _CommunityMemberProfileScreenState
         _memberContactInfo = info;
         _loadingContact = false;
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       setState(() {
         _memberContactInfo = null;
         _loadingContact = false;
+        if (e.toString().contains('Unauthorized') || e.toString().contains('401')) {
+          _authError = true;
+        }
       });
     }
   }
@@ -214,10 +223,12 @@ class _CommunityMemberProfileScreenState
       });
     } catch (e) {
       if (!mounted) return;
+      final msg = e.toString().replaceFirst('Exception: ', '');
       setState(() {
         _memberPosts = null;
         _loadingPosts = false;
-        _postsError = e.toString().replaceFirst('Exception: ', '');
+        _postsError = msg;
+        if (msg.contains('401')) _authError = true;
       });
     }
   }
@@ -301,6 +312,10 @@ class _CommunityMemberProfileScreenState
                     _buildProfileSection(_displayName, role),
                     const SizedBox(height: 24),
                     _buildActionButtons(context),
+                    if (_authError) ...[
+                      const SizedBox(height: 16),
+                      _buildSessionExpiredBanner(),
+                    ],
                     const SizedBox(height: 32),
                     _buildMesAmisSection(),
                     const SizedBox(height: 24),
@@ -964,8 +979,45 @@ class _CommunityMemberProfileScreenState
     );
   }
 
+  Widget _buildSessionExpiredBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, color: Colors.orange.shade800, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Session expirée. Veuillez vous reconnecter pour voir les informations et publications.',
+              style: TextStyle(fontSize: 14, color: Colors.orange.shade900),
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () => context.go(AppConstants.loginRoute),
+            child: Text('Se connecter', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.orange.shade800)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildContactContent() {
     final loc = AppLocalizations.of(context)!;
+    if (_authError) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'Session expirée. Reconnectez-vous pour afficher les informations.',
+          style: TextStyle(fontSize: 14, color: _slate500),
+        ),
+      );
+    }
     final email = _loadedPublicInfo?.email ?? _memberContactInfo?.email;
     final phone = _loadedPublicInfo?.phone ?? _memberContactInfo?.phone;
     final location = _loadedPublicInfo?.location ?? _memberContactInfo?.location;
@@ -1175,10 +1227,19 @@ class _CommunityMemberProfileScreenState
             ),
             const SizedBox(height: 12),
             Text(
-              _postsError!,
+              _authError
+                  ? 'Session expirée. Reconnectez-vous pour afficher les publications.'
+                  : _postsError!,
               style: TextStyle(fontSize: 14, color: _slate500),
               textAlign: TextAlign.center,
             ),
+            if (_authError) ...[
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () => context.go(AppConstants.loginRoute),
+                child: const Text('Se connecter'),
+              ),
+            ],
           ],
         ),
       );

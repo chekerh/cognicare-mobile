@@ -88,6 +88,27 @@ Future<OSRMRouteResult?> getRoute({
   }
 }
 
+/// Trajet de secours : ligne directe (à vol d'oiseau) quand OSRM ne renvoie rien.
+/// Distance = haversine, durée estimée (voiture ~50 km/h, pied ~5 km/h).
+OSRMRouteResult getStraightLineRoute({
+  required double startLat,
+  required double startLng,
+  required double endLat,
+  required double endLng,
+  TravelMode travelMode = TravelMode.car,
+}) {
+  final start = LatLng(startLat, startLng);
+  final end = LatLng(endLat, endLng);
+  final distanceMeters = _distance.as(LengthUnit.Meter, start, end);
+  final speedKmh = travelMode == TravelMode.car ? 50.0 : 5.0;
+  final durationSeconds = distanceMeters / (speedKmh * 1000 / 3600);
+  return OSRMRouteResult(
+    points: [start, end],
+    distanceMeters: distanceMeters,
+    durationSeconds: durationSeconds,
+  );
+}
+
 /// Index du segment le plus proche + distance restante (m) le long du trajet.
 ({int segmentIndex, double remainingMeters}) remainingFromPosition(
     List<LatLng> route, LatLng userPosition) {
