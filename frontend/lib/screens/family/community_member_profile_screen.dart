@@ -357,7 +357,7 @@ class _CommunityMemberProfileScreenState
                                     value: progress.expectedTotalBytes != null
                                         ? progress.cumulativeBytesLoaded /
                                             progress.expectedTotalBytes!
-                                        : null,
+                        : null,
                                     strokeWidth: 2,
                                   ),
                                 ),
@@ -368,9 +368,9 @@ class _CommunityMemberProfileScreenState
                               child: Center(
                                 child: Text(
                                   name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?',
-                                  style: const TextStyle(
-                                    fontSize: 48,
-                                    fontWeight: FontWeight.bold,
+                        style: const TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
                                     color: _secondary,
                                   ),
                                 ),
@@ -394,35 +394,35 @@ class _CommunityMemberProfileScreenState
                 ),
               ),
               if (_isOnline == true)
-                Positioned(
+            Positioned(
                   bottom: 2,
                   right: 2,
-                  child: Container(
+              child: Container(
                     width: 28,
                     height: 28,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
+                decoration: BoxDecoration(
+                    color: Colors.green,
+                    shape: BoxShape.circle,
                       border: Border.all(color: _cardLight, width: 4),
                     ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            name,
-            style: const TextStyle(
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          name,
+          style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w800,
               color: _slate800,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          Text(
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 4),
+        Text(
             role.toUpperCase(),
-            style: TextStyle(
+          style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: _slate500,
@@ -439,9 +439,9 @@ class _CommunityMemberProfileScreenState
               color: _isOnline == true ? _primary : _slate400,
             ),
             textAlign: TextAlign.center,
-          ),
-        ],
-      );
+        ),
+      ],
+    );
   }
 
   Widget _buildActionButtons(BuildContext context) {
@@ -453,8 +453,8 @@ class _CommunityMemberProfileScreenState
     return Padding(
       padding: const EdgeInsets.only(top: 24),
       child: Row(
-        children: [
-          Expanded(
+      children: [
+        Expanded(
             child: Material(
                 color: _primary,
                 borderRadius: BorderRadius.circular(20),
@@ -462,7 +462,7 @@ class _CommunityMemberProfileScreenState
                 elevation: 4,
                 child: InkWell(
                   onTap: () {
-                    context.push(
+              context.push(
                       '${AppConstants.familyPrivateChatRoute}?id=${Uri.encodeComponent(widget.memberId)}&name=${Uri.encodeComponent(_displayName)}${_displayImageUrl != null && _displayImageUrl!.isNotEmpty ? '&imageUrl=${Uri.encodeComponent(AppConstants.fullImageUrl(_displayImageUrl!))}' : ''}',
                     );
                   },
@@ -490,11 +490,11 @@ class _CommunityMemberProfileScreenState
                       ],
                     ),
                   ),
-                ),
-              ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
               child: _followLoading
                   ? const SizedBox(
                       height: 52,
@@ -671,8 +671,8 @@ class _CommunityMemberProfileScreenState
                           highlighted: false,
                         );
                       }).toList(),
-                    ),
-                  ),
+          ),
+        ),
       ],
     );
   }
@@ -768,7 +768,7 @@ class _CommunityMemberProfileScreenState
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
+              blurRadius: 12,
             offset: const Offset(0, 2),
           ),
         ],
@@ -844,8 +844,8 @@ class _CommunityMemberProfileScreenState
             children: [
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 12,
+                  style: TextStyle(
+                      fontSize: 12,
                   color: _slate400,
                   fontWeight: FontWeight.w500,
                 ),
@@ -1092,7 +1092,7 @@ class _CommunityMemberProfileScreenState
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
+              blurRadius: 12,
             offset: const Offset(0, 2),
           ),
         ],
@@ -1127,8 +1127,8 @@ class _CommunityMemberProfileScreenState
                     ),
                     Text(
                       post.timeAgo,
-                      style: TextStyle(
-                        fontSize: 12,
+                  style: TextStyle(
+                      fontSize: 12,
                         color: _slate400,
                       ),
                     ),
@@ -1140,8 +1140,8 @@ class _CommunityMemberProfileScreenState
           const SizedBox(height: 16),
           Text(
             post.text,
-            style: const TextStyle(
-              fontSize: 14,
+                          style: const TextStyle(
+                              fontSize: 14,
               color: _slate800,
               height: 1.5,
             ),
@@ -1176,7 +1176,7 @@ class _CommunityMemberProfileScreenState
               const SizedBox(width: 6),
               Text(
                 '${post.likeCount}',
-                style: const TextStyle(
+              style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: _slate500,
