@@ -1135,6 +1135,49 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
     r'https?://[^\s]+/profile/member/([a-fA-F0-9]{24})',
   );
 
+  /// Indique si le message ressemble à un partage d'annonce de don (titre — donateur, lieu — CogniCare...).
+  static bool _isDonationShareMessage(String text) {
+    if (!text.contains('CogniCare') || !text.contains(' — ')) return false;
+    final parts = text.split(RegExp(r'\s*—\s*'));
+    return parts.length >= 3 && parts.last.trim().contains('CogniCare');
+  }
+
+  /// Regex pour extraire l'ID du don du message partagé (DonID: 24 caractères hex).
+  static final RegExp _donationIdRegex = RegExp(r'DonID:\s*([a-fA-F0-9]{24})');
+
+  /// Parse un message de partage de don et retourne les données pour la page détail.
+  /// Si le message contient "DonID: xxx", on passe donationId pour charger photo + profil.
+  static Map<String, dynamic>? _parseDonationShareMessage(String text) {
+    if (!_isDonationShareMessage(text)) return null;
+    final idMatch = _donationIdRegex.firstMatch(text);
+    final donationId = idMatch?.group(1);
+    final parts = text.split(RegExp(r'\s*—\s*'));
+    if (parts.length < 3 && donationId == null) return null;
+    final title = parts.isNotEmpty ? parts[0].trim() : '';
+    final mid = parts.length >= 2 ? parts[1].trim() : '';
+    final commaIdx = mid.indexOf(',');
+    final donor = commaIdx >= 0 ? mid.substring(0, commaIdx).trim() : mid;
+    final location = commaIdx >= 0 ? mid.substring(commaIdx + 1).trim() : '';
+    return {
+      'donationId': donationId,
+      'title': title,
+      'donorName': donor,
+      'location': location,
+      'description': title,
+      'fullDescription': '',
+      'conditionIndex': 0,
+      'categoryIndex': 0,
+      'imageUrl': '',
+      'distanceText': null,
+      'donorId': null,
+      'donorAvatarUrl': null,
+      'donorRating': null,
+      'latitude': null,
+      'longitude': null,
+      'suitableAge': null,
+    };
+  }
+
   Widget _buildMessageText(BuildContext context, _Msg msg) {
     final text = msg.text;
     final color = msg.isMe ? Colors.white : _textPrimary;
@@ -1143,7 +1186,8 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
 
     final match = _profileLinkRegex.firstMatch(text);
     if (match == null) {
-      return Text(
+      final donationData = _parseDonationShareMessage(text);
+      final content = Text(
         text,
         style: TextStyle(
           fontSize: fontSize,
@@ -1151,6 +1195,18 @@ class _FamilyPrivateChatScreenState extends State<FamilyPrivateChatScreen> {
           height: height,
         ),
       );
+      if (donationData != null) {
+        return GestureDetector(
+          onTap: () {
+            context.push(AppConstants.familyDonationDetailRoute, extra: donationData);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+            child: content,
+          ),
+        );
+      }
+      return content;
     }
 
     final memberId = match.group(1)!;

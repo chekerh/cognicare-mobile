@@ -69,6 +69,12 @@ export class DonationsController {
     return this.donationsService.create(req.user.id, dto);
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Get one donation by ID' })
+  async findOne(@Param('id') id: string) {
+    return this.donationsService.findOne(id);
+  }
+
   @Get()
   @ApiOperation({ summary: 'List donations with filters' })
   async findAll(

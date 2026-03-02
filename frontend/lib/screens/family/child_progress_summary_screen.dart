@@ -613,26 +613,32 @@ class _ChildProgressSummaryScreenState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Votre feedback',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: _slate800,
+            Expanded(
+              child: Text(
+                'Votre feedback',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: _slate800,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            ElevatedButton.icon(
-              onPressed: () => setState(() {
-                _showFeedbackModal = true;
-                _selectedRating = 0;
-                _feedbackCommentController.clear();
-                _selectedPlanType = null;
-              }),
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Ajouter un feedback'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _primary,
-                foregroundColor: _slate800,
+            const SizedBox(width: 8),
+            Flexible(
+              child: ElevatedButton.icon(
+                onPressed: () => setState(() {
+                  _showFeedbackModal = true;
+                  _selectedRating = 0;
+                  _feedbackCommentController.clear();
+                  _selectedPlanType = null;
+                }),
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Ajouter un feedback', overflow: TextOverflow.ellipsis),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primary,
+                  foregroundColor: _slate800,
+                ),
               ),
             ),
           ],

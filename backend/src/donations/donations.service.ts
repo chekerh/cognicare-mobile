@@ -105,6 +105,61 @@ export class DonationsService {
     };
   }
 
+  async findOne(
+    donationId: string,
+  ): Promise<{
+    id: string;
+    donorId: string;
+    donorName: string;
+    donorProfilePic?: string;
+    title: string;
+    description: string;
+    fullDescription?: string;
+    category: number;
+    condition: number;
+    location: string;
+    latitude?: number;
+    longitude?: number;
+    suitableAge?: string;
+    isOffer: boolean;
+    imageUrls: string[];
+    imageUrl: string;
+    createdAt: string;
+  }> {
+    const doc = await this.donationModel.findById(donationId).lean().exec();
+    if (!doc) throw new NotFoundException('Donation not found');
+    const d = doc as any;
+    const donorIdStr = d.donorId?.toString();
+    let donorProfilePic: string | undefined;
+    if (donorIdStr) {
+      const user = await this.userModel
+        .findById(donorIdStr)
+        .select('profilePic')
+        .lean()
+        .exec();
+      donorProfilePic = (user as { profilePic?: string } | null)?.profilePic;
+    }
+    return {
+      id: d._id.toString(),
+      donorId: donorIdStr ?? '',
+      donorName: d.donorName ?? '',
+      donorProfilePic,
+      title: d.title ?? '',
+      description: d.description ?? '',
+      fullDescription: d.description,
+      category: d.category ?? 0,
+      condition: d.condition ?? 1,
+      location: d.location ?? '',
+      latitude: d.latitude,
+      longitude: d.longitude,
+      suitableAge: d.suitableAge ?? '',
+      isOffer: d.isOffer ?? true,
+      imageUrls: d.imageUrls ?? [],
+      imageUrl: (d.imageUrls && d.imageUrls[0]) || '',
+      createdAt: d.createdAt?.toISOString?.() ?? new Date().toISOString(),
+    };
+  }
+
   async findAll(filters?: {
     isOffer?: boolean;
     category?: number;

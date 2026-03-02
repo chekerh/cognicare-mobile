@@ -3,7 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/donation.dart';
 import '../../services/geocoding_service.dart';
+import '../../services/donation_service.dart';
 import '../../utils/constants.dart';
 import '../../widgets/location_map_widget.dart';
 
@@ -16,6 +18,7 @@ const Color _bgLight = Color(0xFFF0F7FF);
 class DonationDetailScreen extends StatefulWidget {
   const DonationDetailScreen(
       {super.key,
+      this.donationId,
       this.title,
       this.description,
       this.fullDescription,
@@ -32,6 +35,8 @@ class DonationDetailScreen extends StatefulWidget {
       this.longitude,
       this.suitableAge});
 
+  /// Si fourni, on charge le don par API pour afficher photo + photo profil donateur.
+  final String? donationId;
   final String? title;
   final String? description;
   final String? fullDescription;
@@ -56,6 +61,7 @@ class DonationDetailScreen extends StatefulWidget {
   factory DonationDetailScreen.fromState(GoRouterState state) {
     final e = _extraFromState(state);
     return DonationDetailScreen(
+      donationId: e['donationId'] as String?,
       title: e['title'] as String?,
       description: e['description'] as String?,
       fullDescription: e['fullDescription'] as String?,
@@ -82,11 +88,38 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
   double? _mapLat;
   double? _mapLng;
   bool _loadingMap = false;
+  Donation? _fetchedDonation;
+  bool _loadingDonation = false;
 
   @override
   void initState() {
     super.initState();
     _initMapCoords();
+    final hasId = widget.donationId != null && widget.donationId!.trim().isNotEmpty;
+    final missingData = widget.imageUrl.isEmpty ||
+        (widget.donorAvatarUrl == null || widget.donorAvatarUrl!.isEmpty);
+    if (hasId && missingData) _loadDonationById();
+  }
+
+  Future<void> _loadDonationById() async {
+    setState(() => _loadingDonation = true);
+    try {
+      final d = await DonationService().getDonationById(widget.donationId!);
+      if (!mounted) return;
+      setState(() {
+        _fetchedDonation = d;
+        _loadingDonation = false;
+      });
+      if (d != null && (d.latitude != null || d.longitude != null)) {
+        setState(() {
+          _mapLat = d.latitude;
+          _mapLng = d.longitude;
+        });
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadingDonation = false);
+    }
   }
 
   Future<void> _initMapCoords() async {
@@ -131,6 +164,25 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
     }
   }
 
+  String get _resolvedImageUrl {
+    if (_fetchedDonation != null) {
+      final u = _fetchedDonation!.imageUrl;
+      if (u.isNotEmpty) return AppConstants.fullImageUrl(u);
+    }
+    if (widget.imageUrl.isNotEmpty) return AppConstants.fullImageUrl(widget.imageUrl);
+    return '';
+  }
+
+  String? get _resolvedDonorAvatarUrl {
+    if (_fetchedDonation?.donorProfilePic != null &&
+        _fetchedDonation!.donorProfilePic!.isNotEmpty) {
+      return AppConstants.fullImageUrl(_fetchedDonation!.donorProfilePic!);
+    }
+    return widget.donorAvatarUrl != null && widget.donorAvatarUrl!.isNotEmpty
+        ? AppConstants.fullImageUrl(widget.donorAvatarUrl!)
+        : null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
@@ -146,12 +198,40 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
       loc.earlyLearning,
       loc.clothing
     ];
-    final displayDescription =
-        (widget.fullDescription ?? widget.description ?? '').trim().isNotEmpty
-            ? (widget.fullDescription ?? widget.description)!
-            : (widget.description ?? '');
-    final donor = widget.donorName ?? 'Donateur';
-    final avatarUrl = widget.donorAvatarUrl;
+    final d = _fetchedDonation;
+    final title = d?.title ?? widget.title ?? '';
+    final description = d?.description ?? widget.description ?? '';
+    final fullDescription = d?.fullDescription ?? d?.description ?? widget.fullDescription ?? widget.description ?? '';
+    final displayDescription = fullDescription.trim().isNotEmpty ? fullDescription : description;
+    final conditionIndex = d != null ? d.condition.clamp(0, 2) : widget.conditionIndex.clamp(0, 2);
+    final categoryIndex = d != null
+        ? (d.category >= 0 && d.category < categoryLabels.length ? d.category : 0)
+        : (widget.categoryIndex >= 0 && widget.categoryIndex < categoryLabels.length ? widget.categoryIndex : 0);
+    final donor = d?.donorName ?? widget.donorName ?? 'Donateur';
+    final location = d?.location ?? widget.location;
+    final suitableAge = d?.suitableAge ?? widget.suitableAge;
+    final avatarUrl = _resolvedDonorAvatarUrl;
+
+    if (_loadingDonation && widget.donationId != null) {
+      return Scaffold(
+        backgroundColor: _bgLight,
+        body: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(color: _primary),
+                const SizedBox(height: 16),
+                Text(
+                  'Chargement de l\'annonce...',
+                  style: TextStyle(color: _textMuted, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: _bgLight,
@@ -164,7 +244,7 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildImage(context, widget.imageUrl),
+                    _buildImage(context, _resolvedImageUrl),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
                       child: Transform.translate(
@@ -172,22 +252,17 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
                         child: _buildCard(
                           context,
                           loc: loc,
-                          title: widget.title ?? '',
+                          title: title,
                           description: displayDescription,
-                          conditionLabel: conditionLabels[
-                              widget.conditionIndex.clamp(0, 2)],
-                          conditionColor: conditionColors[
-                              widget.conditionIndex.clamp(0, 2)],
-                          categoryLabel: widget.categoryIndex >= 0 &&
-                                  widget.categoryIndex < categoryLabels.length
-                              ? categoryLabels[widget.categoryIndex]
-                              : loc.clothing,
+                          conditionLabel: conditionLabels[conditionIndex],
+                          conditionColor: conditionColors[conditionIndex],
+                          categoryLabel: categoryLabels[categoryIndex],
                           donorName: donor,
                           donorAvatarUrl: avatarUrl,
-                          location: widget.location,
-                          suitableAge: widget.suitableAge,
-                          mapLat: _mapLat,
-                          mapLng: _mapLng,
+                          location: location,
+                          suitableAge: suitableAge,
+                          mapLat: _mapLat ?? _fetchedDonation?.latitude,
+                          mapLng: _mapLng ?? _fetchedDonation?.longitude,
                           loadingMap: _loadingMap,
                           onMapTap: _openInGoogleMaps,
                         ),
@@ -204,12 +279,39 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
     );
   }
 
-  void _shareDonation() {
-    final donor = widget.donorName ?? 'Donateur';
-    final t = widget.title ?? '';
-    final shareText =
-        '$t — $donor\n${widget.location}\n\n— CogniCare Le Cercle du Don';
-    Share.share(shareText, subject: t.isNotEmpty ? t : 'Annonce de don');
+  Future<void> _shareDonation() async {
+    final donor = _fetchedDonation?.donorName ?? widget.donorName ?? 'Donateur';
+    final t = _fetchedDonation?.title ?? widget.title ?? '';
+    final loc = AppLocalizations.of(context)!;
+    final location = _fetchedDonation?.location ?? widget.location;
+    final donationId = widget.donationId ?? _fetchedDonation?.id;
+    String shareText = '$t — $donor\n$location\n\n${loc.donationShareFooter}';
+    if (donationId != null && donationId.trim().isNotEmpty) {
+      shareText += '\nDonID: $donationId';
+    }
+    try {
+      await Share.share(
+        shareText,
+        subject: t.isNotEmpty ? t : loc.donationShareFallbackTitle,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Partagé ! Vous pouvez envoyer à un ami.'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${loc.share} : ${e.toString()}'),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -415,11 +517,12 @@ class _DonationDetailScreenState extends State<DonationDetailScreen> {
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundImage:
-                    donorAvatarUrl != null && donorAvatarUrl.isNotEmpty
-                        ? NetworkImage(donorAvatarUrl)
-                        : null,
-                onBackgroundImageError: (_, __) {},
+                backgroundImage: donorAvatarUrl != null && donorAvatarUrl.isNotEmpty
+                    ? NetworkImage(donorAvatarUrl)
+                    : null,
+                onBackgroundImageError: donorAvatarUrl != null && donorAvatarUrl.isNotEmpty
+                    ? (_, __) {}
+                    : null,
                 child: donorAvatarUrl == null || donorAvatarUrl.isEmpty
                     ? Text(
                         donorName.isNotEmpty ? donorName[0].toUpperCase() : '?',

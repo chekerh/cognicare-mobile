@@ -115,6 +115,19 @@ class DonationService {
     return Donation.fromJson(data);
   }
 
+  /// Récupère un don par ID (pour afficher photo + profil donateur depuis un lien partagé).
+  Future<Donation?> getDonationById(String donationId) async {
+    final response = await _client.get(
+      Uri.parse(
+          '${AppConstants.baseUrl}${AppConstants.donationsEndpoint}/$donationId'),
+      headers: await _headers(),
+    );
+    if (response.statusCode != 200) return null;
+    final data = jsonDecode(response.body) as Map<String, dynamic>?;
+    if (data == null) return null;
+    return Donation.fromJson(data);
+  }
+
   /// Liste les dons avec filtres.
   Future<List<Donation>> getDonations({
     bool? isOffer,
