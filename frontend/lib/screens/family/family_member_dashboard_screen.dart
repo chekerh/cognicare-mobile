@@ -63,6 +63,10 @@ class _FamilyMemberDashboardScreenState
   bool _loadingVolunteers = false;
   String? _volunteerError;
 
+  List<CaregiverUser>? _caregiverUsers;
+  bool _caregiverLoading = false;
+  String? _caregiverError;
+
   List<app_user.User>? _healthcareUsers;
   bool _healthcareLoading = false;
   String? _healthcareError;
@@ -76,7 +80,31 @@ class _FamilyMemberDashboardScreenState
       context.read<GamificationProvider>().initialize();
     });
     _loadVolunteerAvailabilities();
+    _loadCaregivers();
     _loadHealthcareUsers();
+  }
+
+  Future<void> _loadCaregivers() async {
+    setState(() {
+      _caregiverLoading = true;
+      _caregiverError = null;
+    });
+    try {
+      final list = await HealthcareService().getCaregivers();
+      if (!mounted) return;
+      setState(() {
+        _caregiverUsers = list;
+        _caregiverLoading = false;
+        _caregiverError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _caregiverUsers = null;
+        _caregiverLoading = false;
+        _caregiverError = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
   }
 
   Future<void> _loadHealthcareUsers() async {
@@ -778,30 +806,30 @@ class _FamilyMemberDashboardScreenState
             ),
           ),
         ),
-        if (_loadingVolunteers)
+        if (_caregiverLoading)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(child: CircularProgressIndicator()),
           )
-        else if (_volunteerError != null)
+        else if (_caregiverError != null)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Center(
               child: Column(
                 children: [
-                  Text(_volunteerError!,
+                  Text(_caregiverError!,
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: _slate500)),
                   const SizedBox(height: 8),
                   TextButton(
-                    onPressed: _loadVolunteerAvailabilities,
+                    onPressed: _loadCaregivers,
                     child: Text(loc.retryButton),
                   ),
                 ],
               ),
             ),
           )
-        else if (_volunteerCards == null || _volunteerCards!.isEmpty)
+        else if (_caregiverUsers == null || _caregiverUsers!.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Center(
@@ -813,12 +841,173 @@ class _FamilyMemberDashboardScreenState
             ),
           )
         else
-          ..._volunteerCards!.map((v) => Padding(
+          ..._caregiverUsers!.map((c) => Padding(
                 padding: const EdgeInsets.only(bottom: 16),
-                child: _buildVolunteerCard(context, v),
+                child: _buildCaregiverCard(context, c),
               )),
       ],
     );
+  }
+
+  Widget _buildCaregiverCard(BuildContext context, CaregiverUser caregiver) {
+    final imageUrl = _healthcareImageUrl(caregiver.profilePic);
+    return _Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: imageUrl.isEmpty
+                          ? Container(
+                              width: 56,
+                              height: 56,
+                              decoration: const BoxDecoration(
+                                color: _primary,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.person_rounded,
+                                  color: Colors.white, size: 28),
+                            )
+                          : Image.network(
+                              imageUrl,
+                              width: 56,
+                              height: 56,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                width: 56,
+                                height: 56,
+                                decoration: const BoxDecoration(
+                                  color: _primary,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.person_rounded,
+                                    color: Colors.white, size: 28),
+                              ),
+                            ),
+                    ),
+                    if (caregiver.online)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          width: 14,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: _green600,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        caregiver.fullName,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: _slate800,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Text(
+                            'Caregiver',
+                            style: const TextStyle(fontSize: 13, color: _slate500),
+                          ),
+                          if (caregiver.online) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              '• En ligne',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: _green600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on_outlined,
+                              size: 14, color: _slate400),
+                          const SizedBox(width: 4),
+                          const Expanded(
+                            child: Text(
+                              'CogniCare',
+                              style: TextStyle(fontSize: 12, color: _slate500),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => _openChatWithCaregiver(context, caregiver),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _slate800,
+                      side: const BorderSide(color: _slate300),
+                    ),
+                    child: const Text('Message'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openChatWithCaregiver(
+      BuildContext context, CaregiverUser caregiver) async {
+    try {
+      final chatService = ChatService();
+      final conv = await chatService.getOrCreateConversation(caregiver.id);
+      if (!mounted) return;
+      context.push(
+        AppConstants.familyPrivateChatRoute,
+        extra: {
+          'personId': caregiver.id,
+          'personName': caregiver.fullName,
+          'personImageUrl': caregiver.profilePic,
+          'conversationId': conv.id,
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Widget _buildHealthcareSection(BuildContext context) {

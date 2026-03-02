@@ -210,6 +210,33 @@ export class UsersService {
       .exec();
   }
 
+  /** List caregivers (role careProvider + careProviderType caregiver). Optionally with online status. */
+  async findCaregiverUsers(): Promise<
+    { id: string; fullName: string; profilePic?: string; online?: boolean }[]
+  > {
+    const users = await this.userModel
+      .find({ role: 'careProvider', careProviderType: 'caregiver' })
+      .select('_id fullName profilePic lastSeenAt')
+      .sort({ fullName: 1 })
+      .limit(100)
+      .lean()
+      .exec();
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    return (
+      users as Array<{
+        _id: Types.ObjectId;
+        fullName?: string;
+        profilePic?: string;
+        lastSeenAt?: Date;
+      }>
+    ).map((u) => ({
+      id: u._id.toString(),
+      fullName: u.fullName ?? '',
+      profilePic: u.profilePic,
+      online: u.lastSeenAt ? new Date(u.lastSeenAt) >= fiveMinutesAgo : false,
+    }));
+  }
+
   /** Consider user "online" if lastSeenAt is within the last 5 minutes. */
   async getPresence(userId: string): Promise<{ online: boolean }> {
     const user = await this.userModel

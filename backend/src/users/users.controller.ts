@@ -117,6 +117,20 @@ export class UsersController {
     return this.usersService.findVolunteerUsers();
   }
 
+  @Get('caregivers')
+  @ApiOperation({
+    summary: 'List caregiver users',
+    description:
+      'Returns users connected as caregivers (role careProvider, careProviderType caregiver). Includes online status.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of caregivers (id, fullName, profilePic, online)',
+  })
+  async getCaregivers() {
+    return this.usersService.findCaregiverUsers();
+  }
+
   @Get('me/blocked')
   @ApiOperation({ summary: 'List blocked user IDs' })
   @ApiResponse({ status: 200, description: 'Array of blocked user IDs' })

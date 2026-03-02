@@ -606,6 +606,20 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     }
   }
 
+  String get _transcriptionLanguageLabel {
+    switch (_transcriptionLanguage) {
+      case 'fr':
+        return 'Français';
+      case 'en':
+        return 'English';
+      case 'ar':
+        return 'العربية';
+      case 'multi':
+      default:
+        return 'Multi';
+    }
+  }
+
   void _showTranscriptionLanguageSheet() {
     showModalBottomSheet<void>(
       context: context,
@@ -1231,7 +1245,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           ),
           _controlButton(
             icon: Icons.translate,
-            label: 'Langue',
+            label: _transcriptionLanguageLabel,
             isActive: true,
             onTap: _showTranscriptionLanguageSheet,
           ),
@@ -1294,6 +1308,9 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
               fontSize: 11,
               fontWeight: FontWeight.w500,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
           ),
         ],
       ),

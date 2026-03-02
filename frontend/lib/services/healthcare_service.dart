@@ -82,4 +82,56 @@ class HealthcareService {
 
     return parsed;
   }
+
+  /// Liste des caregivers (utilisateurs connectés en tant qu'aidants). Inclut le statut en ligne.
+  Future<List<CaregiverUser>> getCaregivers() async {
+    final token = await _getToken();
+    if (token == null) throw Exception('Non authentifié');
+    final base = AppConstants.baseUrl.endsWith('/')
+        ? AppConstants.baseUrl.substring(0, AppConstants.baseUrl.length - 1)
+        : AppConstants.baseUrl;
+    final url = '$base/api/v1/users/caregivers';
+    final response = await _client.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode != 200) {
+      Map<String, dynamic>? err;
+      try {
+        err = jsonDecode(response.body) as Map<String, dynamic>?;
+      } catch (_) {}
+      throw Exception(err?['message'] ?? 'Erreur: ${response.statusCode}');
+    }
+    final List<dynamic> list = jsonDecode(response.body) as List<dynamic>;
+    return list
+        .map((e) => CaregiverUser.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+}
+
+/// Utilisateur caregiver (aidant) avec statut en ligne.
+class CaregiverUser {
+  final String id;
+  final String fullName;
+  final String? profilePic;
+  final bool online;
+
+  CaregiverUser({
+    required this.id,
+    required this.fullName,
+    this.profilePic,
+    this.online = false,
+  });
+
+  factory CaregiverUser.fromJson(Map<String, dynamic> json) {
+    return CaregiverUser(
+      id: json['id']?.toString() ?? '',
+      fullName: json['fullName'] as String? ?? '',
+      profilePic: json['profilePic']?.toString(),
+      online: json['online'] == true,
+    );
+  }
 }

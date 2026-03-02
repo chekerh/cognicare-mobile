@@ -51,9 +51,12 @@ export class TranscriptionService implements OnModuleInit {
       ? language
       : 'multi';
 
+    // Nova-2 ne supporte pas l'arabe ; utiliser nova-3 pour ar (et optionnellement pour les autres langues).
+    const model = lang === 'ar' ? 'nova-3' : 'nova-2';
+
     try {
       const connection: LiveClient = this.deepgram.listen.live({
-        model: 'nova-2',
+        model,
         language: lang,
         smart_format: true,
         interim_results: true,
