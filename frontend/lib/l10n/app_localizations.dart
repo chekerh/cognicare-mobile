@@ -168,6 +168,7 @@ abstract class AppLocalizations {
   String get accountSettings;
   String get emailInfo;
   String get phoneInfo;
+  String get locationInfo;
   String get memberSince;
   String get notProvided;
   String get changePassword;

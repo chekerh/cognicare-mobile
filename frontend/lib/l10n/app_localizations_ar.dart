@@ -183,6 +183,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get phoneInfo => 'الهاتف';
 
   @override
+  String get locationInfo => 'الموقع';
+
+  @override
   String get memberSince => 'عضو منذ';
 
   @override

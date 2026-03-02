@@ -183,6 +183,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get phoneInfo => 'Phone';
 
   @override
+  String get locationInfo => 'Location';
+
+  @override
   String get memberSince => 'Member Since';
 
   @override

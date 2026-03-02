@@ -639,6 +639,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         value: user?.phone ?? loc.notProvided),
                     const SizedBox(height: 12),
                     _buildInfoCard(
+                        icon: Icons.location_on_outlined,
+                        label: loc.locationInfo,
+                        value: (user?.location != null && user!.location!.isNotEmpty)
+                            ? user.location!
+                            : loc.notProvided),
+                    const SizedBox(height: 12),
+                    _buildInfoCard(
                       icon: Icons.calendar_today_outlined,
                       label: loc.memberSince,
                       value: user?.createdAt != null

@@ -307,6 +307,7 @@ class CommunityService {
       profilePic: m['profilePic'] as String?,
       email: m['email'] as String?,
       phone: m['phone'] as String?,
+      location: m['location'] as String?,
     );
   }
 
@@ -323,6 +324,7 @@ class CommunityService {
       fullName: m['fullName'] as String? ?? 'Membre',
       email: m['email'] as String?,
       phone: m['phone'] as String?,
+      location: m['location'] as String?,
     );
   }
 
@@ -427,11 +429,13 @@ class MemberPublicInfo {
     this.profilePic,
     this.email,
     this.phone,
+    this.location,
   });
   final String fullName;
   final String? profilePic;
   final String? email;
   final String? phone;
+  final String? location;
 }
 
 class MemberContactInfo {
@@ -439,10 +443,12 @@ class MemberContactInfo {
     required this.fullName,
     this.email,
     this.phone,
+    this.location,
   });
   final String fullName;
   final String? email;
   final String? phone;
+  final String? location;
 }
 
 class FollowStatusResult {

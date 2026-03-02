@@ -808,11 +808,14 @@ class _CommunityMemberProfileScreenState
   }
 
   Widget _buildContactContent() {
+    final loc = AppLocalizations.of(context)!;
     final email = _loadedPublicInfo?.email ?? _memberContactInfo?.email;
     final phone = _loadedPublicInfo?.phone ?? _memberContactInfo?.phone;
+    final location = _loadedPublicInfo?.location ?? _memberContactInfo?.location;
     final hasEmail = (email ?? '').isNotEmpty;
     final hasPhone = (phone ?? '').isNotEmpty;
-    if (!hasEmail && !hasPhone) {
+    final hasLocation = (location ?? '').isNotEmpty;
+    if (!hasEmail && !hasPhone && !hasLocation) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 8),
         child: Text(
@@ -828,10 +831,13 @@ class _CommunityMemberProfileScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (hasEmail)
-          _buildContactRow(Icons.email_outlined, 'Email', email!),
-        if (hasEmail && hasPhone) const SizedBox(height: 12),
+          _buildContactRow(Icons.email_outlined, loc.emailInfo, email!),
+        if (hasEmail && (hasPhone || hasLocation)) const SizedBox(height: 12),
         if (hasPhone)
-          _buildContactRow(Icons.phone_outlined, 'Téléphone', phone!),
+          _buildContactRow(Icons.phone_outlined, loc.phoneInfo, phone!),
+        if (hasPhone && hasLocation) const SizedBox(height: 12),
+        if (hasLocation)
+          _buildContactRow(Icons.location_on_outlined, loc.locationInfo, location!),
       ],
     );
   }
