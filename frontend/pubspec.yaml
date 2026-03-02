@@ -58,6 +58,9 @@ dependencies:
   # URL launcher for opening links
   url_launcher: ^6.2.2
 
+  # WebView pour lire les reels en intégré (YouTube/Dailymotion embed, pas de sortie app)
+  webview_flutter: ^4.4.2
+
   # Share (partage natif)
   share_plus: ^10.0.0
 
