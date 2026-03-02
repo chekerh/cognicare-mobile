@@ -6,21 +6,39 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../utils/constants.dart';
 
 class VolunteerService {
-  final http.Client _client;
-  final FlutterSecureStorage _storage;
-
   VolunteerService({
     http.Client? client,
     FlutterSecureStorage? storage,
   })  : _client = client ?? http.Client(),
         _storage = storage ?? const FlutterSecureStorage();
 
+  final http.Client _client;
+  final FlutterSecureStorage _storage;
+
+  /// Cache en mémoire pour getMyApplication (TTL 90 s) — réduit les appels répétés (Messages, Agenda, Dashboard, shell).
+  static Map<String, dynamic>? _applicationCache;
+  static DateTime? _applicationCacheTime;
+  static const Duration _applicationCacheTtl = Duration(seconds: 90);
+
+
   Future<String?> _getToken() async {
     return await _storage.read(key: AppConstants.jwtTokenKey);
   }
 
-  /// Get or create my volunteer application (status, documents).
+  /// Invalide le cache application (après mise à jour ou déconnexion).
+  static void invalidateApplicationCache() {
+    _applicationCache = null;
+    _applicationCacheTime = null;
+  }
+
+  /// Get or create my volunteer application (status, documents). Résultat mis en cache 90 s.
   Future<Map<String, dynamic>> getMyApplication() async {
+    final now = DateTime.now();
+    if (_applicationCache != null &&
+        _applicationCacheTime != null &&
+        now.difference(_applicationCacheTime!) < _applicationCacheTtl) {
+      return Map<String, dynamic>.from(_applicationCache!);
+    }
     final token = await _getToken();
     if (token == null) throw Exception('No authentication token');
     final response = await _client.get(
@@ -32,7 +50,10 @@ class VolunteerService {
       final body = jsonDecode(response.body) as Map<String, dynamic>?;
       throw Exception(body?['message'] ?? 'Failed to load application');
     }
-    return jsonDecode(response.body) as Map<String, dynamic>;
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    _applicationCache = data;
+    _applicationCacheTime = now;
+    return data;
   }
 
   /// Update my application (careProviderType, specialty, organization). PATCH.
@@ -63,6 +84,7 @@ class VolunteerService {
       final respBody = jsonDecode(response.body) as Map<String, dynamic>?;
       throw Exception(respBody?['message'] ?? 'Failed to update application');
     }
+    invalidateApplicationCache();
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 

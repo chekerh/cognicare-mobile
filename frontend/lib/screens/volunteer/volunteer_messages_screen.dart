@@ -42,6 +42,10 @@ class _Conversation {
 class VolunteerMessagesScreen extends StatefulWidget {
   const VolunteerMessagesScreen({super.key});
 
+  /// À appeler à la déconnexion (invalide le cache inbox).
+  static void invalidateInboxCache() =>
+      _VolunteerMessagesScreenState.invalidateInboxCache();
+
   @override
   State<VolunteerMessagesScreen> createState() =>
       _VolunteerMessagesScreenState();
@@ -55,6 +59,16 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
   String? _loadError;
   Map<String, dynamic>? _application;
   bool _applicationLoading = true;
+
+  static List<_Conversation>? _inboxCache;
+  static DateTime? _inboxCacheTime;
+  static const Duration _inboxCacheTtl = Duration(seconds: 45);
+
+  /// À appeler à la déconnexion pour ne pas afficher le cache d'un autre utilisateur.
+  static void invalidateInboxCache() {
+    _inboxCache = null;
+    _inboxCacheTime = null;
+  }
 
   Future<void> _loadApplication() async {
     try {
@@ -70,47 +84,67 @@ class _VolunteerMessagesScreenState extends State<VolunteerMessagesScreen> {
     }
   }
 
-  Future<void> _loadInbox() async {
-    setState(() {
-      _loading = true;
-      _loadError = null;
-    });
+  Future<void> _loadInbox({bool silent = false}) async {
+    if (!silent) {
+      setState(() {
+        _loading = true;
+        _loadError = null;
+      });
+    }
     try {
       final chatService = ChatService();
       final list = await chatService.getInbox();
       if (!mounted) return;
-      setState(() {
-        _inboxConversations = list
-            .map((e) => _Conversation(
-                  id: e.otherUserId ?? e.id,
-                  name: e.name,
-                  subtitle: e.subtitle,
-                  lastMessage: e.lastMessage,
-                  timeAgo: e.timeAgo,
-                  missionType: e.subtitle,
-                  isFamily: e.segment == 'families',
-                  conversationId: e.id,
-                  segment: e.segment,
-                  imageUrl: e.imageUrl,
-                ))
-            .toList();
-        _loading = false;
-        _loadError = null;
-      });
+      final conversations = list
+          .map((e) => _Conversation(
+                id: e.otherUserId ?? e.id,
+                name: e.name,
+                subtitle: e.subtitle,
+                lastMessage: e.lastMessage,
+                timeAgo: e.timeAgo,
+                missionType: e.subtitle,
+                isFamily: e.segment == 'families',
+                conversationId: e.id,
+                segment: e.segment,
+                imageUrl: e.imageUrl,
+              ))
+          .toList();
+      _inboxCache = conversations;
+      _inboxCacheTime = DateTime.now();
+      if (mounted) {
+        setState(() {
+          _inboxConversations = conversations;
+          _loading = false;
+          _loadError = null;
+        });
+      }
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _loadError = e.toString().replaceFirst('Exception: ', '');
-      });
+      if (!silent) {
+        setState(() {
+          _loading = false;
+          _loadError = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
     }
   }
 
   @override
   void initState() {
     super.initState();
-    _loadApplication();
-    _loadInbox();
+    final now = DateTime.now();
+    if (_inboxCache != null &&
+        _inboxCacheTime != null &&
+        now.difference(_inboxCacheTime!) < _inboxCacheTtl) {
+      _inboxConversations = List.from(_inboxCache!);
+      _loading = false;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _loadApplication();
+      final hasCache = _inboxConversations != null;
+      _loadInbox(silent: hasCache);
+    });
   }
 
   void _openChat(BuildContext context, _Conversation c) {

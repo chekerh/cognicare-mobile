@@ -16,6 +16,7 @@ import 'providers/sticker_book_provider.dart';
 import 'providers/child_security_code_provider.dart';
 import 'providers/child_mode_session_provider.dart';
 import 'providers/gamification_provider.dart';
+import 'providers/training_cache_provider.dart';
 import 'services/gamification_service.dart';
 import 'services/children_service.dart';
 import 'utils/router.dart';
@@ -81,6 +82,7 @@ class _CogniCareAppState extends State<CogniCareApp> {
         ChangeNotifierProvider(create: (_) => LanguageProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => CommunityFeedProvider()),
+        ChangeNotifierProvider(create: (_) => TrainingCacheProvider()),
         ChangeNotifierProvider(create: (_) => StickerBookProvider()),
         ChangeNotifierProvider(create: (_) => ChildSecurityCodeProvider()),
         ChangeNotifierProvider(create: (_) => ChildModeSessionProvider()),

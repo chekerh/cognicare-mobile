@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/training_cache_provider.dart';
 import '../../services/training_service.dart';
 
 // Aligné sur le HTML Premium : primary #3fb1c1, gradient, cards style iOS
@@ -53,12 +55,15 @@ class _FamilyTrainingCourseScreenState extends State<FamilyTrainingCourseScreen>
       setState(() => _error = 'Cours inconnu');
       return;
     }
+    final cache = Provider.of<TrainingCacheProvider>(context, listen: false);
     setState(() {
       _loading = true;
       _error = null;
+      _course = cache.getCachedCourse(id);
     });
+    if (_course != null) setState(() => _loading = false);
     try {
-      final course = await _service.getCourse(id);
+      final course = await cache.getCourse(id);
       if (mounted) {
         setState(() {
           _course = course;

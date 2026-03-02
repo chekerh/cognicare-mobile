@@ -387,6 +387,8 @@ class AppConstants {
   static const String volunteerTaskAcceptedRoute = '/volunteer/task-accepted';
   static const String volunteerNotificationsRoute = '/volunteer/notifications';
   static const String volunteerMessagesRoute = '/volunteer/messages';
+  static const String volunteerFriendsRoute = '/volunteer/friends';
+  static const String volunteerFriendRequestsRoute = '/volunteer/friend-requests';
   static const String volunteerFamilyChatRoute = '/volunteer/family-chat';
   static const String volunteerPrivateChatRoute = '/volunteer/private-chat';
   static const String volunteerProfileRoute = '/volunteer/profile';

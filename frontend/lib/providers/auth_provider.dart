@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
+import '../services/volunteer_service.dart';
+import '../screens/volunteer/volunteer_agenda_screen.dart';
+import '../screens/volunteer/volunteer_dashboard_screen.dart';
+import '../screens/volunteer/volunteer_messages_screen.dart';
 
 class AuthProvider with ChangeNotifier {
   User? _user;
@@ -92,6 +96,10 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> logout() async {
     await _authService.clearStoredData();
+    VolunteerService.invalidateApplicationCache();
+    VolunteerMessagesScreen.invalidateInboxCache();
+    VolunteerAgendaScreen.invalidateAvailabilitiesCache();
+    VolunteerDashboardScreen.invalidateHealthcareCache();
     _accessToken = null;
     _refreshToken = null;
     _user = null;

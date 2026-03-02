@@ -50,6 +50,11 @@ class _FamilyFriendsScreenState extends State<FamilyFriendsScreen> {
 
   bool get _isViewingOtherProfile => widget.userId != null && widget.userId!.isNotEmpty;
 
+  bool _isVolunteerContext(BuildContext context) {
+    final path = GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+    return path.startsWith('/volunteer');
+  }
+
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
@@ -281,7 +286,14 @@ class _FamilyFriendsScreenState extends State<FamilyFriendsScreen> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => context.push(AppConstants.familyFriendRequestsRoute),
+        onTap: () {
+          // Bénévole → /volunteer/friend-requests, Famille → /family/friend-requests (sinon redirection).
+          final baseRoute = _isVolunteerContext(context)
+              ? AppConstants.volunteerFriendRequestsRoute
+              : AppConstants.familyFriendRequestsRoute;
+          final uniqueId = DateTime.now().millisecondsSinceEpoch;
+          context.push('$baseRoute/$uniqueId');
+        },
         borderRadius: BorderRadius.circular(24),
         child: Container(
           padding: const EdgeInsets.all(16),

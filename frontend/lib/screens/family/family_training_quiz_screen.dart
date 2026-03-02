@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/training_cache_provider.dart';
 import '../../services/training_service.dart';
 import '../../utils/theme.dart';
 
@@ -665,7 +667,9 @@ class _FamilyTrainingQuizScreenState extends State<FamilyTrainingQuizScreen> {
           shadowColor: _primary.withOpacity(0.4),
           color: _secondary,
           child: InkWell(
-            onTap: () {
+            onTap: () async {
+              await Provider.of<TrainingCacheProvider>(context, listen: false).invalidateEnrollments();
+              if (!context.mounted) return;
               final path = GoRouterState.of(context).uri.path;
               final trainingListPath = path.replaceFirst(RegExp(r'/quiz$'), '');
               context.go(trainingListPath.isNotEmpty ? trainingListPath : '/family/training');

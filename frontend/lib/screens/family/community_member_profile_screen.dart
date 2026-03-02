@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/community_post.dart';
 import '../../services/auth_service.dart';
+import '../../services/availability_service.dart';
 import '../../services/community_service.dart';
 import '../../utils/constants.dart';
 
@@ -100,6 +101,9 @@ class _CommunityMemberProfileScreenState
   MemberPublicInfo? _loadedPublicInfo;
   bool _loadingPublicInfo = false;
 
+  List<VolunteerAvailability> _memberAvailabilities = [];
+  bool _loadingAvailabilities = false;
+
   @override
   void initState() {
     super.initState();
@@ -109,7 +113,30 @@ class _CommunityMemberProfileScreenState
     _loadMemberPosts();
     _loadMemberFriends();
     _loadMemberContactInfo();
+    _loadMemberAvailabilities();
     if (widget.memberId.isNotEmpty) _loadMemberPublicInfo();
+  }
+
+  Future<void> _loadMemberAvailabilities() async {
+    if (widget.memberId.isEmpty) return;
+    setState(() => _loadingAvailabilities = true);
+    try {
+      final all = await AvailabilityService().listForFamilies();
+      if (!mounted) return;
+      final forMember = all
+          .where((a) => a.volunteerId == widget.memberId)
+          .toList();
+      setState(() {
+        _memberAvailabilities = forMember;
+        _loadingAvailabilities = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _memberAvailabilities = [];
+        _loadingAvailabilities = false;
+      });
+    }
   }
 
   Future<void> _loadMemberPublicInfo() async {
@@ -239,6 +266,12 @@ class _CommunityMemberProfileScreenState
     }
   }
 
+  /// True si l'écran est ouvert depuis le secteur bénévole (/volunteer/...).
+  bool _isVolunteerContext(BuildContext context) {
+    final path = GoRouter.of(context).routerDelegate.currentConfiguration.uri.path;
+    return path.startsWith('/volunteer');
+  }
+
   static const String _defaultRole = 'Parent de Iline';
   static const String _defaultDiagnosis = 'Diagnostic : Autisme léger';
   static const String _defaultJourney =
@@ -270,6 +303,8 @@ class _CommunityMemberProfileScreenState
                     _buildActionButtons(context),
                     const SizedBox(height: 32),
                     _buildMesAmisSection(),
+                    const SizedBox(height: 24),
+                    _buildDisponibilitesSection(),
                     const SizedBox(height: 24),
                     _buildInformationsPersonnellesCard(),
                     const SizedBox(height: 24),
@@ -466,9 +501,11 @@ class _CommunityMemberProfileScreenState
                 elevation: 4,
                 child: InkWell(
                   onTap: () {
-              context.push(
-                      '${AppConstants.familyPrivateChatRoute}?id=${Uri.encodeComponent(widget.memberId)}&name=${Uri.encodeComponent(_displayName)}${_displayImageUrl != null && _displayImageUrl!.isNotEmpty ? '&imageUrl=${Uri.encodeComponent(AppConstants.fullImageUrl(_displayImageUrl!))}' : ''}',
-                    );
+                    final baseRoute = _isVolunteerContext(context)
+                        ? AppConstants.volunteerPrivateChatRoute
+                        : AppConstants.familyPrivateChatRoute;
+                    final q = 'id=${Uri.encodeComponent(widget.memberId)}&name=${Uri.encodeComponent(_displayName)}${_displayImageUrl != null && _displayImageUrl!.isNotEmpty ? '&imageUrl=${Uri.encodeComponent(AppConstants.fullImageUrl(_displayImageUrl!))}' : ''}';
+                    context.push('$baseRoute?$q');
                   },
                   borderRadius: BorderRadius.circular(20),
                   child: Padding(
@@ -614,13 +651,18 @@ class _CommunityMemberProfileScreenState
                 ),
               ),
               GestureDetector(
-                onTap: () => context.push(
-                  AppConstants.familyFriendsRoute,
-                  extra: {
-                    'userId': widget.memberId,
-                    'memberName': _displayName,
-                  },
-                ),
+                onTap: () {
+                  final friendsRoute = _isVolunteerContext(context)
+                      ? AppConstants.volunteerFriendsRoute
+                      : AppConstants.familyFriendsRoute;
+                  context.push(
+                    friendsRoute,
+                    extra: {
+                      'userId': widget.memberId,
+                      'memberName': _displayName,
+                    },
+                  );
+                },
                 child: const Text(
                   'Tout voir',
                   style: TextStyle(
@@ -760,6 +802,121 @@ class _CommunityMemberProfileScreenState
       );
     }
     return content;
+  }
+
+  Widget _buildDisponibilitesSection() {
+    if (_loadingAvailabilities) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: _cardLight,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.grey.shade100),
+        ),
+        child: const Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+      );
+    }
+    if (_memberAvailabilities.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _cardLight,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Disponibilités',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: _slate800,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ..._memberAvailabilities.map((a) => _memberAvailabilityTile(a)),
+        ],
+      ),
+    );
+  }
+
+  Widget _memberAvailabilityTile(VolunteerAvailability a) {
+    String dateLabel;
+    if (a.dates.isEmpty) {
+      dateLabel = '—';
+    } else if (a.dates.length == 1) {
+      dateLabel = _formatAvailabilityDate(a.dates.first);
+    } else {
+      dateLabel =
+          '${_formatAvailabilityDate(a.dates.first)} – ${_formatAvailabilityDate(a.dates.last)} (${a.dates.length} dates)';
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: _primary.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: _primary.withOpacity(0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              dateLabel,
+              style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: _slate800),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${a.startTime} – ${a.endTime}',
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: _slate500),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatAvailabilityDate(String yyyyMmDd) {
+    final parts = yyyyMmDd.split('-');
+    if (parts.length != 3) return yyyyMmDd;
+    final day = int.tryParse(parts[2]) ?? 0;
+    final month = int.tryParse(parts[1]) ?? 0;
+    final year = int.tryParse(parts[0]) ?? 0;
+    const months = [
+      'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
+      'juill.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'
+    ];
+    if (month >= 1 && month <= 12) {
+      return '$day ${months[month - 1]} $year';
+    }
+    return yyyyMmDd;
   }
 
   Widget _buildInformationsPersonnellesCard() {

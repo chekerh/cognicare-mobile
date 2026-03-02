@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/availability_service.dart';
+import '../../services/notification_service.dart';
 import '../../services/volunteer_service.dart';
 import '../../utils/constants.dart';
 
@@ -14,6 +15,10 @@ const Color _brandBlueDark = Color(0xFF7bc5ce);
 /// Agenda bénévole — Mon Agenda, calendrier, missions du jour.
 class VolunteerAgendaScreen extends StatefulWidget {
   const VolunteerAgendaScreen({super.key});
+
+  /// À appeler à la déconnexion (invalide le cache disponibilités).
+  static void invalidateAvailabilitiesCache() =>
+      _VolunteerAgendaScreenState.invalidateAvailabilitiesCache();
 
   @override
   State<VolunteerAgendaScreen> createState() => _VolunteerAgendaScreenState();
@@ -29,31 +34,77 @@ class _VolunteerAgendaScreenState extends State<VolunteerAgendaScreen> {
   List<VolunteerAvailabilityMine> _myAvailabilities = [];
   bool _availabilitiesLoading = true;
 
+  static List<VolunteerAvailabilityMine>? _availabilitiesCache;
+  static DateTime? _availabilitiesCacheTime;
+  static const Duration _availabilitiesCacheTtl = Duration(seconds: 60);
+
+  /// À appeler à la déconnexion.
+  static void invalidateAvailabilitiesCache() {
+    _availabilitiesCache = null;
+    _availabilitiesCacheTime = null;
+  }
+
   @override
   void initState() {
     super.initState();
     final now = DateTime.now();
     _displayDate = DateTime(now.year, now.month);
     _selectedDay = now;
-    _loadApplication();
-    _loadMyAvailabilities();
+    if (_availabilitiesCache != null &&
+        _availabilitiesCacheTime != null &&
+        now.difference(_availabilitiesCacheTime!) < _availabilitiesCacheTtl) {
+      _myAvailabilities = List.from(_availabilitiesCache!);
+      _availabilitiesLoading = false;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _loadApplication();
+      final hasCache = !_availabilitiesLoading;
+      _loadMyAvailabilities(silent: hasCache);
+    });
   }
 
-  Future<void> _loadMyAvailabilities() async {
+  Future<void> _loadMyAvailabilities({bool silent = false}) async {
+    if (!silent) {
+      setState(() => _availabilitiesLoading = true);
+    }
     try {
       final list = await AvailabilityService().listMine();
+      _availabilitiesCache = list;
+      _availabilitiesCacheTime = DateTime.now();
       if (mounted) {
         setState(() {
           _myAvailabilities = list;
           _availabilitiesLoading = false;
         });
+        _syncAvailabilityNotifications();
       }
     } catch (_) {
       if (mounted) {
         setState(() {
-          _myAvailabilities = [];
+          if (!silent) _myAvailabilities = [];
           _availabilitiesLoading = false;
         });
+      }
+    }
+  }
+
+  void _syncAvailabilityNotifications() {
+    final now = DateTime.now();
+    final todayStr =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final notificationService = NotificationService();
+    for (final a in _myAvailabilities) {
+      for (final dateStr in a.dates) {
+        if (dateStr.compareTo(todayStr) >= 0) {
+          notificationService
+              .scheduleAvailabilityReminder(
+            dateIso: dateStr,
+            startTime: a.startTime,
+            label: 'Disponibilité',
+          )
+              .ignore();
+        }
       }
     }
   }

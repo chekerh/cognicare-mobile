@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/user.dart' as app_user;
 import '../../providers/auth_provider.dart';
+import '../../services/availability_service.dart';
 import '../../services/healthcare_service.dart';
 import '../../services/children_service.dart';
 import '../../services/volunteer_service.dart';
@@ -42,6 +43,10 @@ String _roleToSpecializationLabel(String role) {
 class VolunteerDashboardScreen extends StatefulWidget {
   const VolunteerDashboardScreen({super.key});
 
+  /// À appeler à la déconnexion (invalide le cache professionnels de santé).
+  static void invalidateHealthcareCache() =>
+      _VolunteerDashboardScreenState.invalidateHealthcareCache();
+
   @override
   State<VolunteerDashboardScreen> createState() =>
       _VolunteerDashboardScreenState();
@@ -52,6 +57,16 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
   bool _healthcareLoading = false;
   String? _healthcareError;
 
+  static List<app_user.User>? _healthcareCache;
+  static DateTime? _healthcareCacheTime;
+  static const Duration _healthcareCacheTtl = Duration(seconds: 90);
+
+  /// À appeler à la déconnexion.
+  static void invalidateHealthcareCache() {
+    _healthcareCache = null;
+    _healthcareCacheTime = null;
+  }
+
   List<ChildModel>? _children;
   bool _childrenLoading = false;
   String? _childrenError;
@@ -60,6 +75,26 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
   bool _showQuickMenu = false;
   Map<String, dynamic>? _application;
   bool _applicationLoading = true;
+
+  List<VolunteerAvailabilityMine> _planningAvailabilities = [];
+  bool _planningLoading = false;
+
+  Future<void> _loadPlanningAvailabilities() async {
+    if (_planningLoading) return;
+    setState(() => _planningLoading = true);
+    try {
+      final list = await AvailabilityService().listMine();
+      if (mounted) setState(() {
+        _planningAvailabilities = list;
+        _planningLoading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() {
+        _planningAvailabilities = [];
+        _planningLoading = false;
+      });
+    }
+  }
 
   Future<void> _loadApplication() async {
     try {
@@ -84,8 +119,20 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _loadApplication();
-    _loadHealthcare();
+    final now = DateTime.now();
+    if (_healthcareCache != null &&
+        _healthcareCacheTime != null &&
+        now.difference(_healthcareCacheTime!) < _healthcareCacheTtl) {
+      _healthcareUsers = List.from(_healthcareCache!);
+      _healthcareLoading = false;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _loadApplication();
+      final hasCache = _healthcareUsers != null;
+      _loadHealthcare(silent: hasCache);
+      _loadPlanningAvailabilities();
+    });
   }
 
   Future<void> _loadChildren() async {
@@ -120,11 +167,13 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
     }
   }
 
-  Future<void> _loadHealthcare() async {
-    setState(() {
-      _healthcareLoading = true;
-      _healthcareError = null;
-    });
+  Future<void> _loadHealthcare({bool silent = false}) async {
+    if (!silent) {
+      setState(() {
+        _healthcareLoading = true;
+        _healthcareError = null;
+      });
+    }
     try {
       final list = await HealthcareService().getHealthcareProfessionals();
       if (!mounted) return;
@@ -133,18 +182,24 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
       final filtered = currentUserId != null
           ? list.where((u) => u.id != currentUserId).toList()
           : list;
-      setState(() {
-        _healthcareUsers = filtered;
-        _healthcareLoading = false;
-        _healthcareError = null;
-      });
+      _healthcareCache = filtered;
+      _healthcareCacheTime = DateTime.now();
+      if (mounted) {
+        setState(() {
+          _healthcareUsers = filtered;
+          _healthcareLoading = false;
+          _healthcareError = null;
+        });
+      }
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _healthcareUsers = null;
-        _healthcareLoading = false;
-        _healthcareError = e.toString().replaceFirst('Exception: ', '');
-      });
+      if (!silent) {
+        setState(() {
+          _healthcareUsers = null;
+          _healthcareLoading = false;
+          _healthcareError = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
     }
   }
 
@@ -800,9 +855,70 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
     );
   }
 
+  static const _monthNames = [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+  ];
+  static const _weekdays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+
+  /// Dates (yyyy-mm-dd) qui ont au moins une disponibilité.
+  Set<String> get _datesWithAvailability {
+    final set = <String>{};
+    for (final a in _planningAvailabilities) {
+      for (final d in a.dates) {
+        if (d.isNotEmpty) set.add(d);
+      }
+    }
+    return set;
+  }
+
+  static const _weekdayNames = [
+    'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'
+  ];
+
+  /// Formate un créneau pour affichage "Mercredi 14, 16:30".
+  String _formatNextSlot(String dateStr, String startTime) {
+    final parts = dateStr.split('-');
+    if (parts.length != 3) return '$dateStr $startTime';
+    final y = int.tryParse(parts[0]) ?? 0;
+    final m = int.tryParse(parts[1]) ?? 1;
+    final d = int.tryParse(parts[2]) ?? 0;
+    final dt = DateTime(y, m, d);
+    final weekday = _weekdayNames[dt.weekday - 1];
+    return '$weekday $d, $startTime';
+  }
+
+  /// Prochains créneaux (aujourd'hui et jours suivants), triés par date puis heure.
+  List<({String dateStr, String startTime, String endTime})> get _upcomingSlots {
+    final now = DateTime.now();
+    final todayStr =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final list = <({String dateStr, String startTime, String endTime})>[];
+    for (final a in _planningAvailabilities) {
+      for (final dateStr in a.dates) {
+        if (dateStr.compareTo(todayStr) >= 0) {
+          list.add((dateStr: dateStr, startTime: a.startTime, endTime: a.endTime));
+        }
+      }
+    }
+    list.sort((a, b) {
+      final c = a.dateStr.compareTo(b.dateStr);
+      if (c != 0) return c;
+      return a.startTime.compareTo(b.startTime);
+    });
+    return list.take(5).toList();
+  }
+
   Widget _buildPlanningSection(BuildContext context) {
-    const weekdays = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-    const dates = ['12', '13', '14', '15', '16', '17', '18'];
+    final now = DateTime.now();
+    final year = now.year;
+    final month = now.month;
+    final first = DateTime(year, month, 1);
+    final last = DateTime(year, month + 1, 0);
+    final daysInMonth = last.day;
+    final firstWeekday = first.weekday; // 1 = Monday
+    final datesWithAvail = _datesWithAvailability;
+    final upcoming = _upcomingSlots;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
@@ -812,11 +928,13 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Mon Planning',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B))),
+              Text(
+                'Mon Planning',
+                style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B)),
+              ),
               GestureDetector(
                 onTap: () => context.push(AppConstants.volunteerAgendaRoute),
                 child: const Text('Détails',
@@ -827,12 +945,20 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
+          Text(
+            '${_monthNames[month - 1]} $year',
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 12),
           Stack(
             clipBehavior: Clip.none,
             children: [
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
@@ -850,80 +976,146 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: List.generate(
-                          7,
-                          (i) => Text(weekdays[i],
+                        7,
+                        (i) => SizedBox(
+                          width: 32,
+                          child: Text(_weekdays[i],
+                              textAlign: TextAlign.center,
                               style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.grey.shade500))),
+                                  color: Colors.grey.shade500)),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: List.generate(7, (i) {
-                        final isToday = i == 2;
-                        return Container(
-                          width: 36,
-                          height: 36,
-                          alignment: Alignment.center,
-                          decoration: isToday
-                              ? const BoxDecoration(
-                                  color: _primary, shape: BoxShape.circle)
-                              : null,
-                          child: Text(
-                            dates[i],
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: isToday
-                                  ? FontWeight.bold
-                                  : FontWeight.w500,
-                              color: isToday
-                                  ? Colors.white
-                                  : (i == 3
-                                      ? const Color(0xFF1E293B)
-                                      : Colors.grey.shade500),
+                    const SizedBox(height: 8),
+                    _planningLoading
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 24),
+                            child: Center(
+                                child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2))),
+                          )
+                        : _buildMonthGrid(
+                            year,
+                            month,
+                            daysInMonth,
+                            firstWeekday,
+                            datesWithAvail,
+                            now,
+                          ),
+                    if (!_planningLoading && upcoming.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 4,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: _primary,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Prochaine intervention',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _formatNextSlot(
+                                      upcoming.first.dateStr,
+                                      upcoming.first.startTime,
+                                    ) +
+                                        (upcoming.first.endTime.isNotEmpty
+                                            ? ' – ${upcoming.first.endTime}'
+                                            : '') +
+                                        ' avec Lucas',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ...upcoming.map((slot) {
+                        final parts = slot.dateStr.split('-');
+                        final day = parts.length >= 3 ? parts[2] : '';
+                        final monthIdx =
+                            parts.length >= 2 ? int.tryParse(parts[1]) ?? 0 : 0;
+                        final dayLabel = monthIdx >= 1 && monthIdx <= 12
+                            ? '${_monthNames[monthIdx - 1]} $day'
+                            : slot.dateStr;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 4,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: _primary,
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Disponibilité',
+                                        style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF1E293B)),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '$dayLabel · ${slot.startTime} – ${slot.endTime}',
+                                        style: TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.grey.shade600),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         );
                       }),
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                              width: 4,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                  color: _primary,
-                                  borderRadius: BorderRadius.circular(2))),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Prochaine intervention',
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1E293B))),
-                                const SizedBox(height: 2),
-                                Text('Mercredi 14, 16:30 avec Lucas',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.grey.shade600)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                    ],
                   ],
                 ),
               ),
@@ -952,5 +1144,82 @@ class _VolunteerDashboardScreenState extends State<VolunteerDashboardScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildMonthGrid(
+    int year,
+    int month,
+    int daysInMonth,
+    int firstWeekday,
+    Set<String> datesWithAvail,
+    DateTime today,
+  ) {
+    final cells = <Widget>[];
+    final leadingEmpty = firstWeekday - 1;
+    for (var i = 0; i < leadingEmpty; i++) {
+      cells.add(const SizedBox(width: 32, height: 32));
+    }
+    for (var d = 1; d <= daysInMonth; d++) {
+      final dateStr =
+          '$year-${month.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}';
+      final isToday = today.year == year && today.month == month && today.day == d;
+      final hasAvail = datesWithAvail.contains(dateStr);
+      cells.add(
+        Container(
+          width: 32,
+          height: 36,
+          alignment: Alignment.center,
+          decoration: isToday
+              ? const BoxDecoration(
+                  color: _primary,
+                  shape: BoxShape.circle,
+                )
+              : null,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '$d',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+                  color: isToday ? Colors.white : Colors.grey.shade600,
+                ),
+              ),
+              if (hasAvail && !isToday)
+                Container(
+                  margin: const EdgeInsets.only(top: 2),
+                  width: 4,
+                  height: 4,
+                  decoration: const BoxDecoration(
+                    color: _primary,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+    final rows = <Widget>[];
+    for (var i = 0; i < cells.length; i += 7) {
+      final rowChildren = cells.skip(i).take(7).toList();
+      if (rowChildren.length < 7) {
+        while (rowChildren.length < 7) {
+          rowChildren.add(const SizedBox(width: 32, height: 32));
+        }
+      }
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: rowChildren,
+          ),
+        ),
+      );
+    }
+    return Column(children: rows);
   }
 }

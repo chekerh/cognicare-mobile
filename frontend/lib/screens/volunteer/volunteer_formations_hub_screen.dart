@@ -45,7 +45,10 @@ class _VolunteerFormationsHubScreenState
       statusBarColor: Colors.white,
       statusBarIconBrightness: Brightness.dark,
     ));
-    _load();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _load();
+    });
   }
 
   Future<void> _load() async {

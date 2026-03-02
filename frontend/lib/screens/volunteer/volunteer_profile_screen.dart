@@ -14,6 +14,7 @@ import '../../services/auth_service.dart';
 import '../profile/change_password_dialog.dart';
 import '../profile/change_email_dialog.dart';
 import '../profile/change_phone_dialog.dart';
+import '../../providers/training_cache_provider.dart';
 
 const Color _primary = Color(0xFFA4D9E5);
 const Color _background = Color(0xFFF8FAFC);
@@ -146,6 +147,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         if (isUnauthorized) {
+          await Provider.of<TrainingCacheProvider>(context, listen: false).clearCache();
           await authProvider.logout();
           if (mounted) context.go(AppConstants.loginRoute);
           return;
@@ -189,6 +191,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
       ),
     );
     if (confirmed == true && mounted) {
+      await Provider.of<TrainingCacheProvider>(context, listen: false).clearCache();
       await Provider.of<AuthProvider>(context, listen: false).logout();
       if (mounted) context.go(AppConstants.loginRoute);
     }
@@ -660,7 +663,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                       _buildActionTile(
                         icon: Icons.people_outline,
                         label: loc.profileFriendsSection,
-                        onTap: () => context.push(AppConstants.familyFriendsRoute),
+                        onTap: () => context.push(AppConstants.volunteerFriendsRoute),
                       ),
 
                       const SizedBox(height: 24),

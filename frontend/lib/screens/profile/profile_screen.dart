@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/language_provider.dart';
+import '../../providers/training_cache_provider.dart';
 import '../../utils/theme.dart';
 import '../../utils/constants.dart';
 import '../../services/auth_service.dart';
@@ -228,6 +229,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
     if (confirmed == true && mounted) {
+      await Provider.of<TrainingCacheProvider>(context, listen: false).clearCache();
       await Provider.of<AuthProvider>(context, listen: false).logout();
       if (mounted) context.go(AppConstants.loginRoute);
     }

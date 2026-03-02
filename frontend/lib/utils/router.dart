@@ -309,6 +309,22 @@ GoRouter createAppRouter(AuthProvider authProvider) {
             },
           ),
           GoRoute(
+            path: 'friends',
+            builder: (context, state) {
+              final extra = (state.extra as Map<String, dynamic>?) ?? {};
+              final userId = extra['userId'] as String?;
+              final memberName = extra['memberName'] as String?;
+              return FamilyFriendsScreen(
+                userId: userId,
+                memberName: memberName,
+              );
+            },
+          ),
+          GoRoute(
+            path: 'friend-requests/:_id',
+            builder: (context, state) => const FamilyFriendRequestsScreen(),
+          ),
+          GoRoute(
             path: 'mission-report',
             builder: (context, state) => const VolunteerMissionReportScreen(),
           ),
@@ -785,6 +801,10 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           ),
           GoRoute(
             path: 'friend-requests',
+            builder: (context, state) => const FamilyFriendRequestsScreen(),
+          ),
+          GoRoute(
+            path: 'friend-requests/:_id',
             builder: (context, state) => const FamilyFriendRequestsScreen(),
           ),
           GoRoute(

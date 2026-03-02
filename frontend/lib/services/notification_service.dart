@@ -43,9 +43,14 @@ class NotificationService {
     await _notificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        if (response.payload == 'appointment' && _router != null) {
+        if (_router == null) return;
+        if (response.payload == 'appointment') {
           Future.microtask(() {
             _router!.go(AppConstants.familyExpertAppointmentsRoute);
+          });
+        } else if (response.payload == 'volunteer_agenda') {
+          Future.microtask(() {
+            _router!.go(AppConstants.volunteerAgendaRoute);
           });
         }
       },
@@ -186,6 +191,64 @@ class NotificationService {
 
   Future<void> cancelAll() async {
     await _notificationsPlugin.cancelAll();
+  }
+
+  /// Notifications de disponibilité bénévole : à l'heure de début du créneau.
+  static const int _availabilityIdBase = 600;
+
+  /// Planifie une notification au début d'un créneau de disponibilité.
+  Future<void> scheduleAvailabilityReminder({
+    required String dateIso,
+    required String startTime,
+    String label = 'Disponibilité',
+  }) async {
+    DateTime? scheduledAt;
+    try {
+      final parts = dateIso.split('-');
+      if (parts.length == 3) {
+        final y = int.parse(parts[0]);
+        final m = int.parse(parts[1]);
+        final d = int.parse(parts[2]);
+        final timeParts = startTime.split(':');
+        final hour = timeParts.isNotEmpty ? int.parse(timeParts[0]) : 8;
+        final minute = timeParts.length > 1 ? int.parse(timeParts[1]) : 0;
+        scheduledAt = DateTime(y, m, d, hour, minute);
+      }
+    } catch (_) {
+      return;
+    }
+    if (scheduledAt == null || scheduledAt.isBefore(DateTime.now())) return;
+
+    final id = _availabilityIdBase +
+        (dateIso.hashCode + startTime.hashCode).abs() % 50000;
+    await _notificationsPlugin.zonedSchedule(
+      id,
+      'Rappel : $label',
+      'À $startTime',
+      tz.TZDateTime.from(scheduledAt, tz.local),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'availability_reminder_channel',
+          'Rappels de disponibilité',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      payload: 'volunteer_agenda',
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+  }
+
+  /// Annule un rappel de disponibilité par id (optionnel ; resynchroniser écrase par le même id).
+  Future<void> cancelAvailabilityReminder(int id) async {
+    await _notificationsPlugin.cancel(id);
   }
 
   /// Rappel de rendez-vous : notif à l'heure du RDV (ou 10 min avant). Au tap → écran Mes Rendez-vous.

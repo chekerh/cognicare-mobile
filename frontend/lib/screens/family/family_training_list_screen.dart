@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../providers/training_cache_provider.dart';
 import '../../services/training_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
@@ -8,6 +10,7 @@ const Color _primary = Color(0xFFADD8E6);
 const Color _bg = Color(0xFFF8FAFC);
 
 /// Autism training for caregivers (and volunteers) — list of courses with progression.
+/// Uses [TrainingCacheProvider] for cached data and state management.
 class FamilyTrainingListScreen extends StatefulWidget {
   const FamilyTrainingListScreen({super.key, this.fromVolunteer = false});
 
@@ -20,53 +23,21 @@ class FamilyTrainingListScreen extends StatefulWidget {
 
 class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
   final TrainingService _service = TrainingService();
-  List<Map<String, dynamic>> _courses = [];
-  List<Map<String, dynamic>> _enrollments = [];
-  String? _nextCourseId;
-  bool _loading = true;
-  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TrainingCacheProvider>(context, listen: false).load();
     });
-    try {
-      final results = await Future.wait([
-        _service.getCourses(),
-        _service.myEnrollments(),
-        _service.getNextCourseId(),
-      ]);
-      if (mounted) {
-        setState(() {
-          _courses = results[0] as List<Map<String, dynamic>>;
-          _enrollments = results[1] as List<Map<String, dynamic>>;
-          _nextCourseId = results[2] as String?;
-          _loading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
-          _loading = false;
-        });
-      }
-    }
   }
 
-  bool _isEnrolled(String courseId) {
-    return _enrollments.any((e) => e['courseId'] == courseId);
+  bool _isEnrolled(List<Map<String, dynamic>> enrollments, String courseId) {
+    return enrollments.any((e) => e['courseId'] == courseId);
   }
 
-  bool _isCompleted(String courseId) {
-    for (final e in _enrollments) {
+  bool _isCompleted(List<Map<String, dynamic>> enrollments, String courseId) {
+    for (final e in enrollments) {
       if (e['courseId'] == courseId) {
         final progress = (e['progressPercent'] as num?)?.toInt() ?? 0;
         final passed = e['quizPassed'] == true;
@@ -79,41 +50,41 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
   int? _courseOrder(Map<String, dynamic> c) =>
       c['order'] is int ? c['order'] as int : null;
 
-  /// A course is unlocked if:
-  /// - it is already completed, or
-  /// - it is the "next" course returned by the backend, or
-  /// - all previous courses (by order) are completed (fallback if backend
-  ///   progression endpoint fails or returns null).
-  bool _isUnlocked(String courseId) {
-    if (_isCompleted(courseId)) return true;
-    if (_nextCourseId == courseId) return true;
-
-    // Fallback: purely sequential unlocking based on course order and
-    // completion status, so that if the progression endpoint fails the user
-    // can still advance after validating quizzes.
-    final course = _courses.firstWhere(
+  bool _isUnlocked(
+    List<Map<String, dynamic>> courses,
+    List<Map<String, dynamic>> enrollments,
+    String? nextCourseId,
+    String courseId,
+  ) {
+    if (_isCompleted(enrollments, courseId)) return true;
+    if (nextCourseId == courseId) return true;
+    final course = courses.firstWhere(
       (c) => c['id'] == courseId,
       orElse: () => <String, dynamic>{},
     );
     if (course.isEmpty) return false;
-
     final currentOrder = _courseOrder(course);
     if (currentOrder == null) return false;
-
-    for (final c in _courses) {
+    for (final c in courses) {
       final order = _courseOrder(c);
       if (order != null && order < currentOrder) {
         final prevId = c['id'] as String? ?? '';
-        if (!_isCompleted(prevId)) {
-          return false;
-        }
+        if (!_isCompleted(enrollments, prevId)) return false;
       }
     }
     return true;
   }
 
-  Future<void> _openCourse(String courseId, String title, bool alreadyEnrolled) async {
-    if (!_isUnlocked(courseId)) {
+  Future<void> _openCourse(
+    TrainingCacheProvider provider,
+    String courseId,
+    String title,
+    bool alreadyEnrolled,
+    List<Map<String, dynamic>> courses,
+    List<Map<String, dynamic>> enrollments,
+    String? nextCourseId,
+  ) async {
+    if (!_isUnlocked(courses, enrollments, nextCourseId, courseId)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -126,7 +97,7 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
     if (!alreadyEnrolled) {
       try {
         await _service.enroll(courseId);
-        if (mounted) _load();
+        if (mounted) await provider.load(forceRefresh: true);
       } catch (_) {}
     }
     if (!mounted) return;
@@ -135,72 +106,82 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _bg,
-      appBar: AppBar(
-        title: const Text('Formation Autisme', style: TextStyle(color: AppTheme.text)),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.text, size: 20),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: _primary))
-          : _error != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(_error!, textAlign: TextAlign.center),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _load,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _primary,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text('Réessayer'),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  color: _primary,
-                  child: ListView(
-                    padding: const EdgeInsets.all(24),
-                    children: [
-                      const Text(
-                        'Cours reconnus pour les aidants. Complétez le contenu puis le quiz pour valider.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.text,
-                          height: 1.4,
+    return Consumer<TrainingCacheProvider>(
+      builder: (context, provider, _) {
+        final courses = provider.courses;
+        final enrollments = provider.enrollments;
+        final nextCourseId = provider.nextCourseId;
+        final loading = provider.loading;
+        final error = provider.error;
+
+        return Scaffold(
+          backgroundColor: _bg,
+          appBar: AppBar(
+            title: const Text('Formation Autisme', style: TextStyle(color: AppTheme.text)),
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.text, size: 20),
+              onPressed: () => context.pop(),
+            ),
+          ),
+          body: loading && !provider.isLoaded
+              ? const Center(child: CircularProgressIndicator(color: _primary))
+              : error != null && courses.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(error, textAlign: TextAlign.center),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () => provider.load(forceRefresh: true),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _primary,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text('Réessayer'),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      ...(_courses
-                        ..sort((a, b) =>
-                            (_courseOrder(a) ?? 0).compareTo(_courseOrder(b) ?? 0)))
-                          .map((course) {
-                        final id = course['id'] as String? ?? '';
-                        final title = course['title'] as String? ?? 'Cours';
-                        final desc = course['description'] as String? ?? '';
-                        final completed = _isCompleted(id);
-                        final enrolled = _isEnrolled(id);
-                        final unlocked = _isUnlocked(id);
-                        return Card(
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () => provider.load(forceRefresh: true),
+                      color: _primary,
+                      child: ListView(
+                        padding: const EdgeInsets.all(24),
+                        children: [
+                          const Text(
+                            'Cours reconnus pour les aidants. Complétez le contenu puis le quiz pour valider.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.text,
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          ...(List<Map<String, dynamic>>.from(courses)
+                            ..sort((a, b) =>
+                                (_courseOrder(a) ?? 0).compareTo(_courseOrder(b) ?? 0)))
+                              .map((course) {
+                            final id = course['id'] as String? ?? '';
+                            final title = course['title'] as String? ?? 'Cours';
+                            final desc = course['description'] as String? ?? '';
+                            final completed = _isCompleted(enrollments, id);
+                            final enrolled = _isEnrolled(enrollments, id);
+                            final unlocked = _isUnlocked(courses, enrollments, nextCourseId, id);
+                            return Card(
                           margin: const EdgeInsets.only(bottom: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: InkWell(
-                            onTap: () => _openCourse(id, title, enrolled),
+                            child: InkWell(
+                            onTap: () => _openCourse(
+                                provider, id, title, enrolled,
+                                courses, enrollments, nextCourseId),
                             borderRadius: BorderRadius.circular(16),
                             child: Padding(
                               padding: const EdgeInsets.all(20),
@@ -269,7 +250,9 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
                                     width: double.infinity,
                                     child: ElevatedButton(
                                       onPressed: unlocked
-                                          ? () => _openCourse(id, title, enrolled)
+                                          ? () => _openCourse(
+                                              provider, id, title, enrolled,
+                                              courses, enrollments, nextCourseId)
                                           : null,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: _primary,
@@ -296,7 +279,7 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
                           ),
                         );
                       }),
-                      if (_courses.isEmpty)
+                      if (courses.isEmpty)
                         const Padding(
                           padding: EdgeInsets.only(top: 48),
                           child: Center(
@@ -309,6 +292,8 @@ class _FamilyTrainingListScreenState extends State<FamilyTrainingListScreen> {
                     ],
                   ),
                 ),
+        );
+      },
     );
   }
 }
