@@ -38,6 +38,7 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server!: Server;
 
   private transcriptionStreams = new Map<string, any>();
+  private transcriptionLanguageByClient = new Map<string, string>();
 
   constructor(
     private jwtService: JwtService,
@@ -89,7 +90,23 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         userIdToSocket.delete(userId);
       }
     }
-    // Cleanup transcription stream
+    const stream = this.transcriptionStreams.get(client.id);
+    if (stream) {
+      stream.end();
+      this.transcriptionStreams.delete(client.id);
+    }
+    this.transcriptionLanguageByClient.delete(client.id);
+  }
+
+  @SubscribeMessage('call:transcription_language')
+  handleTranscriptionLanguage(
+    client: SocketWithUserId,
+    payload: { language: string },
+  ) {
+    const lang = payload?.language && typeof payload.language === 'string'
+      ? payload.language.trim()
+      : 'multi';
+    this.transcriptionLanguageByClient.set(client.id, lang);
     const stream = this.transcriptionStreams.get(client.id);
     if (stream) {
       stream.end();
@@ -265,7 +282,10 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     let stream = this.transcriptionStreams.get(client.id);
     if (!stream) {
-      stream = this.transcriptionService.createStream({
+      const lang =
+        this.transcriptionLanguageByClient.get(client.id) || 'multi';
+      stream = this.transcriptionService.createStream(
+        {
         onTranscription: async (text, isFinal) => {
           // Broadcast translation to target and back to sender
           const transcriptionPayload = {
@@ -305,7 +325,9 @@ export class CallsGateway implements OnGatewayConnection, OnGatewayDisconnect {
           );
           this.transcriptionStreams.delete(client.id);
         },
-      });
+      },
+        lang,
+      );
 
       if (stream) {
         this.transcriptionStreams.set(client.id, stream);

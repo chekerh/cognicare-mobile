@@ -26,6 +26,7 @@ class _FamilyReelsScreenState extends State<FamilyReelsScreen> {
   bool _refreshing = false;
   String? _refreshMessage;
   final PageController _pageController = PageController();
+  int _currentPageIndex = 0;
 
   @override
   void initState() {
@@ -109,57 +110,80 @@ class _FamilyReelsScreenState extends State<FamilyReelsScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final hasReels = _reels.isNotEmpty && !_loading && _error == null;
+
     return Scaffold(
-      backgroundColor: _bg,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // AppBar flottante
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Material(
-                color: Colors.transparent,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                        onPressed: () => context.pop(),
-                      ),
-                      Expanded(
-                        child: Text(
-                          loc.reelsCardTitle,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 48),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // Contenu
-            Padding(
-              padding: const EdgeInsets.only(top: 56),
+      backgroundColor: Colors.black,
+      body: hasReels
+          ? _buildReelsFeedFullScreen(context, loc)
+          : SafeArea(
               child: _loading
                   ? _buildLoading()
                   : _error != null
                       ? _buildError()
-                      : _reels.isEmpty
-                          ? _buildEmpty(loc)
-                          : _buildReelsFeed(),
+                      : _buildEmpty(loc),
             ),
-          ],
+    );
+  }
+
+  /// Feed plein écran type Instagram : une vidéo par écran, scroll vertical, bouton retour en overlay.
+  Widget _buildReelsFeedFullScreen(BuildContext context, AppLocalizations loc) {
+    final topPadding = MediaQuery.paddingOf(context).top;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // PageView plein écran — une vidéo par page, scroll vertical, autoplay sur la page visible
+        PageView.builder(
+          controller: _pageController,
+          scrollDirection: Axis.vertical,
+          itemCount: _reels.length + (_hasMore ? 1 : 0),
+          onPageChanged: (index) {
+            setState(() => _currentPageIndex = index);
+            if (index >= _reels.length - 2 && _hasMore && !_loadingMore) _loadMore();
+          },
+          itemBuilder: (context, index) {
+            if (index >= _reels.length) {
+              return Container(
+                color: Colors.black,
+                child: Center(
+                  child: _loadingMore
+                      ? const SizedBox(
+                          width: 32,
+                          height: 32,
+                          child: CircularProgressIndicator(
+                            color: Colors.white54,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              );
+            }
+            return _ReelFullPage(
+              reel: _reels[index],
+              isActive: index == _currentPageIndex,
+            );
+          },
         ),
-      ),
+        // Bouton retour en overlay (zone safe)
+        Positioned(
+          top: topPadding + 4,
+          left: 8,
+          child: Material(
+            color: Colors.black26,
+            borderRadius: BorderRadius.circular(24),
+            child: InkWell(
+              onTap: () => context.pop(),
+              borderRadius: BorderRadius.circular(24),
+              child: const Padding(
+                padding: EdgeInsets.all(10),
+                child: Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 22),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -273,48 +297,26 @@ class _FamilyReelsScreenState extends State<FamilyReelsScreen> {
     );
   }
 
-  Widget _buildReelsFeed() {
-    return PageView.builder(
-      controller: _pageController,
-      scrollDirection: Axis.vertical,
-      itemCount: _reels.length + (_hasMore ? 1 : 0),
-      onPageChanged: (index) {
-        if (index >= _reels.length - 2 && _hasMore && !_loadingMore) _loadMore();
-      },
-      itemBuilder: (context, index) {
-        if (index >= _reels.length) {
-          return Center(
-            child: _loadingMore
-                ? const SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2),
-                  )
-                : const SizedBox.shrink(),
-          );
-        }
-        return _ReelFullPage(reel: _reels[index]);
-      },
-    );
-  }
 }
 
 /// URL d’embed pour lecture dans l’app (pas d’ouverture YouTube/Dailymotion externe).
 String _embedUrlForReel(Reel reel) {
   switch (reel.source) {
     case 'dailymotion':
-      return 'https://www.dailymotion.com/embed/video/${reel.sourceId}';
+      return 'https://www.dailymotion.com/embed/video/${reel.sourceId}?autoplay=1&mute=1';
     case 'youtube':
     case 'scraped':
     default:
-      return 'https://www.youtube.com/embed/${reel.sourceId}?autoplay=0';
+      // youtube-nocookie limite l'erreur 153 (configuration lecteur) en respectant la politique de referrer
+      return 'https://www.youtube-nocookie.com/embed/${reel.sourceId}?autoplay=1&mute=1';
   }
 }
 
 class _ReelFullPage extends StatefulWidget {
-  const _ReelFullPage({required this.reel});
+  const _ReelFullPage({required this.reel, required this.isActive});
 
   final Reel reel;
+  final bool isActive;
 
   @override
   State<_ReelFullPage> createState() => _ReelFullPageState();
@@ -322,6 +324,7 @@ class _ReelFullPage extends StatefulWidget {
 
 class _ReelFullPageState extends State<_ReelFullPage> {
   late final WebViewController _controller;
+  bool _loadFailed = false;
 
   @override
   void initState() {
@@ -331,13 +334,66 @@ class _ReelFullPageState extends State<_ReelFullPage> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageFinished: (_) {},
+          onPageFinished: (_) => _triggerAutoplay(),
+          onWebResourceError: (error) {
+            if (mounted) setState(() => _loadFailed = true);
+          },
         ),
       );
     if (Platform.isAndroid) {
       _controller.setBackgroundColor(Colors.black);
     }
     _controller.loadRequest(Uri.parse(embedUrl));
+  }
+
+  /// Force la lecture automatique sans bouton : video.play() ou clic sur play après chargement.
+  void _triggerAutoplay() {
+    void runPlay() {
+      if (!mounted) return;
+      _controller.runJavaScript('''
+        (function() {
+          var v = document.querySelector('video');
+          if (v) { v.muted = true; v.play().catch(function(){}); return; }
+          var btn = document.querySelector('[aria-label="Play"], [aria-label="Lire"], .dmp_PlayButton, button[class*="play"], .np_icodnp_play');
+          if (btn) { btn.click(); return; }
+          var svg = document.querySelector('svg[class*="play"]');
+          if (svg && svg.closest('button')) svg.closest('button').click();
+        })();
+      ''');
+    }
+    Future.delayed(const Duration(milliseconds: 600), runPlay);
+    Future.delayed(const Duration(milliseconds: 1800), runPlay);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ReelFullPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive && !widget.isActive) {
+      _pauseVideo();
+    }
+  }
+
+  void _pauseVideo() {
+    try {
+      _controller.runJavaScript('''
+        (function() {
+          var v = document.querySelector('video');
+          if (v) v.pause();
+          var iframe = document.querySelector('iframe');
+          if (iframe && iframe.contentWindow) {
+            try {
+              var iv = iframe.contentDocument && iframe.contentDocument.querySelector('video');
+              if (iv) iv.pause();
+            } catch(e) {}
+          }
+        })();
+      ''');
+    } catch (_) {}
+  }
+
+  void _retryLoad() {
+    setState(() => _loadFailed = false);
+    _controller.loadRequest(Uri.parse(_embedUrlForReel(widget.reel)));
   }
 
   @override
@@ -357,17 +413,45 @@ class _ReelFullPageState extends State<_ReelFullPage> {
             ),
           ),
         ),
-        // Lecteur embed (YouTube/Dailymotion) — lecture dans l'app, pas de navigation externe
+        // Lecteur embed (YouTube/Dailymotion) — lecture dans l'app
         ClipRect(
           child: WebViewWidget(controller: _controller),
         ),
+        // Si erreur réseau : message + réessayer
+        if (_loadFailed)
+          Container(
+            color: Colors.black87,
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.wifi_off_rounded, size: 48, color: Colors.white70),
+                const SizedBox(height: 12),
+                Text(
+                  'Vidéo indisponible',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: _retryLoad,
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  label: const Text('Réessayer', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
         // Overlay gradient + titre en bas (style Instagram)
         Positioned(
           left: 0,
           right: 0,
           bottom: 0,
           child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 32, 16, 24),
+            padding: EdgeInsets.fromLTRB(
+              16,
+              40,
+              16,
+              24 + MediaQuery.paddingOf(context).bottom,
+            ),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,

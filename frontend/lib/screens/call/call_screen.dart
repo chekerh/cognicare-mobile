@@ -83,6 +83,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   String _currentTranscription = "";
   final List<String> _transcriptionHistory = [];
   bool _isTranscriptionEnabled = true;
+  String _transcriptionLanguage = 'multi';
 
   // Subscriptions
   StreamSubscription? _acceptedSub;
@@ -316,6 +317,9 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
           setState(() => _callStatus = CallStatus.connected);
           _startDurationTimer();
           _startRecording();
+          if (_isTranscriptionEnabled) {
+            _callService.setTranscriptionLanguage(_transcriptionLanguage);
+          }
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
           setState(() {
@@ -597,6 +601,80 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
 
   void _toggleTranscription() {
     setState(() => _isTranscriptionEnabled = !_isTranscriptionEnabled);
+    if (_isTranscriptionEnabled) {
+      _callService.setTranscriptionLanguage(_transcriptionLanguage);
+    }
+  }
+
+  void _showTranscriptionLanguageSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF1E293B),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Langue de transcription',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.9),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _langOption(ctx, 'Français', 'fr'),
+              _langOption(ctx, 'English', 'en'),
+              _langOption(ctx, 'العربية', 'ar'),
+              _langOption(ctx, 'Multi (automatique)', 'multi'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _langOption(BuildContext ctx, String label, String code) {
+    final isSelected = _transcriptionLanguage == code;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          setState(() => _transcriptionLanguage = code);
+          _callService.setTranscriptionLanguage(code);
+          Navigator.pop(ctx);
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.white.withOpacity(0.15) : null,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              if (isSelected)
+                const Icon(Icons.check_circle, color: Colors.white70, size: 22),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -1150,6 +1228,12 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
             label: _isTranscriptionEnabled ? 'Texte ON' : 'Texte OFF',
             isActive: _isTranscriptionEnabled,
             onTap: _toggleTranscription,
+          ),
+          _controlButton(
+            icon: Icons.translate,
+            label: 'Langue',
+            isActive: true,
+            onTap: _showTranscriptionLanguageSheet,
           ),
           // End call
           GestureDetector(

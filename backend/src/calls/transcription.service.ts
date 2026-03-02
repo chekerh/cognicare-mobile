@@ -32,24 +32,34 @@ export class TranscriptionService implements OnModuleInit {
     }
   }
 
-  createStream(callbacks: {
-    onTranscription: (text: string, isFinal: boolean) => void;
-    onError: (error: any) => void;
-  }): any {
+  /**
+   * @param language Code langue Deepgram: 'fr' | 'en' | 'ar' | 'multi' (défaut)
+   */
+  createStream(
+    callbacks: {
+      onTranscription: (text: string, isFinal: boolean) => void;
+      onError: (error: any) => void;
+    },
+    language: string = 'multi',
+  ): any {
     if (!this.deepgram) {
       this.logger.error('Deepgram client not initialized');
       return null;
     }
 
+    const lang = ['fr', 'en', 'ar', 'multi'].includes(language)
+      ? language
+      : 'multi';
+
     try {
       const connection: LiveClient = this.deepgram.listen.live({
         model: 'nova-2',
-        language: 'multi', // Arabe, anglais, français et autres (codeswitching)
+        language: lang,
         smart_format: true,
         interim_results: true,
         encoding: 'linear16',
         sample_rate: 16000,
-        endpointing: 100, // Recommandé pour le changement de langue en direct
+        endpointing: 100,
       });
 
       connection.on(LiveTranscriptionEvents.Transcript, (data) => {

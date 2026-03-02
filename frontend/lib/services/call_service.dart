@@ -416,4 +416,9 @@ class CallService {
       'channelId': channelId,
     });
   }
+
+  /// Définit la langue de transcription (fr, en, ar, multi). À appeler avant ou pendant l'appel.
+  void setTranscriptionLanguage(String language) {
+    _socket?.emit('call:transcription_language', {'language': language});
+  }
 }
