@@ -309,6 +309,8 @@ class CommunityService {
       email: m['email'] as String?,
       phone: m['phone'] as String?,
       location: m['location'] as String?,
+      role: m['role'] as String?,
+      careProviderType: m['careProviderType'] as String?,
       firstChildName: m['firstChildName'] as String?,
     );
   }
@@ -433,6 +435,8 @@ class MemberPublicInfo {
     this.email,
     this.phone,
     this.location,
+    this.role,
+    this.careProviderType,
     this.firstChildName,
   });
   final String fullName;
@@ -440,6 +444,10 @@ class MemberPublicInfo {
   final String? email;
   final String? phone;
   final String? location;
+  /// Rôle backend: family | careProvider | doctor | etc.
+  final String? role;
+  /// Si careProvider: caregiver | ergotherapist | speech_therapist | etc.
+  final String? careProviderType;
   /// Nom du premier enfant (pour afficher "Parent de X").
   final String? firstChildName;
 }

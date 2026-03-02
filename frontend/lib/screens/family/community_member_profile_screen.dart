@@ -283,7 +283,7 @@ class _CommunityMemberProfileScreenState
     return path.startsWith('/volunteer');
   }
 
-  static const String _defaultRole = 'Parent';
+  static const String _defaultRole = 'Membre';
   static const String _defaultDiagnosis = 'Diagnostic : Autisme léger';
   static const String _defaultJourney =
       'Nous naviguons dans ce parcours depuis 3 ans. Toujours ouvert à partager nos découvertes sur les outils sensoriels.';
@@ -292,12 +292,44 @@ class _CommunityMemberProfileScreenState
     'Soutien Émotionnel',
   ];
 
-  /// "Parent de [prénom enfant]" si l'API a renvoyé firstChildName, sinon rôle passé en param ou "Parent".
-  String get _displayRole {
-    final childName = _loadedPublicInfo?.firstChildName?.trim();
-    if (childName != null && childName.isNotEmpty) {
-      return 'Parent de $childName';
+  static String _careProviderTypeLabel(String? type) {
+    switch (type) {
+      case 'caregiver':
+        return 'Aidant';
+      case 'ergotherapist':
+        return 'Ergothérapeute';
+      case 'speech_therapist':
+        return 'Orthophoniste';
+      case 'psychologist':
+        return 'Psychologue';
+      case 'doctor':
+        return 'Médecin';
+      case 'occupational_therapist':
+        return 'Ergothérapeute';
+      case 'organization_leader':
+        return 'Responsable d\'organisation';
+      case 'other':
+        return 'Professionnel';
+      default:
+        return 'Aidant';
     }
+  }
+
+  /// Rôle affiché selon les infos API : Aidant / Parent de X / Parent / Membre.
+  String get _displayRole {
+    final info = _loadedPublicInfo;
+    final role = info?.role;
+    if (role == 'careProvider') {
+      return _careProviderTypeLabel(info?.careProviderType);
+    }
+    if (role == 'family') {
+      final childName = info?.firstChildName?.trim();
+      if (childName != null && childName.isNotEmpty) {
+        return 'Parent de $childName';
+      }
+      return 'Parent';
+    }
+    if (role == 'doctor') return 'Médecin';
     return widget.memberRole ?? _defaultRole;
   }
 

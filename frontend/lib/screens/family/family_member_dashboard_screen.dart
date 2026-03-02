@@ -191,6 +191,14 @@ class _FamilyMemberDashboardScreenState
   Future<void> _checkChildProfileComplete() async {
     final complete = await ChildProfileSetupScreen.isProfileComplete();
     if (complete) return;
+    // Si l'utilisateur a déjà des enfants en base (API), ne pas afficher le modal
+    try {
+      final childrenService = ChildrenService(
+        getToken: () => AuthService().getStoredToken(),
+      );
+      final children = await childrenService.getChildren();
+      if (children.isNotEmpty) return;
+    } catch (_) {}
     if (!mounted) return;
     final ctx = context;
     final loc = AppLocalizations.of(ctx)!;

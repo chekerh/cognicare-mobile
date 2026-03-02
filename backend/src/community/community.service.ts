@@ -483,17 +483,17 @@ export class CommunityService {
     );
   }
 
-  /** Infos publiques d'un membre (nom, photo, email, phone, location, firstChildName) pour afficher le profil. */
+  /** Infos publiques d'un membre (nom, photo, email, phone, location, role, careProviderType, firstChildName) pour afficher le profil. */
   async getMemberPublicInfo(
     userId: string,
-  ): Promise<{ fullName: string; profilePic?: string; email?: string; phone?: string; location?: string; firstChildName?: string } | null> {
+  ): Promise<{ fullName: string; profilePic?: string; email?: string; phone?: string; location?: string; role?: string; careProviderType?: string; firstChildName?: string } | null> {
     const user = await this.userModel
       .findById(userId)
-      .select('fullName profilePic email phone location role')
+      .select('fullName profilePic email phone location role careProviderType')
       .lean()
       .exec();
     if (!user) return null;
-    const u = user as { fullName?: string; profilePic?: string; email?: string; phone?: string; location?: string; role?: string };
+    const u = user as { fullName?: string; profilePic?: string; email?: string; phone?: string; location?: string; role?: string; careProviderType?: string };
     let firstChildName: string | undefined;
     if (u.role === 'family') {
       const firstChild = await this.childModel
@@ -510,6 +510,8 @@ export class CommunityService {
       email: u.email,
       phone: u.phone,
       location: u.location,
+      role: u.role,
+      careProviderType: u.careProviderType,
       firstChildName,
     };
   }
