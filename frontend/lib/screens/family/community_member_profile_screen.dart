@@ -92,6 +92,9 @@ class _CommunityMemberProfileScreenState
   MemberContactInfo? _memberContactInfo;
   bool _loadingContact = false;
 
+  /// Quand on ouvre le profil via un lien (ex. chat), on n'a que memberId — on charge nom et photo ici.
+  MemberPublicInfo? _loadedPublicInfo;
+
   @override
   void initState() {
     super.initState();
@@ -101,6 +104,23 @@ class _CommunityMemberProfileScreenState
     _loadMemberPosts();
     _loadMemberFriends();
     _loadMemberContactInfo();
+    if (widget.memberId.isNotEmpty &&
+        (widget.memberImageUrl == null || widget.memberImageUrl!.isEmpty ||
+            widget.memberName.isEmpty)) {
+      _loadMemberPublicInfo();
+    }
+  }
+
+  Future<void> _loadMemberPublicInfo() async {
+    if (widget.memberId.isEmpty) return;
+    try {
+      final info = await CommunityService().getMemberPublicInfo(widget.memberId);
+      if (!mounted) return;
+      setState(() => _loadedPublicInfo = info);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadedPublicInfo = null);
+    }
   }
 
   Future<void> _loadMemberContactInfo() async {
@@ -237,7 +257,7 @@ class _CommunityMemberProfileScreenState
                 padding: EdgeInsets.fromLTRB(24, 16, 24, 32 + bottomPadding),
                 child: Column(
                   children: [
-                    _buildProfileSection(widget.memberName, role),
+                    _buildProfileSection(_displayName, role),
                     const SizedBox(height: 24),
                     _buildActionButtons(context),
                     const SizedBox(height: 32),
@@ -278,31 +298,21 @@ class _CommunityMemberProfileScreenState
               ),
             ),
           ),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () {},
-              borderRadius: BorderRadius.circular(999),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Icon(Icons.more_horiz, color: _slate800, size: 24),
-              ),
-            ),
-          ),
+          const SizedBox(width: 40),
         ],
       ),
     );
   }
 
+  String get _displayName =>
+      _loadedPublicInfo?.fullName ?? widget.memberName;
+
+  String? get _displayImageUrl =>
+      _loadedPublicInfo?.profilePic ?? widget.memberImageUrl;
+
   Widget _buildProfileSection(String name, String role) {
-    final imageUrl = widget.memberImageUrl != null &&
-            widget.memberImageUrl!.isNotEmpty
-        ? AppConstants.fullImageUrl(widget.memberImageUrl!)
+    final imageUrl = _displayImageUrl != null && _displayImageUrl!.isNotEmpty
+        ? AppConstants.fullImageUrl(_displayImageUrl!)
         : null;
     return Column(
       children: [
@@ -449,7 +459,7 @@ class _CommunityMemberProfileScreenState
                 child: InkWell(
                   onTap: () {
                     context.push(
-                      '${AppConstants.familyPrivateChatRoute}?id=${Uri.encodeComponent(widget.memberId)}&name=${Uri.encodeComponent(widget.memberName)}${widget.memberImageUrl != null && widget.memberImageUrl!.isNotEmpty ? '&imageUrl=${Uri.encodeComponent(AppConstants.fullImageUrl(widget.memberImageUrl!))}' : ''}',
+                      '${AppConstants.familyPrivateChatRoute}?id=${Uri.encodeComponent(widget.memberId)}&name=${Uri.encodeComponent(_displayName)}${_displayImageUrl != null && _displayImageUrl!.isNotEmpty ? '&imageUrl=${Uri.encodeComponent(AppConstants.fullImageUrl(_displayImageUrl!))}' : ''}',
                     );
                   },
                   borderRadius: BorderRadius.circular(20),
@@ -532,9 +542,14 @@ class _CommunityMemberProfileScreenState
               borderRadius: BorderRadius.circular(20),
               child: InkWell(
                 onTap: () {
+                  final base = AppConstants.baseUrl.endsWith('/')
+                      ? AppConstants.baseUrl.substring(0, AppConstants.baseUrl.length - 1)
+                      : AppConstants.baseUrl;
+                  final profileLink = '$base/profile/member/${widget.memberId}';
+                  final shareText = 'Découvre le profil de $_displayName sur CogniCare : $profileLink';
                   Share.share(
-                    'Profil CogniCare: ${widget.memberName}',
-                    subject: widget.memberName,
+                    shareText,
+                    subject: 'Profil de $_displayName',
                   );
                 },
                 borderRadius: BorderRadius.circular(20),
@@ -581,7 +596,13 @@ class _CommunityMemberProfileScreenState
                 ),
               ),
               GestureDetector(
-                onTap: () => context.push(AppConstants.familyFriendsRoute),
+                onTap: () => context.push(
+                  AppConstants.familyFriendsRoute,
+                  extra: {
+                    'userId': widget.memberId,
+                    'memberName': _displayName,
+                  },
+                ),
                 child: const Text(
                   'Tout voir',
                   style: TextStyle(

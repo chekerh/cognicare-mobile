@@ -293,6 +293,21 @@ class CommunityService {
         .toList();
   }
 
+  /// Get member public info (fullName, profilePic) for profile display (e.g. when opening from shared link).
+  Future<MemberPublicInfo?> getMemberPublicInfo(String userId) async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.communityMemberPublicInfoEndpoint(userId)}');
+    final response = await _client.get(uri, headers: await _headers());
+    if (response.statusCode != 200) return null;
+    final data = jsonDecode(response.body);
+    if (data == null) return null;
+    final m = data as Map<String, dynamic>;
+    return MemberPublicInfo(
+      fullName: m['fullName'] as String? ?? 'Membre',
+      profilePic: m['profilePic'] as String?,
+    );
+  }
+
   /// Get member contact info (email, phone) — only if current user is friends with [userId].
   Future<MemberContactInfo?> getMemberContactInfo(String userId) async {
     final uri = Uri.parse(
@@ -402,6 +417,15 @@ class FollowRequestResult {
   const FollowRequestResult({required this.requestId, required this.status});
   final String requestId;
   final String status;
+}
+
+class MemberPublicInfo {
+  const MemberPublicInfo({
+    required this.fullName,
+    this.profilePic,
+  });
+  final String fullName;
+  final String? profilePic;
 }
 
 class MemberContactInfo {

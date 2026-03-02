@@ -481,6 +481,23 @@ export class CommunityService {
     );
   }
 
+  /** Infos publiques d'un membre (nom, photo) — pour afficher le profil quand on n'a que l'id (ex. lien partagé). */
+  async getMemberPublicInfo(
+    userId: string,
+  ): Promise<{ fullName: string; profilePic?: string } | null> {
+    const user = await this.userModel
+      .findById(userId)
+      .select('fullName profilePic')
+      .lean()
+      .exec();
+    if (!user) return null;
+    const u = user as { fullName?: string; profilePic?: string };
+    return {
+      fullName: u.fullName ?? 'Membre',
+      profilePic: u.profilePic,
+    };
+  }
+
   /** Infos de contact d'un membre (email, phone) — uniquement si amis. */
   async getMemberContactInfo(
     currentUserId: string,

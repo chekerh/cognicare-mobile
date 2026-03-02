@@ -196,6 +196,18 @@ export class CommunityController {
     return this.communityService.listPendingFollowRequests(req.user.id);
   }
 
+  @Get('members/:userId/public-info')
+  @ApiOperation({
+    summary: 'Get member public info (fullName, profilePic) for profile display',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '{ fullName, profilePic? } or null if not found',
+  })
+  async getMemberPublicInfo(@Param('userId') userId: string) {
+    return this.communityService.getMemberPublicInfo(userId);
+  }
+
   @Get('members/:userId/contact-info')
   @ApiOperation({
     summary: 'Get member contact info (email, phone) — only if friends',
