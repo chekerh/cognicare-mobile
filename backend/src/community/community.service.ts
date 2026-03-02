@@ -481,6 +481,27 @@ export class CommunityService {
     );
   }
 
+  /** Infos de contact d'un membre (email, phone) — uniquement si amis. */
+  async getMemberContactInfo(
+    currentUserId: string,
+    targetUserId: string,
+  ): Promise<{ fullName: string; email?: string; phone?: string } | null> {
+    const status = await this.getFollowStatus(currentUserId, targetUserId);
+    if (status.status !== 'accepted') return null;
+    const user = await this.userModel
+      .findById(targetUserId)
+      .select('fullName email phone')
+      .lean()
+      .exec();
+    if (!user) return null;
+    const u = user as { fullName?: string; email?: string; phone?: string };
+    return {
+      fullName: u.fullName ?? 'Membre',
+      email: u.email,
+      phone: u.phone,
+    };
+  }
+
   /** Statut de la relation entre currentUserId et targetUserId (dans les deux sens). */
   async getFollowStatus(
     currentUserId: string,

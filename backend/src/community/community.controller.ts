@@ -196,6 +196,21 @@ export class CommunityController {
     return this.communityService.listPendingFollowRequests(req.user.id);
   }
 
+  @Get('members/:userId/contact-info')
+  @ApiOperation({
+    summary: 'Get member contact info (email, phone) — only if friends',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '{ fullName, email?, phone? } or null if not friends',
+  })
+  async getMemberContactInfo(
+    @Request() req: { user: { id: string } },
+    @Param('userId') userId: string,
+  ) {
+    return this.communityService.getMemberContactInfo(req.user.id, userId);
+  }
+
   @Get('follow-requests/friends')
   @ApiOperation({
     summary:

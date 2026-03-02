@@ -293,6 +293,22 @@ class CommunityService {
         .toList();
   }
 
+  /// Get member contact info (email, phone) — only if current user is friends with [userId].
+  Future<MemberContactInfo?> getMemberContactInfo(String userId) async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}${AppConstants.communityMemberContactEndpoint(userId)}');
+    final response = await _client.get(uri, headers: await _headers());
+    if (response.statusCode != 200) return null;
+    final data = jsonDecode(response.body);
+    if (data == null) return null;
+    final m = data as Map<String, dynamic>;
+    return MemberContactInfo(
+      fullName: m['fullName'] as String? ?? 'Membre',
+      email: m['email'] as String?,
+      phone: m['phone'] as String?,
+    );
+  }
+
   /// Get follow status from current user toward [targetUserId].
   /// Returns status and requestId (when pending, for cancel).
   Future<FollowStatusResult?> getFollowStatus(String targetUserId) async {
@@ -386,6 +402,17 @@ class FollowRequestResult {
   const FollowRequestResult({required this.requestId, required this.status});
   final String requestId;
   final String status;
+}
+
+class MemberContactInfo {
+  const MemberContactInfo({
+    required this.fullName,
+    this.email,
+    this.phone,
+  });
+  final String fullName;
+  final String? email;
+  final String? phone;
 }
 
 class FollowStatusResult {

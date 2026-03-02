@@ -366,7 +366,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               GoRoute(
                 path: 'course',
                 builder: (context, state) {
-                  final extra = state.extra is Map<String, dynamic> ? state.extra : <String, dynamic>{};
+                  final extra = (state.extra is Map<String, dynamic> ? state.extra : <String, dynamic>{}) as Map<String, dynamic>;
                   return FamilyTrainingCourseScreen(
                     courseId: extra['courseId'] as String? ?? '',
                     title: extra['title'] as String? ?? 'Cours',
@@ -376,7 +376,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               GoRoute(
                 path: 'quiz',
                 builder: (context, state) {
-                  final extra = state.extra is Map<String, dynamic> ? state.extra : <String, dynamic>{};
+                  final extra = (state.extra is Map<String, dynamic> ? state.extra : <String, dynamic>{}) as Map<String, dynamic>;
                   return FamilyTrainingQuizScreen(
                     courseId: extra['courseId'] as String? ?? '',
                     title: extra['title'] as String? ?? 'Quiz',
@@ -712,7 +712,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               GoRoute(
                 path: 'course',
                 builder: (context, state) {
-                  final extra = state.extra is Map<String, dynamic> ? state.extra : <String, dynamic>{};
+                  final extra = (state.extra is Map<String, dynamic> ? state.extra : <String, dynamic>{}) as Map<String, dynamic>;
                   return FamilyTrainingCourseScreen(
                     courseId: extra['courseId'] as String? ?? '',
                     title: extra['title'] as String? ?? 'Cours',
@@ -722,7 +722,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               GoRoute(
                 path: 'quiz',
                 builder: (context, state) {
-                  final extra = state.extra is Map<String, dynamic> ? state.extra : <String, dynamic>{};
+                  final extra = (state.extra is Map<String, dynamic> ? state.extra : <String, dynamic>{}) as Map<String, dynamic>;
                   return FamilyTrainingQuizScreen(
                     courseId: extra['courseId'] as String? ?? '',
                     title: extra['title'] as String? ?? 'Quiz',

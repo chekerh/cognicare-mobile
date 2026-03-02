@@ -89,6 +89,9 @@ class _CommunityMemberProfileScreenState
   List<CommunityFriend>? _memberFriends;
   bool _loadingFriends = false;
 
+  MemberContactInfo? _memberContactInfo;
+  bool _loadingContact = false;
+
   @override
   void initState() {
     super.initState();
@@ -97,6 +100,26 @@ class _CommunityMemberProfileScreenState
     _loadFriendsCheck();
     _loadMemberPosts();
     _loadMemberFriends();
+    _loadMemberContactInfo();
+  }
+
+  Future<void> _loadMemberContactInfo() async {
+    if (widget.memberId.isEmpty) return;
+    setState(() => _loadingContact = true);
+    try {
+      final info = await CommunityService().getMemberContactInfo(widget.memberId);
+      if (!mounted) return;
+      setState(() {
+        _memberContactInfo = info;
+        _loadingContact = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _memberContactInfo = null;
+        _loadingContact = false;
+      });
+    }
   }
 
   Future<void> _loadMemberFriends() async {
@@ -201,6 +224,8 @@ class _CommunityMemberProfileScreenState
   Widget build(BuildContext context) {
     final role = widget.memberRole ?? _defaultRole;
 
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return Scaffold(
       backgroundColor: _bgLight,
       body: SafeArea(
@@ -209,7 +234,7 @@ class _CommunityMemberProfileScreenState
             _buildGradientHeader(context),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                padding: EdgeInsets.fromLTRB(24, 16, 24, 32 + bottomPadding),
                 child: Column(
                   children: [
                     _buildProfileSection(widget.memberName, role),
@@ -218,7 +243,7 @@ class _CommunityMemberProfileScreenState
                     const SizedBox(height: 32),
                     _buildMesAmisSection(),
                     const SizedBox(height: 24),
-                    _buildMesFormationsCard(),
+                    _buildInformationsPersonnellesCard(),
                     const SizedBox(height: 24),
                     _buildPublicationsSection(),
                   ],
@@ -667,7 +692,7 @@ class _CommunityMemberProfileScreenState
     );
   }
 
-  Widget _buildMesFormationsCard() {
+  Widget _buildInformationsPersonnellesCard() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -686,7 +711,7 @@ class _CommunityMemberProfileScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Mes Formations',
+            'Informations personnelles',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -694,62 +719,95 @@ class _CommunityMemberProfileScreenState
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              _formationBadge(
-                icon: Icons.emoji_events,
-                label: 'Expert\nSensoriel',
-                color: Colors.amber,
+          if (_loadingContact)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
               ),
-              const SizedBox(width: 16),
-              _formationBadge(
-                icon: Icons.school,
-                label: 'Niveau 1\nABA',
-                color: Colors.blue,
+            )
+          else if (_memberContactInfo == null)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Devenez ami pour voir les informations de contact.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: _slate400,
+                ),
               ),
-              const SizedBox(width: 16),
-              _formationBadge(
-                icon: Icons.lock,
-                label: 'Mastery\n...',
-                color: Colors.grey,
-                locked: true,
-              ),
-            ],
-          ),
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if ((_memberContactInfo!.email ?? '').isNotEmpty)
+                  _buildContactRow(
+                    Icons.email_outlined,
+                    'Email',
+                    _memberContactInfo!.email!,
+                  ),
+                if ((_memberContactInfo!.email ?? '').isNotEmpty &&
+                    (_memberContactInfo!.phone ?? '').isNotEmpty)
+                  const SizedBox(height: 12),
+                if ((_memberContactInfo!.phone ?? '').isNotEmpty)
+                  _buildContactRow(
+                    Icons.phone_outlined,
+                    'Téléphone',
+                    _memberContactInfo!.phone!,
+                  ),
+                if ((_memberContactInfo!.email ?? '').isEmpty &&
+                    (_memberContactInfo!.phone ?? '').isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      'Aucune information de contact partagée.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: _slate400,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
         ],
       ),
     );
   }
 
-  Widget _formationBadge({
-    required IconData icon,
-    required String label,
-    required Color color,
-    bool locked = false,
-  }) {
-    final bgColor = locked ? Colors.grey.shade100 : color.withOpacity(0.2);
-    final iconColor = locked ? Colors.grey.shade400 : color;
-    return Column(
+  Widget _buildContactRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(16),
+        Icon(icon, size: 20, color: _primary),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _slate400,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              SelectableText(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: _slate800,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-          child: Icon(icon, size: 28, color: iconColor),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-            color: locked ? Colors.grey.shade500 : _slate800,
-            height: 1.2,
-          ),
-          textAlign: TextAlign.center,
         ),
       ],
     );
