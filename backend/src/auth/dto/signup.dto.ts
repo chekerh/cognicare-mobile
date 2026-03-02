@@ -1,11 +1,13 @@
 import {
   IsEmail,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsEnum,
   MinLength,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SignupDto {
@@ -70,6 +72,26 @@ export class SignupDto {
   @IsOptional()
   @IsString()
   organizationDescription?: string;
+
+  @ApiPropertyOptional({
+    description: "User's location (address or city)",
+    example: 'Ariana, Tunisie',
+  })
+  @IsOptional()
+  @IsString()
+  location?: string;
+
+  @ApiPropertyOptional({ description: 'Latitude of user location' })
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  locationLat?: number;
+
+  @ApiPropertyOptional({ description: 'Longitude of user location' })
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  locationLng?: number;
 
   @ApiProperty({
     description: '6-digit verification code sent to email',

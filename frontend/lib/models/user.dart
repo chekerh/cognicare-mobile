@@ -6,6 +6,10 @@ class User {
   final String role;
   final String? profilePic;
   final DateTime createdAt;
+  /// Localisation utilisateur (adresse ou ville).
+  final String? location;
+  final double? locationLat;
+  final double? locationLng;
   /// Cabinet en Tunisie — pour la carte des professionnels de santé.
   final String? officeAddress;
   final String? officeCity;
@@ -20,6 +24,9 @@ class User {
     required this.role,
     this.profilePic,
     required this.createdAt,
+    this.location,
+    this.locationLat,
+    this.locationLng,
     this.officeAddress,
     this.officeCity,
     this.officeLat,
@@ -35,6 +42,9 @@ class User {
       role: json['role'],
       profilePic: json['profilePic'],
       createdAt: DateTime.parse(json['createdAt']),
+      location: json['location']?.toString(),
+      locationLat: _parseDouble(json['locationLat']),
+      locationLng: _parseDouble(json['locationLng']),
       officeAddress: json['officeAddress']?.toString(),
       officeCity: json['officeCity']?.toString(),
       officeLat: _parseDouble(json['officeLat']),
@@ -51,6 +61,9 @@ class User {
   bool get hasOfficeLocation =>
       officeLat != null && officeLng != null;
 
+  bool get hasLocation =>
+      location != null && location!.isNotEmpty && locationLat != null && locationLng != null;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -60,6 +73,9 @@ class User {
       'role': role,
       'profilePic': profilePic,
       'createdAt': createdAt.toIso8601String(),
+      'location': location,
+      'locationLat': locationLat,
+      'locationLng': locationLng,
       'officeAddress': officeAddress,
       'officeCity': officeCity,
       'officeLat': officeLat,
@@ -75,6 +91,9 @@ class User {
     String? role,
     String? profilePic,
     DateTime? createdAt,
+    String? location,
+    double? locationLat,
+    double? locationLng,
     String? officeAddress,
     String? officeCity,
     double? officeLat,
@@ -88,6 +107,9 @@ class User {
       role: role ?? this.role,
       profilePic: profilePic ?? this.profilePic,
       createdAt: createdAt ?? this.createdAt,
+      location: location ?? this.location,
+      locationLat: locationLat ?? this.locationLat,
+      locationLng: locationLng ?? this.locationLng,
       officeAddress: officeAddress ?? this.officeAddress,
       officeCity: officeCity ?? this.officeCity,
       officeLat: officeLat ?? this.officeLat,

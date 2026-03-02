@@ -37,19 +37,28 @@ class AuthService {
     String? phone,
     required String role,
     required String verificationCode,
+    String? location,
+    double? locationLat,
+    double? locationLng,
   }) async {
     try {
+      final body = <String, dynamic>{
+        'fullName': fullName,
+        'email': email,
+        'password': password,
+        'phone': phone,
+        'role': role,
+        'verificationCode': verificationCode,
+      };
+      if (location != null && location.isNotEmpty) {
+        body['location'] = location;
+        if (locationLat != null) body['locationLat'] = locationLat;
+        if (locationLng != null) body['locationLng'] = locationLng;
+      }
       final response = await _client.post(
         Uri.parse('${AppConstants.baseUrl}${AppConstants.signupEndpoint}'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'fullName': fullName,
-          'email': email,
-          'password': password,
-          'phone': phone,
-          'role': role,
-          'verificationCode': verificationCode,
-        }),
+        body: jsonEncode(body),
       );
 
       if (response.statusCode == 201) {
@@ -140,11 +149,14 @@ class AuthService {
     );
   }
 
-  /// Update own profile (fullName, phone, profilePic URL).
+  /// Update own profile (fullName, phone, profilePic URL, location).
   Future<User> updateProfile({
     String? fullName,
     String? phone,
     String? profilePic,
+    String? location,
+    double? locationLat,
+    double? locationLng,
   }) async {
     final token = await getStoredToken();
     if (token == null) throw Exception('No authentication token found');
@@ -152,6 +164,9 @@ class AuthService {
     if (fullName != null) body['fullName'] = fullName;
     if (phone != null) body['phone'] = phone;
     if (profilePic != null) body['profilePic'] = profilePic;
+    if (location != null) body['location'] = location;
+    if (locationLat != null) body['locationLat'] = locationLat;
+    if (locationLng != null) body['locationLng'] = locationLng;
     final response = await _client.patch(
       Uri.parse('${AppConstants.baseUrl}${AppConstants.updateProfileEndpoint}'),
       headers: {

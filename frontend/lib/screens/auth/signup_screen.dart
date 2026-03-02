@@ -5,8 +5,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/geocoding_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/theme.dart';
+import '../../widgets/location_search_field.dart';
 
 // Design Premium Sign-up : primary #A3D9E2, background #F8FBFC
 const Color _authPrimary = Color(0xFFA3D9E2);
@@ -27,8 +29,11 @@ class _SignupScreenState extends State<SignupScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _verificationCodeController = TextEditingController();
+  final _locationController = TextEditingController();
 
   String _selectedRole = 'family'; // 'family' | 'careProvider'
+  double? _locationLat;
+  double? _locationLng;
   bool _acceptTerms = false;
   bool _emailVerified = false;
   bool _codeSent = false;
@@ -43,6 +48,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _verificationCodeController.dispose();
+    _locationController.dispose();
     super.dispose();
   }
 
@@ -173,6 +179,17 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
+    final locationText = _locationController.text.trim();
+    if (locationText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(localizations.locationRequired),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     try {
@@ -184,6 +201,9 @@ class _SignupScreenState extends State<SignupScreen> {
             _phoneController.text.isEmpty ? null : _phoneController.text.trim(),
         role: _selectedRole,
         verificationCode: _verificationCodeController.text.trim(),
+        location: locationText,
+        locationLat: _locationLat,
+        locationLng: _locationLng,
       );
 
       if (success && mounted) {
@@ -465,6 +485,26 @@ class _SignupScreenState extends State<SignupScreen> {
                   icon: Icons.phone,
                   hint: localizations.phoneLabel,
                   keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 16),
+                // Localisation (requise)
+                const Text(
+                  'Localisation',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.text,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                LocationSearchField(
+                  controller: _locationController,
+                  onLocationSelected: (GeocodingResult result) {
+                    setState(() {
+                      _locationLat = result.latitude;
+                      _locationLng = result.longitude;
+                    });
+                  },
                 ),
                 const SizedBox(height: 16),
                 // Je suis... (dropdown)

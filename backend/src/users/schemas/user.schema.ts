@@ -131,6 +131,16 @@ export class User {
   @Prop()
   deletedAt?: Date;
 
+  /** Localisation de l'utilisateur (adresse texte, ex. ville ou adresse complète). */
+  @Prop()
+  location?: string;
+
+  @Prop()
+  locationLat?: number;
+
+  @Prop()
+  locationLng?: number;
+
   /** Cabinet / bureau en Tunisie — pour la carte famille (professionnels de santé). */
   @Prop()
   officeAddress?: string;

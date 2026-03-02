@@ -986,6 +986,16 @@ class _FamilyMemberDashboardScreenState
 
   Future<void> _openChatWithCaregiver(
       BuildContext context, CaregiverUser caregiver) async {
+    if (caregiver.id.isEmpty) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Impossible d\'ouvrir la conversation: identifiant invalide'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
     try {
       final chatService = ChatService();
       final conv = await chatService.getOrCreateConversation(caregiver.id);

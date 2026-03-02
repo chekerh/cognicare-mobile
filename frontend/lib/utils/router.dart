@@ -815,11 +815,18 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           GoRoute(
             path: 'private-chat',
             builder: (context, state) {
-              final id = state.uri.queryParameters['id'] ?? '';
-              final name = state.uri.queryParameters['name'] ?? 'Person';
-              final imageUrl = state.uri.queryParameters['imageUrl'];
-              final conversationId =
-                  state.uri.queryParameters['conversationId'];
+              final extra = state.extra as Map<String, dynamic>?;
+              final q = state.uri.queryParameters;
+              final id = extra?['personId']?.toString() ??
+                  q['id'] ??
+                  '';
+              final name = extra?['personName']?.toString() ??
+                  q['name'] ??
+                  'Person';
+              final imageUrl = extra?['personImageUrl']?.toString() ??
+                  q['imageUrl'];
+              final conversationId = extra?['conversationId']?.toString() ??
+                  q['conversationId'];
               return FamilyPrivateChatScreen(
                 personId: id,
                 personName: name,

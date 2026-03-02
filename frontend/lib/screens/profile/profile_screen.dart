@@ -18,6 +18,7 @@ import '../../providers/gamification_provider.dart';
 import 'change_password_dialog.dart';
 import 'change_email_dialog.dart';
 import 'change_phone_dialog.dart';
+import 'change_address_dialog.dart';
 
 // Design from HTML: primary #A2D9E7, background #F8FAFC, rounded-3xl
 const Color _profilePrimary = Color(0xFFA2D9E7);
@@ -861,6 +862,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             backgroundColor: Colors.green,
                           ),
                         );
+                      },
+                    ),
+                    _buildSettingsOption(
+                      icon: Icons.location_on_outlined,
+                      iconColor: const Color(0xFFA3D9E5),
+                      title: loc.changeAddress,
+                      onTap: () async {
+                        Navigator.of(context).pop(); // Close drawer
+                        final user =
+                            Provider.of<AuthProvider>(context, listen: false)
+                                .user;
+                        final result = await showDialog<bool>(
+                          context: context,
+                          builder: (_) => ChangeAddressDialog(
+                            currentLocation: user?.location,
+                            currentLat: user?.locationLat,
+                            currentLng: user?.locationLng,
+                          ),
+                        );
+                        if (result != true) return;
+                        _refreshProfile();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  AppLocalizations.of(context)!.addressUpdated),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
                       },
                     ),
                   ],

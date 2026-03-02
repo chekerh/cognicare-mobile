@@ -114,6 +114,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get termsRequired => 'Vous devez accepter les termes et conditions';
+  String get locationRequired => 'Veuillez indiquer votre localisation (ville ou adresse)';
 
   @override
   String get networkError => 'Erreur réseau. Vérifiez votre connexion et réessayez.';
@@ -198,6 +199,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get changePhone => 'Changer le téléphone';
+
+  @override
+  String get changeAddress => 'Changer l\'adresse';
+
+  @override
+  String get addressUpdated => 'Adresse mise à jour';
 
   @override
   String get logout => 'Déconnexion';

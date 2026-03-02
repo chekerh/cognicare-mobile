@@ -290,6 +290,9 @@ export class AuthService {
       specialty: user.specialty,
       organizationId: user.organizationId,
       profilePic: user.profilePic,
+      location: user.location,
+      locationLat: user.locationLat,
+      locationLng: user.locationLng,
       createdAt: user.createdAt,
     };
 
@@ -454,6 +457,9 @@ export class AuthService {
       careProviderType: user.careProviderType,
       specialty: user.specialty,
       profilePic: user.profilePic,
+      location: user.location,
+      locationLat: user.locationLat,
+      locationLng: user.locationLng,
       createdAt: user.createdAt,
     };
 
@@ -627,6 +633,9 @@ export class AuthService {
       phone: user.phone,
       role: user.role,
       profilePic: user.profilePic,
+      location: user.location,
+      locationLat: user.locationLat,
+      locationLng: user.locationLng,
       createdAt: user.createdAt || new Date(),
     };
   }
@@ -650,6 +659,9 @@ export class AuthService {
     if (dto.fullName !== undefined) user.fullName = dto.fullName;
     if (dto.phone !== undefined) user.phone = dto.phone;
     if (dto.profilePic !== undefined) user.profilePic = dto.profilePic;
+    if (dto.location !== undefined) user.location = dto.location;
+    if (dto.locationLat !== undefined) user.locationLat = dto.locationLat;
+    if (dto.locationLng !== undefined) user.locationLng = dto.locationLng;
     await user.save();
     return this.getProfile(userId);
   }

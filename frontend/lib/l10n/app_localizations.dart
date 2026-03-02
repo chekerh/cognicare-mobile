@@ -139,6 +139,7 @@ abstract class AppLocalizations {
   String get fullNameRequired;
   String get phoneInvalid;
   String get termsRequired;
+  String get locationRequired;
 
   /// Error messages
   String get networkError;
@@ -388,6 +389,8 @@ abstract class AppLocalizations {
   String get changeEmail;
   String get changeLanguage;
   String get changePhone;
+  String get changeAddress;
+  String get addressUpdated;
   String get logout;
   String get logoutConfirmTitle;
   String get logoutConfirmMessage;

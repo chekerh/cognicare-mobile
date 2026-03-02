@@ -44,6 +44,9 @@ class AuthProvider with ChangeNotifier {
     String? phone,
     required String role,
     required String verificationCode,
+    String? location,
+    double? locationLat,
+    double? locationLng,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -56,6 +59,9 @@ class AuthProvider with ChangeNotifier {
         phone: phone,
         role: role,
         verificationCode: verificationCode,
+        location: location,
+        locationLat: locationLat,
+        locationLng: locationLng,
       );
       _accessToken = response.accessToken;
       _refreshToken = response.refreshToken;
@@ -100,15 +106,7 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> updateProfilePicture(String newImageUrl) async {
     if (_user != null) {
-      final updatedUser = User(
-        id: _user!.id,
-        fullName: _user!.fullName,
-        email: _user!.email,
-        role: _user!.role,
-        profilePic: newImageUrl,
-        phone: _user!.phone,
-        createdAt: _user!.createdAt,
-      );
+      final updatedUser = _user!.copyWith(profilePic: newImageUrl);
       updateUser(updatedUser);
     }
   }

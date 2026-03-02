@@ -21,4 +21,18 @@ export class UpdateProfileDto {
   @IsString()
   @MaxLength(500)
   profilePic?: string;
+
+  @ApiPropertyOptional({ description: "User's location (address or city)" })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  location?: string;
+
+  @ApiPropertyOptional({ description: 'Latitude of user location' })
+  @IsOptional()
+  locationLat?: number;
+
+  @ApiPropertyOptional({ description: 'Longitude of user location' })
+  @IsOptional()
+  locationLng?: number;
 }

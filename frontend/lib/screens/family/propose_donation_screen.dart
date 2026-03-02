@@ -1,9 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/donation_service.dart';
 import '../../services/geocoding_service.dart';
 import '../../widgets/location_map_widget.dart';
@@ -50,6 +53,7 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
   double? _mapLat;
   double? _mapLng;
   bool _mapLoading = false;
+  bool _isDetectingLocation = false;
   final GeocodingService _geocoding = GeocodingService();
 
   static const List<String> _categories = ['Vêtements', 'Mobilier', 'Jouets'];
@@ -66,6 +70,80 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _prefillLocationFromUser());
+  }
+
+  void _prefillLocationFromUser() {
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    if (user == null || !user.hasLocation) return;
+    if (_locationController.text.trim().isNotEmpty) return;
+    _locationController.text = user.location ?? '';
+    setState(() {
+      _mapLat = user.locationLat;
+      _mapLng = user.locationLng;
+    });
+  }
+
+  Future<void> _useMyLocation() async {
+    setState(() => _isDetectingLocation = true);
+    try {
+      final permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        final requested = await Geolocator.requestPermission();
+        if (requested != LocationPermission.whileInUse &&
+            requested != LocationPermission.always) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Autorisez l\'accès à la position pour utiliser cette fonction.',
+              ),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          return;
+        }
+      }
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+        ),
+      );
+      final result = await _geocoding.reverseGeocode(
+        position.latitude,
+        position.longitude,
+      );
+      if (!mounted) return;
+      setState(() {
+        _isDetectingLocation = false;
+        _mapLat = position.latitude;
+        _mapLng = position.longitude;
+        if (result != null) {
+          _locationController.text = result.displayName;
+        }
+      });
+      if (result == null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Position enregistrée (${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)})',
+            ),
+            backgroundColor: Colors.grey,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isDetectingLocation = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Impossible d\'obtenir la position: ${e.toString().replaceFirst('Exception: ', '')}',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -808,6 +886,25 @@ class _ProposeDonationScreenState extends State<ProposeDonationScreen> {
                 _mapLoading = false;
               });
             },
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: _isDetectingLocation ? null : _useMyLocation,
+            icon: _isDetectingLocation
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.my_location, size: 20),
+            label: Text(
+              _isDetectingLocation ? 'Détection...' : 'Utiliser ma position',
+              style: const TextStyle(fontSize: 14),
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: _primaryDark,
+              side: BorderSide(color: _primary.withOpacity(0.8)),
+            ),
           ),
           const SizedBox(height: 12),
           Builder(
