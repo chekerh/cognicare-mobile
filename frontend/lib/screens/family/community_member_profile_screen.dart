@@ -92,8 +92,9 @@ class _CommunityMemberProfileScreenState
   MemberContactInfo? _memberContactInfo;
   bool _loadingContact = false;
 
-  /// Quand on ouvre le profil via un lien (ex. chat), on n'a que memberId — on charge nom et photo ici.
+  /// Infos publiques du membre (nom, photo, email, téléphone) — chargées pour tout profil.
   MemberPublicInfo? _loadedPublicInfo;
+  bool _loadingPublicInfo = false;
 
   @override
   void initState() {
@@ -104,22 +105,25 @@ class _CommunityMemberProfileScreenState
     _loadMemberPosts();
     _loadMemberFriends();
     _loadMemberContactInfo();
-    if (widget.memberId.isNotEmpty &&
-        (widget.memberImageUrl == null || widget.memberImageUrl!.isEmpty ||
-            widget.memberName.isEmpty)) {
-      _loadMemberPublicInfo();
-    }
+    if (widget.memberId.isNotEmpty) _loadMemberPublicInfo();
   }
 
   Future<void> _loadMemberPublicInfo() async {
     if (widget.memberId.isEmpty) return;
+    setState(() => _loadingPublicInfo = true);
     try {
       final info = await CommunityService().getMemberPublicInfo(widget.memberId);
       if (!mounted) return;
-      setState(() => _loadedPublicInfo = info);
+      setState(() {
+        _loadedPublicInfo = info;
+        _loadingPublicInfo = false;
+      });
     } catch (_) {
       if (!mounted) return;
-      setState(() => _loadedPublicInfo = null);
+      setState(() {
+        _loadedPublicInfo = null;
+        _loadingPublicInfo = false;
+      });
     }
   }
 
@@ -464,18 +468,23 @@ class _CommunityMemberProfileScreenState
                   },
                   borderRadius: BorderRadius.circular(20),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.chat_bubble_outline, color: _slate800, size: 20),
                         const SizedBox(width: 8),
-                        Text(
-                          loc.privateMessageAction,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: _slate800,
-                            fontSize: 15,
+                        Flexible(
+                          child: Text(
+                            loc.privateMessageAction,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: _slate800,
+                              fontSize: 15,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],
@@ -508,9 +517,10 @@ class _CommunityMemberProfileScreenState
                                 : () => _onFollowTap(context),
                         borderRadius: BorderRadius.circular(20),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
                                 isAccepted ? Icons.people : Icons.person_add,
@@ -518,16 +528,20 @@ class _CommunityMemberProfileScreenState
                                 color: isAccepted ? Colors.white70 : Colors.white,
                               ),
                               const SizedBox(width: 8),
-                              Text(
-                                isAccepted
-                                    ? loc.followStatusFriends
-                                    : isPending
-                                        ? loc.cancelFollowRequestLabel
-                                        : loc.followAction,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: isAccepted ? Colors.white70 : Colors.white,
-                                  fontSize: 15,
+                              Flexible(
+                                child: Text(
+                                  isAccepted
+                                      ? loc.followStatusFriends
+                                      : isPending
+                                          ? loc.cancelFollowRequestLabel
+                                          : loc.followAction,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: isAccepted ? Colors.white70 : Colors.white,
+                                    fontSize: 15,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                               ),
                             ],
@@ -648,7 +662,14 @@ class _CommunityMemberProfileScreenState
                         final imageUrl = f.profilePic != null && f.profilePic!.isNotEmpty
                             ? AppConstants.fullImageUrl(f.profilePic!)
                             : null;
-                        return _friendChip(f.fullName, imageUrl, highlighted: false);
+                        return _friendChip(
+                          f.fullName,
+                          imageUrl,
+                          memberId: f.id,
+                          memberName: f.fullName,
+                          memberImageUrl: f.profilePic,
+                          highlighted: false,
+                        );
                       }).toList(),
                     ),
                   ),
@@ -656,8 +677,15 @@ class _CommunityMemberProfileScreenState
     );
   }
 
-  Widget _friendChip(String name, String? imageUrl, {bool highlighted = false}) {
-    return Padding(
+  Widget _friendChip(
+    String name,
+    String? imageUrl, {
+    bool highlighted = false,
+    String? memberId,
+    String? memberName,
+    String? memberImageUrl,
+  }) {
+    final content = Padding(
       padding: const EdgeInsets.only(right: 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -711,6 +739,23 @@ class _CommunityMemberProfileScreenState
         ],
       ),
     );
+
+    if (memberId != null && memberId.isNotEmpty) {
+      return GestureDetector(
+        onTap: () {
+          context.push(
+            AppConstants.familyCommunityMemberProfileRoute,
+            extra: {
+              'memberId': memberId,
+              'memberName': memberName ?? name,
+              'memberImageUrl': memberImageUrl,
+            },
+          );
+        },
+        child: content,
+      );
+    }
+    return content;
   }
 
   Widget _buildInformationsPersonnellesCard() {
@@ -740,7 +785,7 @@ class _CommunityMemberProfileScreenState
             ),
           ),
           const SizedBox(height: 16),
-          if (_loadingContact)
+          if (_loadingContact || _loadingPublicInfo)
             const Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
@@ -751,52 +796,39 @@ class _CommunityMemberProfileScreenState
                 ),
               ),
             )
-          else if (_memberContactInfo == null)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'Devenez ami pour voir les informations de contact.',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: _slate400,
-                ),
-              ),
-            )
           else
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if ((_memberContactInfo!.email ?? '').isNotEmpty)
-                  _buildContactRow(
-                    Icons.email_outlined,
-                    'Email',
-                    _memberContactInfo!.email!,
-                  ),
-                if ((_memberContactInfo!.email ?? '').isNotEmpty &&
-                    (_memberContactInfo!.phone ?? '').isNotEmpty)
-                  const SizedBox(height: 12),
-                if ((_memberContactInfo!.phone ?? '').isNotEmpty)
-                  _buildContactRow(
-                    Icons.phone_outlined,
-                    'Téléphone',
-                    _memberContactInfo!.phone!,
-                  ),
-                if ((_memberContactInfo!.email ?? '').isEmpty &&
-                    (_memberContactInfo!.phone ?? '').isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Text(
-                      'Aucune information de contact partagée.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: _slate400,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+            _buildContactContent(),
         ],
       ),
+    );
+  }
+
+  Widget _buildContactContent() {
+    final email = _loadedPublicInfo?.email ?? _memberContactInfo?.email;
+    final phone = _loadedPublicInfo?.phone ?? _memberContactInfo?.phone;
+    final hasEmail = (email ?? '').isNotEmpty;
+    final hasPhone = (phone ?? '').isNotEmpty;
+    if (!hasEmail && !hasPhone) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'Aucune information de contact partagée.',
+          style: TextStyle(
+            fontSize: 14,
+            color: _slate400,
+          ),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (hasEmail)
+          _buildContactRow(Icons.email_outlined, 'Email', email!),
+        if (hasEmail && hasPhone) const SizedBox(height: 12),
+        if (hasPhone)
+          _buildContactRow(Icons.phone_outlined, 'Téléphone', phone!),
+      ],
     );
   }
 

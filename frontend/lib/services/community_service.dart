@@ -305,6 +305,8 @@ class CommunityService {
     return MemberPublicInfo(
       fullName: m['fullName'] as String? ?? 'Membre',
       profilePic: m['profilePic'] as String?,
+      email: m['email'] as String?,
+      phone: m['phone'] as String?,
     );
   }
 
@@ -423,9 +425,13 @@ class MemberPublicInfo {
   const MemberPublicInfo({
     required this.fullName,
     this.profilePic,
+    this.email,
+    this.phone,
   });
   final String fullName;
   final String? profilePic;
+  final String? email;
+  final String? phone;
 }
 
 class MemberContactInfo {

@@ -481,20 +481,22 @@ export class CommunityService {
     );
   }
 
-  /** Infos publiques d'un membre (nom, photo) — pour afficher le profil quand on n'a que l'id (ex. lien partagé). */
+  /** Infos publiques d'un membre (nom, photo, email, phone) pour afficher le profil. */
   async getMemberPublicInfo(
     userId: string,
-  ): Promise<{ fullName: string; profilePic?: string } | null> {
+  ): Promise<{ fullName: string; profilePic?: string; email?: string; phone?: string } | null> {
     const user = await this.userModel
       .findById(userId)
-      .select('fullName profilePic')
+      .select('fullName profilePic email phone')
       .lean()
       .exec();
     if (!user) return null;
-    const u = user as { fullName?: string; profilePic?: string };
+    const u = user as { fullName?: string; profilePic?: string; email?: string; phone?: string };
     return {
       fullName: u.fullName ?? 'Membre',
       profilePic: u.profilePic,
+      email: u.email,
+      phone: u.phone,
     };
   }
 
